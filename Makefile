@@ -2,7 +2,9 @@
 
 deploy:
 	yarn build
-	firebase deploy --project=webapp
+	GOOGLE_APPLICATION_CREDENTIALS="$(HOME)/.quantap/webapp-secret.json" \
+		firebase deploy --project=webapp
 
 local:
-	firebase emulators:exec --only functions,firestore,storage "yarn start"
+	GOOGLE_APPLICATION_CREDENTIALS="$(HOME)/.quantap/webapp-secret.json" \
+		firebase emulators:exec --only functions,firestore "yarn start"
