@@ -25,29 +25,58 @@ exports.processCSVUpload = functions.storage.object().onFinalize(
 		console.log('File downloaded locally to', tempFilePath);
 
 		let db = admin.firestore();
-		highlights = db.collection('datasets').doc(datasetID).collection('highlights');
+		let dataset = db.collection('datasets').doc(datasetID);
+		let highlights = dataset.collection('highlights');
 
-		// Read the CSV.
-		fs.createReadStream(tempFilePath)
+		let batchSize = 250;  // batched writes can contain up to 500 operations
+		var batch = db.batch();
+		var count = 0;
+
+		var writeBatch = function() {
+				if (count == 0) return;
+
+				batch.commit()
+					.then(function() {
+						console.log(`wrote batch of size ${count}`)
+						batch = db.batch();
+					})
+					.catch(function(error) {
+						console.error("failed to write batch", error);
+					});
+
+				batch = db.batch();
+				count = 0;
+		}
+
+		var handleRow = function(row) {
+			highlightRef = highlights.doc();
+			batch.set(highlightRef, row);
+			count++;
+
+			if (count == batchSize) {
+				writeBatch();
+			}
+		};
+
+		// Read the CSV and create a record for each row.
+		return fs.createReadStream(tempFilePath)
 			.pipe(csv())
-			.on('data', (row) => {
-				console.log(row);
-				highlights.add(row)
-					.then(function() { console.log("Inserted record"); })
-					.catch(function(error) { console.error("Error inserting record"); });
-			})
+			.on('data', handleRow)
 			.on('end', () => {
-				let now = new Date();
+
 				console.log('Done processing CSV file');
-				db.collection('datasets').doc(datasetID).set({
+
+				// Commit last batch of writes
+				writeBatch();
+
+				// Mark the dataset as done processing
+				let now = new Date();
+				dataset.set({
 					processedAt: now.toISOString()
 				}, {merge: true});
+
+				// Delete the local file to free up disk space.
+				return fs.unlinkSync(tempFilePath);
 			});
-
-		// Create highlight records in firestore for each row of the CSV
-		// todo
-
-		// Once the thumbnail has been uploaded delete the local file to free up disk space.
-		return fs.unlinkSync(tempFilePath);
   }
 );
