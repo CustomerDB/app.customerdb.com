@@ -9,12 +9,12 @@ import Alert from 'react-bootstrap/Alert';
 var provider = new window.firebase.auth.GoogleAuthProvider();
 var storageRef = window.firebase.storage().ref();
 var db = window.firebase.firestore();
-if (window.location.hostname === "localhost") {
-  db.settings({
-    host: "localhost:8080",
-    ssl: false
-  });
-}
+// if (window.location.hostname === "localhost") {
+//   db.settings({
+//     host: "localhost:8080",
+//     ssl: false
+//   });
+// }
 
 class App extends React.Component {
   constructor(props) {
@@ -65,7 +65,10 @@ class App extends React.Component {
           });
         }).bind(this))
         .catch((function (error) {
-          window.firebase.auth().signOut();
+          window.firebase.auth().signOut().catch(function(error) {
+            console.error(error);
+          });
+
           console.log("Login failed", error);
           this.setState({
             'phase': 'login',
@@ -81,18 +84,39 @@ class App extends React.Component {
 
   handleFileUploadSubmit(e) {
     this.setState({'uploadStatus': {'status': 'light', 'message': 'Uploading..'}});
-    const uploadTask = storageRef.child(`csvs/${this.state.selectedFile.name}`).put(this.state.selectedFile);
-    uploadTask.on('state_changed', (snapshot) => {
-    // Observe state change events such as progress, pause, and resume
-    }, (error) => {
-      // Handle unsuccessful uploads
-      console.log(error);
-      this.setState({'uploadStatus': {'status': 'danger', 'message': error}});
-    }, () => {
-       // Do something once upload is complete
-       console.log('success');
-       this.setState({'uploadStatus': {'status': 'success', 'message': 'Uploaded file successfully'}});
-    });
+
+    db.collection("datasets").add({
+      name: this.state.selectedFile.name,
+      owners: [this.state.user.uid]
+    }).then((function(ref) {
+      let id = ref.id
+      let storagePath = `csvs/${id}/${this.state.selectedFile.name}`;
+
+      ref.set({
+        googleStoragePath: storagePath
+      }, {merge: true}).then((function() {
+        let fileMetadata = {
+          datasetID: ref.id
+        };
+
+        const uploadTask = storageRef.child(storagePath).put(
+          this.state.selectedFile,
+          fileMetadata
+        );
+
+        uploadTask.on('state_changed', (snapshot) => {
+        // Observe state change events such as progress, pause, and resume
+        }, (error) => {
+          // Handle unsuccessful uploads
+          console.log(error);
+          this.setState({'uploadStatus': {'status': 'danger', 'message': error}});
+        }, () => {
+           // Do something once upload is complete
+           console.log('success');
+           this.setState({'uploadStatus': {'status': 'success', 'message': 'Uploaded file successfully'}});
+        });
+      }).bind(this))
+    }).bind(this));
   }
 
   handleFileUploadChange(e) {
@@ -116,21 +140,19 @@ class App extends React.Component {
     window.firebase.auth().setPersistence(window.firebase.auth.Auth.Persistence.LOCAL).then(function() {
       window.firebase.auth().signInWithRedirect(provider);
     }).catch(function(error) {
-      // Handle Errors here.
-      var errorCode = error.code;
-      var errorMessage = error.message;
       console.error(error);
     });
   }
 
   logoutCallback() {
     // Sign-out successful.
-    this.setState({'phase': 'login'})
+    this.setState({'phase': 'login'});
+    window.location.reload();
   }
 
   logout() {
     window.firebase.auth().signOut().then(this.logoutCallback).catch(function(error) {
-      // An error happened.
+      console.error(error);
     });
   }
 
