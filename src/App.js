@@ -172,7 +172,7 @@ class App extends React.Component {
       owners: [this.state.user.uid]
     }).then((function(ref) {
       let id = ref.id
-      let storagePath = `csvs/${id}/${this.state.selectedFile.name}`;
+      let storagePath = `csvs/${id}`;
 
       ref.set({
         googleStoragePath: storagePath
