@@ -1,10 +1,14 @@
 import React from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
+import { useState, useRef } from 'react';
 
 import Button from 'react-bootstrap/Button';
 import Spinner from 'react-bootstrap/Spinner';
 import Alert from 'react-bootstrap/Alert';
+import Popover from 'react-bootstrap/Popover';
+import Overlay from 'react-bootstrap/Overlay';
+import Table from 'react-bootstrap/Table';
 
 var provider = new window.firebase.auth.GoogleAuthProvider();
 var storageRef = window.firebase.storage().ref();
@@ -15,6 +19,72 @@ var db = window.firebase.firestore();
 //     ssl: false
 //   });
 // }
+
+function UploadForm(props) {
+  const [show, setShow] = useState(false);
+  const [target, setTarget] = useState(null);
+  const ref = useRef(null);
+
+  const handleClick = (event) => {
+    setShow(!show);
+    setTarget(event.target);
+  };
+
+  const handleHide = (event) => {
+    setShow(!show);
+  }
+
+  let status;
+  if (props.uploadStatus != undefined) {
+    status = <Alert variant={props.uploadStatus.status}>{props.uploadStatus.message}</Alert>;
+  }
+
+  return (
+    <div ref={ref}>
+      <Button onClick={handleClick}>Add dataset</Button>
+      <Overlay
+        show={show}
+        target={target}
+        placement="bottom"
+        container={ref.current}
+        containerPadding={30}
+        rootClose={true}
+        onHide={handleHide}
+      >
+        <Popover id="popover-contained">
+          <Popover.Title as="h3">Add dataset</Popover.Title>
+          <Popover.Content>
+            {status}
+            <input type="file" className="file-select" accept=".csv" onChange={props.handleFileUploadChange}/>
+            <br/>
+            <br/>
+            <Button onClick={props.handleFileUploadSubmit}>Upload</Button>
+          </Popover.Content>
+        </Popover>
+      </Overlay>
+    </div>
+  );
+}
+
+function DatasetTable(props) {
+  let datasetRows = [];
+  props.datasets.forEach((e) => {
+    datasetRows.push(<tr><td>{e.name}</td><td></td><td></td></tr>);
+  });
+  return <Table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>State</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {datasetRows}
+  </tbody>
+  </Table>;
+}
+
 
 class App extends React.Component {
   constructor(props) {
@@ -31,7 +101,8 @@ class App extends React.Component {
       'phase': 'logging_in',
       'user': undefined,
       'uploadStatus': undefined,
-      'loginFailed': false
+      'loginFailed': false,
+      'datasets': []
     };
   }
 
@@ -63,6 +134,17 @@ class App extends React.Component {
             'phase': 'logged_in',
             'user': user
           });
+
+          db.collection("datasets").where("owners", "array-contains", this.state.user.uid)
+          .onSnapshot((function(querySnapshot) {
+            let datasets = [];
+            querySnapshot.forEach(function(doc) {
+              datasets.push(doc.data());
+            });
+
+            this.setState({'datasets': datasets});
+          }).bind(this));
+
         }).bind(this))
         .catch((function (error) {
           window.firebase.auth().signOut().catch(function(error) {
@@ -123,19 +205,6 @@ class App extends React.Component {
     this.setState({'selectedFile': e.target.files[0]});
   }
 
-  uploadForm() {
-    let status;
-    if (this.state.uploadStatus != undefined) {
-      status = <Alert variant={this.state.uploadStatus.status}>{this.state.uploadStatus.message}</Alert>;
-    }
-
-    return <div id="filesubmit">
-      {status}
-      <input type="file" className="file-select" accept=".csv" onChange={this.handleFileUploadChange}/>
-      <Button onClick={this.handleFileUploadSubmit}>Upload</Button>
-    </div>;
-  }
-
   login() {
     window.firebase.auth().setPersistence(window.firebase.auth.Auth.Persistence.LOCAL).then(function() {
       window.firebase.auth().signInWithRedirect(provider);
@@ -177,7 +246,9 @@ class App extends React.Component {
         <div className="outerContainer">
           <div className="uploadContainer">
             <h1>Highlight Group</h1>
-            {this.uploadForm()}
+            <UploadForm uploadStatus={this.state.uploadStatus} handleFileUploadChange={this.handleFileUploadChange} handleFileUploadSubmit={this.handleFileUploadSubmit}/>
+            <br/>
+            <DatasetTable datasets={this.state.datasets}/>
           </div>
         </div>
       </div>
