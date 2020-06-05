@@ -4,6 +4,7 @@ import './App.css';
 
 import Button from 'react-bootstrap/Button';
 import Spinner from 'react-bootstrap/Spinner';
+import Alert from 'react-bootstrap/Alert';
 
 var provider = new window.firebase.auth.GoogleAuthProvider();
 var storageRef = window.firebase.storage().ref();
@@ -32,35 +33,37 @@ class App extends React.Component {
 
   loginCallback(user) {
       if (user) {
-        // User is signed in.
-        var displayName = user.displayName;
-        var email = user.email;
-        var emailVerified = user.emailVerified;
-        var photoURL = user.photoURL;
-        var isAnonymous = user.isAnonymous;
-        var uid = user.uid;
-        var providerData = user.providerData;
-        console.log("User is signed in! " + displayName);
-        this.setState({'phase': 'logged_in'});
+        // // User is signed in.
+        // var displayName = user.displayName;
+        // var email = user.email;
+        // var emailVerified = user.emailVerified;
+        // var photoURL = user.photoURL;
+        // var isAnonymous = user.isAnonymous;
+        // var uid = user.uid;
+        // var providerData = user.providerData;
+
+        this.setState({
+          'phase': 'logged_in',
+          'user': user
+        });
       } else {
-        console.log("User is signed out");
-        this.setState({'phase': 'login'});
+        this.setState({'phase': 'login', 'user': undefined});
       }
   }
 
   handleFileUploadSubmit(e) {
-    this.setState({'uploadStatus': 'Uploading..'});
-    const uploadTask = storageRef.child(`csvs/${this.state.selectedFile.name}`).put(this.state.selectedFile); //create a child directory called images, and place the file inside this directory
+    this.setState({'uploadStatus': {'status': 'light', 'message': 'Uploading..'}});
+    const uploadTask = storageRef.child(`csvs/${this.state.selectedFile.name}`).put(this.state.selectedFile);
     uploadTask.on('state_changed', (snapshot) => {
     // Observe state change events such as progress, pause, and resume
     }, (error) => {
       // Handle unsuccessful uploads
       console.log(error);
-      this.setState({'uploadStatus': error});
+      this.setState({'uploadStatus': {'status': 'danger', 'message': error}});
     }, () => {
        // Do something once upload is complete
        console.log('success');
-       this.setState({'uploadStatus': 'Uploaded file successfully'});
+       this.setState({'uploadStatus': {'status': 'success', 'message': 'Uploaded file successfully'}});
     });
   }
 
@@ -71,7 +74,7 @@ class App extends React.Component {
   uploadForm() {
     let status;
     if (this.state.uploadStatus != undefined) {
-      status = <p>{this.state.uploadStatus}</p>;
+      status = <Alert variant={this.state.uploadStatus.status}>{this.state.uploadStatus.message}</Alert>;
     }
 
     return <div id="filesubmit">
@@ -117,9 +120,13 @@ class App extends React.Component {
 
     return (
       <div>
-        <h1>Quantap App</h1>
-        {this.uploadForm()}
-        <Button onClick={this.logout}>Logout</Button>
+        <Button onClick={this.logout} variant="link">Logout</Button>
+        <div className="outerContainer">
+          <div className="uploadContainer">
+            <h1>Highlight Group</h1>
+            {this.uploadForm()}
+          </div>
+        </div>
       </div>
       );
   }
