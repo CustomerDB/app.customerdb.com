@@ -4,12 +4,17 @@ admin.initializeApp()
 const path = require('path');
 const os = require('os');
 const fs = require('fs');
-
-// // Create and Deploy Your First Cloud Functions
-// // https://firebase.google.com/docs/functions/write-firebase-functions
+const csv = require('csv-parser');
 
 exports.processCSVUpload = functions.storage.object().onFinalize(
   async (object) => {
+
+		const datasetID = object.metadata.datasetID;
+		if (datasetID == undefined) {
+			console.log('Dataset ID undefined -- nothing to do');
+			return;
+		}
+
 		const fileBucket = object.bucket; // The Storage bucket that contains the file.
 		const filePath = object.name; // File path in the bucket.
 		const contentType = object.contentType; // File content type.
@@ -27,8 +32,21 @@ exports.processCSVUpload = functions.storage.object().onFinalize(
 		await bucket.file(filePath).download({destination: tempFilePath});
 		console.log('File downloaded locally to', tempFilePath);
 
+		let db = functions.firestore.firestoreInstance;
+		highlights = db.collection("datasets").doc(datasetID).collection("highlights");
+
 		// Read the CSV.
-		// todo
+		fs.createReadStream(tempFilePath)
+			.pipe(csv())
+			.on('data', (row) => {
+				console.log(row);
+				highlights.add(row)
+					.then(function() { console.log("Inserted record"); })
+					.catch(function(error) { console.error("Error inserting record"); });
+			})
+			.on('end', () => {
+				console.log('Done processing CSV file');
+			});
 
 		// Create highlight records in firestore for each row of the CSV
 		// todo
