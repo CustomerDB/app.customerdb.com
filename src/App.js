@@ -39,13 +39,24 @@ class App extends React.Component {
         // var emailVerified = user.emailVerified;
         // var photoURL = user.photoURL;
         // var isAnonymous = user.isAnonymous;
-        // var uid = user.uid;
+        var uid = user.uid;
         // var providerData = user.providerData;
+
+        // write document to users collection
+     // var db = window.firebase.firestore();
+     // var userRef = db.collection("users").doc(uid);
+     // userRef.set(
+     //   {
+     //     email: user.email
+     //   },
+     //   { merge: true }
+     // );
 
         this.setState({
           'phase': 'logged_in',
           'user': user
         });
+
       } else {
         this.setState({'phase': 'login', 'user': undefined});
       }
