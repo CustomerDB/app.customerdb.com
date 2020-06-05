@@ -69,7 +69,7 @@ function UploadForm(props) {
 function DatasetTable(props) {
   let datasetRows = [];
   props.datasets.forEach((e) => {
-    datasetRows.push(<tr><td>{e.name}</td><td></td><td></td></tr>);
+    datasetRows.push(<tr><td>{e.name}</td><td></td><td><Button>Open</Button></td></tr>);
   });
   return <Table>
   <thead>
@@ -178,7 +178,9 @@ class App extends React.Component {
         googleStoragePath: storagePath
       }, {merge: true}).then((function() {
         let fileMetadata = {
-          datasetID: ref.id
+          customMetadata: {
+            datasetID: ref.id
+          }
         };
 
         const uploadTask = storageRef.child(storagePath).put(
