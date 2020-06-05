@@ -74,7 +74,6 @@ class App extends React.Component {
           });
         }).bind(this));
 
-
       } else {
         this.setState({'phase': 'login', 'user': undefined});
       }
@@ -108,7 +107,7 @@ class App extends React.Component {
 
     return <div id="filesubmit">
       {status}
-      <input type="file" class="file-select" accept=".csv" onChange={this.handleFileUploadChange}/>
+      <input type="file" className="file-select" accept=".csv" onChange={this.handleFileUploadChange}/>
       <Button onClick={this.handleFileUploadSubmit}>Upload</Button>
     </div>;
   }
@@ -120,6 +119,7 @@ class App extends React.Component {
       // Handle Errors here.
       var errorCode = error.code;
       var errorMessage = error.message;
+      console.error(error);
     });
   }
 
@@ -140,7 +140,7 @@ class App extends React.Component {
     }
 
     if (this.state.phase == 'login') {
-      let loginFailedMessage = this.state.loginFailed ? <div>FAIL</div> : <div></div>;
+      let loginFailedMessage = this.state.loginFailed ? <Alert variant="danger">Login failed</Alert> : <div></div>;
       return <div className="outerContainer"><div className="loginContainer">
         <h4>Group Highlights</h4>
         <br/>
