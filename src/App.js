@@ -65,6 +65,7 @@ class App extends React.Component {
           });
         }).bind(this))
         .catch((function (error) {
+          window.firebase.auth().signOut();
           console.log("Login failed", error);
           this.setState({
             'phase': 'login',
