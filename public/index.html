@@ -37,16 +37,11 @@
     <script src="https://www.gstatic.com/firebasejs/7.14.6/firebase-storage.js"></script>
 
     <script>
-      let databaseURL = "https://webapp-af09a.firebaseio.com";
-      if (window.location.hostname === "localhost") {
-        databaseURL = "http://localhost:8080?ns=webapp-af09a";
-      }
-
       // Your web app's Firebase configuration
       var firebaseConfig = {
         apiKey: "AIzaSyALIkZK6wQXn8FHWduhA2F2XtfVrudzKDo",
         authDomain: "webapp-af09a.firebaseapp.com",
-        databaseURL: databaseURL,
+        databaseURL: "https://webapp-af09a.firebaseio.com",
         projectId: "webapp-af09a",
         storageBucket: "webapp-af09a.appspot.com",
         messagingSenderId: "641723606721",

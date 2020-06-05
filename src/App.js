@@ -8,6 +8,13 @@ import Alert from 'react-bootstrap/Alert';
 
 var provider = new window.firebase.auth.GoogleAuthProvider();
 var storageRef = window.firebase.storage().ref();
+var db = window.firebase.firestore();
+if (window.location.hostname === "localhost") {
+  db.settings({
+    host: "localhost:8080",
+    ssl: false
+  });
+}
 
 class App extends React.Component {
   constructor(props) {
@@ -23,7 +30,8 @@ class App extends React.Component {
       'selectedFile': undefined,
       'phase': 'logging_in',
       'user': undefined,
-      'uploadStatus': undefined
+      'uploadStatus': undefined,
+      'loginFailed': false
     };
   }
 
@@ -43,19 +51,28 @@ class App extends React.Component {
         // var providerData = user.providerData;
 
         // write document to users collection
-     // var db = window.firebase.firestore();
-     // var userRef = db.collection("users").doc(uid);
-     // userRef.set(
-     //   {
-     //     email: user.email
-     //   },
-     //   { merge: true }
-     // );
+        var userRef = db.collection("users").doc(uid);
+        userRef.set(
+          {
+            email: user.email
+          },
+          { merge: true }
+        )
+        .then((function() {
+          this.setState({
+            'phase': 'logged_in',
+            'user': user
+          });
+        }).bind(this))
+        .catch((function (error) {
+          console.log("Login failed", error);
+          this.setState({
+            'phase': 'login',
+            'user': undefined,
+            'loginFailed': true
+          });
+        }).bind(this));
 
-        this.setState({
-          'phase': 'logged_in',
-          'user': user
-        });
 
       } else {
         this.setState({'phase': 'login', 'user': undefined});
@@ -122,9 +139,11 @@ class App extends React.Component {
     }
 
     if (this.state.phase == 'login') {
+      let loginFailedMessage = this.state.loginFailed ? <div>FAIL</div> : <div></div>;
       return <div className="outerContainer"><div className="loginContainer">
         <h4>Group Highlights</h4>
         <br/>
+        {loginFailedMessage}
         <Button onClick={this.login}>Login with Google</Button>
       </div></div>;
     }

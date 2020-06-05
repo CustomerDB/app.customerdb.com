@@ -7,4 +7,4 @@ deploy:
 
 local:
 	GOOGLE_APPLICATION_CREDENTIALS="$(HOME)/.quantap/webapp-secret.json" \
-		firebase emulators:exec --only functions,firestore "yarn start"
+		firebase emulators:exec --only functions,firestore,ui "yarn start"
