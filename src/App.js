@@ -9,6 +9,7 @@ import Alert from 'react-bootstrap/Alert';
 import Popover from 'react-bootstrap/Popover';
 import Overlay from 'react-bootstrap/Overlay';
 import Table from 'react-bootstrap/Table';
+import ProgressBar from 'react-bootstrap/ProgressBar';
 
 var provider = new window.firebase.auth.GoogleAuthProvider();
 var storageRef = window.firebase.storage().ref();
@@ -34,11 +35,6 @@ function UploadForm(props) {
     setShow(!show);
   }
 
-  let status;
-  if (props.uploadStatus != undefined) {
-    status = <Alert variant={props.uploadStatus.status}>{props.uploadStatus.message}</Alert>;
-  }
-
   return (
     <div ref={ref}>
       <Button onClick={handleClick}>Add dataset</Button>
@@ -47,18 +43,16 @@ function UploadForm(props) {
         target={target}
         placement="bottom"
         container={ref.current}
-        containerPadding={30}
         rootClose={true}
         onHide={handleHide}
       >
         <Popover id="popover-contained">
           <Popover.Title as="h3">Add dataset</Popover.Title>
           <Popover.Content>
-            {status}
             <input type="file" className="file-select" accept=".csv" onChange={props.handleFileUploadChange}/>
             <br/>
             <br/>
-            <Button onClick={props.handleFileUploadSubmit}>Upload</Button>
+            <Button onClick={() => {props.handleFileUploadSubmit(); handleHide();}}>Upload</Button>
           </Popover.Content>
         </Popover>
       </Overlay>
@@ -69,13 +63,14 @@ function UploadForm(props) {
 function DatasetTable(props) {
   let datasetRows = [];
   props.datasets.forEach((e) => {
-    datasetRows.push(<tr><td>{e.name}</td><td></td><td><Button>Open</Button></td></tr>);
+    let disabled = !(e.state == "");
+    datasetRows.push(<tr><td>{e.name}</td><td>{e.state}</td><td><Button disabled={disabled }variant="link">Delete</Button> <Button disabled={disabled}>Open</Button></td></tr>);
   });
   return <Table>
   <thead>
     <tr>
       <th>Name</th>
-      <th>State</th>
+      <th style={{width: "15rem"}}>{ }</th>
       <th></th>
     </tr>
   </thead>
@@ -102,7 +97,7 @@ class App extends React.Component {
       'user': undefined,
       'uploadStatus': undefined,
       'loginFailed': false,
-      'datasets': []
+      'datasets': {}
     };
   }
 
@@ -137,9 +132,20 @@ class App extends React.Component {
 
           db.collection("datasets").where("owners", "array-contains", this.state.user.uid)
           .onSnapshot((function(querySnapshot) {
-            let datasets = [];
+            let datasets = {};
             querySnapshot.forEach(function(doc) {
-              datasets.push(doc.data());
+              let dataset = doc.data();
+              datasets[doc.id] = dataset;
+
+              console.log(datasets[doc.id]);
+
+              if (!datasets[doc.id].hasOwnProperty('googleStoragePath')) {
+                datasets[doc.id]['state'] = <p>Pending upload</p>;
+              } else if (!datasets[doc.id].hasOwnProperty('processedAt')) {
+                datasets[doc.id]['state'] = <p>Pending processing</p>;
+              } else {
+                datasets[doc.id]['state'] = "";
+              }
             });
 
             this.setState({'datasets': datasets});
@@ -189,16 +195,28 @@ class App extends React.Component {
         );
 
         uploadTask.on('state_changed', (snapshot) => {
-        // Observe state change events such as progress, pause, and resume
+          // Observe state change events such as progress, pause, and resume
+          var progress = Math.floor((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+          let datasets = this.state.datasets;
+          datasets[ref.id]['state'] = <ProgressBar now={progress} />;
+          this.setState({
+            datasets: datasets
+          })
         }, (error) => {
           // Handle unsuccessful uploads
           console.log(error);
-          this.setState({'uploadStatus': {'status': 'danger', 'message': error}});
+          let datasets = this.state.datasets;
+          datasets[ref.id]['state'] = <Alert variant="danger">{error}</Alert>;
+          this.setState({
+            datasets: datasets
+          });
         }, () => {
-           // Do something once upload is complete
-           console.log('success');
-           this.setState({'uploadStatus': {'status': 'success', 'message': 'Uploaded file successfully'}});
-        });
+          let datasets = this.state.datasets;
+          datasets[ref.id]['state'] = <p>Pending processing</p>;
+          this.setState({
+            datasets: datasets
+          });
+       });
       }).bind(this))
     }).bind(this));
   }
@@ -250,7 +268,7 @@ class App extends React.Component {
             <h1>Highlight Group</h1>
             <UploadForm uploadStatus={this.state.uploadStatus} handleFileUploadChange={this.handleFileUploadChange} handleFileUploadSubmit={this.handleFileUploadSubmit}/>
             <br/>
-            <DatasetTable datasets={this.state.datasets}/>
+            <DatasetTable datasets={Object.values(this.state.datasets)}/>
           </div>
         </div>
       </div>

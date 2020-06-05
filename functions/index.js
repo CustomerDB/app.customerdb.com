@@ -11,27 +11,21 @@ exports.processCSVUpload = functions.storage.object().onFinalize(
 
 		console.log("metadata keys", Object.keys(object.metadata));
 
-
-
 		const fileBucket = object.bucket; // The Storage bucket that contains the file.
 		const filePath = object.name; // File path in the bucket.
 		const contentType = object.contentType; // File content type.
-		const metageneration = object.metageneration; // Number of times metadata has been generated. New objects have a value of 1
 
 		// Get the file name.
 		const datasetID = path.basename(filePath);
 
 		const bucket = admin.storage().bucket(fileBucket);
 		const tempFilePath = path.join(os.tmpdir(), datasetID);
-		const metadata = {
-			contentType: contentType,
-		};
 
 		await bucket.file(filePath).download({destination: tempFilePath});
 		console.log('File downloaded locally to', tempFilePath);
 
 		let db = admin.firestore();
-		highlights = db.collection(`datasets/${datasetID}/highlights`);
+		highlights = db.collection('datasets').doc(datasetID).collection('highlights');
 
 		// Read the CSV.
 		fs.createReadStream(tempFilePath)
@@ -43,7 +37,11 @@ exports.processCSVUpload = functions.storage.object().onFinalize(
 					.catch(function(error) { console.error("Error inserting record"); });
 			})
 			.on('end', () => {
+				let now = new Date();
 				console.log('Done processing CSV file');
+				db.collection('datasets').doc(datasetID).set({
+					processedAt: now.toISOString()
+				}, {merge: true});
 			});
 
 		// Create highlight records in firestore for each row of the CSV
