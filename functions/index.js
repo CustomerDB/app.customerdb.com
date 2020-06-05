@@ -28,7 +28,7 @@ exports.processCSVUpload = functions.storage.object().onFinalize(
 		highlights = db.collection('datasets').doc(datasetID).collection('highlights');
 
 		// Read the CSV.
-		fs.createReadStream(tempFilePath)
+		return fs.createReadStream(tempFilePath)
 			.pipe(csv())
 			.on('data', (row) => {
 				console.log(row);
@@ -42,12 +42,8 @@ exports.processCSVUpload = functions.storage.object().onFinalize(
 				db.collection('datasets').doc(datasetID).set({
 					processedAt: now.toISOString()
 				}, {merge: true});
+
+				fs.unlinkSync(tempFilePath);
 			});
-
-		// Create highlight records in firestore for each row of the CSV
-		// todo
-
-		// Once the thumbnail has been uploaded delete the local file to free up disk space.
-		return fs.unlinkSync(tempFilePath);
   }
 );

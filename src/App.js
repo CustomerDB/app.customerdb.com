@@ -142,7 +142,7 @@ class App extends React.Component {
               if (!datasets[doc.id].hasOwnProperty('googleStoragePath')) {
                 datasets[doc.id]['state'] = <p>Pending upload</p>;
               } else if (!datasets[doc.id].hasOwnProperty('processedAt')) {
-                datasets[doc.id]['state'] = <p>Pending processing</p>;
+                datasets[doc.id]['state'] = <ProgressBar animated now={100} />;
               } else {
                 datasets[doc.id]['state'] = "";
               }
@@ -212,7 +212,7 @@ class App extends React.Component {
           });
         }, () => {
           let datasets = this.state.datasets;
-          datasets[ref.id]['state'] = <p>Pending processing</p>;
+          datasets[ref.id]['state'] = <ProgressBar animated now={100} />;
           this.setState({
             datasets: datasets
           });
