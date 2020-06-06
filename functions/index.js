@@ -6,85 +6,59 @@ const os = require('os');
 const fs = require('fs');
 const csv = require('csv-parser');
 
-exports.processCSVUpload = functions.storage.object().onFinalize(
-  async (object) => {
-
-    console.log("metadata keys", Object.keys(object.metadata));
-
+exports.processCSVUpload = functions.storage.object().onFinalize((object) => {
     const fileBucket = object.bucket; // The Storage bucket that contains the file.
     const filePath = object.name; // File path in the bucket.
-    const contentType = object.contentType; // File content type.
 
     // Get the file name.
-    const datasetID = path.basename(filePath);
+	const datasetID = path.basename(filePath);
 
     const bucket = admin.storage().bucket(fileBucket);
-    const tempFilePath = path.join(os.tmpdir(), datasetID);
-
-    await bucket.file(filePath).download({destination: tempFilePath});
-    console.log('File downloaded locally to', tempFilePath);
+	const tempFilePath = path.join(os.tmpdir(), datasetID);
 
     let db = admin.firestore();
-    let dataset = db.collection('datasets').doc(datasetID);
-    let highlights = dataset.collection('highlights');
 
-    // Read the CSV.
-    let batchSize = 250;  // batched writes can contain up to 500 operations
-    let batch = db.batch();
-    let count = 0;
+	// Read the CSV.
+	let batch = db.batch();
+	let batchSize = 250;  // batched writes can contain up to 500 operations
+	let batchPromises = [];
+	let count = 0;
 
-    let writeBatch = function() {
-      let numOps = count;
-
-      let result = batch.commit()
-        .then(function() {
-          console.log(`## writeBatch: wrote batch of size ${numOps}`)
-        })
-        .catch(function(error) {
-          console.error("## writeBatch: failed to write batch", error);
-        });
-
-      batch = db.batch();
-      count = 0;
-
-      return result;
-    }
-
-    let batchPromises = [];
-
-    let handleRow = function(row) {
-      let highlightRef = highlights.doc();
-      batch.set(highlightRef, row);
-      count++;
-
-      if (count == batchSize) {
-        batchPromises.push(writeBatch());
-      }
-    };
-
-    // Read the CSV and create a record for each row.
-    fs.createReadStream(tempFilePath)
-      .pipe(csv())
-      .on('data', handleRow)
-      .on('end', () => {
-        console.log('Done processing CSV file');
-      });
-
-    batchPromises.push(writeBatch());
-
-    let promiseCount = batchPromises.length;
-    console.log(`Awaiting ${promiseCount} batch promises`);
-
-    return Promise.all(batchPromises).then(
-      function() {
+	let download = bucket.file(filePath).download({destination: tempFilePath});
+	return download.then(function() {
+		return new Promise(function (resolve, reject) {
+			console.log("read csv")
+			fs.createReadStream(tempFilePath)
+			.pipe(csv())
+			.on('data', function(row) {
+				let highlightRef = db.collection('datasets').doc(datasetID).collection('highlights').doc();
+				batch.set(highlightRef, row);
+				count++;
+			
+				if (count == batchSize) {
+					console.log("Commit #1!");
+					batchPromises.push(batch.commit());
+					batch = db.batch();
+					count = 0;
+				}
+				console.log('<< row');
+			})
+			.on('end', () => {
+				console.log('Done processing CSV file');
+				resolve(Promise.all(batchPromises));
+			});
+		})
+	}).then(function () {
+		return batch.commit()
+	}).then(function() {
         console.log("Recording processed timestamp");
         let now = new Date();
-        return dataset.set({
+        return db.collection('datasets').doc(datasetID).set({
           processedAt: now.toISOString()
         }, {merge: true});
-      }).then(function() {
+    }).then(function() {
         console.log("Deleting temporary file");
         return fs.unlinkSync(tempFilePath);
-    });
+    })
   }
 );
