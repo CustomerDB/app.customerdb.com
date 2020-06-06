@@ -21,6 +21,11 @@ var db = window.firebase.firestore();
 //   });
 // }
 
+function Now() {
+  let now = new Date();
+  return now.toISOString();
+}
+
 function UploadForm(props) {
   const [show, setShow] = useState(false);
   const [target, setTarget] = useState(null);
@@ -62,9 +67,18 @@ function UploadForm(props) {
 
 function DatasetTable(props) {
   let datasetRows = [];
-  props.datasets.forEach((e) => {
-    let disabled = !(e.state == "");
-    datasetRows.push(<tr><td>{e.name}</td><td>{e.state}</td><td><Button disabled={disabled }variant="link">Delete</Button> <Button disabled={disabled}>Open</Button></td></tr>);
+  Object.entries(props.datasets).forEach((v) => {
+    console.log(v);
+
+    let disabled = !(v[1].state == "");
+    datasetRows.push(<tr>
+      <td>{v[1].name}</td>
+      <td>{v[1].state}</td>
+      <td>
+        <Button disabled={disabled} variant="link" onClick={() => {props.deleteDataset(v[0])}}>Delete</Button>{ }
+        <Button disabled={disabled}>Open</Button>
+      </td>
+    </tr>);
   });
   return <Table>
   <thead>
@@ -90,6 +104,7 @@ class App extends React.Component {
     this.login = this.login.bind(this);
     this.logoutCallback = this.logoutCallback.bind(this);
     this.logout = this.logout.bind(this);
+    this.deleteDataset = this.deleteDataset.bind(this);
 
     this.state = {
       'selectedFile': undefined,
@@ -107,14 +122,7 @@ class App extends React.Component {
 
   loginCallback(user) {
       if (user) {
-        // // User is signed in.
-        // var displayName = user.displayName;
-        // var email = user.email;
-        // var emailVerified = user.emailVerified;
-        // var photoURL = user.photoURL;
-        // var isAnonymous = user.isAnonymous;
         var uid = user.uid;
-        // var providerData = user.providerData;
 
         // write document to users collection
         var userRef = db.collection("users").doc(uid);
@@ -142,6 +150,8 @@ class App extends React.Component {
               if (!datasets[doc.id].hasOwnProperty('googleStoragePath')) {
                 datasets[doc.id]['state'] = <ProgressBar animated now={0} />;
               } else if (!datasets[doc.id].hasOwnProperty('processedAt')) {
+                datasets[doc.id]['state'] = <ProgressBar animated now={100} />;
+              } if (datasets[doc.id].hasOwnProperty('deletedAt')) {
                 datasets[doc.id]['state'] = <ProgressBar animated now={100} />;
               } else {
                 datasets[doc.id]['state'] = "";
@@ -245,6 +255,13 @@ class App extends React.Component {
     });
   }
 
+  deleteDataset(datasetID) {
+    console.log(`datasetID: ${datasetID}`);
+    db.collection('datasets').doc(datasetID).set({
+      deletedAt: Now()
+    }, {merge: true});
+  }
+
   render() {
     if (this.state.phase == 'logging_in') {
       return  <div className="outerContainer"><div className="spinnerContainer"><Spinner animation="grow" /></div></div>;
@@ -268,7 +285,7 @@ class App extends React.Component {
             <h1>Highlight Group</h1>
             <UploadForm uploadStatus={this.state.uploadStatus} handleFileUploadChange={this.handleFileUploadChange} handleFileUploadSubmit={this.handleFileUploadSubmit}/>
             <br/>
-            <DatasetTable datasets={Object.values(this.state.datasets)}/>
+            <DatasetTable datasets={this.state.datasets} deleteDataset={this.deleteDataset}/>
           </div>
         </div>
       </div>

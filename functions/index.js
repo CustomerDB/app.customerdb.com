@@ -10,6 +10,8 @@ exports.processCSVUpload = functions.storage.object().onFinalize((object) => {
 	const fileBucket = object.bucket; // The Storage bucket that contains the file.
 	const filePath = object.name; // File path in the bucket.
 
+	console.log("fileBucket: " + fileBucket);
+
 	// Get the file name.
 	const datasetID = path.basename(filePath);
 
@@ -69,3 +71,20 @@ exports.processCSVUpload = functions.storage.object().onFinalize((object) => {
 	})
 }
 );
+
+exports.deleteDataset = functions.firestore
+    .document('datasets/{datasetID}')
+    .onUpdate((snap, context) => {
+		let storage = admin.storage();
+		let bucket = storage.bucket();
+		let data = snap.after.data();
+
+		console.log(data);
+
+		if (data.hasOwnProperty('deletedAt') && data.hasOwnProperty('googleStoragePath')) {
+			console.log("Deleting: " + data);
+			return bucket.file(data.googleStoragePath).delete().then(function() {
+				return snap.after.ref.delete();
+			})
+		}
+});

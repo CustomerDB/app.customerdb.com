@@ -12,7 +12,6 @@ div.spinnerContainer {
 div.loginContainer {
     position: fixed;
     width: 60%;
-    height: 20%;
     padding: 2rem;
     background-color: white;
     box-shadow: 0 6px 6px rgba(0, 0, 0, 0.2);
@@ -23,8 +22,7 @@ div.loginContainer {
 
 div.uploadContainer {
     position: fixed;
-    width: 50%;
-    height: 43%;
+    width: 80%;
     padding: 2rem;
     background-color: white;
     box-shadow: 0 6px 6px rgba(0, 0, 0, 0.2);
