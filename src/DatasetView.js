@@ -4,6 +4,8 @@ import './App.css';
 import { logout, Loading } from './Utils.js';
 
 import Button from 'react-bootstrap/Button';
+import Tabs from 'react-bootstrap/Tabs';
+import Tab from 'react-bootstrap/Tab';
 
 import {
     withRouter
@@ -53,12 +55,21 @@ class DatasetView extends React.Component {
             return Loading();
         }
 
+        let tabs = [];
+        this.state.dataset.tags.forEach((e) => {
+            tabs.push(<Tab eventKey={e} title={e}>
+            </Tab>);
+        });
+
         return <div>
             <Button onClick={logout} variant="link">Logout</Button>
             <div className="outerContainer">
                 <div className="datasetContainer">
                     <a href="/"><h4>Datasets</h4></a>
                     <h3>{this.state.dataset.name}</h3>
+                    <Tabs>
+                        {tabs}
+                    </Tabs>
                 </div>
             </div>
         </div>;
