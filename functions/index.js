@@ -73,14 +73,18 @@ exports.processCSVUpload = functions.storage.object().onFinalize(
     batchPromises.push(writeBatch());
 
     let promiseCount = batchPromises.length;
+    console.log(`Awaiting ${promiseCount} batch promises`);
 
-    return Promise.all(batchPromises).then(function() {
-      let now = new Date();
-      return dataset.set({
-        processedAt: now.toISOString()
-      }, {merge: true});
-    }).then(function() {
-      return fs.unlinkSync(tempFilePath);
+    return Promise.all(batchPromises).then(
+      function() {
+        console.log("Recording processed timestamp");
+        let now = new Date();
+        return dataset.set({
+          processedAt: now.toISOString()
+        }, {merge: true});
+      }).then(function() {
+        console.log("Deleting temporary file");
+        return fs.unlinkSync(tempFilePath);
     });
   }
 );
