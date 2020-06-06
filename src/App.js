@@ -140,7 +140,7 @@ class App extends React.Component {
               console.log(datasets[doc.id]);
 
               if (!datasets[doc.id].hasOwnProperty('googleStoragePath')) {
-                datasets[doc.id]['state'] = <p>Pending upload</p>;
+                datasets[doc.id]['state'] = <ProgressBar animated now={0} />;
               } else if (!datasets[doc.id].hasOwnProperty('processedAt')) {
                 datasets[doc.id]['state'] = <ProgressBar animated now={100} />;
               } else {
