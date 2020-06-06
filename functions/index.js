@@ -13,6 +13,8 @@ exports.processCSVUpload = functions.storage.object().onFinalize((object) => {
 	// Get the file name.
 	const datasetID = path.basename(filePath);
 
+	console.log(`Processing dataset ${datasetID}`);
+
 	const bucket = admin.storage().bucket(fileBucket);
 	const tempFilePath = path.join(os.tmpdir(), datasetID);
 
