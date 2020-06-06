@@ -25,25 +25,60 @@ exports.processCSVUpload = functions.storage.object().onFinalize(
 		console.log('File downloaded locally to', tempFilePath);
 
 		let db = admin.firestore();
-		highlights = db.collection('datasets').doc(datasetID).collection('highlights');
+		let dataset = db.collection('datasets').doc(datasetID);
+		let highlights = dataset.collection('highlights');
 
 		// Read the CSV.
-		return fs.createReadStream(tempFilePath)
-			.pipe(csv())
-			.on('data', (row) => {
-				console.log(row);
-				highlights.add(row)
-					.then(function() { console.log("Inserted record"); })
-					.catch(function(error) { console.error("Error inserting record"); });
-			})
-			.on('end', () => {
-				let now = new Date();
-				console.log('Done processing CSV file');
-				db.collection('datasets').doc(datasetID).set({
-					processedAt: now.toISOString()
-				}, {merge: true});
+		let batchSize = 250;  // batched writes can contain up to 500 operations
+		let batch = db.batch();
+		let count = 0;
 
-				fs.unlinkSync(tempFilePath);
+		let writeBatch = function() {
+			let result = batch.commit()
+				.then(function() {
+					console.log(`## writeBatch: wrote batch of size ${count}`)
+				})
+				.catch(function(error) {
+					console.error("## writeBatch: failed to write batch", error);
+				});
+
+			batch = db.batch();
+			count = 0;
+
+			return result;
+		}
+
+		let batchPromises = [];
+
+		let handleRow = function(row) {
+			let highlightRef = highlights.doc();
+			batch.set(highlightRef, row);
+			count++;
+
+			if (count == batchSize) {
+				batchPromises.push(writeBatch());
+			}
+		};
+
+		// Read the CSV and create a record for each row.
+		fs.createReadStream(tempFilePath)
+			.pipe(csv())
+			.on('data', handleRow)
+			.on('end', () => {
+				console.log('Done processing CSV file');
 			});
+		
+		batchPromises.push(writeBatch());
+
+		let promiseCount = batchPromises.length;
+		
+		return Promise.all(batchPromises).then(function() {
+			let now = new Date();
+			return dataset.set({
+				processedAt: now.toISOString()
+			}, {merge: true});
+		}).then(function() {
+			return fs.unlinkSync(tempFilePath);
+		});
   }
 );
