@@ -79,8 +79,6 @@ exports.deleteDataset = functions.firestore
 		let bucket = storage.bucket();
 		let data = snap.after.data();
 
-		console.log(data);
-
 		if (data.hasOwnProperty('deletedAt') && data.hasOwnProperty('googleStoragePath')) {
 			console.log("Deleting: " + data);
 			return bucket.file(data.googleStoragePath).delete().then(function() {

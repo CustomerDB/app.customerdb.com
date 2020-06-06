@@ -1,99 +1,19 @@
 import React from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
-import { useState, useRef } from 'react';
 
 import Button from 'react-bootstrap/Button';
 import Spinner from 'react-bootstrap/Spinner';
 import Alert from 'react-bootstrap/Alert';
-import Popover from 'react-bootstrap/Popover';
-import Overlay from 'react-bootstrap/Overlay';
-import Table from 'react-bootstrap/Table';
 import ProgressBar from 'react-bootstrap/ProgressBar';
+
+import DatasetTable from './DatasetTable.js';
+import UploadForm from './UploadForm.js';
+import { Now } from './Utils.js';
 
 var provider = new window.firebase.auth.GoogleAuthProvider();
 var storageRef = window.firebase.storage().ref();
 var db = window.firebase.firestore();
-// if (window.location.hostname === "localhost") {
-//   db.settings({
-//     host: "localhost:8080",
-//     ssl: false
-//   });
-// }
-
-function Now() {
-  let now = new Date();
-  return now.toISOString();
-}
-
-function UploadForm(props) {
-  const [show, setShow] = useState(false);
-  const [target, setTarget] = useState(null);
-  const ref = useRef(null);
-
-  const handleClick = (event) => {
-    setShow(!show);
-    setTarget(event.target);
-  };
-
-  const handleHide = (event) => {
-    setShow(!show);
-  }
-
-  return (
-    <div ref={ref}>
-      <Button onClick={handleClick}>Add dataset</Button>
-      <Overlay
-        show={show}
-        target={target}
-        placement="bottom"
-        container={ref.current}
-        rootClose={true}
-        onHide={handleHide}
-      >
-        <Popover id="popover-contained">
-          <Popover.Title as="h3">Add dataset</Popover.Title>
-          <Popover.Content>
-            <input type="file" className="file-select" accept=".csv" onChange={props.handleFileUploadChange}/>
-            <br/>
-            <br/>
-            <Button onClick={() => {props.handleFileUploadSubmit(); handleHide();}}>Upload</Button>
-          </Popover.Content>
-        </Popover>
-      </Overlay>
-    </div>
-  );
-}
-
-function DatasetTable(props) {
-  let datasetRows = [];
-  Object.entries(props.datasets).forEach((v) => {
-    console.log(v);
-
-    let disabled = !(v[1].state == "");
-    datasetRows.push(<tr>
-      <td>{v[1].name}</td>
-      <td>{v[1].state}</td>
-      <td>
-        <Button disabled={disabled} variant="link" onClick={() => {props.deleteDataset(v[0])}}>Delete</Button>{ }
-        <Button disabled={disabled}>Open</Button>
-      </td>
-    </tr>);
-  });
-  return <Table>
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th style={{width: "15rem"}}>{ }</th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    {datasetRows}
-  </tbody>
-  </Table>;
-}
-
 
 class App extends React.Component {
   constructor(props) {
@@ -145,8 +65,6 @@ class App extends React.Component {
               let dataset = doc.data();
               datasets[doc.id] = dataset;
 
-              console.log(datasets[doc.id]);
-
               if (!datasets[doc.id].hasOwnProperty('googleStoragePath')) {
                 datasets[doc.id]['state'] = <ProgressBar animated now={0} />;
               } else if (!datasets[doc.id].hasOwnProperty('processedAt')) {
@@ -167,7 +85,7 @@ class App extends React.Component {
             console.error(error);
           });
 
-          console.log("Login failed", error);
+          console.error("Login failed", error);
           this.setState({
             'phase': 'login',
             'user': undefined,
@@ -214,7 +132,7 @@ class App extends React.Component {
           })
         }, (error) => {
           // Handle unsuccessful uploads
-          console.log(error);
+          console.error(error);
           let datasets = this.state.datasets;
           datasets[ref.id]['state'] = <Alert variant="danger">{error}</Alert>;
           this.setState({
@@ -256,18 +174,17 @@ class App extends React.Component {
   }
 
   deleteDataset(datasetID) {
-    console.log(`datasetID: ${datasetID}`);
     db.collection('datasets').doc(datasetID).set({
       deletedAt: Now()
     }, {merge: true});
   }
 
   render() {
-    if (this.state.phase == 'logging_in') {
+    if (this.state.phase === 'logging_in') {
       return  <div className="outerContainer"><div className="spinnerContainer"><Spinner animation="grow" /></div></div>;
     }
 
-    if (this.state.phase == 'login') {
+    if (this.state.phase === 'login') {
       let loginFailedMessage = this.state.loginFailed ? <Alert variant="danger">Login failed</Alert> : <div></div>;
       return <div className="outerContainer"><div className="loginContainer">
         <h4>Group Highlights</h4>
