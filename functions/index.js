@@ -31,6 +31,8 @@ exports.processCSVUpload = functions.storage.object().onFinalize((object) => {
 	let count = 0;
 	let batchNum = 1;
 
+	let tags = {};
+
 	let download = bucket.file(filePath).download({destination: tempFilePath});
 	return download.then(function() {
 		return new Promise(function (resolve, reject) {
@@ -42,6 +44,15 @@ exports.processCSVUpload = functions.storage.object().onFinalize((object) => {
 					let highlightRef = highlights.doc();
 					batch.set(highlightRef, row);
 					count++;
+
+					// Build a list of tags.
+					if (row.hasOwnProperty('Tag')) {
+						let tag = row['Tag']
+						if (!tags.hasOwnProperty(tag)) {
+							tags[tag] = 0;
+						}
+						tags[tag]++;
+					}
 
 					if (count == batchSize) {
 						console.log(`Batch commit ${batchNum}`);
@@ -62,6 +73,7 @@ exports.processCSVUpload = functions.storage.object().onFinalize((object) => {
 		console.log("Recording processed timestamp");
 		let now = new Date();
 		return dataset.set({
+			tags: Object.keys(tags),
 			processedAt: now.toISOString()
 		}, {merge: true});
 	})
