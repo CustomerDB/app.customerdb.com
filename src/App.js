@@ -47,7 +47,6 @@ class Home extends React.Component {
       'selectedFile': undefined,
       'phase': 'logging_in',
       'user': undefined,
-      'uploadStatus': undefined,
       'loginFailed': false,
       'datasets': {}
     };
@@ -116,8 +115,6 @@ class Home extends React.Component {
   }
 
   handleFileUploadSubmit(e) {
-    this.setState({'uploadStatus': {'status': 'light', 'message': 'Uploading..'}});
-
     db.collection("datasets").add({
       name: this.state.selectedFile.name,
       owners: [this.state.user.uid]
@@ -208,7 +205,7 @@ class Home extends React.Component {
               <div className="uploadTitleContainer">
                 <h3>Datasets</h3>
               </div>
-              <UploadForm uploadStatus={this.state.uploadStatus} handleFileUploadChange={this.handleFileUploadChange} handleFileUploadSubmit={this.handleFileUploadSubmit}/>
+              <UploadForm handleFileUploadChange={this.handleFileUploadChange} handleFileUploadSubmit={this.handleFileUploadSubmit}/>
             </div>
             <br/>
             <DatasetTable datasets={this.state.datasets} deleteDataset={this.deleteDataset}/>

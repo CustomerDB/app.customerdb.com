@@ -67,6 +67,7 @@ class DatasetView extends React.Component {
                 <div className="datasetContainer">
                     <a href="/"><h4>Datasets</h4></a>
                     <h3>{this.state.dataset.name}</h3>
+                    <br/>
                     <Tabs>
                         {tabs}
                     </Tabs>
