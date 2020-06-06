@@ -3,27 +3,44 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
 import Button from 'react-bootstrap/Button';
-import Spinner from 'react-bootstrap/Spinner';
 import Alert from 'react-bootstrap/Alert';
 import ProgressBar from 'react-bootstrap/ProgressBar';
 
 import DatasetTable from './DatasetTable.js';
 import UploadForm from './UploadForm.js';
-import { Now } from './Utils.js';
+import DatasetView from './DatasetView.js'
+import { now, logout, Loading } from './Utils.js';
+
+
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route
+} from "react-router-dom";
 
 var provider = new window.firebase.auth.GoogleAuthProvider();
 var storageRef = window.firebase.storage().ref();
 var db = window.firebase.firestore();
 
-class App extends React.Component {
+function App() {
+  return <div>
+    <Router>
+      <Switch>
+      <Route exact path="/">
+        <Home />
+      </Route>
+      <Route exact path="/dataset/:id" children={<DatasetView />} />
+    </Switch>
+  </Router></div>;
+}
+
+class Home extends React.Component {
   constructor(props) {
     super(props);
     this.handleFileUploadSubmit = this.handleFileUploadSubmit.bind(this);
     this.handleFileUploadChange = this.handleFileUploadChange.bind(this);
     this.loginCallback = this.loginCallback.bind(this);
     this.login = this.login.bind(this);
-    this.logoutCallback = this.logoutCallback.bind(this);
-    this.logout = this.logout.bind(this);
     this.deleteDataset = this.deleteDataset.bind(this);
 
     this.state = {
@@ -161,27 +178,15 @@ class App extends React.Component {
     });
   }
 
-  logoutCallback() {
-    // Sign-out successful.
-    this.setState({'phase': 'login'});
-    window.location.reload();
-  }
-
-  logout() {
-    window.firebase.auth().signOut().then(this.logoutCallback).catch(function(error) {
-      console.error(error);
-    });
-  }
-
   deleteDataset(datasetID) {
     db.collection('datasets').doc(datasetID).set({
-      deletedAt: Now()
+      deletedAt: now()
     }, {merge: true});
   }
 
   render() {
     if (this.state.phase === 'logging_in') {
-      return  <div className="outerContainer"><div className="spinnerContainer"><Spinner animation="grow" /></div></div>;
+      return Loading();
     }
 
     if (this.state.phase === 'login') {
@@ -196,11 +201,15 @@ class App extends React.Component {
 
     return (
       <div>
-        <Button onClick={this.logout} variant="link">Logout</Button>
+        <Button onClick={logout} variant="link">Logout</Button>
         <div className="outerContainer">
           <div className="uploadContainer">
-            <h1>Highlight Group</h1>
-            <UploadForm uploadStatus={this.state.uploadStatus} handleFileUploadChange={this.handleFileUploadChange} handleFileUploadSubmit={this.handleFileUploadSubmit}/>
+            <div className="uploadTitle">
+              <div className="uploadTitleContainer">
+                <h3>Datasets</h3>
+              </div>
+              <UploadForm uploadStatus={this.state.uploadStatus} handleFileUploadChange={this.handleFileUploadChange} handleFileUploadSubmit={this.handleFileUploadSubmit}/>
+            </div>
             <br/>
             <DatasetTable datasets={this.state.datasets} deleteDataset={this.deleteDataset}/>
           </div>

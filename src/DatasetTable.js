@@ -6,12 +6,15 @@ export default function DatasetTable(props) {
     let datasetRows = [];
     Object.entries(props.datasets).forEach((v) => {  
       let disabled = !(v[1].state === "");
-      datasetRows.push(<tr key={v[0]}>
-        <td>{v[1].name}</td>
-        <td>{v[1].state}</td>
-        <td>
-          <Button disabled={disabled} variant="link" onClick={() => {props.deleteDataset(v[0])}}>Delete</Button>{ }
-          <Button disabled={disabled}>Open</Button>
+      let datasetID = v[0];
+      let dataset = v[1];
+
+      datasetRows.push(<tr key={datasetID}>
+        <td>{dataset.name}</td>
+        <td>{dataset.state}</td>
+        <td style={{textAlign: 'right'}}>
+          <Button disabled={disabled} variant="link" onClick={() => {props.deleteDataset(datasetID)}}>Delete</Button>{ }
+          <Button disabled={disabled} onClick={() => {window.location.href=`/dataset/${datasetID}`}}>Open</Button>
         </td>
       </tr>);
     });

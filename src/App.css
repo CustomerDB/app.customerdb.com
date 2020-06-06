@@ -30,3 +30,27 @@ div.uploadContainer {
     left: 50%;
     transform: translate(-50%, -50%);
 }
+
+div.uploadTitle {
+    display: flex;
+}
+
+div.datasetContainer {
+    position: fixed;
+    width: 80%;
+    padding: 2rem;
+    background-color: white;
+    box-shadow: 0 6px 6px rgba(0, 0, 0, 0.2);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+div.uploadTitleContainer {
+    width: 50%;
+}
+
+div.uploadButtonContainer {
+    width: 50%;
+    text-align: right;
+}

@@ -19,7 +19,7 @@ export default function UploadForm(props) {
     }
   
     return (
-      <div ref={ref}>
+      <div ref={ref} className="uploadButtonContainer">
         <Button onClick={handleClick}>Add dataset</Button>
         <Overlay
           show={show}
