@@ -9,76 +9,78 @@ const csv = require('csv-parser');
 exports.processCSVUpload = functions.storage.object().onFinalize(
   async (object) => {
 
-		console.log("metadata keys", Object.keys(object.metadata));
+    console.log("metadata keys", Object.keys(object.metadata));
 
-		const fileBucket = object.bucket; // The Storage bucket that contains the file.
-		const filePath = object.name; // File path in the bucket.
-		const contentType = object.contentType; // File content type.
+    const fileBucket = object.bucket; // The Storage bucket that contains the file.
+    const filePath = object.name; // File path in the bucket.
+    const contentType = object.contentType; // File content type.
 
-		// Get the file name.
-		const datasetID = path.basename(filePath);
+    // Get the file name.
+    const datasetID = path.basename(filePath);
 
-		const bucket = admin.storage().bucket(fileBucket);
-		const tempFilePath = path.join(os.tmpdir(), datasetID);
+    const bucket = admin.storage().bucket(fileBucket);
+    const tempFilePath = path.join(os.tmpdir(), datasetID);
 
-		await bucket.file(filePath).download({destination: tempFilePath});
-		console.log('File downloaded locally to', tempFilePath);
+    await bucket.file(filePath).download({destination: tempFilePath});
+    console.log('File downloaded locally to', tempFilePath);
 
-		let db = admin.firestore();
-		let dataset = db.collection('datasets').doc(datasetID);
-		let highlights = dataset.collection('highlights');
+    let db = admin.firestore();
+    let dataset = db.collection('datasets').doc(datasetID);
+    let highlights = dataset.collection('highlights');
 
-		// Read the CSV.
-		let batchSize = 250;  // batched writes can contain up to 500 operations
-		let batch = db.batch();
-		let count = 0;
+    // Read the CSV.
+    let batchSize = 250;  // batched writes can contain up to 500 operations
+    let batch = db.batch();
+    let count = 0;
 
-		let writeBatch = function() {
-			let result = batch.commit()
-				.then(function() {
-					console.log(`## writeBatch: wrote batch of size ${count}`)
-				})
-				.catch(function(error) {
-					console.error("## writeBatch: failed to write batch", error);
-				});
+    let writeBatch = function() {
+      let numOps = count;
 
-			batch = db.batch();
-			count = 0;
+      let result = batch.commit()
+        .then(function() {
+          console.log(`## writeBatch: wrote batch of size ${numOps}`)
+        })
+        .catch(function(error) {
+          console.error("## writeBatch: failed to write batch", error);
+        });
 
-			return result;
-		}
+      batch = db.batch();
+      count = 0;
 
-		let batchPromises = [];
+      return result;
+    }
 
-		let handleRow = function(row) {
-			let highlightRef = highlights.doc();
-			batch.set(highlightRef, row);
-			count++;
+    let batchPromises = [];
 
-			if (count == batchSize) {
-				batchPromises.push(writeBatch());
-			}
-		};
+    let handleRow = function(row) {
+      let highlightRef = highlights.doc();
+      batch.set(highlightRef, row);
+      count++;
 
-		// Read the CSV and create a record for each row.
-		fs.createReadStream(tempFilePath)
-			.pipe(csv())
-			.on('data', handleRow)
-			.on('end', () => {
-				console.log('Done processing CSV file');
-			});
-		
-		batchPromises.push(writeBatch());
+      if (count == batchSize) {
+        batchPromises.push(writeBatch());
+      }
+    };
 
-		let promiseCount = batchPromises.length;
-		
-		return Promise.all(batchPromises).then(function() {
-			let now = new Date();
-			return dataset.set({
-				processedAt: now.toISOString()
-			}, {merge: true});
-		}).then(function() {
-			return fs.unlinkSync(tempFilePath);
-		});
+    // Read the CSV and create a record for each row.
+    fs.createReadStream(tempFilePath)
+      .pipe(csv())
+      .on('data', handleRow)
+      .on('end', () => {
+        console.log('Done processing CSV file');
+      });
+
+    batchPromises.push(writeBatch());
+
+    let promiseCount = batchPromises.length;
+
+    return Promise.all(batchPromises).then(function() {
+      let now = new Date();
+      return dataset.set({
+        processedAt: now.toISOString()
+      }, {merge: true});
+    }).then(function() {
+      return fs.unlinkSync(tempFilePath);
+    });
   }
 );
