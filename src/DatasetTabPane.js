@@ -37,18 +37,43 @@ function HighlightModal(props) {
 class Card extends React.Component {
   constructor(props) {
     super(props);
+
+    this.handleStart = this.handleStart.bind(this);
+    this.handleStop = this.handleStop.bind(this);
+    this.handleIntersect = this.handleIntersect.bind(this);
+    this.ref = React.createRef();
+
+    this.state = {
+      zIndex: 0
+    };
+  }
+
+  handleIntersect(entries, observer) {
+    entries.forEach((entry) => {
+      console.log(entry.target);
+    });
   }
 
   handleStart() {
     console.log("handleStart");
+    this.setState({zIndex: 100});
+
+    let options = {
+      root: this.ref.current,
+      rootMargin: "0px",
+      threshold: 0.10
+    };
+    let observer = new IntersectionObserver(this.handleIntersect, options);
+    let cards = document.querySelector(".card");
+    observer.observe(cards);
   }
 
   handleDrag() {
-    console.log("handleDrag");
   }
 
   handleStop() {
     console.log("handleStop");
+    this.setState({zIndex: 0});
   }
 
   render() {
@@ -60,7 +85,7 @@ class Card extends React.Component {
       onStart={this.handleStart}
       onDrag={this.handleDrag}
       onStop={this.handleStop}>
-      <div className="card">
+      <div className="card" style={{zIndex: this.state.zIndex}}>
         <div className="handle titlebar"><b>{this.props.data['Note - Title']}</b></div>
         <div className="quote" onClick={() => {this.props.modalCallBack(this.props.data)}}>{this.props.data['Text']}</div>
       </div>
@@ -111,7 +136,7 @@ export default class DatasetTabPane extends React.Component {
   }
 
   render() {
-    return <div><div className="cardContainer">
+    return <><div className="cardContainer fullHeight">
       {this.state.highlights.map((e) => {
         return <Card data={e} modalCallBack={this.modalCallBack}/>;
       })}
@@ -121,6 +146,6 @@ export default class DatasetTabPane extends React.Component {
       data={this.state.modalData}
       onHide={() => this.setState({'modalShow': false})}
     />
-    </div>;
+    </>;
   }
 }

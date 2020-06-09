@@ -62,14 +62,14 @@ class DatasetView extends React.Component {
 
         let tabs = [];
         this.state.dataset.tags.forEach((tag) => {
-            tabs.push(<Tab eventKey={tag} title={tag}>
+            tabs.push(<Tab eventKey={tag} title={tag} className="fullHeight">
               <DatasetTabPane datasetRef={this.dataset} tag={tag} />
             </Tab>);
         });
 
-        return <div>
+        return <>
             <Button onClick={logout} variant="link">Logout</Button>
-            <div className="outerContainer">
+            <div className="outerContainer fullHeight">
                 <div className="datasetContainer">
                     <a href="/"><h4>Datasets</h4></a>
                     <h3>{this.state.dataset.name}</h3>
@@ -79,7 +79,7 @@ class DatasetView extends React.Component {
                     </Tabs>
                 </div>
             </div>
-        </div>;
+        </>;
     }
 }
 

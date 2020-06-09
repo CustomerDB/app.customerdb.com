@@ -23,7 +23,7 @@ var storageRef = window.firebase.storage().ref();
 var db = window.firebase.firestore();
 
 function App() {
-  return <div>
+  return <>
     <Router>
       <Switch>
       <Route exact path="/">
@@ -31,7 +31,7 @@ function App() {
       </Route>
       <Route exact path="/dataset/:id" children={<DatasetView />} />
     </Switch>
-  </Router></div>;
+  </Router></>;
 }
 
 class Home extends React.Component {
