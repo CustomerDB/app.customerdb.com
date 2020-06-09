@@ -6,7 +6,6 @@ import Button from 'react-bootstrap/Button';
 
 function HighlightModal(props) {
   if (props.data == undefined) {
-    console.log("Data is not set: " + JSON.stringify(props));
     return <div></div>;
   }
 
@@ -85,7 +84,7 @@ class Card extends React.Component {
       onStart={this.handleStart}
       onDrag={this.handleDrag}
       onStop={this.handleStop}>
-      <div className="card" style={{zIndex: this.state.zIndex}}>
+      <div className="card" style={{zIndex: this.state.zIndex}} ref={this.ref}>
         <div className="handle titlebar"><b>{this.props.data['Note - Title']}</b></div>
         <div className="quote" onClick={() => {this.props.modalCallBack(this.props.data)}}>{this.props.data['Text']}</div>
       </div>
@@ -116,6 +115,7 @@ export default class DatasetTabPane extends React.Component {
           querySnapshot.forEach(
             function(doc) {
               let data = doc.data();
+              data['id'] = doc.id;
               highlights.push(data);
             }
           );
@@ -138,7 +138,7 @@ export default class DatasetTabPane extends React.Component {
   render() {
     return <><div className="cardContainer fullHeight">
       {this.state.highlights.map((e) => {
-        return <Card data={e} modalCallBack={this.modalCallBack}/>;
+        return <Card key={e['id']} data={e} modalCallBack={this.modalCallBack}/>;
       })}
     </div>
     <HighlightModal

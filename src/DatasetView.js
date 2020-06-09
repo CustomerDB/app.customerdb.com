@@ -62,8 +62,8 @@ class DatasetView extends React.Component {
 
         let tabs = [];
         this.state.dataset.tags.forEach((tag) => {
-            tabs.push(<Tab eventKey={tag} title={tag} className="fullHeight">
-              <DatasetTabPane datasetRef={this.dataset} tag={tag} />
+            tabs.push(<Tab key={tag} eventKey={tag} title={tag} className="fullHeight">
+              <DatasetTabPane key={tag} datasetRef={this.dataset} tag={tag} />
             </Tab>);
         });
 
