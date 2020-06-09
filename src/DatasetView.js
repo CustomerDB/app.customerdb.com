@@ -2,6 +2,7 @@ import React from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import { logout, Loading } from './Utils.js';
+import DatasetTabPane from './DatasetTabPane.js';
 
 import Button from 'react-bootstrap/Button';
 import Tabs from 'react-bootstrap/Tabs';
@@ -19,10 +20,13 @@ class DatasetView extends React.Component {
 
         this.loginCallback = this.loginCallback.bind(this);
 
+        this.datasetID = this.props.match.params.id;
+
+        this.dataset = db.collection('datasets').doc(this.datasetID);
+
         this.state = {
             isLoggedIn: false,
             isDataLoaded: false,
-            datasetID: this.props.match.params.id,
             dataset: undefined
         }
     }
@@ -30,12 +34,13 @@ class DatasetView extends React.Component {
     componentDidMount() {
         window.firebase.auth().onAuthStateChanged(this.loginCallback);
 
-        db.collection('datasets').doc(this.state.datasetID).onSnapshot((function(doc) {
+        this.dataset.onSnapshot((function(doc) {
             this.setState({
                 isDataLoaded: true,
                 'dataset': doc.data()
             });
         }).bind(this));
+
     }
 
     loginCallback(user) {
@@ -56,8 +61,9 @@ class DatasetView extends React.Component {
         }
 
         let tabs = [];
-        this.state.dataset.tags.forEach((e) => {
-            tabs.push(<Tab eventKey={e} title={e}>
+        this.state.dataset.tags.forEach((tag) => {
+            tabs.push(<Tab eventKey={tag} title={tag}>
+              <DatasetTabPane datasetRef={this.dataset} tag={tag} />
             </Tab>);
         });
 
