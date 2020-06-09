@@ -54,3 +54,26 @@ div.uploadButtonContainer {
     width: 50%;
     text-align: right;
 }
+
+.card {
+    text-align: left;
+    box-shadow: 0 6px 6px rgba(0, 0, 0, 0.2);
+    width: 15rem;
+    height: 8rem;
+    overflow: hidden;
+}
+
+.titlebar {
+    background-color: darkblue;
+    color: white;
+    padding: 0.5rem;
+}
+
+.quote {
+    padding: 0.5rem;
+}
+
+.cardContainer {
+    height: 30rem;
+    overflow: hidden;
+}
