@@ -2,7 +2,7 @@ import React from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import { logout, Loading } from './Utils.js';
-import DatasetTabPane from './DatasetTabPane.js';
+import Board from './Board.js';
 
 import Button from 'react-bootstrap/Button';
 import Tabs from 'react-bootstrap/Tabs';
@@ -63,7 +63,7 @@ class DatasetView extends React.Component {
         let tabs = [];
         this.state.dataset.tags.forEach((tag) => {
             tabs.push(<Tab key={tag} eventKey={tag} title={tag} className="fullHeight">
-              <DatasetTabPane key={tag} datasetRef={this.dataset} tag={tag} />
+              <Board key={tag} datasetRef={this.dataset} tag={tag} />
             </Tab>);
         });
 
