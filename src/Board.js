@@ -153,7 +153,7 @@ export default class Board extends React.Component {
 
     this.rtree.remove(
       { data: { ID: data.ID} },
-      (a, b) => { return a.data.ID == b.data.ID; });
+      (a, b) => { return a.data.ID === b.data.ID; });
 
     this.rtree.insert({
       minX: rect.x,
@@ -178,7 +178,7 @@ export default class Board extends React.Component {
 
     let items = [];
     for (var i=0; i<results.length; i++) {
-      if (results[i].data.ID != id) {
+      if (results[i].data.ID !== id) {
         items.push(results[i].data);
       }
     }
