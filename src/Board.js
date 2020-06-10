@@ -4,17 +4,55 @@ import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import RBush from 'rbush';
 
+function bboxToRect(bbox) {
+  return {
+      minX: bbox.x,
+      minY: bbox.y,
+      maxX: bbox.x + bbox.width,
+      maxY: bbox.y + bbox.height
+  };
+}
+
+function rectToDiv(rect) {
+  if (rect == undefined) {
+    return <div></div>
+  }
+
+  let width = rect.maxX - rect.minX;
+  let height = rect.maxY - rect.minY;
+
+  // compute the circle diameter
+  let diameter = Math.sqrt(
+    Math.pow(rect.maxX - rect.minX, 2) +
+    Math.pow(rect.maxY - rect.minY, 2)
+  );
+
+  let radius = diameter / 2;
+
+  let center = {
+    x: rect.minX + width / 2,
+    y: rect.minY + height / 2
+  }
+
+  return <div style={{
+    position: "absolute",
+    top: center.y - radius,
+    left: center.x - radius,
+    width: diameter,
+    height: diameter,
+    borderRadius: "50%",
+    border: "2px green solid"
+  }}>
+    { }
+  </div>;
+}
+
 function HighlightModal(props) {
   if (props.data === undefined) {
     return <div></div>;
   }
 
-  let rect = {
-      minX: props.bbox.x,
-      minY: props.bbox.y,
-      maxX: props.bbox.x + props.bbox.width,
-      maxY: props.bbox.y + props.bbox.height
-  };
+  let rect = bboxToRect(props.bbox);
 
   let bboxText = JSON.stringify(props.bbox, null, 2);
   let rectText = JSON.stringify(rect, null, 2);
@@ -74,7 +112,8 @@ class Card extends React.Component {
     this.oldBbox = undefined;
 
     this.state = {
-      zIndex: 0
+      zIndex: 0,
+      groupShape: undefined
     };
   }
 
@@ -101,7 +140,20 @@ class Card extends React.Component {
       bbox);
 
     if (intersections.length > 0) {
-      console.log(intersections.map((e) => { return e.data.ID; }));
+      let thisRect = bboxToRect(bbox);
+      let unionRect = Object.assign(thisRect, {});
+
+      intersections.forEach((otherRect) => {
+        unionRect.minX = Math.min(unionRect.minX, otherRect.minX);
+        unionRect.minY = Math.min(unionRect.minY, otherRect.minY);
+        unionRect.maxX = Math.max(unionRect.maxX, otherRect.maxX);
+        unionRect.maxY = Math.max(unionRect.maxY, otherRect.maxY);
+      });
+
+      this.setState({ groupShape: unionRect });
+    }
+    else {
+      this.setState({ groupShape: undefined });
     }
   }
 
@@ -114,7 +166,10 @@ class Card extends React.Component {
       this.bbox);
 
     this.props.printTree();
-    this.setState({zIndex: 0});
+    this.setState({
+      zIndex: 0,
+      groupShape: undefined
+    });
   }
 
   showModal() {
@@ -124,7 +179,7 @@ class Card extends React.Component {
   }
 
   render() {
-    return <Draggable
+    return <><Draggable
       handle=".handle"
       bounds="parent"
       defaultPosition={{x: 0, y: 0}}
@@ -137,7 +192,9 @@ class Card extends React.Component {
           <div className="handle titlebar"><b>{this.props.data['Note - Title']}</b></div>
           <div className="quote" onClick={this.showModal}>{this.props.data['Text']}</div>
         </div>
-    </Draggable>;
+    </Draggable> 
+    {rectToDiv(this.state.groupShape)}
+    </>;
   }
 }
 
@@ -179,7 +236,7 @@ export default class Board extends React.Component {
     );
   }
 
-  addCardLocation(data, rect) {
+  addCardLocation(data, bbox) {
     // @pre:
     //
     // data has a field called ID
@@ -187,27 +244,22 @@ export default class Board extends React.Component {
     // rect looks like this:
     // {"x":307,"y":317,"width":238,"height":40,"top":317,"right":545,"bottom":357,"left":307}
     console.log("Inserting card with id", data.ID);
-    this.rtree.insert({
-      minX: rect.x,
-      minY: rect.y,
-      maxX: rect.x + rect.width,
-      maxY: rect.y + rect.height,
-      data: data
-    });
+    let item = bboxToRect(bbox);
+    item.data = data;
+    this.rtree.insert(item);
   }
 
-  removeCardLocation(data, rect) {
+  removeCardLocation(data, bbox) {
     // @pre:
     //
     // data has a field called ID
     console.log("Removing card with id", data.ID);
-    this.rtree.remove({
-        minX: rect.x,
-        minY: rect.y,
-        maxX: rect.x + rect.width,
-        maxY: rect.y + rect.height,
-        data: data
-      },
+
+    let item = bboxToRect(bbox);
+    item.data = data;
+
+    this.rtree.remove(
+      item,
       (a, b) => {
         // console.log("comparing", a.data.ID, b.data.ID);
         return a.data.ID == b.data.ID;
@@ -219,13 +271,9 @@ export default class Board extends React.Component {
     console.log(this.rtree.all().length);
   }
 
-  getIntersectingCards(id, rect) {
-    return this.rtree.search({
-      minX: rect.x,
-      minY: rect.y,
-      maxX: rect.x + rect.width,
-      maxY: rect.y + rect.height
-    });
+  getIntersectingCards(id, bbox) {
+    let query = bboxToRect(bbox);
+    return this.rtree.search(query);
   }
 
   modalCallBack(data, bbox) {

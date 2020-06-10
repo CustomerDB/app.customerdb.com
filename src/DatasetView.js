@@ -68,7 +68,6 @@ class DatasetView extends React.Component {
         });
 
         return <>
-            <Button onClick={logout} variant="link">Logout</Button>
             <div className="outerContainer fullHeight">
                 <div className="datasetContainer">
                     <a href="/"><h4>Datasets</h4></a>
