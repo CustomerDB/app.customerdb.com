@@ -21,7 +21,7 @@ function HighlightModal(props) {
 
   let intersection = props.getIntersectingCallBack(
     props.data.ID,
-    props.bbox).map((item) => { return item.ID; });
+    props.bbox).map((item) => { return item.data.ID; });
 
   let intersectionText = JSON.stringify(intersection, null, 2);
 
@@ -73,7 +73,9 @@ class Card extends React.Component {
 
     this.oldBbox = undefined;
 
-    this.state = {zIndex: 0};
+    this.state = {
+      zIndex: 0
+    };
   }
 
   componentDidMount() {
@@ -92,20 +94,20 @@ class Card extends React.Component {
   }
 
   handleDrag(e) {
-    let bbox = e.target.getBoundingClientRect();
+    let bbox = this.ref.current.getBoundingClientRect();
 
     let intersections = this.props.getIntersectingCallBack(
       this.props.data.ID,
       bbox);
 
     if (intersections.length > 0) {
-      // console.log(intersections.map((e) => { return e.ID; }));
+      console.log(intersections.map((e) => { return e.data.ID; }));
     }
   }
 
   handleStop(e) {
     console.log("handleStop");
-    this.bbox = e.target.getBoundingClientRect();
+    this.bbox = this.ref.current.getBoundingClientRect();
 
     this.props.addLocationCallBack(
       this.props.data,
@@ -207,26 +209,22 @@ export default class Board extends React.Component {
         data: data
       },
       (a, b) => {
-        console.log("comparing", a.data.ID, b.data.ID);
+        // console.log("comparing", a.data.ID, b.data.ID);
         return a.data.ID == b.data.ID;
       }
     );
   }
 
   printTree() {
-    // console.log(JSON.stringify(this.rtree.toJSON()));
+    console.log(this.rtree.all().length);
   }
 
   getIntersectingCards(id, rect) {
-    let results = this.rtree.search({
+    return this.rtree.search({
       minX: rect.x,
       minY: rect.y,
       maxX: rect.x + rect.width,
       maxY: rect.y + rect.height
-    });
-
-    return results.map((result) => {
-      return result.data;
     });
   }
 
