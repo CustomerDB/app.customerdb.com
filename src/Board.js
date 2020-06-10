@@ -9,13 +9,22 @@ function HighlightModal(props) {
     return <div></div>;
   }
 
+  let rect = {
+      minX: props.bbox.x,
+      minY: props.bbox.y,
+      maxX: props.bbox.x + props.bbox.width,
+      maxY: props.bbox.y + props.bbox.height
+  };
+
+  let bboxText = JSON.stringify(props.bbox, null, 2);
+  let rectText = JSON.stringify(rect, null, 2);
+
   return (
     <Modal
       {...props}
       size="lg"
       aria-labelledby="contained-modal-title-vcenter"
-      centered
-    >
+      centered >
       <Modal.Header closeButton>
         <Modal.Title id="contained-modal-title-vcenter">
           {props.data['Note - Title']}
@@ -23,8 +32,14 @@ function HighlightModal(props) {
       </Modal.Header>
       <Modal.Body>
         <p>
-          {props.data['Text']}
+          {props.data.Text}
         </p>
+        <pre>
+          bbox = {bboxText}
+        </pre>
+        <pre>
+          rect = {rectText}
+        </pre>
       </Modal.Body>
       <Modal.Footer>
         <Button onClick={props.onHide}>Close</Button>
@@ -40,12 +55,11 @@ class Card extends React.Component {
     this.handleStart = this.handleStart.bind(this);
     this.handleDrag = this.handleDrag.bind(this);
     this.handleStop = this.handleStop.bind(this);
-
-    this.state = {
-      zIndex: 0
-    };
+    this.showModal = this.showModal.bind(this);
 
     this.ref = React.createRef();
+
+    this.state = {zIndex: 0};
   }
 
   componentDidMount() {
@@ -65,7 +79,10 @@ class Card extends React.Component {
   handleDrag(e) {
     let bbox = e.target.getBoundingClientRect();
 
-    let intersections = this.props.getIntersectingCallBack(this.props.data.ID, bbox);
+    let intersections = this.props.getIntersectingCallBack(
+      this.props.data.ID,
+      bbox);
+
     if (intersections.length > 0) {
       console.log(intersections.map((e) => { return e.ID; }));
     }
@@ -73,7 +90,6 @@ class Card extends React.Component {
 
   handleStop(e) {
     console.log("handleStop");
-
     let bbox = e.target.getBoundingClientRect();
 
     this.props.updateLocationCallBack(
@@ -81,13 +97,19 @@ class Card extends React.Component {
       bbox);
 
     this.props.printTree();
-
     this.setState({zIndex: 0});
+  }
+
+  showModal() {
+    this.props.modalCallBack(
+      this.props.data,
+      this.ref.current.getBoundingClientRect());
   }
 
   render() {
     return <Draggable
       handle=".handle"
+      bounds="parent"
       defaultPosition={{x: 0, y: 0}}
       position={null}
       scale={1}
@@ -96,7 +118,7 @@ class Card extends React.Component {
       onStop={this.handleStop} >
         <div ref={this.ref} className="card" style={{zIndex: this.state.zIndex}} >
           <div className="handle titlebar"><b>{this.props.data['Note - Title']}</b></div>
-          <div className="quote" onClick={() => {this.props.modalCallBack(this.props.data)}}>{this.props.data['Text']}</div>
+          <div className="quote" onClick={this.showModal}>{this.props.data['Text']}</div>
         </div>
     </Draggable>;
   }
@@ -111,10 +133,11 @@ export default class Board extends React.Component {
       isDataLoaded: false,
       highlights: [],
       modalShow: false,
-      modalData: undefined
+      modalData: undefined,
+      modalBbox: undefined
     }
 
-    this.rtree = new RBush();
+    this.rtree = new RBush(4);
 
     this.printTree = this.printTree.bind(this);
 
@@ -186,10 +209,11 @@ export default class Board extends React.Component {
     return items;
   }
 
-  modalCallBack(data) {
+  modalCallBack(data, bbox) {
     this.setState({
-      'modalShow': true,
-      'modalData': data
+      modalShow: true,
+      modalData: data,
+      modalBbox: bbox,
     })
 
     console.log("Should show modal");
@@ -211,6 +235,7 @@ export default class Board extends React.Component {
     <HighlightModal
       show={this.state.modalShow}
       data={this.state.modalData}
+      bbox={this.state.modalBbox}
       onHide={() => this.setState({'modalShow': false})}
     />
     </>;
