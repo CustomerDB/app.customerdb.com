@@ -19,6 +19,12 @@ function HighlightModal(props) {
   let bboxText = JSON.stringify(props.bbox, null, 2);
   let rectText = JSON.stringify(rect, null, 2);
 
+  let intersection = props.getIntersectingCallBack(
+    props.data.ID,
+    props.bbox).map((item) => { return item.ID; });
+
+  let intersectionText = JSON.stringify(intersection, null, 2);
+
   return (
     <Modal
       {...props}
@@ -35,10 +41,16 @@ function HighlightModal(props) {
           {props.data.Text}
         </p>
         <pre>
+          id = {props.data.ID}
+        </pre>
+        <pre>
           bbox = {bboxText}
         </pre>
         <pre>
           rect = {rectText}
+        </pre>
+        <pre>
+          intersection = {intersectionText}
         </pre>
       </Modal.Body>
       <Modal.Footer>
@@ -66,7 +78,7 @@ class Card extends React.Component {
     let target = this.ref.current;
     let bbox = target.getBoundingClientRect();
 
-    this.props.updateLocationCallBack(
+    this.props.addLocationCallBack(
       this.props.data,
       bbox);
   }
@@ -74,6 +86,7 @@ class Card extends React.Component {
   handleStart(e) {
     console.log("handleStart");
     this.setState({zIndex: 100});
+    this.props.removeLocationCallBack(this.props.data);
   }
 
   handleDrag(e) {
@@ -84,7 +97,7 @@ class Card extends React.Component {
       bbox);
 
     if (intersections.length > 0) {
-      console.log(intersections.map((e) => { return e.ID; }));
+      // console.log(intersections.map((e) => { return e.ID; }));
     }
   }
 
@@ -92,7 +105,7 @@ class Card extends React.Component {
     console.log("handleStop");
     let bbox = e.target.getBoundingClientRect();
 
-    this.props.updateLocationCallBack(
+    this.props.addLocationCallBack(
       this.props.data,
       bbox);
 
@@ -140,11 +153,9 @@ export default class Board extends React.Component {
     this.rtree = new RBush(4);
 
     this.printTree = this.printTree.bind(this);
-
-    this.updateCardLocation = this.updateCardLocation.bind(this);
-
+    this.addCardLocation = this.addCardLocation.bind(this);
+    this.removeCardLocation = this.removeCardLocation.bind(this);
     this.getIntersectingCards = this.getIntersectingCards.bind(this);
-
     this.modalCallBack = this.modalCallBack.bind(this);
   }
 
@@ -164,20 +175,16 @@ export default class Board extends React.Component {
     );
   }
 
-  updateCardLocation(data, rect) {
+  addCardLocation(data, rect) {
     // @pre:
     //
     // data has a field called ID
     //
     // rect looks like this:
     // {"x":307,"y":317,"width":238,"height":40,"top":317,"right":545,"bottom":357,"left":307}
+    this.removeCardLocation(data);
 
     console.log("Inserting card with id", data.ID);
-
-    this.rtree.remove(
-      { data: { ID: data.ID} },
-      (a, b) => { return a.data.ID === b.data.ID; });
-
     this.rtree.insert({
       minX: rect.x,
       minY: rect.y,
@@ -185,6 +192,17 @@ export default class Board extends React.Component {
       maxY: rect.y + rect.height,
       data: data
     });
+  }
+
+  removeCardLocation(data) {
+    // @pre:
+    //
+    // data has a field called ID
+    console.log("Removing card with id", data.ID);
+    this.rtree.remove(
+      { data: data },
+      (a, b) => { return a.data.ID == b.data.ID; }
+    );
   }
 
   printTree() {
@@ -199,14 +217,9 @@ export default class Board extends React.Component {
       maxY: rect.y + rect.height
     });
 
-    let items = [];
-    for (var i=0; i<results.length; i++) {
-      if (results[i].data.ID !== id) {
-        items.push(results[i].data);
-      }
-    }
-
-    return items;
+    return results.map((result) => {
+      return result.data;
+    });
   }
 
   modalCallBack(data, bbox) {
@@ -215,8 +228,6 @@ export default class Board extends React.Component {
       modalData: data,
       modalBbox: bbox,
     })
-
-    console.log("Should show modal");
   }
 
   render() {
@@ -226,7 +237,8 @@ export default class Board extends React.Component {
           key={h.ID}
           data={h}
           modalCallBack={this.modalCallBack}
-          updateLocationCallBack={this.updateCardLocation}
+          addLocationCallBack={this.addCardLocation}
+          removeLocationCallBack={this.removeCardLocation}
           getIntersectingCallBack={this.getIntersectingCards}
           printTree={this.printTree}
           />;
@@ -236,6 +248,7 @@ export default class Board extends React.Component {
       show={this.state.modalShow}
       data={this.state.modalData}
       bbox={this.state.modalBbox}
+      getIntersectingCallBack={this.getIntersectingCards}
       onHide={() => this.setState({'modalShow': false})}
     />
     </>;
