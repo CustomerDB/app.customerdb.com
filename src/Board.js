@@ -85,8 +85,11 @@ class Card extends React.Component {
 
   handleStart(e) {
     console.log("handleStart");
+
+    let bbox = e.target.getBoundingClientRect();
+
     this.setState({zIndex: 100});
-    this.props.removeLocationCallBack(this.props.data);
+    this.props.removeLocationCallBack(this.props.data, bbox);
   }
 
   handleDrag(e) {
@@ -182,8 +185,6 @@ export default class Board extends React.Component {
     //
     // rect looks like this:
     // {"x":307,"y":317,"width":238,"height":40,"top":317,"right":545,"bottom":357,"left":307}
-    this.removeCardLocation(data);
-
     console.log("Inserting card with id", data.ID);
     this.rtree.insert({
       minX: rect.x,
@@ -194,14 +195,22 @@ export default class Board extends React.Component {
     });
   }
 
-  removeCardLocation(data) {
+  removeCardLocation(data, rect) {
     // @pre:
     //
     // data has a field called ID
     console.log("Removing card with id", data.ID);
-    this.rtree.remove(
-      { data: data },
-      (a, b) => { return a.data.ID == b.data.ID; }
+    this.rtree.remove({
+        minX: rect.x,
+        minY: rect.y,
+        maxX: rect.x + rect.width,
+        maxY: rect.y + rect.height,
+        data: data
+      },
+      (a, b) => {
+        console.log("comparing", a.data.ID, b.data.ID);
+        return a.data.ID == b.data.ID;
+      }
     );
   }
 
