@@ -71,25 +71,24 @@ class Card extends React.Component {
 
     this.ref = React.createRef();
 
+    this.oldBbox = undefined;
+
     this.state = {zIndex: 0};
   }
 
   componentDidMount() {
     let target = this.ref.current;
-    let bbox = target.getBoundingClientRect();
+    this.bbox = target.getBoundingClientRect();
 
     this.props.addLocationCallBack(
       this.props.data,
-      bbox);
+      this.bbox);
   }
 
   handleStart(e) {
     console.log("handleStart");
-
-    let bbox = e.target.getBoundingClientRect();
-
     this.setState({zIndex: 100});
-    this.props.removeLocationCallBack(this.props.data, bbox);
+    this.props.removeLocationCallBack(this.props.data, this.bbox);
   }
 
   handleDrag(e) {
@@ -106,11 +105,11 @@ class Card extends React.Component {
 
   handleStop(e) {
     console.log("handleStop");
-    let bbox = e.target.getBoundingClientRect();
+    this.bbox = e.target.getBoundingClientRect();
 
     this.props.addLocationCallBack(
       this.props.data,
-      bbox);
+      this.bbox);
 
     this.props.printTree();
     this.setState({zIndex: 0});
