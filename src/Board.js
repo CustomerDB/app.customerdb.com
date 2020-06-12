@@ -182,7 +182,7 @@ class Card extends React.Component {
     return <><Draggable
       handle=".handle"
       bounds="parent"
-      defaultPosition={{x: 0, y: 0}}
+      defaultPosition={{x: 0, y: 40}}
       position={null}
       scale={1}
       onStart={this.handleStart}

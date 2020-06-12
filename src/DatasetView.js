@@ -4,9 +4,10 @@ import './App.css';
 import { logout, Loading } from './Utils.js';
 import Board from './Board.js';
 
-import Button from 'react-bootstrap/Button';
-import Tabs from 'react-bootstrap/Tabs';
-import Tab from 'react-bootstrap/Tab';
+import Navbar from 'react-bootstrap/Navbar';
+import NavDropdown from 'react-bootstrap/NavDropdown';
+import Nav from 'react-bootstrap/Nav';
+
 
 import {
     withRouter
@@ -37,7 +38,8 @@ class DatasetView extends React.Component {
         this.dataset.onSnapshot((function(doc) {
             this.setState({
                 isDataLoaded: true,
-                'dataset': doc.data()
+                'dataset': doc.data(),
+                'selectedTag': doc.data().tags[0]
             });
         }).bind(this));
 
@@ -60,22 +62,25 @@ class DatasetView extends React.Component {
             return Loading();
         }
 
-        let tabs = [];
+        let dropdownItems = [];
         this.state.dataset.tags.forEach((tag) => {
-            tabs.push(<Tab key={tag} eventKey={tag} title={tag} className="fullHeight">
-              <Board key={tag} datasetRef={this.dataset} tag={tag} />
-            </Tab>);
+            // Build drop down
+            dropdownItems.push(<NavDropdown.Item onClick={(e) => {this.setState({'selectedTag': tag})}}>{tag}</NavDropdown.Item>)
         });
-
         return <>
+            <Navbar bg="light" expand="lg" fixed="top">
+                <Nav.Link href="/">Datasets</Nav.Link>
+                <Nav.Item>{this.state.dataset.name}</Nav.Item>
+                <NavDropdown title={this.state.selectedTag} id="collasible-nav-dropdown">
+                    {dropdownItems}
+                </NavDropdown>
+                <Navbar.Collapse className="justify-content-end">
+                    <Nav.Link onClick={() => {logout()}}>Logout</Nav.Link>
+                </Navbar.Collapse>
+            </Navbar>
             <div className="outerContainer fullHeight">
                 <div className="datasetContainer">
-                    <a href="/"><h4>Datasets</h4></a>
-                    <h3>{this.state.dataset.name}</h3>
-                    <br/>
-                    <Tabs>
-                        {tabs}
-                    </Tabs>
+                    <Board key={this.state.selectedTag} datasetRef={this.dataset} tag={this.state.selectedTag} />
                 </div>
             </div>
         </>;
