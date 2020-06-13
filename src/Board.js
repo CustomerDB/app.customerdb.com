@@ -203,7 +203,7 @@ class Card extends React.Component {
 
     let thisCardGroupID = this.props.data.groupID;
 
-    if (cardGroupIDs.size != 1) {
+    if (cardGroupIDs.size !== 1) {
       this.setState({ groupShape: undefined });
       if (thisCardGroupID !== undefined) {
         // This card has been dragged out of its own group
@@ -223,7 +223,7 @@ class Card extends React.Component {
     let unionRect = Object.assign(thisRect, {});
 
     intersections.forEach((obj) => {
-      if (obj.kind === "card" || obj.data.ID == groupID) {
+      if (obj.kind === "card" || obj.data.ID === groupID) {
         unionRect.minX = Math.min(unionRect.minX, obj.minX);
         unionRect.minY = Math.min(unionRect.minY, obj.minY);
         unionRect.maxX = Math.max(unionRect.maxX, obj.maxX);
@@ -420,7 +420,9 @@ export default class Board extends React.Component {
     let card = cards[0];
     let color = rcolor();
     let textColor = getTextColorForBackground(color);
-    this.state.groups[id] = {
+    let groups = this.state.groups;
+
+    groups[id] = {
         minX: card.minX,
         minY: card.minY,
         maxX: card.maxX,
@@ -434,6 +436,8 @@ export default class Board extends React.Component {
           cards: []
         }
       }
+
+    this.setState({ groups: groups });
 
     cards.forEach((card) => {
       this.addCardToGroup(id, card);
@@ -461,7 +465,7 @@ export default class Board extends React.Component {
     card.kind = "card";
 
     let groups = this.groupsForBbox(bbox);
-    if (groups.length == 0) {
+    if (groups.length === 0) {
       this.removeCardFromGroup(card);
       let intersections = this.getIntersectingCards(bbox);
       if (intersections.length > 0) {
@@ -470,7 +474,7 @@ export default class Board extends React.Component {
         this.createGroup(intersections);
       }
     }
-    if (groups.length == 1) {
+    if (groups.length === 1) {
       let group = groups[0];
       if (card.data.groupID !== group.data.ID) {
         this.removeCardFromGroup(card);
