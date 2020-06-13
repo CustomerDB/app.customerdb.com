@@ -363,10 +363,14 @@ export default class Board extends React.Component {
     card.data.groupColor = group.data.color;
     card.data.textColor = group.data.textColor;
 
-    // Delete old group record from rtree
-    this.removeGroupLocation(group);
+    group.data.cards = group.data.cards.filter((e) => {
+      return e.data.ID !== card.data.ID
+    });
 
     group.data.cards.push(card);
+
+    // Delete old group record from rtree
+    this.removeGroupLocation(group);
 
     // Update group bounding box
     recomputeGroupBounds(group);
@@ -389,15 +393,14 @@ export default class Board extends React.Component {
     card.data.groupColor = "#000";
     card.data.textColor = "#FFF";
 
-    group.data.cards = group.data.cards.filter((e) => { return e.data.ID !== card.data.ID});
+    group.data.cards = group.data.cards.filter((e) => {
+      return e.data.ID !== card.data.ID
+    });
 
     // Delete old group record from rtree
     this.removeGroupLocation(group);
 
-
     if (group.data.cards.length > 1) {
-      // Update group bounding box
-      recomputeGroupBounds(group);
 
       // Re-insert group into rtree
       this.addGroupLocation(group);
@@ -443,7 +446,7 @@ export default class Board extends React.Component {
       let groupID = c.data.groupID;
       return (groupID === undefined) ? [] : [this.state.groups[groupID]];
     });
-    return groups;
+    return [...new Set(groups)];
   }
 
   addCardLocation(data, bbox) {
