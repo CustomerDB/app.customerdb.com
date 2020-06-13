@@ -153,32 +153,31 @@ class Card extends React.Component {
   handleDrag(e) {
     let bbox = this.ref.current.getBoundingClientRect();
 
-    let hasCards = false;
-    let groupIDs = new Set();
+    let cardGroupIDs = new Set();
 
     let intersections = this.props.getIntersectingCallBack(bbox);
     intersections.forEach((obj) => {
       if (obj.kind === "card") {
-        hasCards = true;
-        groupIDs.add(obj.data.groupID);
+        cardGroupIDs.add(obj.data.groupID);
       }
     });
 
-    let hasMultipleGroups = groupIDs.size > 1;
-
-    if (!hasCards || hasMultipleGroups) {
+    if (cardGroupIDs.size != 1) {
       this.setState({ groupShape: undefined });
       return;
     }
 
+    let groupID = cardGroupIDs.values().next().value; // may be `undefined`
     let thisRect = bboxToRect(bbox);
     let unionRect = Object.assign(thisRect, {});
 
-    intersections.forEach((otherRect) => {
-      unionRect.minX = Math.min(unionRect.minX, otherRect.minX);
-      unionRect.minY = Math.min(unionRect.minY, otherRect.minY);
-      unionRect.maxX = Math.max(unionRect.maxX, otherRect.maxX);
-      unionRect.maxY = Math.max(unionRect.maxY, otherRect.maxY);
+    intersections.forEach((obj) => {
+      if (obj.kind === "card" || obj.data.ID == groupID) {
+        unionRect.minX = Math.min(unionRect.minX, obj.minX);
+        unionRect.minY = Math.min(unionRect.minY, obj.minY);
+        unionRect.maxX = Math.max(unionRect.maxX, obj.maxX);
+        unionRect.maxY = Math.max(unionRect.maxY, obj.maxY);
+      }
     });
 
     this.setState({ groupShape: unionRect });
@@ -299,12 +298,6 @@ export default class Board extends React.Component {
     let groups = this.state.groups;
     let group = groups[groupID];
     card.data.groupID = group.data.ID;
-
-    // Test for previous group membership and clean up.
-    if (card.data.groupID !== undefined) {
-      console.log("Need to clean up group:", card.data.groupID);
-      let group = this.state.groups[card.data.groupID];
-    }
 
     // Delete old group record from rtree
     this.removeGroupLocation(group);
