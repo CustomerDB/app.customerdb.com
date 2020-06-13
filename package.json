@@ -9,6 +9,7 @@
     "bootstrap": "^4.5.0",
     "firebase": "^7.14.6",
     "rbush": "^3.0.1",
+    "rcolor": "^2.0.2",
     "react": "^16.13.1",
     "react-bootstrap": "^1.0.1",
     "react-dom": "^16.13.1",
