@@ -31,6 +31,23 @@ function makeCard(data, bbox) {
   return card;
 }
 
+function recomputeGroupBounds(group) {
+  if (group.data.cards.length > 0) {
+    let card0 = group.data.cards[0];
+    group.minX = card0.minX;
+    group.minY = card0.minY;
+    group.maxX = card0.maxX;
+    group.maxY = card0.maxY;
+
+    group.data.cards.forEach((card) => {
+      group.minX = Math.min(group.minX, card.minX);
+      group.minY = Math.min(group.minY, card.minY);
+      group.maxX = Math.max(group.maxX, card.maxX);
+      group.maxY = Math.max(group.maxY, card.maxY);
+    });
+  }
+}
+
 function circumscribingCircle(rect) {
   let width = rect.maxX - rect.minX;
   let height = rect.maxY - rect.minY;
@@ -349,13 +366,10 @@ export default class Board extends React.Component {
     // Delete old group record from rtree
     this.removeGroupLocation(group);
 
-    // Update group bounding box
-    group.minX = Math.min(group.minX, card.minX);
-    group.minY = Math.min(group.minY, card.minY);
-    group.maxX = Math.max(group.maxX, card.maxX);
-    group.maxY = Math.max(group.maxY, card.maxY);
-
     group.data.cards.push(card);
+
+    // Update group bounding box
+    recomputeGroupBounds(group);
 
     // Re-insert group into rtree and re-render
     this.addGroupLocation(group);
@@ -380,21 +394,12 @@ export default class Board extends React.Component {
     // Delete old group record from rtree
     this.removeGroupLocation(group);
 
+
     if (group.data.cards.length > 1) {
-       // Update group bounding box
-      group.minX = group.data.cards[0].minX;
-      group.minY = group.data.cards[0].minY;
-      group.maxX = group.data.cards[0].maxX
-      group.maxY = group.data.cards[0].maxY;
+      // Update group bounding box
+      recomputeGroupBounds(group);
 
-      group.data.cards.forEach((card) => {
-        group.minX = Math.min(group.minX, card.minX);
-        group.minY = Math.min(group.minY, card.minY);
-        group.maxX = Math.max(group.maxX, card.maxX);
-        group.maxY = Math.max(group.maxY, card.maxY);
-      });
-
-      // Re-insert group into rtree and re-render
+      // Re-insert group into rtree
       this.addGroupLocation(group);
     } else {
       // Remove group
