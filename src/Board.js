@@ -24,6 +24,13 @@ function bboxToRect(bbox) {
   };
 }
 
+function makeCard(data, bbox) {
+  let card = bboxToRect(bbox);
+  card.data = data;
+  card.kind = "card";
+  return card;
+}
+
 function circumscribingCircle(rect) {
   let width = rect.maxX - rect.minX;
   let height = rect.maxY - rect.minY;
@@ -177,12 +184,24 @@ class Card extends React.Component {
       }
     });
 
+    let thisCardGroupID = this.props.data.groupID;
+
     if (cardGroupIDs.size != 1) {
       this.setState({ groupShape: undefined });
+      if (thisCardGroupID !== undefined) {
+        // This card has been dragged out of its own group
+        this.props.removeFromGroupCallBack(this.props.data, this.bbox);
+      }
       return;
     }
 
     let groupID = cardGroupIDs.values().next().value; // may be `undefined`
+
+    if (thisCardGroupID !== undefined && thisCardGroupID !== groupID) {
+      // This card has been dragged out of its own group
+      this.props.removeFromGroupCallBack(this.props.data, this.bbox);
+    }
+
     let thisRect = bboxToRect(bbox);
     let unionRect = Object.assign(thisRect, {});
 
@@ -242,7 +261,7 @@ class Card extends React.Component {
           </div>
           <div className="quote" onClick={this.showModal}>{this.props.data['Text']}</div>
         </div>
-    </Draggable> 
+    </Draggable>
     <Group groupObject={this.state.groupShape} />
     </>;
   }
@@ -285,6 +304,7 @@ export default class Board extends React.Component {
 
     this.addCardLocation = this.addCardLocation.bind(this);
     this.removeCardLocation = this.removeCardLocation.bind(this);
+    this.removeCardLocationFromGroup = this.removeCardLocationFromGroup.bind(this);
 
     this.addGroupLocation = this.addGroupLocation.bind(this);
     this.removeGroupLocation = this.removeGroupLocation.bind(this);
@@ -456,18 +476,19 @@ export default class Board extends React.Component {
     this.rtree.insert(card);
   }
 
+  removeCardLocationFromGroup(data, bbox) {
+    // Remove this card from a group (if it's part of a group)
+    let card = makeCard(data, bbox);
+    this.removeCardFromGroup(card);
+  }
+
   removeCardLocation(data, bbox) {
     // @pre:
     //
     // data has a field called ID
     console.log("Removing card with id", data.ID);
 
-    let card = bboxToRect(bbox);
-    card.data = data;
-    card.kind = "card";
-
-    // Remove this card from a group (if it's part of a group)
-    this.removeCardFromGroup(card);
+    let card = makeCard(data, bbox);
 
     this.rtree.remove(
       card,
@@ -548,6 +569,7 @@ export default class Board extends React.Component {
         modalCallBack={this.modalCallBack}
         addLocationCallBack={this.addCardLocation}
         removeLocationCallBack={this.removeCardLocation}
+        removeFromGroupCallBack={this.removeCardLocationFromGroup}
         getIntersectingCallBack={this.getIntersecting}
         printTree={this.printTree}
       />);
