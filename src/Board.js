@@ -194,6 +194,7 @@ class Card extends React.Component {
 
     let cardGroupIDs = new Set();
     let cardGroupColor = "#000";
+    let cardGroupTextColor = "#FFF";
 
     let intersections = this.props.getIntersectingCallBack(bbox);
     intersections.forEach((obj) => {
@@ -201,6 +202,7 @@ class Card extends React.Component {
         cardGroupIDs.add(obj.data.groupID);
         if (obj.data.groupID !== undefined) {
           cardGroupColor = obj.data.groupColor;
+          cardGroupTextColor = obj.data.textColor;
         }
       }
     });
@@ -208,7 +210,11 @@ class Card extends React.Component {
     let thisCardGroupID = this.props.data.groupID;
 
     if (cardGroupIDs.size !== 1) {
-      this.setState({ groupShape: undefined });
+      this.setState({
+        groupShape: undefined,
+        previewColor: undefined,
+        previewTextColor: undefined
+      });
       if (thisCardGroupID !== undefined) {
         // This card has been dragged out of its own group
         this.props.removeFromGroupCallBack(this.props.data, this.bbox);
@@ -237,7 +243,11 @@ class Card extends React.Component {
 
     unionRect.data = { color: cardGroupColor };
 
-    this.setState({ groupShape: unionRect });
+    this.setState({
+      groupShape: unionRect,
+      previewColor: cardGroupColor,
+      previewTextColor: cardGroupTextColor
+    });
   }
 
   handleStop(e) {
@@ -251,7 +261,9 @@ class Card extends React.Component {
     this.props.printTree();
     this.setState({
       zIndex: 0,
-      groupShape: undefined
+      groupShape: undefined,
+      previewColor: undefined,
+      previewTextColor: undefined
     });
   }
 
@@ -262,6 +274,8 @@ class Card extends React.Component {
   }
 
   render() {
+    let titleBarColor = this.state.previewColor !== undefined ? this.state.previewColor : this.props.data.groupColor;
+    let titleBarTextColor = this.state.previewTextColor !== undefined ? this.state.previewTextColor : this.props.data.textColor;
     return <><Draggable
       handle=".handle"
       bounds="parent"
@@ -275,8 +289,8 @@ class Card extends React.Component {
           <div
             className="handle titlebar"
             style={{
-              backgroundColor: this.props.data.groupColor,
-              color: this.props.data.textColor
+              backgroundColor: titleBarColor,
+              color: titleBarTextColor
             }}>
             {this.props.data['Note - Title']}
           </div>
