@@ -4,6 +4,16 @@ import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import RBush from 'rbush';
 import { v4 as uuidv4 } from 'uuid';
+import rcolor from 'rcolor';
+
+function getTextColorForBackground(hexcolor){
+  hexcolor = hexcolor.replace("#", "");
+  var r = parseInt(hexcolor.substr(0,2),16);
+  var g = parseInt(hexcolor.substr(2,2),16);
+  var b = parseInt(hexcolor.substr(4,2),16);
+  var yiq = ((r*299)+(g*587)+(b*114))/1000;
+  return (yiq >= 170) ? '#000' : '#FFF';
+}
 
 function bboxToRect(bbox) {
   return {
@@ -51,16 +61,21 @@ function Group(props) {
   }
 
   let circle = circumscribingCircle(props.groupObject);
+  let color = props.groupObject.data.color;
 
-  return <div style={{
-    position: "absolute",
-    left: circle.minX,
-    top: circle.minY,
-    width: circle.diameter,
-    height: circle.diameter,
-    borderRadius: "50%",
-    border: "2px green solid"
-  }}>
+  let border = `2px ${color} solid`;
+
+  return <div
+    className="group"
+    style={{
+      position: "absolute",
+      left: circle.minX,
+      top: circle.minY,
+      width: circle.diameter,
+      height: circle.diameter,
+      borderRadius: "50%",
+      border: border
+    }}>
     { }
   </div>;
 }
@@ -180,6 +195,8 @@ class Card extends React.Component {
       }
     });
 
+    unionRect.data = { color: "#000" };
+
     this.setState({ groupShape: unionRect });
   }
 
@@ -215,7 +232,14 @@ class Card extends React.Component {
       onDrag={this.handleDrag}
       onStop={this.handleStop} >
         <div ref={this.ref} className="card" style={{zIndex: this.state.zIndex}} >
-          <div className="handle titlebar"><b>{this.props.data['Note - Title']}</b></div>
+          <div
+            className="handle titlebar"
+            style={{
+              backgroundColor: this.props.data.groupColor,
+              color: this.props.data.textColor
+            }}>
+            {this.props.data['Note - Title']}
+          </div>
           <div className="quote" onClick={this.showModal}>{this.props.data['Text']}</div>
         </div>
     </Draggable> 
@@ -297,7 +321,10 @@ export default class Board extends React.Component {
   addCardToGroup(groupID, card) {
     let groups = this.state.groups;
     let group = groups[groupID];
+
     card.data.groupID = group.data.ID;
+    card.data.groupColor = group.data.color;
+    card.data.textColor = group.data.textColor;
 
     // Delete old group record from rtree
     this.removeGroupLocation(group);
@@ -323,7 +350,10 @@ export default class Board extends React.Component {
     let groupID = card.data.groupID;
     let groups = this.state.groups;
     let group = groups[groupID];
+
     card.data.groupID = undefined;
+    card.data.groupColor = "#000";
+    card.data.textColor = "#FFF";
 
     group.data.cards = group.data.cards.filter((e) => { return e.data.ID !== card.data.ID});
 
@@ -349,7 +379,7 @@ export default class Board extends React.Component {
     } else {
       // Remove group
       group.data.cards.forEach((card) => {
-        card.data.groupID = undefined;
+        this.removeCardFromGroup(card);
       })
       delete groups[groupID];
     }
@@ -360,6 +390,8 @@ export default class Board extends React.Component {
   createGroup(cards) {
     let id = uuidv4();
     let card = cards[0];
+    let color = rcolor();
+    let textColor = getTextColorForBackground(color);
     this.state.groups[id] = {
         minX: card.minX,
         minY: card.minY,
@@ -369,6 +401,8 @@ export default class Board extends React.Component {
         data: {
           ID: id,
           name: "Unnamed group",
+          color: color,
+          textColor: textColor,
           cards: []
         }
       }

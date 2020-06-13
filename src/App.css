@@ -68,9 +68,10 @@ div.uploadButtonContainer {
 }
 
 .titlebar {
-    background-color: darkblue;
+    background-color: #000;
     color: white;
     padding: 0.5rem;
+    font-weight: bold;
 }
 
 .quote {
