@@ -193,11 +193,15 @@ class Card extends React.Component {
     let bbox = this.ref.current.getBoundingClientRect();
 
     let cardGroupIDs = new Set();
+    let cardGroupColor = "#000";
 
     let intersections = this.props.getIntersectingCallBack(bbox);
     intersections.forEach((obj) => {
       if (obj.kind === "card") {
         cardGroupIDs.add(obj.data.groupID);
+        if (obj.data.groupID !== undefined) {
+          cardGroupColor = obj.data.groupColor;
+        }
       }
     });
 
@@ -231,7 +235,7 @@ class Card extends React.Component {
       }
     });
 
-    unionRect.data = { color: "#000" };
+    unionRect.data = { color: cardGroupColor };
 
     this.setState({ groupShape: unionRect });
   }
