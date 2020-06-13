@@ -14,13 +14,7 @@ function bboxToRect(bbox) {
   };
 }
 
-function Group(props) {
-  let rect = props.groupObject;
-
-  if (rect === undefined) {
-    return <div></div>
-  }
-
+function circumscribingCircle(rect) {
   let width = rect.maxX - rect.minX;
   let height = rect.maxY - rect.minY;
 
@@ -37,12 +31,33 @@ function Group(props) {
     y: rect.minY + height / 2
   }
 
+  let minX = center.x - radius;
+  let minY = center.y - radius;
+
+  return {
+    minX: minX,
+    minY: minY,
+    maxX: minX + diameter,
+    maxY: minY + diameter,
+    diameter: diameter,
+    radius: radius,
+    center: center
+  };
+}
+
+function Group(props) {
+  if (props.groupObject === undefined) {
+    return <div></div>
+  }
+
+  let circle = circumscribingCircle(props.groupObject);
+
   return <div style={{
     position: "absolute",
-    top: center.y - radius,
-    left: center.x - radius,
-    width: diameter,
-    height: diameter,
+    left: circle.minX,
+    top: circle.minY,
+    width: circle.diameter,
+    height: circle.diameter,
     borderRadius: "50%",
     border: "2px green solid"
   }}>
@@ -138,27 +153,35 @@ class Card extends React.Component {
   handleDrag(e) {
     let bbox = this.ref.current.getBoundingClientRect();
 
+    let hasCards = false;
+    let groupIDs = new Set();
+
     let intersections = this.props.getIntersectingCallBack(bbox);
+    intersections.forEach((obj) => {
+      if (obj.kind === "card") {
+        hasCards = true;
+        groupIDs.add(obj.data.groupID);
+      }
+    });
 
-    if (intersections.length > 0) {
+    let hasMultipleGroups = groupIDs.size > 1;
 
-      console.log("intersecting kinds:", intersections.map((i) => {return i.kind}));
-
-      let thisRect = bboxToRect(bbox);
-      let unionRect = Object.assign(thisRect, {});
-
-      intersections.forEach((otherRect) => {
-        unionRect.minX = Math.min(unionRect.minX, otherRect.minX);
-        unionRect.minY = Math.min(unionRect.minY, otherRect.minY);
-        unionRect.maxX = Math.max(unionRect.maxX, otherRect.maxX);
-        unionRect.maxY = Math.max(unionRect.maxY, otherRect.maxY);
-      });
-
-      this.setState({ groupShape: unionRect });
-    }
-    else {
+    if (!hasCards || hasMultipleGroups) {
       this.setState({ groupShape: undefined });
+      return;
     }
+
+    let thisRect = bboxToRect(bbox);
+    let unionRect = Object.assign(thisRect, {});
+
+    intersections.forEach((otherRect) => {
+      unionRect.minX = Math.min(unionRect.minX, otherRect.minX);
+      unionRect.minY = Math.min(unionRect.minY, otherRect.minY);
+      unionRect.maxX = Math.max(unionRect.maxX, otherRect.maxX);
+      unionRect.maxY = Math.max(unionRect.maxY, otherRect.maxY);
+    });
+
+    this.setState({ groupShape: unionRect });
   }
 
   handleStop(e) {
@@ -252,6 +275,8 @@ export default class Board extends React.Component {
     this.addCardToGroup = this.addCardToGroup.bind(this);
     this.removeCardFromGroup = this.removeCardFromGroup.bind(this);
     this.createGroup = this.createGroup.bind(this);
+
+    this.groupsForBbox = this.groupsForBbox.bind(this);
   }
 
   componentDidMount() {
@@ -360,6 +385,15 @@ export default class Board extends React.Component {
     })
   }
 
+  groupsForBbox(bbox) {
+    let intersections = this.getIntersectingCards(bbox);
+    let groups = intersections.flatMap((c) => {
+      let groupID = c.data.groupID;
+      return (groupID === undefined) ? [] : [this.state.groups[groupID]];
+    });
+    return groups;
+  }
+
   addCardLocation(data, bbox) {
     // @pre:
     //
@@ -371,33 +405,25 @@ export default class Board extends React.Component {
     card.data = data;
     card.kind = "card";
 
-    // find cards that intersect this new card
-    let intersections = this.getIntersectingCards(bbox);
-
-    if (intersections.length > 0) {
-      // if the cards are already in a group, join that group
-      // NOTE: merging two groups with a new card insertion is not supported.
-      
-
-      let groupID = intersections[0].data.groupID;
-      if (groupID !== undefined) {
-        if (card.data.groupID !== groupID) {
-          this.removeCardFromGroup(card);
-        }
-
-        this.addCardToGroup(groupID, card);
-      }
-
-      // if no group exists, create a new group
-      else {
-        
-        this.removeCardFromGroup(card);
-
+    let groups = this.groupsForBbox(bbox);
+    if (groups.length == 0) {
+      this.removeCardFromGroup(card);
+      let intersections = this.getIntersectingCards(bbox);
+      if (intersections.length > 0) {
+        // Create a new group
         intersections.push(card);
         this.createGroup(intersections);
       }
-    } else {
-      this.removeCardFromGroup(card);
+    }
+    if (groups.length == 1) {
+      let group = groups[0];
+      if (card.data.groupID !== group.data.ID) {
+        this.removeCardFromGroup(card);
+      }
+      this.addCardToGroup(group.data.ID, card);
+    }
+    if (groups.length > 1) {
+      console.error("Unsupported group merge via drag: groups: ", groups.map((g) => { return g.data.ID; }));
     }
 
     this.rtree.insert(card);
@@ -409,19 +435,20 @@ export default class Board extends React.Component {
     // data has a field called ID
     console.log("Removing card with id", data.ID);
 
-    let item = bboxToRect(bbox);
-    item.data = data;
-    item.kind = "card";
+    let card = bboxToRect(bbox);
+    card.data = data;
+    card.kind = "card";
+
+    // Remove this card from a group (if it's part of a group)
+    this.removeCardFromGroup(card);
 
     this.rtree.remove(
-      item,
+      card,
       (a, b) => {
         if (a.kind !== "card" || b.kind !== "card") {
-          // console.log("not cards?\n", JSON.stringify(a), JSON.stringify(b));
           return false;
         }
-        let result = a.data.ID === b.data.ID;
-        return result
+        return a.data.ID === b.data.ID;
       }
     );
   }
