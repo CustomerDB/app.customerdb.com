@@ -3,6 +3,7 @@ import Draggable from 'react-draggable';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import RBush from 'rbush';
+import { v4 as uuidv4 } from 'uuid';
 
 function bboxToRect(bbox) {
   return {
@@ -60,7 +61,7 @@ function HighlightModal(props) {
   let rectText = JSON.stringify(rect, null, 2);
 
   let intersection = props.getIntersectingCallBack(
-    props.bbox).map((item) => { return item.data.ID; });
+    props.bbox); // .map((item) => { return item.data.ID; });
 
   let intersectionText = JSON.stringify(intersection, null, 2);
 
@@ -98,6 +99,7 @@ function HighlightModal(props) {
     </Modal>
   );
 }
+
 
 class Card extends React.Component {
   constructor(props) {
@@ -212,7 +214,7 @@ export default class Board extends React.Component {
       modalData: undefined,
       modalBbox: undefined,
 
-      // Groups is indexed by groupName, and contains data
+      // Groups is indexed by groupID, and contains data
       // that looks like this:
       //
       // groups: {
@@ -246,6 +248,10 @@ export default class Board extends React.Component {
     this.getIntersectingGroups = this.getIntersectingGroups.bind(this);
 
     this.modalCallBack = this.modalCallBack.bind(this);
+
+    this.addCardToGroup = this.addCardToGroup.bind(this);
+    this.removeCardFromGroup = this.removeCardFromGroup.bind(this);
+    this.createGroup = this.createGroup.bind(this);
   }
 
   componentDidMount() {
@@ -264,6 +270,96 @@ export default class Board extends React.Component {
     );
   }
 
+  addCardToGroup(groupID, card) {
+    let groups = this.state.groups;
+    let group = groups[groupID];
+    card.data.groupID = group.data.ID;
+
+    // Test for previous group membership and clean up.
+    if (card.data.groupID !== undefined) {
+      console.log("Need to clean up group:", card.data.groupID);
+      let group = this.state.groups[card.data.groupID];
+    }
+
+    // Delete old group record from rtree
+    this.removeGroupLocation(group);
+
+    // Update group bounding box
+    group.minX = Math.min(group.minX, card.minX);
+    group.minY = Math.min(group.minY, card.minY);
+    group.maxX = Math.max(group.maxX, card.maxX);
+    group.maxY = Math.max(group.maxY, card.maxY);
+
+    group.data.cards.push(card);
+
+    // Re-insert group into rtree and re-render
+    this.addGroupLocation(group);
+    this.setState({ groups: groups });
+  }
+
+  removeCardFromGroup(card) {
+    if (card.data.groupID === undefined) {
+      return;
+    }
+
+    let groupID = card.data.groupID;
+    let groups = this.state.groups;
+    let group = groups[groupID];
+    card.data.groupID = undefined;
+
+    group.data.cards = group.data.cards.filter((e) => { return e.data.ID !== card.data.ID});
+
+    // Delete old group record from rtree
+    this.removeGroupLocation(group);
+
+    if (group.data.cards.length > 1) {
+       // Update group bounding box
+      group.minX = group.data.cards[0].minX;
+      group.minY = group.data.cards[0].minY;
+      group.maxX = group.data.cards[0].maxX
+      group.maxY = group.data.cards[0].maxY;
+
+      group.data.cards.forEach((card) => {
+        group.minX = Math.min(group.minX, card.minX);
+        group.minY = Math.min(group.minY, card.minY);
+        group.maxX = Math.max(group.maxX, card.maxX);
+        group.maxY = Math.max(group.maxY, card.maxY);
+      });
+
+      // Re-insert group into rtree and re-render
+      this.addGroupLocation(group);
+    } else {
+      // Remove group
+      group.data.cards.forEach((card) => {
+        card.data.groupID = undefined;
+      })
+      delete groups[groupID];
+    }
+
+    this.setState({ groups: groups });
+  }
+
+  createGroup(cards) {
+    let id = uuidv4();
+    let card = cards[0];
+    this.state.groups[id] = {
+        minX: card.minX,
+        minY: card.minY,
+        maxX: card.maxX,
+        maxY: card.maxY,
+        kind: "group",
+        data: {
+          ID: id,
+          name: "Unnamed group",
+          cards: []
+        }
+      }
+
+    cards.forEach((card) => {
+      this.addCardToGroup(id, card);
+    })
+  }
+
   addCardLocation(data, bbox) {
     // @pre:
     //
@@ -271,7 +367,6 @@ export default class Board extends React.Component {
     //
     // rect looks like this:
     // {"x":307,"y":317,"width":238,"height":40,"top":317,"right":545,"bottom":357,"left":307}
-    console.log("Inserting card with id", data.ID);
     let card = bboxToRect(bbox);
     card.data = data;
     card.kind = "card";
@@ -282,64 +377,27 @@ export default class Board extends React.Component {
     if (intersections.length > 0) {
       // if the cards are already in a group, join that group
       // NOTE: merging two groups with a new card insertion is not supported.
-      let groups = this.state.groups;
+      
 
-      let groupName = intersections[0].data.groupName;
-      if (groupName !== undefined) {
-        card.data.groupName = groupName;
-        let group = groups[groupName];
+      let groupID = intersections[0].data.groupID;
+      if (groupID !== undefined) {
+        if (card.data.groupID !== groupID) {
+          this.removeCardFromGroup(card);
+        }
 
-        // Delete old group record from rtree
-        this.removeGroupLocation(group);
-
-        // Update group bounding box
-        group.minX = Math.min(group.minX, card.minX);
-        group.minY = Math.min(group.minY, card.minY);
-        group.maxX = Math.max(group.maxX, card.maxX);
-        group.maxY = Math.max(group.maxY, card.maxY);
-
-        card.data.groupName = groupName;
-        group.data.cards.push(card);
-
-        // Re-insert group into rtree and re-render
-        this.addGroupLocation(group);
-        this.setState({ groups: groups });
+        this.addCardToGroup(groupID, card);
       }
 
       // if no group exists, create a new group
       else {
-        let group = {
-          minX: card.minX,
-          minY: card.minY,
-          maxX: card.maxX,
-          maxY: card.maxY,
-          kind: "group",
-          data: {
-            name: "Unnamed group"
-          }
-        }
-
-        intersections.forEach((otherCard) => {
-          group.minX = Math.min(group.minX, otherCard.minX);
-          group.minY = Math.min(group.minY, otherCard.minY);
-          group.maxX = Math.max(group.maxX, otherCard.maxX);
-          group.maxY = Math.max(group.maxY, otherCard.maxY);
-        });
+        
+        this.removeCardFromGroup(card);
 
         intersections.push(card);
-        group.data.cards = intersections;
-
-        // Write group name into all cards
-        group.data.cards.forEach((c) => {
-          c.data.groupName = group.data.name;
-        });
-
-        // Re-insert group into rtree and re-render
-        this.addGroupLocation(group);
-
-        groups[group.data.name] = group;
-        this.setState({ groups: groups });
+        this.createGroup(intersections);
       }
+    } else {
+      this.removeCardFromGroup(card);
     }
 
     this.rtree.insert(card);
@@ -372,7 +430,7 @@ export default class Board extends React.Component {
     // @pre:
     //
     // data has a field called name
-    console.log("Inserting group with name", group.data.name);
+    console.log("Inserting group ", group);
 
     this.rtree.insert(group);
   }
@@ -380,15 +438,15 @@ export default class Board extends React.Component {
   removeGroupLocation(group) {
     // @pre:
     //
-    // data has a field called name
-    console.log("Removing group with name", group.data.name);
+    // data has a field called id
+    console.log("Removing group with id", group.data.ID);
 
     this.rtree.remove(
       group,
       (a, b) => {
         // console.log("comparing", a.data.ID, b.data.ID);
         if (a.kind !== "group" || b.kind !== "group") return false;
-        return a.data.name === b.data.name;
+        return a.data.ID === b.data.ID;
       }
     );
   }
@@ -436,7 +494,7 @@ export default class Board extends React.Component {
         modalCallBack={this.modalCallBack}
         addLocationCallBack={this.addCardLocation}
         removeLocationCallBack={this.removeCardLocation}
-        getIntersectingCallBack={this.getIntersectingCards}
+        getIntersectingCallBack={this.getIntersecting}
         printTree={this.printTree}
       />);
     }
@@ -444,12 +502,12 @@ export default class Board extends React.Component {
     console.log("groups", this.state.groups);
 
     let groups = Object.values(this.state.groups).map((g) => {
-      return <Group groupObject={g} />
+      return <Group groupObject={g}/>
     });
 
     return <><div className="cardContainer fullHeight">
-      {cards}
       {groups}
+      {cards}
     </div>
     <HighlightModal
       show={this.state.modalShow}
