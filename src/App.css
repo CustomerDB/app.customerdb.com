@@ -82,3 +82,8 @@ div.uploadButtonContainer {
     height: 30rem;
     overflow: hidden;
 }
+
+div.groupLabel {
+    font-size: 2rem;
+    font-weight: 500;
+}

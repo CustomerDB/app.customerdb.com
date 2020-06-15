@@ -89,7 +89,7 @@ function Group(props) {
 
   let border = `2px ${color} solid`;
 
-  return <div
+  return <><div
     className="group"
     style={{
       position: "absolute",
@@ -101,7 +101,17 @@ function Group(props) {
       border: border
     }}>
     { }
-  </div>;
+  </div>
+  <div className="groupLabel" contentEditable style={{
+      position: "absolute",
+      left: circle.minX,
+      top: circle.maxY + 10,
+      width: circle.diameter,
+      textAlign: "center"
+    }}>
+      Untitled
+  </div>
+  </>;
 }
 
 function HighlightModal(props) {
