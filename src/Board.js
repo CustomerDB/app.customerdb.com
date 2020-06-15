@@ -419,6 +419,8 @@ export default class Board extends React.Component {
     this.removeGroupLocation(group);
 
     if (group.data.cards.length > 1) {
+      // Update group bounding box
+      recomputeGroupBounds(group);
 
       // Re-insert group into rtree
       this.addGroupLocation(group);
