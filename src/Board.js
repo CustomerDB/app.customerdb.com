@@ -361,26 +361,24 @@ export default class Board extends React.Component {
     for (let i=0; i<this.state.highlights.length; i++) {
       let h = this.state.highlights[i];
 
-      let defaultPos = {
-        x: 0,
-        y: 40 + i * 30
-      }
-
-      let currentPos = undefined;
-
+      let position;
       if (this.state.cards.hasOwnProperty(h.ID)) {
         let cardRect = this.state.cards[h.ID];
         console.log(`card ${h.ID} has location: (${cardRect.minX}, ${cardRect.minY})`);
-        currentPos = {
+        position = {
           x: cardRect.minX,
           y: cardRect.minY
         }
+      } else {
+        position = {
+          x: 0,
+          y: 50 + (i * 140)
+        };
       }
 
       cards.push(<Card
         key={h.ID}
-        defaultPos={defaultPos}
-        currentPos={currentPos}
+        defaultPos={position}
         data={h}
         modalCallBack={this.modalCallBack}
         addLocationCallBack={this.addCardLocation}

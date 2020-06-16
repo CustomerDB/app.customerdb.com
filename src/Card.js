@@ -130,12 +130,6 @@ export default class Card extends React.Component {
       zIndex: this.state.zIndex
     }
 
-    if (this.props.currentPos !== undefined) {
-      let x = this.props.currentPos.x;
-      let y = this.props.currentPos.y;
-      divStyle.transform = `translate: (${x}, ${y})`;
-    }
-
     return <><Draggable
       handle=".handle"
       bounds="parent"
