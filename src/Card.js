@@ -108,7 +108,6 @@ export default class Card extends React.Component {
       this.props.data,
       this.rect);
 
-    this.props.printTree();
     this.setState({
       zIndex: 0,
       groupShape: undefined,
@@ -129,8 +128,8 @@ export default class Card extends React.Component {
     return <><Draggable
       handle=".handle"
       bounds="parent"
-      defaultPosition={{x: this.props.x, y: this.props.y}}
-      position={null}
+      defaultPosition={this.props.defaultPos}
+      position={this.props.currentPos}
       scale={1}
       onStart={this.handleStart}
       onDrag={this.handleDrag}

@@ -2,20 +2,14 @@ import React from 'react';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 
-import { bboxToRect } from './geom.js';
-
 export default function HighlightModal(props) {
   if (props.data === undefined) {
     return <div></div>;
   }
 
-  let rect = bboxToRect(props.bbox);
+  let rectText = JSON.stringify(props.rect, null, 2);
 
-  let bboxText = JSON.stringify(props.bbox, null, 2);
-  let rectText = JSON.stringify(rect, null, 2);
-
-  let intersection = props.getIntersectingCallBack(
-    props.bbox); // .map((item) => { return item.data.ID; });
+  let intersection = props.getIntersectingCallBack(props.rect);
 
   let intersectionText = JSON.stringify(intersection, null, 2);
 
@@ -36,9 +30,6 @@ export default function HighlightModal(props) {
         </p>
         <pre>
           id = {props.data.ID}
-        </pre>
-        <pre>
-          bbox = {bboxText}
         </pre>
         <pre>
           rect = {rectText}

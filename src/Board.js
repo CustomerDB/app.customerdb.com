@@ -5,7 +5,6 @@ import { v4 as uuidv4 } from 'uuid';
 import Card from './Card.js';
 import HighlightModal from './HighlightModal.js';
 import Group from './Group.js';
-import { bboxToRect } from './geom.js';
 import colorPair from './color.js';
 
 function makeCard(data, rect) {
@@ -36,13 +35,21 @@ export default class Board extends React.Component {
   constructor(props) {
     super(props);
     this.tag = props.tag;
-    this.dataset = props.datasetRef;
+
+    this.datasetRef = props.datasetRef;
+
+    this.boardRef = props.boardRef;
+    this.cardsRef = this.boardRef.collection('cards');
+    this.groupsRef = this.boardRef.collection('groups');
+
     this.state = {
       isDataLoaded: false,
       highlights: [],
       modalShow: false,
       modalData: undefined,
       modalRect: undefined,
+
+      cards: {},
 
       // Groups is indexed by groupID, and contains data
       // that looks like this:
@@ -65,7 +72,6 @@ export default class Board extends React.Component {
 
     this.rtree = new RBush(4);
 
-    this.printTree = this.printTree.bind(this);
 
     this.addCardLocation = this.addCardLocation.bind(this);
     this.removeCardLocation = this.removeCardLocation.bind(this);
@@ -88,9 +94,10 @@ export default class Board extends React.Component {
   }
 
   componentDidMount() {
-    this.dataset.collection('highlights').where("Tag", "==", this.tag).onSnapshot(
+    this.datasetRef.collection('highlights').where("Tag", "==", this.tag).onSnapshot(
       (
         function(querySnapshot) {
+          console.log("received dataset/{id}/highlights snapshot");
           var highlights = [];
           querySnapshot.forEach((doc) => {
             let data = doc.data();
@@ -98,6 +105,21 @@ export default class Board extends React.Component {
             highlights.push(data);
           });
           this.setState({ highlights: highlights });
+        }
+      ).bind(this)
+    );
+
+    this.cardsRef.onSnapshot(
+      (
+        function(querySnapshot) {
+          console.log("received boards/{id}/cards snapshot");
+          var cards = {};
+          querySnapshot.forEach((doc) => {
+            let data = doc.data();
+            cards[doc.id] = data;
+          });
+          this.setState({ cards: cards });
+          console.log("cards: ", cards);
         }
       ).bind(this)
     );
@@ -126,6 +148,8 @@ export default class Board extends React.Component {
     // Re-insert group into rtree and re-render
     this.addGroupLocation(group);
     this.setState({ groups: groups });
+
+    this.cardsRef.doc(card.data.ID).update({groupID: groupID});
   }
 
   removeCardFromGroup(card) {
@@ -235,6 +259,13 @@ export default class Board extends React.Component {
     }
 
     this.rtree.insert(card);
+
+    this.cardsRef.doc(card.data.ID).set({
+      minX: rect.minX,
+      minY: rect.minY,
+      maxX: rect.maxX,
+      maxY: rect.maxY
+    });
   }
 
   removeCardLocationFromGroup(data, rect) {
@@ -287,10 +318,6 @@ export default class Board extends React.Component {
     );
   }
 
-  printTree() {
-    console.log(this.rtree.all().length);
-  }
-
   getIntersecting(rect) {
     return this.rtree.search(rect);
   }
@@ -319,23 +346,36 @@ export default class Board extends React.Component {
     let cards = [];
     for (let i=0; i<this.state.highlights.length; i++) {
       let h = this.state.highlights[i];
-      let y = 40 + i * 30;
+
+      let defaultPos = {
+        x: 0,
+        y: 40 + i * 30
+      }
+
+      let currentPos = null;
+
+      /*
+      if (this.state.cards.hasOwnProperty(h.ID)) {
+        let cardRect = this.state.cards[h.ID];
+        currentPos = {
+          x: cardRect.minX,
+          y: cardRect.minY
+        }
+      }
+      */
 
       cards.push(<Card
         key={h.ID}
-        x={0}
-        y={y}
+        defaultPos={defaultPos}
+        currentPos={currentPos}
         data={h}
         modalCallBack={this.modalCallBack}
         addLocationCallBack={this.addCardLocation}
         removeLocationCallBack={this.removeCardLocation}
         removeFromGroupCallBack={this.removeCardLocationFromGroup}
         getIntersectingCallBack={this.getIntersecting}
-        printTree={this.printTree}
       />);
     }
-
-    console.log("groups", this.state.groups);
 
     let groups = Object.values(this.state.groups).map((g) => {
       return <Group groupObject={g}/>
