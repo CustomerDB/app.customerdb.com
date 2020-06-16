@@ -125,16 +125,27 @@ export default class Card extends React.Component {
   render() {
     let titleBarColor = this.state.previewColor !== undefined ? this.state.previewColor : this.props.data.groupColor;
     let titleBarTextColor = this.state.previewTextColor !== undefined ? this.state.previewTextColor : this.props.data.textColor;
+
+    let divStyle = {
+      zIndex: this.state.zIndex
+    }
+
+    if (this.props.currentPos !== undefined) {
+      let x = this.props.currentPos.x;
+      let y = this.props.currentPos.y;
+      divStyle.transform = `translate: (${x}, ${y})`;
+    }
+
     return <><Draggable
       handle=".handle"
       bounds="parent"
       defaultPosition={this.props.defaultPos}
-      position={this.props.currentPos}
+      position={null}
       scale={1}
       onStart={this.handleStart}
       onDrag={this.handleDrag}
       onStop={this.handleStop} >
-        <div ref={this.ref} className="card" style={{zIndex: this.state.zIndex}} >
+        <div ref={this.ref} className="card" style={divStyle} >
           <div
             className="handle titlebar"
             style={{

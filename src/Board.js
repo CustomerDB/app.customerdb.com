@@ -6,6 +6,7 @@ import Card from './Card.js';
 import HighlightModal from './HighlightModal.js';
 import Group from './Group.js';
 import colorPair from './color.js';
+import { Loading } from './Utils.js';
 
 function makeCard(data, rect) {
   let card = Object.assign(rect, {});
@@ -43,7 +44,10 @@ export default class Board extends React.Component {
     this.groupsRef = this.boardRef.collection('groups');
 
     this.state = {
-      isDataLoaded: false,
+      loadedHighlights: false,
+      loadedCards: false,
+      loadedGroups: false,
+
       highlights: [],
       modalShow: false,
       modalData: undefined,
@@ -72,7 +76,6 @@ export default class Board extends React.Component {
 
     this.rtree = new RBush(4);
 
-
     this.addCardLocation = this.addCardLocation.bind(this);
     this.removeCardLocation = this.removeCardLocation.bind(this);
     this.removeCardLocationFromGroup = this.removeCardLocationFromGroup.bind(this);
@@ -94,6 +97,24 @@ export default class Board extends React.Component {
   }
 
   componentDidMount() {
+    this.cardsRef.onSnapshot(
+      (
+        function(querySnapshot) {
+          console.log("received boards/{id}/cards snapshot");
+          var cards = {};
+          querySnapshot.forEach((doc) => {
+            let data = doc.data();
+            cards[doc.id] = data;
+          });
+          this.setState({
+            cards: cards,
+            loadedCards: true
+          });
+          console.log("cards: ", cards);
+        }
+      ).bind(this)
+    );
+
     this.datasetRef.collection('highlights').where("Tag", "==", this.tag).onSnapshot(
       (
         function(querySnapshot) {
@@ -104,25 +125,14 @@ export default class Board extends React.Component {
             data['ID'] = doc.id;
             highlights.push(data);
           });
-          this.setState({ highlights: highlights });
+          this.setState({
+            highlights: highlights,
+            loadedHighlights: true
+          });
         }
       ).bind(this)
     );
 
-    this.cardsRef.onSnapshot(
-      (
-        function(querySnapshot) {
-          console.log("received boards/{id}/cards snapshot");
-          var cards = {};
-          querySnapshot.forEach((doc) => {
-            let data = doc.data();
-            cards[doc.id] = data;
-          });
-          this.setState({ cards: cards });
-          console.log("cards: ", cards);
-        }
-      ).bind(this)
-    );
   }
 
   addCardToGroup(groupID, card) {
@@ -343,6 +353,10 @@ export default class Board extends React.Component {
   }
 
   render() {
+    if (!this.state.loadedHighlights || !this.state.loadedCards) {
+      return Loading();
+    }
+
     let cards = [];
     for (let i=0; i<this.state.highlights.length; i++) {
       let h = this.state.highlights[i];
@@ -352,17 +366,16 @@ export default class Board extends React.Component {
         y: 40 + i * 30
       }
 
-      let currentPos = null;
+      let currentPos = undefined;
 
-      /*
       if (this.state.cards.hasOwnProperty(h.ID)) {
         let cardRect = this.state.cards[h.ID];
+        console.log(`card ${h.ID} has location: (${cardRect.minX}, ${cardRect.minY})`);
         currentPos = {
           x: cardRect.minX,
           y: cardRect.minY
         }
       }
-      */
 
       cards.push(<Card
         key={h.ID}
