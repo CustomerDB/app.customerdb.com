@@ -32,7 +32,7 @@ export default function Group(props) {
       width: circle.diameter,
       textAlign: "center"
     }}>
-      Untitled
+    {props.groupObject.data.name}
   </div>
   </>;
 }

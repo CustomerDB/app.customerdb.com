@@ -8,8 +8,8 @@ import Group from './Group.js';
 import { bboxToRect } from './geom.js';
 import colorPair from './color.js';
 
-function makeCard(data, bbox) {
-  let card = bboxToRect(bbox);
+function makeCard(data, rect) {
+  let card = Object.assign(rect, {});
   card.data = data;
   card.kind = "card";
   return card;
@@ -42,7 +42,7 @@ export default class Board extends React.Component {
       highlights: [],
       modalShow: false,
       modalData: undefined,
-      modalBbox: undefined,
+      modalRect: undefined,
 
       // Groups is indexed by groupID, and contains data
       // that looks like this:
@@ -84,7 +84,7 @@ export default class Board extends React.Component {
     this.removeCardFromGroup = this.removeCardFromGroup.bind(this);
     this.createGroup = this.createGroup.bind(this);
 
-    this.groupsForBbox = this.groupsForBbox.bind(this);
+    this.groupsForRect = this.groupsForRect.bind(this);
   }
 
   componentDidMount() {
@@ -195,8 +195,8 @@ export default class Board extends React.Component {
     })
   }
 
-  groupsForBbox(bbox) {
-    let intersections = this.getIntersectingCards(bbox);
+  groupsForRect(rect) {
+    let intersections = this.getIntersectingCards(rect);
     let groups = intersections.flatMap((c) => {
       let groupID = c.data.groupID;
       return (groupID === undefined) ? [] : [this.state.groups[groupID]];
@@ -204,21 +204,19 @@ export default class Board extends React.Component {
     return [...new Set(groups)];
   }
 
-  addCardLocation(data, bbox) {
+  addCardLocation(data, rect) {
     // @pre:
     //
     // data has a field called ID
     //
     // rect looks like this:
     // {"x":307,"y":317,"width":238,"height":40,"top":317,"right":545,"bottom":357,"left":307}
-    let card = bboxToRect(bbox);
-    card.data = data;
-    card.kind = "card";
+    let card = makeCard(data, rect);
 
-    let groups = this.groupsForBbox(bbox);
+    let groups = this.groupsForRect(rect);
     if (groups.length === 0) {
       this.removeCardFromGroup(card);
-      let intersections = this.getIntersectingCards(bbox);
+      let intersections = this.getIntersectingCards(rect);
       if (intersections.length > 0) {
         // Create a new group
         intersections.push(card);
@@ -239,19 +237,19 @@ export default class Board extends React.Component {
     this.rtree.insert(card);
   }
 
-  removeCardLocationFromGroup(data, bbox) {
+  removeCardLocationFromGroup(data, rect) {
     // Remove this card from a group (if it's part of a group)
-    let card = makeCard(data, bbox);
+    let card = makeCard(data, rect);
     this.removeCardFromGroup(card);
   }
 
-  removeCardLocation(data, bbox) {
+  removeCardLocation(data, rect) {
     // @pre:
     //
     // data has a field called ID
     console.log("Removing card with id", data.ID);
 
-    let card = makeCard(data, bbox);
+    let card = makeCard(data, rect);
 
     this.rtree.remove(
       card,
@@ -293,28 +291,27 @@ export default class Board extends React.Component {
     console.log(this.rtree.all().length);
   }
 
-  getIntersecting(bbox) {
-    let query = bboxToRect(bbox);
-    return this.rtree.search(query);
+  getIntersecting(rect) {
+    return this.rtree.search(rect);
   }
 
-  getIntersectingGroups(bbox) {
-    return this.getIntersecting(bbox).filter((item) => {
+  getIntersectingGroups(rect) {
+    return this.getIntersecting(rect).filter((item) => {
       return item.kind === "group";
     });
   }
 
-  getIntersectingCards(bbox) {
-    return this.getIntersecting(bbox).filter((item) => {
+  getIntersectingCards(rect) {
+    return this.getIntersecting(rect).filter((item) => {
       return item.kind === "card";
     });
   }
 
-  modalCallBack(data, bbox) {
+  modalCallBack(data, rect) {
     this.setState({
       modalShow: true,
       modalData: data,
-      modalBbox: bbox,
+      modalRect: rect,
     })
   }
 
@@ -351,7 +348,7 @@ export default class Board extends React.Component {
     <HighlightModal
       show={this.state.modalShow}
       data={this.state.modalData}
-      bbox={this.state.modalBbox}
+      rect={this.state.modalRect}
       getIntersectingCallBack={this.getIntersecting}
       onHide={() => this.setState({'modalShow': false})}
     />

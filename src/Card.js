@@ -12,10 +12,9 @@ export default class Card extends React.Component {
     this.handleDrag = this.handleDrag.bind(this);
     this.handleStop = this.handleStop.bind(this);
     this.showModal = this.showModal.bind(this);
+    this.getRect = this.getRect.bind(this);
 
     this.ref = React.createRef();
-
-    this.oldBbox = undefined;
 
     this.state = {
       zIndex: 0,
@@ -23,29 +22,32 @@ export default class Card extends React.Component {
     };
   }
 
+  getRect() {
+    return bboxToRect(this.ref.current.getBoundingClientRect());
+  }
+
   componentDidMount() {
-    let target = this.ref.current;
-    this.bbox = target.getBoundingClientRect();
+    this.rect = this.getRect();
 
     this.props.addLocationCallBack(
       this.props.data,
-      this.bbox);
+      this.rect);
   }
 
   handleStart(e) {
     console.log("handleStart");
     this.setState({zIndex: 100});
-    this.props.removeLocationCallBack(this.props.data, this.bbox);
+    this.props.removeLocationCallBack(this.props.data, this.rect);
   }
 
   handleDrag(e) {
-    let bbox = this.ref.current.getBoundingClientRect();
+    let rect = this.getRect();
 
     let cardGroupIDs = new Set();
     let cardGroupColor = "#000";
     let cardGroupTextColor = "#FFF";
 
-    let intersections = this.props.getIntersectingCallBack(bbox);
+    let intersections = this.props.getIntersectingCallBack(rect);
     intersections.forEach((obj) => {
       if (obj.kind === "card") {
         cardGroupIDs.add(obj.data.groupID);
@@ -66,7 +68,7 @@ export default class Card extends React.Component {
       });
       if (thisCardGroupID !== undefined) {
         // This card has been dragged out of its own group
-        this.props.removeFromGroupCallBack(this.props.data, this.bbox);
+        this.props.removeFromGroupCallBack(this.props.data, this.rect);
       }
       return;
     }
@@ -75,11 +77,10 @@ export default class Card extends React.Component {
 
     if (thisCardGroupID !== undefined && thisCardGroupID !== groupID) {
       // This card has been dragged out of its own group
-      this.props.removeFromGroupCallBack(this.props.data, this.bbox);
+      this.props.removeFromGroupCallBack(this.props.data, this.rect);
     }
 
-    let thisRect = bboxToRect(bbox);
-    let unionRect = Object.assign(thisRect, {});
+    let unionRect = Object.assign(rect, {});
 
     intersections.forEach((obj) => {
       if (obj.kind === "card" || obj.data.ID === groupID) {
@@ -101,11 +102,11 @@ export default class Card extends React.Component {
 
   handleStop(e) {
     console.log("handleStop");
-    this.bbox = this.ref.current.getBoundingClientRect();
+    this.rect = this.getRect();
 
     this.props.addLocationCallBack(
       this.props.data,
-      this.bbox);
+      this.rect);
 
     this.props.printTree();
     this.setState({
