@@ -30,14 +30,14 @@ export default class Card extends React.Component {
     this.rect = this.getRect();
 
     this.props.addLocationCallBack(
-      this.props.data,
+      this.props.highlight,
       this.rect);
   }
 
   handleStart(e) {
     console.log("handleStart");
     this.setState({zIndex: 100});
-    this.props.removeLocationCallBack(this.props.data, this.rect);
+    this.props.removeLocationCallBack(this.props.highlight, this.rect);
   }
 
   handleDrag(e) {
@@ -58,7 +58,7 @@ export default class Card extends React.Component {
       }
     });
 
-    let thisCardGroupID = this.props.data.groupID;
+    let thisCardGroupID = this.props.highlight.groupID;
 
     if (cardGroupIDs.size !== 1) {
       this.setState({
@@ -68,7 +68,7 @@ export default class Card extends React.Component {
       });
       if (thisCardGroupID !== undefined) {
         // This card has been dragged out of its own group
-        this.props.removeFromGroupCallBack(this.props.data, this.rect);
+        this.props.removeFromGroupCallBack(this.props.highlight, this.rect);
       }
       return;
     }
@@ -77,7 +77,7 @@ export default class Card extends React.Component {
 
     if (thisCardGroupID !== undefined && thisCardGroupID !== groupID) {
       // This card has been dragged out of its own group
-      this.props.removeFromGroupCallBack(this.props.data, this.rect);
+      this.props.removeFromGroupCallBack(this.props.highlight, this.rect);
     }
 
     let unionRect = Object.assign(rect, {});
@@ -105,7 +105,7 @@ export default class Card extends React.Component {
     this.rect = this.getRect();
 
     this.props.addLocationCallBack(
-      this.props.data,
+      this.props.highlight,
       this.rect);
 
     this.setState({
@@ -118,13 +118,14 @@ export default class Card extends React.Component {
 
   showModal() {
     this.props.modalCallBack(
-      this.props.data,
+      this.props.highlight,
+      this.props.card,
       this.ref.current.getBoundingClientRect());
   }
 
   render() {
-    let titleBarColor = this.state.previewColor !== undefined ? this.state.previewColor : this.props.data.groupColor;
-    let titleBarTextColor = this.state.previewTextColor !== undefined ? this.state.previewTextColor : this.props.data.textColor;
+    let titleBarColor = this.state.previewColor !== undefined ? this.state.previewColor : this.props.highlight.groupColor;
+    let titleBarTextColor = this.state.previewTextColor !== undefined ? this.state.previewTextColor : this.props.highlight.textColor;
 
     let divStyle = {
       zIndex: this.state.zIndex
@@ -146,9 +147,9 @@ export default class Card extends React.Component {
               backgroundColor: titleBarColor,
               color: titleBarTextColor
             }}>
-            {this.props.data['Note - Title']}
+            {this.props.highlight['Note - Title']}
           </div>
-          <div className="quote" onClick={this.showModal}>{this.props.data['Text']}</div>
+          <div className="quote" onClick={this.showModal}>{this.props.highlight['Text']}</div>
         </div>
     </Draggable>
     <Group groupObject={this.state.groupShape} />

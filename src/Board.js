@@ -50,7 +50,8 @@ export default class Board extends React.Component {
 
       highlights: [],
       modalShow: false,
-      modalData: undefined,
+      modalHighlight: undefined,
+      modalCard: undefined,
       modalRect: undefined,
 
       cards: {},
@@ -136,6 +137,8 @@ export default class Board extends React.Component {
   }
 
   addCardToGroup(groupID, card) {
+    console.log("addCardToGroup", groupID, card);
+
     let groups = this.state.groups;
     let group = groups[groupID];
 
@@ -157,9 +160,11 @@ export default class Board extends React.Component {
 
     // Re-insert group into rtree and re-render
     this.addGroupLocation(group);
-    this.setState({ groups: groups });
+    this.setState({
+      groups: groups,
+    });
 
-    this.cardsRef.doc(card.data.ID).update({groupID: groupID});
+    this.cardsRef.doc(card.data.ID).update(card);
   }
 
   removeCardFromGroup(card) {
@@ -344,10 +349,11 @@ export default class Board extends React.Component {
     });
   }
 
-  modalCallBack(data, rect) {
+  modalCallBack(highlight, card, rect) {
     this.setState({
       modalShow: true,
-      modalData: data,
+      modalHighlight: highlight,
+      modalCard: card,
       modalRect: rect,
     })
   }
@@ -357,17 +363,19 @@ export default class Board extends React.Component {
       return Loading();
     }
 
-    let cards = [];
+    let cardComponents = [];
     for (let i=0; i<this.state.highlights.length; i++) {
       let h = this.state.highlights[i];
 
       let position;
+
+      let card;
+
       if (this.state.cards.hasOwnProperty(h.ID)) {
-        let cardRect = this.state.cards[h.ID];
-        console.log(`card ${h.ID} has location: (${cardRect.minX}, ${cardRect.minY})`);
+        card = this.state.cards[h.ID];
         position = {
-          x: cardRect.minX,
-          y: cardRect.minY
+          x: card.minX,
+          y: card.minY
         }
       } else {
         position = {
@@ -376,10 +384,11 @@ export default class Board extends React.Component {
         };
       }
 
-      cards.push(<Card
+      cardComponents.push(<Card
         key={h.ID}
         defaultPos={position}
-        data={h}
+        highlight={h}
+        card={card}
         modalCallBack={this.modalCallBack}
         addLocationCallBack={this.addCardLocation}
         removeLocationCallBack={this.removeCardLocation}
@@ -388,17 +397,18 @@ export default class Board extends React.Component {
       />);
     }
 
-    let groups = Object.values(this.state.groups).map((g) => {
+    let groupComponents = Object.values(this.state.groups).map((g) => {
       return <Group groupObject={g}/>
     });
 
     return <><div className="cardContainer fullHeight">
-      {groups}
-      {cards}
+      {groupComponents}
+      {cardComponents}
     </div>
     <HighlightModal
       show={this.state.modalShow}
-      data={this.state.modalData}
+      highlight={this.state.modalHighlight}
+      card={this.state.modalCard}
       rect={this.state.modalRect}
       getIntersectingCallBack={this.getIntersecting}
       onHide={() => this.setState({'modalShow': false})}
