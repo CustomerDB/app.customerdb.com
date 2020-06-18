@@ -3,6 +3,7 @@ import RBush from 'rbush';
 import { v4 as uuidv4 } from 'uuid';
 
 import Card from './Card.js';
+import Group from './Group.js';
 import HighlightModal from './HighlightModal.js';
 import colorPair from './color.js';
 import { Loading } from './Utils.js';
@@ -23,6 +24,7 @@ export default class Board extends React.Component {
 
     this.boardRef = props.boardRef;
     this.cardsRef = this.boardRef.collection('cards');
+    this.groupsRef = this.boardRef.collection('groups');
 
     this.state = {
       loadedHighlights: false,
@@ -65,6 +67,21 @@ export default class Board extends React.Component {
           console.log("cards: ", cards);
         }
       ).bind(this)
+    );
+
+    this.groupsRef.onSnapshot(
+      (
+        function(querySnapshot) {
+        var groups = {};
+        querySnapshot.forEach((doc) => {
+          let data = doc.data();
+          groups[doc.id] = data;
+        });
+        this.setState({
+          groups: groups,
+          loadedGroups: true
+        });
+      }).bind(this)
     );
 
     this.datasetRef.collection('highlights').where("Tag", "==", this.tag).onSnapshot(
@@ -158,9 +175,6 @@ export default class Board extends React.Component {
 		let cards = Object.values(this.state.cards);
     for (let i=0; i<cards.length; i++) {
       let card = cards[i];
-
-      let position;
-
       if (card.minX == 0 && card.maxX == 0) {
 				card.minX = 0;
 				card.minY = 50 + (i * 140);
@@ -177,7 +191,16 @@ export default class Board extends React.Component {
       />);
     }
 
+    let groupComponents = [];
+    Object.values(this.state.groups).forEach((group) => {
+      let cards = Object.values(this.state.cards).filter((item) => {
+        return item.data.groupID == group.data.ID;
+      });
+      groupComponents.push(<Group cards={cards} group={group}/>);
+    });
+
     return <><div className="cardContainer fullHeight">
+      {groupComponents}
       {cardComponents}
     </div>
     <HighlightModal

@@ -2,13 +2,34 @@ import React from 'react';
 
 import { circumscribingCircle } from './geom.js';
 
-export default function Group(props) {
-  if (props.groupObject === undefined) {
-    return <div></div>
+function computeGroupBounds(cards) {
+  let rect = {};
+
+  if (cards.length > 0) {
+    let card0 = cards[0];
+    rect.minX = card0.minX;
+    rect.minY = card0.minY;
+    rect.maxX = card0.maxX;
+    rect.maxY = card0.maxY;
+    cards.forEach((card) => {
+      rect.minX = Math.min(rect.minX, card.minX);
+      rect.minY = Math.min(rect.minY, card.minY);
+      rect.maxX = Math.max(rect.maxX, card.maxX);
+      rect.maxY = Math.max(rect.maxY, card.maxY);
+    });
   }
 
-  let circle = circumscribingCircle(props.groupObject);
-  let color = props.groupObject.data.color;
+  return rect;
+}
+
+export default function Group(props) {
+  if (props.cards === undefined || props.cards.length == 0) {
+    return <></>;
+  }
+
+  let rect = computeGroupBounds(props.cards);
+  let circle = circumscribingCircle(rect);
+  let color = props.group.data.color;
 
   let border = `2px ${color} solid`;
 
@@ -32,7 +53,7 @@ export default function Group(props) {
       width: circle.diameter,
       textAlign: "center"
     }}>
-    {props.groupObject.data.name}
+    {props.group.data.name}
   </div>
   </>;
 }
