@@ -50,7 +50,7 @@ export default class Board extends React.Component {
   }
 
   componentDidMount() {
-    this.cardsRef.onSnapshot(
+    this.cardsRef.where("data.Tag", "==", this.tag).onSnapshot(
       (
         function(querySnapshot) {
           console.log("received boards/{id}/cards snapshot");
@@ -294,6 +294,7 @@ export default class Board extends React.Component {
   }
 
   render() {
+    console.log(`${this.state.highlights.length} !== ${Object.values(this.state.cards).length}`)
     if (
       !this.state.loadedHighlights ||
       !this.state.loadedCards ||
@@ -358,10 +359,7 @@ export default class Board extends React.Component {
       </div>
       <HighlightModal
         show={this.state.modalShow}
-        highlight={this.state.modalHighlight}
         card={this.state.modalCard}
-        rect={this.state.modalRect}
-        getIntersectingCallBack={this.getIntersecting}
         onHide={() => this.setState({'modalShow': false})}
       />
     </HotKeys>;
