@@ -191,7 +191,8 @@ export default class Board extends React.Component {
           // Delete the group.
           this.groupsRef.doc(card.data.groupID).delete();
 
-          let cards = this.state.cards;
+          console.log("remainingCards to clean up\n", remainingCards);
+
           remainingCards.forEach((cardToCleanUP) => {
             cardToCleanUP.data.groupColor = "#000";
             cardToCleanUP.data.textColor = "#FFF";
@@ -292,6 +293,8 @@ export default class Board extends React.Component {
       cardComponents.push(<Card
         key={card.data.ID}
         card={card}
+        groupColor={card.data.groupColor}
+        textColor={card.data.textColor}
         cardRef={this.cardsRef.doc(card.data.ID)}
         modalCallBack={this.modalCallBack}
         addLocationCallBack={this.addCardLocation}

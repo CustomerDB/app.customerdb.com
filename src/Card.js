@@ -20,9 +20,7 @@ export default class Card extends React.Component {
 		this.cardRef = this.props.cardRef;
 
     this.state = {
-      zIndex: 0,
-			groupColor: this.props.card.data.groupColor,
-			textColor: this.props.card.data.textColor,
+      zIndex: 0
     };
   }
 
@@ -117,9 +115,7 @@ export default class Card extends React.Component {
     this.props.addLocationCallBack(this.props.card);
 
     this.setState({
-      zIndex: 0,
-			groupColor: this.props.card.data.groupColor,
-			textColor: this.props.card.data.textColor,
+      zIndex: 0
     });
 
     this.cardRef.set(this.props.card);
@@ -133,8 +129,8 @@ export default class Card extends React.Component {
   }
 
   render() {
-    let titleBarColor = this.state.groupColor;
-    let titleBarTextColor = this.state.textColor;
+    let titleBarColor = this.props.groupColor;
+    let titleBarTextColor = this.props.textColor;
 
     let divStyle = {
       zIndex: this.state.zIndex
