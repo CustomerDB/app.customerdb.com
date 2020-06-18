@@ -48,6 +48,8 @@ export default class Board extends React.Component {
     this.getIntersectingCards = this.getIntersectingCards.bind(this);
 
     this.modalCallBack = this.modalCallBack.bind(this);
+
+    this.groupIDForCard = this.groupIDForCard.bind(this);
   }
 
   componentDidMount() {
@@ -153,6 +155,63 @@ export default class Board extends React.Component {
     });
   }
 
+  groupIDForCard(card) {
+    let cardGroupIDs = new Set();
+    let intersections = this.getIntersectingCards(card);
+    if (intersections.length == 0) {
+      if (card.data.groupID !== undefined) {
+        let remainingCards = Object.values(this.state.cards).filter((item) => {
+          return (item.data.groupID === card.data.groupID) && (item.data.ID !== card.data.ID);
+        });
+
+        if (remainingCards.length < 2) {
+          // Delete group.
+          this.groupsRef.doc(card.data.groupID).delete();
+
+          remainingCards.forEach((cardToCleanUP) => {
+            cardToCleanUP.data.groupColor = "#000";
+            cardToCleanUP.data.textColor = "#FFF";
+            delete cardToCleanUP.data['groupID'];
+            this.cardsRef.doc(cardToCleanUP.data.ID).set(cardToCleanUP);
+          })
+        }
+      }
+
+      return undefined;
+    }
+
+    intersections.forEach((obj) => {
+      if (obj.data.groupID !== undefined) {
+        cardGroupIDs.add(obj.data.groupID);
+      }
+    });
+
+    let thisCardGroupID = card.data.groupID;
+    if (cardGroupIDs.size == 1) {
+      return cardGroupIDs.values().next().value;
+    }
+
+    if (cardGroupIDs.size == 0) {
+      // Create a group.
+      console.log("Creating a group");
+      let groupID = uuidv4();
+      let colors = colorPair();
+      this.groupsRef.doc(groupID).set({
+        data: {
+          ID: groupID,
+          name: "Unnamed group",
+          color: colors.background,
+          textColor: colors.foreground
+        }
+      });
+
+      return groupID;
+    }
+
+    // If cardGroupIDs is greater than 2, we are spanning two groups and can't join either.
+    return undefined;
+  }
+
   modalCallBack(highlight, card, rect) {
     this.setState({
       modalShow: true,
@@ -188,6 +247,7 @@ export default class Board extends React.Component {
         addLocationCallBack={this.addCardLocation}
         removeLocationCallBack={this.removeCardLocation}
         getIntersectingCallBack={this.getIntersecting}
+        groupIDForCardCallback={this.groupIDForCard}
       />);
     }
 

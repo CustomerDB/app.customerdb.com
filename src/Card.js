@@ -100,6 +100,17 @@ export default class Card extends React.Component {
     this.rect = this.getRect();
 
     Object.assign(this.props.card, this.rect);
+
+    // Update group membership based on location.
+    let groupID = this.props.groupIDForCardCallback(this.props.card);
+    if (groupID === undefined) {
+      this.props.card.data.groupColor = "#000";
+      this.props.card.data.textColor = "#FFF";
+      delete this.props.card.data['groupID'];
+    } else {
+      this.props.card.data.groupID = groupID;
+    }
+    
     this.cardRef.set(this.props.card);
     this.props.addLocationCallBack(this.props.card);
 
