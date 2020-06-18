@@ -315,6 +315,8 @@ export default class Board extends React.Component {
       cardComponents.push(<Card
         key={card.data.ID}
         card={card}
+        minX={card.minX}
+        minY={card.minY}
         groupColor={card.data.groupColor}
         textColor={card.data.textColor}
         cardRef={this.cardsRef.doc(card.data.ID)}

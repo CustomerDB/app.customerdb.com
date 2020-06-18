@@ -129,6 +129,8 @@ export default class Card extends React.Component {
   }
 
   render() {
+    console.log("Card.render", this.props);
+
     let titleBarColor = this.props.groupColor;
     let titleBarTextColor = this.props.textColor;
 
@@ -136,11 +138,10 @@ export default class Card extends React.Component {
       zIndex: this.state.zIndex
     }
 
-		let defaultPos = {
-			x: this.props.card.minX,
-			y: this.props.card.minY
+		let position = {
+			x: this.props.minX,
+			y: this.props.minY
 		}
-
 
 		// Draggable nodeRef required to fix findDOMNode warnings.
 		// see: https://github.com/STRML/react-draggable/pull/478
@@ -148,8 +149,7 @@ export default class Card extends React.Component {
 			nodeRef={this.ref}
       handle=".handle"
       bounds="parent"
-      defaultPosition={defaultPos}
-      position={null}
+      position={position}
       scale={1}
       onStart={this.handleStart}
       onDrag={this.handleDrag}
