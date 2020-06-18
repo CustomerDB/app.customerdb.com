@@ -76,46 +76,45 @@ export default class Board extends React.Component {
             let data = doc.data();
             data['ID'] = doc.id;
             highlights.push(data);
-          });
-          this.setState({
+
+						let cardData = Object.assign(data, {});
+						cardData.groupColor = "#000";
+						cardData.textColor = "#FFF";
+
+						// Each highlight should have a card
+						let cardRef = this.cardsRef.doc(cardData.ID);
+						cardRef.get().then((cardSnapshot) => {
+							if (!cardSnapshot.exists) {
+								cardRef.set({
+									minX: 0,
+									minY: 0,
+									maxX: 0,
+									maxY: 0,
+									kind: "card",
+									data: data
+								});
+							}
+						});
+
+					});
+
+
+					this.setState({
             highlights: highlights,
             loadedHighlights: true
           });
+
         }
       ).bind(this)
     );
 
   }
 
-  addCardLocation(data, rect) {
-    // @pre:
-    //
-    // data has a field called ID
-    //
-    // rect looks like this:
-    // {"x":307,"y":317,"width":238,"height":40,"top":317,"right":545,"bottom":357,"left":307}
-    let card = makeCard(data, rect);
-
+  addCardLocation(card) {
     this.rtree.insert(card);
-
-    Object.assign(card,{
-      minX: rect.minX,
-      minY: rect.minY,
-      maxX: rect.maxX,
-      maxY: rect.maxY
-    });
-
-    this.cardsRef.doc(card.data.ID).set(card);
   }
 
-  removeCardLocation(data, rect) {
-    // @pre:
-    //
-    // data has a field called ID
-    console.log("Removing card with id", data.ID);
-
-    let card = makeCard(data, rect);
-
+  removeCardLocation(card) {
     this.rtree.remove(
       card,
       (a, b) => {
@@ -147,36 +146,30 @@ export default class Board extends React.Component {
   }
 
   render() {
-    if (!this.state.loadedHighlights || !this.state.loadedCards) {
+    if (
+      !this.state.loadedHighlights ||
+      !this.state.loadedCards ||
+      this.state.highlights.length != Object.values(this.state.cards).length
+    ) {
       return Loading();
     }
 
     let cardComponents = [];
-    for (let i=0; i<this.state.highlights.length; i++) {
-      let h = this.state.highlights[i];
+		let cards = Object.values(this.state.cards);
+    for (let i=0; i<cards.length; i++) {
+      let card = cards[i];
 
       let position;
 
-      let card;
-
-      if (this.state.cards.hasOwnProperty(h.ID)) {
-        card = this.state.cards[h.ID];
-        position = {
-          x: card.minX,
-          y: card.minY
-        }
-      } else {
-        position = {
-          x: 0,
-          y: 50 + (i * 140)
-        };
+      if (card.minX == 0 && card.maxX == 0) {
+				card.minX = 0;
+				card.minY = 50 + (i * 140);
       }
 
       cardComponents.push(<Card
-        key={h.ID}
-        defaultPos={position}
-        highlight={h}
+        key={card.data.ID}
         card={card}
+        cardRef={this.cardsRef.doc(card.data.ID)}
         modalCallBack={this.modalCallBack}
         addLocationCallBack={this.addCardLocation}
         removeLocationCallBack={this.removeCardLocation}

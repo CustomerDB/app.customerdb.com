@@ -13,7 +13,11 @@ export default class Card extends React.Component {
     this.showModal = this.showModal.bind(this);
     this.getRect = this.getRect.bind(this);
 
+		// This is a react handle to the rendered dom element
     this.ref = React.createRef();
+
+		// This is a reference to a document in firestore database
+		this.cardRef = this.props.cardRef;
 
     this.state = {
       zIndex: 0,
@@ -27,16 +31,15 @@ export default class Card extends React.Component {
 
   componentDidMount() {
     this.rect = this.getRect();
-
-    this.props.addLocationCallBack(
-      this.props.highlight,
-      this.rect);
+    Object.assign(this.props.card, this.rect);
+    this.cardRef.set(this.props.card);
+    this.props.addLocationCallBack(this.props.card);
   }
 
   handleStart(e) {
     console.log("handleStart");
     this.setState({zIndex: 100});
-    this.props.removeLocationCallBack(this.props.highlight, this.rect);
+    this.props.removeLocationCallBack(this.props.card.data, this.rect);
   }
 
   handleDrag(e) {
@@ -96,9 +99,9 @@ export default class Card extends React.Component {
     console.log("handleStop");
     this.rect = this.getRect();
 
-    this.props.addLocationCallBack(
-      this.props.highlight,
-      this.rect);
+    Object.assign(this.props.card, this.rect);
+    this.cardRef.set(this.props.card);
+    this.props.addLocationCallBack(this.props.card);
 
     this.setState({
       zIndex: 0,
@@ -110,23 +113,29 @@ export default class Card extends React.Component {
 
   showModal() {
     this.props.modalCallBack(
-      this.props.highlight,
+      this.props.card.data,
       this.props.card,
       this.ref.current.getBoundingClientRect());
   }
 
   render() {
-    let titleBarColor = this.state.previewColor !== undefined ? this.state.previewColor : this.props.highlight.groupColor;
-    let titleBarTextColor = this.state.previewTextColor !== undefined ? this.state.previewTextColor : this.props.highlight.textColor;
+    let titleBarColor = this.props.card.data.groupColor;
+    let titleBarTextColor = this.props.card.data.textColor;
 
     let divStyle = {
       zIndex: this.state.zIndex
     }
 
+		let defaultPos = {
+			x: this.props.card.minX,
+			y: this.props.card.minY
+		}
+
+
     return <><Draggable
       handle=".handle"
       bounds="parent"
-      defaultPosition={this.props.defaultPos}
+      defaultPosition={defaultPos}
       position={null}
       scale={1}
       onStart={this.handleStart}
@@ -139,9 +148,9 @@ export default class Card extends React.Component {
               backgroundColor: titleBarColor,
               color: titleBarTextColor
             }}>
-            {this.props.highlight['Note - Title']}
+            {this.props.card.data['Note - Title']}
           </div>
-          <div className="quote" onClick={this.showModal}>{this.props.highlight['Text']}</div>
+          <div className="quote" onClick={this.showModal}>{this.props.card.data['Text']}</div>
         </div>
     </Draggable>
     </>;
