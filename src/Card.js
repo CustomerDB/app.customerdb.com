@@ -21,7 +21,8 @@ export default class Card extends React.Component {
 
     this.state = {
       zIndex: 0,
-      groupShape: undefined
+			groupColor: this.props.card.data.groupColor,
+			textColor: this.props.card.data.textColor,
     };
   }
 
@@ -36,10 +37,13 @@ export default class Card extends React.Component {
     this.props.addLocationCallBack(this.props.card);
   }
 
+  componentWillUnmount() {
+    this.props.removeLocationCallBack(this.props.card, this.rect);
+  }
+
   handleStart(e) {
-    console.log("handleStart");
     this.setState({zIndex: 100});
-    this.props.removeLocationCallBack(this.props.card.data, this.rect);
+    this.props.removeLocationCallBack(this.props.card, this.rect);
   }
 
   handleDrag(e) {
@@ -96,30 +100,29 @@ export default class Card extends React.Component {
   }
 
   handleStop(e) {
-    console.log("handleStop");
     this.rect = this.getRect();
 
     Object.assign(this.props.card, this.rect);
 
     // Update group membership based on location.
-    let groupID = this.props.groupIDForCardCallback(this.props.card);
-    if (groupID === undefined) {
-      this.props.card.data.groupColor = "#000";
-      this.props.card.data.textColor = "#FFF";
+    let groupData = this.props.groupDataForCardCallback(this.props.card);
+    if (groupData.ID === undefined) {
       delete this.props.card.data['groupID'];
     } else {
-      this.props.card.data.groupID = groupID;
+      this.props.card.data.groupID = groupData.ID;
     }
-    
-    this.cardRef.set(this.props.card);
+		this.props.card.data.groupColor = groupData.color;
+		this.props.card.data.textColor = groupData.textColor;
+
     this.props.addLocationCallBack(this.props.card);
 
     this.setState({
       zIndex: 0,
-      groupShape: undefined,
-      previewColor: undefined,
-      previewTextColor: undefined
+			groupColor: this.props.card.data.groupColor,
+			textColor: this.props.card.data.textColor,
     });
+
+    this.cardRef.set(this.props.card);
   }
 
   showModal() {
@@ -130,8 +133,8 @@ export default class Card extends React.Component {
   }
 
   render() {
-    let titleBarColor = this.props.card.data.groupColor;
-    let titleBarTextColor = this.props.card.data.textColor;
+    let titleBarColor = this.state.groupColor;
+    let titleBarTextColor = this.state.textColor;
 
     let divStyle = {
       zIndex: this.state.zIndex

@@ -1,5 +1,6 @@
 import React from 'react';
 import RBush from 'rbush';
+import { HotKeys } from 'react-hotkeys';
 import { v4 as uuidv4 } from 'uuid';
 
 import Card from './Card.js';
@@ -39,10 +40,12 @@ export default class Board extends React.Component {
 
     this.getIntersecting = this.getIntersecting.bind(this);
     this.getIntersectingCards = this.getIntersectingCards.bind(this);
+    this.printRTree = this.printRTree.bind(this);
+    this.printRTreeItems = this.printRTreeItems.bind(this);
 
     this.modalCallBack = this.modalCallBack.bind(this);
 
-    this.groupIDForCard = this.groupIDForCard.bind(this);
+    this.groupDataForCard = this.groupDataForCard.bind(this);
   }
 
   componentDidMount() {
@@ -59,7 +62,6 @@ export default class Board extends React.Component {
             cards: cards,
             loadedCards: true
           });
-          console.log("cards: ", cards);
         }
       ).bind(this)
     );
@@ -89,29 +91,28 @@ export default class Board extends React.Component {
             data['ID'] = doc.id;
             highlights.push(data);
 
-						let cardData = Object.assign(data, {});
-						cardData.groupColor = "#000";
-						cardData.textColor = "#FFF";
+            let cardData = Object.assign(data, {});
+            cardData.groupColor = "#000";
+            cardData.textColor = "#FFF";
 
-						// Each highlight should have a card
-						let cardRef = this.cardsRef.doc(cardData.ID);
-						cardRef.get().then((cardSnapshot) => {
-							if (!cardSnapshot.exists) {
-								cardRef.set({
-									minX: 0,
-									minY: 0,
-									maxX: 0,
-									maxY: 0,
-									kind: "card",
-									data: data
-								});
-							}
-						});
+            // Each highlight should have a card
+            let cardRef = this.cardsRef.doc(cardData.ID);
+            cardRef.get().then((cardSnapshot) => {
+              if (!cardSnapshot.exists) {
+                cardRef.set({
+                  minX: 0,
+                  minY: 0,
+                  maxX: 0,
+                  maxY: 0,
+                  kind: "card",
+                  data: data
+                });
+              }
+            });
 
-					});
+          });
 
-
-					this.setState({
+          this.setState({
             highlights: highlights,
             loadedHighlights: true
           });
@@ -123,19 +124,31 @@ export default class Board extends React.Component {
   }
 
   addCardLocation(card) {
+    console.log(`addCardLocation (size@pre: ${this.rtree.all().length})`, card);
     this.rtree.insert(card);
+    console.log(`addCardLocation add (size@post: ${this.rtree.all().length})`);
   }
 
   removeCardLocation(card) {
-    this.rtree.remove(
+    console.log(`removeCardLocation (size@pre: ${this.rtree.all().length})`, card);
+    let removed = this.rtree.remove(
       card,
       (a, b) => {
-        if (a.kind !== "card" || b.kind !== "card") {
-          return false;
-        }
-        return a.data.ID === b.data.ID;
+        console.log(`comparing\n${a.data.ID}\n${b.data.ID}`);
+        return a.kind === "card" &&
+          b.kind === "card" &&
+          a.data.ID === b.data.ID;
       }
     );
+    console.log(`removeCardLocation (size@post: ${this.rtree.all().length})`);
+  }
+
+  printRTree(rect) {
+    console.log('RTree\n', this.rtree.toJSON());
+  }
+
+  printRTreeItems(rect) {
+    console.log('RTree items\n', this.rtree.all());
   }
 
   getIntersecting(rect) {
@@ -143,24 +156,42 @@ export default class Board extends React.Component {
   }
 
   getIntersectingCards(rect) {
-    return this.getIntersecting(rect).filter((item) => {
-      return item.kind === "card";
-    });
+    return this.getIntersecting(rect).filter(
+      item => item.kind === "card"
+    );
   }
 
-  groupIDForCard(card) {
+  groupDataForCard(card) {
+    let undefinedGroupData = {
+      ID: undefined,
+      color: '#000',
+      textColor: '#FFF'
+    };
+
     let cardGroupIDs = new Set();
-    let intersections = this.getIntersectingCards(card);
+    let intersections = this.getIntersectingCards(card).filter((c) => {
+      return c.data.ID !== card.data.ID
+    });
+
+    console.log('groupDataForCard (intersections):\n', intersections);
+
+    // Case 1: The new card location does not intersect with any other card
     if (intersections.length === 0) {
+
+      // If this card was previously part of a group, check whether we need
+      // to delete that group (because it became empty or only has one other card)
       if (card.data.groupID !== undefined) {
+
+        // Collect the cards (besides this one) that remain in this card's old group.
         let remainingCards = Object.values(this.state.cards).filter((item) => {
           return (item.data.groupID === card.data.groupID) && (item.data.ID !== card.data.ID);
         });
 
         if (remainingCards.length < 2) {
-          // Delete group.
+          // Delete the group.
           this.groupsRef.doc(card.data.groupID).delete();
 
+          let cards = this.state.cards;
           remainingCards.forEach((cardToCleanUP) => {
             cardToCleanUP.data.groupColor = "#000";
             cardToCleanUP.data.textColor = "#FFF";
@@ -170,7 +201,7 @@ export default class Board extends React.Component {
         }
       }
 
-      return undefined;
+      return undefinedGroupData;
     }
 
     intersections.forEach((obj) => {
@@ -179,10 +210,24 @@ export default class Board extends React.Component {
       }
     });
 
+    // Case 2: The new card location intersects with one or more cards
+    // all currently in the same existing group. Join this card to that.
     if (cardGroupIDs.size === 1) {
-      return cardGroupIDs.values().next().value;
+      let groupID = cardGroupIDs.values().next().value;
+      let group = this.state.groups[groupID];
+      if (group === undefined) {
+        return undefinedGroupData;
+      }
+      return {
+        ID: groupID,
+        color: group.data.color,
+        textColor: group.data.textColor
+      };
     }
 
+    // Case 3: This card intersects with one or more cards, but none of
+    // them are currently in a group. We need to create a new group
+    // and join all the cards to it.
     if (cardGroupIDs.size === 0) {
       // Create a group.
       console.log("Creating a group");
@@ -197,11 +242,23 @@ export default class Board extends React.Component {
         }
       });
 
-      return groupID;
+      intersections.forEach((c) => {
+        c.data.groupID = groupID;
+        c.data.groupColor = colors.background;
+        c.data.textColor = colors.foreground;
+        this.cardsRef.doc(c.data.ID).set(c);
+      });
+      this.setState({ cards: Object.assign({}, this.state.cards) });
+
+      return {
+        ID: groupID,
+        color: colors.background,
+        textColor: colors.foreground
+      }
     }
 
-    // If cardGroupIDs is greater than 2, we are spanning two groups and can't join either.
-    return undefined;
+    // Case 4: This card intersects more than one group so we can't join any.
+    return undefinedGroupData;
   }
 
   modalCallBack(highlight, card, rect) {
@@ -217,18 +274,19 @@ export default class Board extends React.Component {
     if (
       !this.state.loadedHighlights ||
       !this.state.loadedCards ||
+      !this.state.loadedGroups ||
       this.state.highlights.length !== Object.values(this.state.cards).length
     ) {
       return Loading();
     }
 
     let cardComponents = [];
-		let cards = Object.values(this.state.cards);
+    let cards = Object.values(this.state.cards);
     for (let i=0; i<cards.length; i++) {
       let card = cards[i];
       if (card.minX === 0 && card.maxX === 0) {
-				card.minX = 0;
-				card.minY = 50 + (i * 140);
+        card.minX = 0;
+        card.minY = 50 + (i * 140);
       }
 
       cardComponents.push(<Card
@@ -239,7 +297,7 @@ export default class Board extends React.Component {
         addLocationCallBack={this.addCardLocation}
         removeLocationCallBack={this.removeCardLocation}
         getIntersectingCallBack={this.getIntersecting}
-        groupIDForCardCallback={this.groupIDForCard}
+        groupDataForCardCallback={this.groupDataForCard}
       />);
     }
 
@@ -250,18 +308,34 @@ export default class Board extends React.Component {
       return <Group key={group.data.ID} group={group} cards={cards} />;
     });
 
-    return <><div className="cardContainer fullHeight">
-      {groupComponents}
-      {cardComponents}
-    </div>
-    <HighlightModal
-      show={this.state.modalShow}
-      highlight={this.state.modalHighlight}
-      card={this.state.modalCard}
-      rect={this.state.modalRect}
-      getIntersectingCallBack={this.getIntersecting}
-      onHide={() => this.setState({'modalShow': false})}
-    />
-    </>;
+    const keyMap = {
+      PRINT_TREE: "/",
+      PRINT_TREE_ITEMS: "shift+?"
+    };
+
+    const keyHandlers = {
+      PRINT_TREE: (event) => {
+        this.printRTree();
+      },
+
+      PRINT_TREE_ITEMS: (event) => {
+        this.printRTreeItems();
+      }
+    };
+
+    return <HotKeys keyMap={keyMap} handlers={keyHandlers}>
+      <div className="cardContainer fullHeight">
+        {groupComponents}
+        {cardComponents}
+      </div>
+      <HighlightModal
+        show={this.state.modalShow}
+        highlight={this.state.modalHighlight}
+        card={this.state.modalCard}
+        rect={this.state.modalRect}
+        getIntersectingCallBack={this.getIntersecting}
+        onHide={() => this.setState({'modalShow': false})}
+      />
+    </HotKeys>;
   }
 }

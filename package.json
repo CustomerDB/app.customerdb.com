@@ -15,6 +15,7 @@
     "react-contenteditable": "^3.3.5",
     "react-dom": "^16.13.1",
     "react-draggable": "^4.4.3",
+    "react-hotkeys": "^2.0.0",
     "react-router-dom": "^5.2.0",
     "react-scripts": "3.4.1",
     "uuid": "^8.1.0"
