@@ -38,9 +38,13 @@ export default class Board extends React.Component {
 
     this.addCardLocation = this.addCardLocation.bind(this);
     this.removeCardLocation = this.removeCardLocation.bind(this);
+    this.addGroupLocation = this.addGroupLocation.bind(this);
+    this.removeGroupLocation = this.removeGroupLocation.bind(this);
 
     this.getIntersecting = this.getIntersecting.bind(this);
     this.getIntersectingCards = this.getIntersectingCards.bind(this);
+    this.getIntersectingGroups = this.getIntersectingGroups.bind(this);
+
     this.printRTree = this.printRTree.bind(this);
     this.printRTreeItems = this.printRTreeItems.bind(this);
 
@@ -165,6 +169,26 @@ export default class Board extends React.Component {
     console.log(`removeCardLocation (size@post: ${this.rtree.all().length})`);
   }
 
+  addGroupLocation(group) {
+    console.log(`addGroupLocation (size@pre: ${this.rtree.all().length})`, group);
+    this.rtree.insert(group);
+    console.log(`addGroupLocation add (size@post: ${this.rtree.all().length})`);
+  }
+
+  removeGroupLocation(group) {
+    console.log(`removeGroupLocation (size@pre: ${this.rtree.all().length})`, group);
+    let removed = this.rtree.remove(
+      group,
+      (a, b) => {
+        console.log(`comparing\n${a.data.ID}\n${b.data.ID}`);
+        return a.kind === "group" &&
+          b.kind === "group" &&
+          a.data.ID === b.data.ID;
+      }
+    );
+    console.log(`removeGroupLocation (size@post: ${this.rtree.all().length})`);
+  }
+
   printRTree(rect) {
     console.log('RTree\n', this.rtree.toJSON());
   }
@@ -180,6 +204,12 @@ export default class Board extends React.Component {
   getIntersectingCards(rect) {
     return this.getIntersecting(rect).filter(
       item => item.kind === "card"
+    );
+  }
+
+  getIntersectingGroups(rect) {
+    return this.getIntersecting(rect).filter(
+      item => item.kind === "group"
     );
   }
 
@@ -324,7 +354,8 @@ export default class Board extends React.Component {
         modalCallBack={this.modalCallBack}
         addLocationCallBack={this.addCardLocation}
         removeLocationCallBack={this.removeCardLocation}
-        getIntersectingCallBack={this.getIntersecting}
+        getIntersectingCardsCallBack={this.getIntersectingCards}
+        getIntersectingGroupsCallBack={this.getIntersectingGroups}
         groupDataForCardCallback={this.groupDataForCard}
       />);
     }
@@ -334,7 +365,14 @@ export default class Board extends React.Component {
         return card.data.groupID === group.data.ID;
       });
       let groupRef = this.groupsRef.doc(group.data.ID);
-      return <Group key={group.data.ID} name={group.data.name} group={group} cards={cards} groupRef={groupRef}/>;
+      return <Group
+        key={group.data.ID}
+        name={group.data.name}
+        group={group}
+        cards={cards}
+        groupRef={groupRef}
+        addGroupLocationCallback={this.addGroupLocation}
+        removeGroupLocationCallback={this.removeGroupLocation}/>;
     });
 
     const keyMap = {

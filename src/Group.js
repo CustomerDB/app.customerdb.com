@@ -36,12 +36,25 @@ export default class Group extends React.Component {
     this.props.groupRef.update(this.props.group);
   }
 
+  componentWillUnmount() {
+    this.props.removeGroupLocationCallback(this.props.group);
+  }
+
   render() {
     if (this.props.cards === undefined || this.props.cards.length === 0) {
       return <></>;
     }
 
+    this.props.removeGroupLocationCallback(this.props.group);
+
     let rect = computeGroupBounds(this.props.cards);
+    this.props.group.minX = rect.minX;
+    this.props.group.minY = rect.minY;
+    this.props.group.maxX = rect.maxX;
+    this.props.group.maxY = rect.maxY;
+
+    this.props.addGroupLocationCallback(this.props.group);
+
     let circle = circumscribingCircle(rect);
     let color = this.props.group.data.color;
 

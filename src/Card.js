@@ -45,56 +45,52 @@ export default class Card extends React.Component {
   }
 
   handleDrag(e) {
-    /*
     let rect = this.getRect();
 
     let cardGroupIDs = new Set();
     let cardGroupColor = "#000";
     let cardGroupTextColor = "#FFF";
 
-    let intersections = this.props.getIntersectingCallBack(rect);
+    let intersections = this.props.getIntersectingCardsCallBack(rect);
     intersections.forEach((obj) => {
-      if (obj.kind === "card") {
-        cardGroupIDs.add(obj.data.groupID);
-        if (obj.data.groupID !== undefined) {
-          cardGroupColor = obj.data.groupColor;
-          cardGroupTextColor = obj.data.textColor;
-        }
+      cardGroupIDs.add(obj.data.groupID);
+      if (obj.data.groupID !== undefined) {
+        cardGroupColor = obj.data.groupColor;
+        cardGroupTextColor = obj.data.textColor;
       }
     });
 
-    let thisCardGroupID = this.props.highlight.groupID;
-
     if (cardGroupIDs.size !== 1) {
       this.setState({
-        groupShape: undefined,
-        previewColor: undefined,
-        previewTextColor: undefined
+        previewGroupMinX: Math.min(group.minX, rect.minX),
+        previewGroupMinY: Math.min(group.minY, rect.minY),
+        previewGroupMaxX: Math.max(group.maxX, rect.maxX),
+        previewGroupMaxY: Math.max(group.maxY, rect.maxY)
       });
       return;
     }
 
     let groupID = cardGroupIDs.values().next().value; // may be `undefined`
+    if (groupID === undefined) {
+      return;
+    }
 
-    let unionRect = Object.assign(rect, {});
+    let groups = this.props.getIntersectingGroupsCallBack(rect).filter((group) => {
+      return (group.data.ID == groupID);
+    })
 
-    intersections.forEach((obj) => {
-      if (obj.kind === "card" || obj.data.ID === groupID) {
-        unionRect.minX = Math.min(unionRect.minX, obj.minX);
-        unionRect.minY = Math.min(unionRect.minY, obj.minY);
-        unionRect.maxX = Math.max(unionRect.maxX, obj.maxX);
-        unionRect.maxY = Math.max(unionRect.maxY, obj.maxY);
-      }
-    });
+    if (groups.length === 1) {
+      let group = groups[0];
 
-    unionRect.data = { color: cardGroupColor };
-
-    this.setState({
-      groupShape: unionRect,
-      previewColor: cardGroupColor,
-      previewTextColor: cardGroupTextColor
-    });
-    */
+      this.setState({
+        previewGroupMinX: Math.min(group.minX, rect.minX),
+        previewGroupMinY: Math.min(group.minY, rect.minY),
+        previewGroupMaxX: Math.max(group.maxX, rect.maxX),
+        previewGroupMaxY: Math.max(group.maxY, rect.maxY),
+        // previewColor: cardGroupColor,
+        // previewTextColor: cardGroupTextColor
+      });
+    }
   }
 
   handleStop(e) {
