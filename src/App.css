@@ -1,5 +1,12 @@
+@font-face {
+    font-family:HKGroteskPro;
+    font-weight:400;
+    src: url(./assets/fonts/HK%20Grotesk%20Pro/HKGroteskPro-Regular.woff2) format("woff2"), url(./assets/fonts/HK%20Grotesk%20Pro/HKGroteskPro-Regular.woff) format("woff")
+}
+
 html, body {
     height: 100%;
+    font-family: HKGroteskPro;
 }
 
 div.fullHeight {
