@@ -31,6 +31,7 @@ export default class Board extends React.Component {
       modalRect: undefined,
 
       cards: {},
+      groups: {}
     }
 
     this.rtree = new RBush(4);
@@ -53,10 +54,20 @@ export default class Board extends React.Component {
       (
         function(querySnapshot) {
           console.log("received boards/{id}/cards snapshot");
-          var cards = {};
+
+          var cards = this.state.cards;
+
           querySnapshot.forEach((doc) => {
             let data = doc.data();
-            cards[doc.id] = data;
+
+            let existingCard = cards[doc.id];
+            if (existingCard === undefined) {
+              cards[doc.id] = data;
+              return;
+            }
+
+            Object.assign(existingCard, data);
+
           });
           this.setState({
             cards: cards,
@@ -69,16 +80,27 @@ export default class Board extends React.Component {
     this.groupsRef.onSnapshot(
       (
         function(querySnapshot) {
-        var groups = {};
-        querySnapshot.forEach((doc) => {
-          let data = doc.data();
-          groups[doc.id] = data;
-        });
-        this.setState({
-          groups: groups,
-          loadedGroups: true
-        });
-      }).bind(this)
+
+          var groups = this.state.groups;
+
+          querySnapshot.forEach((doc) => {
+            let data = doc.data();
+
+            let existingGroup = groups[doc.id];
+            if (existingGroup === undefined) {
+              groups[doc.id] = data;
+              return;
+            }
+
+            Object.assign(existingGroup, data);
+
+          });
+          this.setState({
+            groups: groups,
+            loadedGroups: true
+          });
+        }
+      ).bind(this)
     );
 
     this.datasetRef.collection('highlights').where("Tag", "==", this.tag).onSnapshot(
