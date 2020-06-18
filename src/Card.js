@@ -1,7 +1,7 @@
 import React from 'react';
 import Draggable from 'react-draggable';
 
-import { bboxToRect } from './geom.js';
+import { bboxToRect, circumscribingCircle } from './geom.js';
 
 export default class Card extends React.Component {
   constructor(props) {
@@ -36,12 +36,12 @@ export default class Card extends React.Component {
   }
 
   componentWillUnmount() {
-    this.props.removeLocationCallBack(this.props.card, this.rect);
+    this.props.removeLocationCallBack(this.props.card);
   }
 
   handleStart(e) {
     this.setState({zIndex: 100});
-    this.props.removeLocationCallBack(this.props.card, this.rect);
+    this.props.removeLocationCallBack(this.props.card);
   }
 
   handleDrag(e) {
@@ -52,45 +52,70 @@ export default class Card extends React.Component {
     let cardGroupTextColor = "#FFF";
 
     let intersections = this.props.getIntersectingCardsCallBack(rect);
-    intersections.forEach((obj) => {
-      cardGroupIDs.add(obj.data.groupID);
-      if (obj.data.groupID !== undefined) {
-        cardGroupColor = obj.data.groupColor;
-        cardGroupTextColor = obj.data.textColor;
-      }
+
+    console.log("handleDrag (intersections)\n", intersections);
+
+    // Nothing to do
+    if (intersections.length === 0) {
+      this.setState({
+        previewCircle: undefined,
+        previewColor: undefined
+      });
+      return;
+    }
+
+    intersections.forEach((card) => {
+      cardGroupIDs.add(card.data.groupID);
     });
 
+    console.log("handleDrag (cardGroupIDs)\n", cardGroupIDs);
+
+    // Check whether we are intersecting cards of more than one
+    // group. (Includes case where we are intersecting an ungrouped
+    // card and a grouped card.)
     if (cardGroupIDs.size !== 1) {
       this.setState({
-        previewGroupMinX: Math.min(group.minX, rect.minX),
-        previewGroupMinY: Math.min(group.minY, rect.minY),
-        previewGroupMaxX: Math.max(group.maxX, rect.maxX),
-        previewGroupMaxY: Math.max(group.maxY, rect.maxY)
+        previewCircle: undefined,
+        previewColor: undefined
       });
       return;
     }
 
     let groupID = cardGroupIDs.values().next().value; // may be `undefined`
-    if (groupID === undefined) {
-      return;
-    }
 
-    let groups = this.props.getIntersectingGroupsCallBack(rect).filter((group) => {
-      return (group.data.ID == groupID);
-    })
+    console.log("handleDrag (groupID)\n", groupID);
 
-    if (groups.length === 1) {
-      let group = groups[0];
-
-      this.setState({
-        previewGroupMinX: Math.min(group.minX, rect.minX),
-        previewGroupMinY: Math.min(group.minY, rect.minY),
-        previewGroupMaxX: Math.max(group.maxX, rect.maxX),
-        previewGroupMaxY: Math.max(group.maxY, rect.maxY),
-        // previewColor: cardGroupColor,
-        // previewTextColor: cardGroupTextColor
+    // Check whether the intersecting cards are not already part
+    // of a group, in which case we would create a new group if
+    // dropped here
+    if (groupID !== undefined) {
+      let intersectingGroups = this.props.getIntersectingGroupsCallBack(rect);
+      intersectingGroups.forEach((group) => {
+        if (group.data.ID == groupID) {
+          cardGroupColor = group.data.color;
+          cardGroupTextColor = group.data.textColor;
+          intersections.push(group);
+        }
       });
     }
+
+    intersections.push(rect);
+
+    let bounds = Object.assign({}, rect);
+    intersections.forEach((o) => {
+      bounds.minX = Math.min(bounds.minX, o.minX);
+      bounds.minY = Math.min(bounds.minY, o.minY);
+      bounds.maxX = Math.max(bounds.maxX, o.maxX);
+      bounds.maxY = Math.max(bounds.maxY, o.maxY);
+    });
+
+    let circle = circumscribingCircle(bounds);
+
+    this.setState({
+      previewCircle: circle,
+      previewColor: cardGroupColor
+    });
+
   }
 
   handleStop(e) {
@@ -111,7 +136,9 @@ export default class Card extends React.Component {
     this.props.addLocationCallBack(this.props.card);
 
     this.setState({
-      zIndex: 0
+      zIndex: 0,
+      previewCircle: undefined,
+      previewColor: undefined
     });
 
     this.cardRef.set(this.props.card);
@@ -125,8 +152,6 @@ export default class Card extends React.Component {
   }
 
   render() {
-    console.log("Card.render", this.props);
-
     let titleBarColor = this.props.groupColor;
     let titleBarTextColor = this.props.textColor;
 
@@ -138,6 +163,22 @@ export default class Card extends React.Component {
 			x: this.props.minX,
 			y: this.props.minY
 		}
+
+    let groupPreview = this.state.previewCircle === undefined
+      ? <></>
+      : <div
+          className="groupLabel"
+          style={{
+            position: "absolute",
+            left: this.state.previewCircle.minX,
+            top: this.state.previewCircle.minY,
+            height: this.state.previewCircle.diameter,
+            width: this.state.previewCircle.diameter,
+            borderRadius: "50%",
+            border: `3px solid ${this.state.previewColor}`
+          }} />;
+
+    console.log("Card.render (state)", this.state);
 
 		// Draggable nodeRef required to fix findDOMNode warnings.
 		// see: https://github.com/STRML/react-draggable/pull/478
@@ -162,6 +203,8 @@ export default class Card extends React.Component {
           <div className="quote" onClick={this.showModal}>{this.props.card.data['Text']}</div>
         </div>
     </Draggable>
+
+    {groupPreview}
     </>;
   }
 }

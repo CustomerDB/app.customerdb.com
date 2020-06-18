@@ -87,8 +87,11 @@ export default class Board extends React.Component {
 
           var groups = this.state.groups;
 
+          let snapshotGroupIDs = new Set();
+
           querySnapshot.forEach((doc) => {
             let data = doc.data();
+            snapshotGroupIDs.add(doc.id);
 
             let existingGroup = groups[doc.id];
             if (existingGroup === undefined) {
@@ -99,6 +102,13 @@ export default class Board extends React.Component {
             Object.assign(existingGroup, data);
 
           });
+
+          Object.keys(this.state.groups).forEach((id) => {
+            if (!snapshotGroupIDs.has(id)) {
+              delete this.state.groups[id];
+            }
+          });
+
           this.setState({
             groups: groups,
             loadedGroups: true
@@ -287,6 +297,7 @@ export default class Board extends React.Component {
       let groupID = uuidv4();
       let colors = colorPair();
       this.groupsRef.doc(groupID).set({
+        kind: "group",
         data: {
           ID: groupID,
           name: "Unnamed group",
@@ -324,7 +335,6 @@ export default class Board extends React.Component {
   }
 
   render() {
-    console.log(`${this.state.highlights.length} !== ${Object.values(this.state.cards).length}`)
     if (
       !this.state.loadedHighlights ||
       !this.state.loadedCards ||
