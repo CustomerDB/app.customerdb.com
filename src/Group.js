@@ -29,14 +29,11 @@ export default class Group extends React.Component {
     this.nameRef = React.createRef();
 
     this.updateName = this.updateName.bind(this);
-
-    this.state = {
-      name: props.group.data.name
-    }
   }
 
   updateName(e) {
-    console.log("Group updateName:", e);
+    this.props.group.data.name = e.target.innerText;
+    this.props.groupRef.update(this.props.group);
   }
 
   render() {
@@ -68,9 +65,9 @@ export default class Group extends React.Component {
       innerRef={this.nameRef}
       tagName='div'
       className="groupLabel"
-      html={this.state.name}
+      html={this.props.name}
       disabled={false}
-      onChange={this.updateName}
+      onBlur={this.updateName}
       style={{
         position: "absolute",
         left: circle.minX,

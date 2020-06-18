@@ -332,7 +332,8 @@ export default class Board extends React.Component {
       let cards = Object.values(this.state.cards).filter((card) => {
         return card.data.groupID === group.data.ID;
       });
-      return <Group key={group.data.ID} group={group} cards={cards} />;
+      let groupRef = this.groupsRef.doc(group.data.ID);
+      return <Group key={group.data.ID} name={group.data.name} group={group} cards={cards} groupRef={groupRef}/>;
     });
 
     const keyMap = {
