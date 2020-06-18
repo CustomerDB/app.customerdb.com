@@ -309,8 +309,8 @@ export default class Board extends React.Component {
     for (let i=0; i<cards.length; i++) {
       let card = cards[i];
       if (card.minX === 0 && card.maxX === 0) {
-        card.minX = 0;
-        card.minY = 50 + (i * 140);
+        card.minX = 0 + (i * 20);
+        card.minY = 50 + (i * 20);
       }
 
       cardComponents.push(<Card
