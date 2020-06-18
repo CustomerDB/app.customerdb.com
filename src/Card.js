@@ -1,7 +1,6 @@
 import React from 'react';
 import Draggable from 'react-draggable';
 
-import Group from './Group.js';
 import { bboxToRect } from './geom.js';
 
 export default class Card extends React.Component {
@@ -41,6 +40,7 @@ export default class Card extends React.Component {
   }
 
   handleDrag(e) {
+    /*
     let rect = this.getRect();
 
     let cardGroupIDs = new Set();
@@ -66,19 +66,10 @@ export default class Card extends React.Component {
         previewColor: undefined,
         previewTextColor: undefined
       });
-      if (thisCardGroupID !== undefined) {
-        // This card has been dragged out of its own group
-        this.props.removeFromGroupCallBack(this.props.highlight, this.rect);
-      }
       return;
     }
 
     let groupID = cardGroupIDs.values().next().value; // may be `undefined`
-
-    if (thisCardGroupID !== undefined && thisCardGroupID !== groupID) {
-      // This card has been dragged out of its own group
-      this.props.removeFromGroupCallBack(this.props.highlight, this.rect);
-    }
 
     let unionRect = Object.assign(rect, {});
 
@@ -98,6 +89,7 @@ export default class Card extends React.Component {
       previewColor: cardGroupColor,
       previewTextColor: cardGroupTextColor
     });
+    */
   }
 
   handleStop(e) {
@@ -152,7 +144,6 @@ export default class Card extends React.Component {
           <div className="quote" onClick={this.showModal}>{this.props.highlight['Text']}</div>
         </div>
     </Draggable>
-    <Group groupObject={this.state.groupShape} />
     </>;
   }
 }
