@@ -143,7 +143,10 @@ export default class Card extends React.Component {
 		}
 
 
+		// Draggable nodeRef required to fix findDOMNode warnings.
+		// see: https://github.com/STRML/react-draggable/pull/478
     return <><Draggable
+			nodeRef={this.ref}
       handle=".handle"
       bounds="parent"
       defaultPosition={defaultPos}

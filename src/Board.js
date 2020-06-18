@@ -8,13 +8,6 @@ import HighlightModal from './HighlightModal.js';
 import colorPair from './color.js';
 import { Loading } from './Utils.js';
 
-function makeCard(data, rect) {
-  let card = Object.assign(rect, {});
-  card.data = data;
-  card.kind = "card";
-  return card;
-}
-
 export default class Board extends React.Component {
   constructor(props) {
     super(props);
@@ -158,7 +151,7 @@ export default class Board extends React.Component {
   groupIDForCard(card) {
     let cardGroupIDs = new Set();
     let intersections = this.getIntersectingCards(card);
-    if (intersections.length == 0) {
+    if (intersections.length === 0) {
       if (card.data.groupID !== undefined) {
         let remainingCards = Object.values(this.state.cards).filter((item) => {
           return (item.data.groupID === card.data.groupID) && (item.data.ID !== card.data.ID);
@@ -186,12 +179,11 @@ export default class Board extends React.Component {
       }
     });
 
-    let thisCardGroupID = card.data.groupID;
-    if (cardGroupIDs.size == 1) {
+    if (cardGroupIDs.size === 1) {
       return cardGroupIDs.values().next().value;
     }
 
-    if (cardGroupIDs.size == 0) {
+    if (cardGroupIDs.size === 0) {
       // Create a group.
       console.log("Creating a group");
       let groupID = uuidv4();
@@ -225,7 +217,7 @@ export default class Board extends React.Component {
     if (
       !this.state.loadedHighlights ||
       !this.state.loadedCards ||
-      this.state.highlights.length != Object.values(this.state.cards).length
+      this.state.highlights.length !== Object.values(this.state.cards).length
     ) {
       return Loading();
     }
@@ -234,7 +226,7 @@ export default class Board extends React.Component {
 		let cards = Object.values(this.state.cards);
     for (let i=0; i<cards.length; i++) {
       let card = cards[i];
-      if (card.minX == 0 && card.maxX == 0) {
+      if (card.minX === 0 && card.maxX === 0) {
 				card.minX = 0;
 				card.minY = 50 + (i * 140);
       }
@@ -251,12 +243,11 @@ export default class Board extends React.Component {
       />);
     }
 
-    let groupComponents = [];
-    Object.values(this.state.groups).forEach((group) => {
-      let cards = Object.values(this.state.cards).filter((item) => {
-        return item.data.groupID == group.data.ID;
+    let groupComponents = Object.values(this.state.groups).map((group) => {
+      let cards = Object.values(this.state.cards).filter((card) => {
+        return card.data.groupID === group.data.ID;
       });
-      groupComponents.push(<Group cards={cards} group={group}/>);
+      return <Group key={group.data.ID} group={group} cards={cards} />;
     });
 
     return <><div className="cardContainer fullHeight">

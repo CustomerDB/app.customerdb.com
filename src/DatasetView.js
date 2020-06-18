@@ -69,7 +69,7 @@ class DatasetView extends React.Component {
     let dropdownItems = [];
     this.state.dataset.tags.forEach((tag) => {
       // Build drop down
-      dropdownItems.push(<NavDropdown.Item onClick={(e) => {this.setState({'selectedTag': tag})}}>{tag}</NavDropdown.Item>)
+      dropdownItems.push(<NavDropdown.Item  key={tag} onClick={(e) => {this.setState({'selectedTag': tag})}}>{tag}</NavDropdown.Item>)
     });
     return <>
       <Navbar bg="light" expand="lg" fixed="top">

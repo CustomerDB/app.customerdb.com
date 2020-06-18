@@ -1,4 +1,5 @@
 import React from 'react';
+import ContentEditable from 'react-contenteditable';
 
 import { circumscribingCircle } from './geom.js';
 
@@ -22,38 +23,61 @@ function computeGroupBounds(cards) {
   return rect;
 }
 
-export default function Group(props) {
-  if (props.cards === undefined || props.cards.length == 0) {
-    return <></>;
+export default class Group extends React.Component {
+  constructor(props) {
+    super(props);
+    this.nameRef = React.createRef();
+
+    this.updateName = this.updateName.bind(this);
+
+    this.state = {
+      name: props.group.data.name
+    }
   }
 
-  let rect = computeGroupBounds(props.cards);
-  let circle = circumscribingCircle(rect);
-  let color = props.group.data.color;
+  updateName(e) {
+    console.log("Group updateName:", e);
+  }
 
-  let border = `2px ${color} solid`;
+  render() {
+    if (this.props.cards === undefined || this.props.cards.length === 0) {
+      return <></>;
+    }
 
-  return <><div
-    className="group"
-    style={{
-      position: "absolute",
-      left: circle.minX,
-      top: circle.minY,
-      width: circle.diameter,
-      height: circle.diameter,
-      borderRadius: "50%",
-      border: border
-    }}>
-    { }
-  </div>
-  <div className="groupLabel" contentEditable style={{
-      position: "absolute",
-      left: circle.minX,
-      top: circle.maxY + 10,
-      width: circle.diameter,
-      textAlign: "center"
-    }}>
-    {props.group.data.name}
-  </div>
-  </>;
+    let rect = computeGroupBounds(this.props.cards);
+    let circle = circumscribingCircle(rect);
+    let color = this.props.group.data.color;
+
+    let border = `2px ${color} solid`;
+
+    return <><div
+      className="group"
+      style={{
+        position: "absolute",
+        left: circle.minX,
+        top: circle.minY,
+        width: circle.diameter,
+        height: circle.diameter,
+        borderRadius: "50%",
+        border: border
+      }}>
+      { }
+    </div>
+
+    <ContentEditable
+      innerRef={this.nameRef}
+      tagName='div'
+      className="groupLabel"
+      html={this.state.name}
+      disabled={false}
+      onChange={this.updateName}
+      style={{
+        position: "absolute",
+        left: circle.minX,
+        top: circle.maxY + 10,
+        width: circle.diameter,
+        textAlign: "center"
+      }} />
+    </>;
+  }
 }
