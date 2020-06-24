@@ -55,6 +55,12 @@ export default class Group extends React.Component {
 
     this.props.addGroupLocationCallback(this.props.group);
 
+    let cardTitles = new Set();
+    this.props.cards.forEach((card) => {
+      cardTitles.add(card.data['Note - Title']);
+    })
+    let representation = cardTitles.size;
+
     let circle = circumscribingCircle(rect);
     let color = this.props.group.data.color;
 
@@ -74,20 +80,23 @@ export default class Group extends React.Component {
       { }
     </div>
 
-    <ContentEditable
-      innerRef={this.nameRef}
-      tagName='div'
-      className="groupLabel"
-      html={this.props.name}
-      disabled={false}
-      onBlur={this.updateName}
+    <div className="groupLabel"
       style={{
         position: "absolute",
         left: circle.minX,
         top: circle.maxY + 10,
         width: circle.diameter,
         textAlign: "center"
-      }} />
+      }}>
+    <ContentEditable
+      innerRef={this.nameRef}
+      tagName='div'
+      html={this.props.name}
+      disabled={false}
+      onBlur={this.updateName}
+      />
+    <p>{representation}</p>
+    </div>
     </>;
   }
 }
