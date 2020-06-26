@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import Card from './Card.js';
 import Group from './Group.js';
+import Pointers from './Pointers.js';
 import HighlightModal from './HighlightModal.js';
 import colorPair from './color.js';
 import { Loading } from './Utils.js';
@@ -156,7 +157,6 @@ export default class Board extends React.Component {
         }
       ).bind(this)
     );
-
   }
 
   addCardLocation(card) {
@@ -345,6 +345,7 @@ export default class Board extends React.Component {
     }
 
     let cardComponents = [];
+    let cardTitles = new Set();
     let cards = Object.values(this.state.cards);
     for (let i=0; i<cards.length; i++) {
       let card = cards[i];
@@ -352,6 +353,8 @@ export default class Board extends React.Component {
         card.minX = 0 + (i * 20);
         card.minY = 50 + (i * 20);
       }
+
+      cardTitles.add(card.data['Note - Title']);
 
       cardComponents.push(<Card
         key={card.data.ID}
@@ -380,6 +383,7 @@ export default class Board extends React.Component {
         name={group.data.name}
         group={group}
         cards={cards}
+        totalCardCount={cardTitles.size}
         groupRef={groupRef}
         addGroupLocationCallback={this.addGroupLocation}
         removeGroupLocationCallback={this.removeGroupLocation}/>;
@@ -405,6 +409,7 @@ export default class Board extends React.Component {
         {groupComponents}
         {cardComponents}
       </div>
+      <Pointers activeUsersRef={this.boardRef.collection("activeUsers")} user={this.props.user}/>
       <HighlightModal
         show={this.state.modalShow}
         card={this.state.modalCard}

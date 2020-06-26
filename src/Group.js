@@ -95,7 +95,7 @@ export default class Group extends React.Component {
       disabled={false}
       onBlur={this.updateName}
       />
-    <p>{representation}</p>
+    <p>{representation} out of {this.props.totalCardCount}</p>
     </div>
     </>;
   }

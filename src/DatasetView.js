@@ -84,7 +84,7 @@ class DatasetView extends React.Component {
       </Navbar>
       <div className="outerContainer fullHeight">
         <div className="datasetContainer">
-          <Board key={this.state.selectedTag} boardRef={this.board} datasetRef={this.dataset} tag={this.state.selectedTag} />
+          <Board user={this.state.user} key={this.state.selectedTag} boardRef={this.board} datasetRef={this.dataset} tag={this.state.selectedTag} />
         </div>
       </div>
       </>;
