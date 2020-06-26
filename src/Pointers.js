@@ -44,37 +44,44 @@ class Pointers extends React.Component {
         
             this.state.lastMouseX = this.state.mouseX;
             this.state.lastMouseY = this.state.mouseY;
-        }).bind(this), 1000);
+        }).bind(this), 500);
 
         document.addEventListener('mousemove', ((event) => {
             this.state.mouseX = event.clientX
             this.state.mouseY = event.clientY
         }).bind(this));
 
-        this.props.activeUsersRef.where('userId', '<', this.props.user.uid).where('userId', '>', this.props.user.uid).onSnapshot((pointers) => {
+        let pointerHandler = (pointers) => {
             let positions = this.state.positions;
             pointers.forEach((pointer) => {
-                if (!positions.hasOwnProperty(pointer.userId)) {
+                let data = pointer.data()
+
+                if (!positions.hasOwnProperty(data.userId)) {
                     let colors = colorPair();
-                    positions[pointer.userId] = {
+                    positions[data.userId] = {
                         'fill': colors.background
                     }
                 }
                 
-                let data = pointer.data()
-                positions[pointer.userId]['x'] = data['x'];
-                positions[pointer.userId]['y'] = data['y'];
+                positions[data.userId]['userId'] = data['userId'];
+                positions[data.userId]['x'] = data['x'];
+                positions[data.userId]['y'] = data['y'];
+
             });
             this.setState({
                 positions: positions
             });
-        });
+        };
+
+        this.props.activeUsersRef.where('userId', '>', this.props.user.uid).onSnapshot(pointerHandler);
+        this.props.activeUsersRef.where('userId', '<', this.props.user.uid).onSnapshot(pointerHandler);
     }
 
     render() {
         let pointers = Object.values(this.state.positions).map((pointer) => {
-            return <Pointer fill={pointer.fill} x={100} y={100}/>;
+            return <Pointer key={pointer.userId} fill={pointer.fill} x={pointer.x} y={pointer.y}/>;
         });
+        console.log(`Pointers found: ${pointers.length}`)
         return <>{pointers}</>;
     }
 }
