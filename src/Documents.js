@@ -8,21 +8,40 @@ export default class Documents extends React.Component {
 
     this.documentsRef = props.documentsRef;
 
+    this.createNewDocument = this.createNewDocument.bind(this);
+    this.deleteDocument = this.deleteDocument.bind(this);
+
     this.state = {
-      documents: {}
+      documents: []
     }
   }
 
   componentDidMount() {
-    this.documentsRef.onSnapshot((snapshot) => {
-      // TODO
+    this.documentsRef.where("owners", "array-contains", this.props.user.uid).onSnapshot((snapshot) => {
+      let docs = [];
+
+      snapshot.forEach((doc) => {
+        let data = doc.data();
+        data['ID'] = doc.id;
+        docs.push(data);
+      });
+
+      this.setState({
+        documents: docs
+      })
     });
   }
 
   createNewDocument() {
+    console.log("documentsRef", this.documentsRef);
+    this.documentsRef.doc().set({
+      title: "Untitled Document",
+      owners: [this.props.user.uid]
+    });
   }
 
-  deleteDocument() {
+  deleteDocument(id) {
+    this.documentsRef.doc(id).delete();
   }
 
   render() {
@@ -34,7 +53,7 @@ export default class Documents extends React.Component {
             <div className="uploadTitleContainer">
               <h3>Documents</h3>
             </div>
-            <Button onClick={this.createNewDocument}>Create New</Button>
+            <Button onClick={this.createNewDocument}>Create</Button>
           </div>
           <br/>
           <DocumentTable documents={this.state.documents} deleteDocument={this.deleteDocument}/>
@@ -45,30 +64,28 @@ export default class Documents extends React.Component {
 }
 
 function DocumentTable(props) {
-    let documentRows = [];
-    Object.entries(props.documents).forEach((d) => {
-      let documentID = d[0];
-      let document = d[1];
 
-      documentRows.push(<tr key={documentID}>
-        <td>{document.name}</td>
-        <td>{document.state}</td>
+    let documentRows = props.documents.map((d) => {
+      let documentID = d['ID'];
+
+      return <tr key={documentID}>
+        <td>{d.title}</td>
         <td style={{textAlign: 'right'}}>
-          <Button variant="link" onClick={() => {props.deletedocument(documentID)}}>Delete</Button>{ }
+          <Button variant="link" onClick={() => {props.deleteDocument(documentID)}}>Delete</Button>{ }
           <Button onClick={() => {window.location.href=`/document/${documentID}`}}>Open</Button>
         </td>
-      </tr>);
+      </tr>;
     });
+
     return <Table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th style={{width: "15rem"}}>{ }</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      {documentRows}
-    </tbody>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {documentRows}
+      </tbody>
     </Table>;
 }

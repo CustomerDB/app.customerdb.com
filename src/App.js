@@ -101,7 +101,7 @@ export default class App extends React.Component {
 
     // TODO(CD): scope reads in db rules instead
     let datasetsRef = db.collection("datasets").where("owners", "array-contains", this.state.user.uid);
-    let documentsRef = db.collection("documents").where("owners", "array-contains", this.state.user.uid);
+    let documentsRef = db.collection("documents");
 
     return <>
       <Router>
@@ -111,9 +111,9 @@ export default class App extends React.Component {
         </Route>
         <Route exact path="/dataset/:id" children={<DatasetView user={this.state.user} />} />
         <Route exact path="/documents">
-          <Documents documentsRef={documentsRef} logoutCallback={this.logout} />
+          <Documents documentsRef={documentsRef} user={this.state.user} logoutCallback={this.logout} />
         </Route>
-        <Route exact path="/document/:id" children={<Document logoutCallback={this.logout} />} />
+        <Route exact path="/document/:id" children={<Document documentsRef={documentsRef} user={this.state.user} logoutCallback={this.logout} />} />
       </Switch>
     </Router></>;
   }
