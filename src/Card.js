@@ -49,7 +49,6 @@ export default class Card extends React.Component {
 
     let cardGroupIDs = new Set();
     let cardGroupColor = "#000";
-    let cardGroupTextColor = "#FFF";
 
     let intersections = this.props.getIntersectingCardsCallBack(rect);
 
@@ -91,9 +90,8 @@ export default class Card extends React.Component {
     if (groupID !== undefined) {
       let intersectingGroups = this.props.getIntersectingGroupsCallBack(rect);
       intersectingGroups.forEach((group) => {
-        if (group.data.ID == groupID) {
+        if (group.data.ID === groupID) {
           cardGroupColor = group.data.color;
-          cardGroupTextColor = group.data.textColor;
           intersections.push(group);
         }
       });
@@ -178,7 +176,7 @@ export default class Card extends React.Component {
             border: `3px solid ${this.state.previewColor}`
           }} />;
 
-    console.log("Card.render (state)", this.state);
+    console.debug("Card.render (state)", this.state);
 
 		// Draggable nodeRef required to fix findDOMNode warnings.
 		// see: https://github.com/STRML/react-draggable/pull/478

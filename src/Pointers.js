@@ -9,7 +9,7 @@ function Pointer(props) {
     <path style={{fill: props.fill}} d="M434.215,344.467L92.881,3.134c-4.16-4.171-10.914-4.179-15.085-0.019
         c-2.011,2.006-3.139,4.731-3.134,7.571v490.667c0.003,4.382,2.685,8.316,6.763,9.92c4.081,1.603,8.727,0.545,11.712-2.667
         l135.509-145.92h198.016c5.891,0.011,10.675-4.757,10.686-10.648C437.353,349.198,436.226,346.473,434.215,344.467z"/>
-    </svg>;    
+    </svg>;
 }
 
 class Pointers extends React.Component {
@@ -29,11 +29,11 @@ class Pointers extends React.Component {
             if ((this.state.mouseX === undefined) || (this.state.mouseY === undefined)) {
                 return;
             }
-        
-            if ((this.state.lastMouseX == this.state.mouseX) && (this.state.lastMouseY == this.state.mouseY)) {
+
+            if ((this.state.lastMouseX === this.state.mouseX) && (this.state.lastMouseY === this.state.mouseY)) {
                 return
             }
-        
+
             let uid = this.props.user.uid
             this.props.activeUsersRef.doc(uid).set({
                 userId: uid,
@@ -41,15 +41,15 @@ class Pointers extends React.Component {
                 y: this.state.mouseY,
                 lastModified: now()
             });
-        
+
             this.state.lastMouseX = this.state.mouseX;
             this.state.lastMouseY = this.state.mouseY;
-        }).bind(this), 500);
+        }), 500);
 
         document.addEventListener('mousemove', ((event) => {
             this.state.mouseX = event.clientX
             this.state.mouseY = event.clientY
-        }).bind(this));
+        }));
 
         let pointerHandler = (pointers) => {
             let positions = this.state.positions;
@@ -62,7 +62,7 @@ class Pointers extends React.Component {
                         'fill': colors.background
                     }
                 }
-                
+
                 positions[data.userId]['userId'] = data['userId'];
                 positions[data.userId]['x'] = data['x'];
                 positions[data.userId]['y'] = data['y'];
@@ -81,7 +81,7 @@ class Pointers extends React.Component {
         let pointers = Object.values(this.state.positions).map((pointer) => {
             return <Pointer key={pointer.userId} fill={pointer.fill} x={pointer.x} y={pointer.y}/>;
         });
-        console.log(`Pointers found: ${pointers.length}`)
+        console.debug(`Pointers found: ${pointers.length}`)
         return <>{pointers}</>;
     }
 }

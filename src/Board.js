@@ -58,7 +58,7 @@ export default class Board extends React.Component {
     this.cardsRef.where("data.Tag", "==", this.tag).onSnapshot(
       (
         function(querySnapshot) {
-          console.log("received boards/{id}/cards snapshot");
+          console.debug("received boards/{id}/cards snapshot");
 
           var cards = this.state.cards;
 
@@ -85,6 +85,7 @@ export default class Board extends React.Component {
     this.groupsRef.onSnapshot(
       (
         function(querySnapshot) {
+          console.debug("received boards/{id}/groups snapshot");
 
           var groups = this.state.groups;
 
@@ -121,7 +122,8 @@ export default class Board extends React.Component {
     this.datasetRef.collection('highlights').where("Tag", "==", this.tag).onSnapshot(
       (
         function(querySnapshot) {
-          console.log("received dataset/{id}/highlights snapshot");
+          console.debug("received dataset/{id}/highlights snapshot");
+
           var highlights = [];
           querySnapshot.forEach((doc) => {
             let data = doc.data();
@@ -160,17 +162,17 @@ export default class Board extends React.Component {
   }
 
   addCardLocation(card) {
-    console.log(`addCardLocation (size@pre: ${this.rtree.all().length})`, card);
+    console.debug(`addCardLocation (size@pre: ${this.rtree.all().length})`, card);
     this.rtree.insert(card);
-    console.log(`addCardLocation add (size@post: ${this.rtree.all().length})`);
+    console.debug(`addCardLocation add (size@post: ${this.rtree.all().length})`);
   }
 
   removeCardLocation(card) {
     console.log(`removeCardLocation (size@pre: ${this.rtree.all().length})`, card);
-    let removed = this.rtree.remove(
+    this.rtree.remove(
       card,
       (a, b) => {
-        console.log(`comparing\n${a.data.ID}\n${b.data.ID}`);
+        console.debug(`comparing\n${a.data.ID}\n${b.data.ID}`);
         return a.kind === "card" &&
           b.kind === "card" &&
           a.data.ID === b.data.ID;
@@ -180,23 +182,23 @@ export default class Board extends React.Component {
   }
 
   addGroupLocation(group) {
-    console.log(`addGroupLocation (size@pre: ${this.rtree.all().length})`, group);
+    console.debug(`addGroupLocation (size@pre: ${this.rtree.all().length})`, group);
     this.rtree.insert(group);
-    console.log(`addGroupLocation add (size@post: ${this.rtree.all().length})`);
+    console.debug(`addGroupLocation add (size@post: ${this.rtree.all().length})`);
   }
 
   removeGroupLocation(group) {
-    console.log(`removeGroupLocation (size@pre: ${this.rtree.all().length})`, group);
-    let removed = this.rtree.remove(
+    console.debug(`removeGroupLocation (size@pre: ${this.rtree.all().length})`, group);
+    this.rtree.remove(
       group,
       (a, b) => {
-        console.log(`comparing\n${a.data.ID}\n${b.data.ID}`);
+        console.debug(`comparing\n${a.data.ID}\n${b.data.ID}`);
         return a.kind === "group" &&
           b.kind === "group" &&
           a.data.ID === b.data.ID;
       }
     );
-    console.log(`removeGroupLocation (size@post: ${this.rtree.all().length})`);
+    console.debug(`removeGroupLocation (size@post: ${this.rtree.all().length})`);
   }
 
   printRTree(rect) {

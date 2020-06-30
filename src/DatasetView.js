@@ -1,7 +1,7 @@
 import React from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
-import { logout, Loading } from './Utils.js';
+import { Loading } from './Utils.js';
 import Board from './Board.js';
 
 import Navbar from 'react-bootstrap/Navbar';
@@ -19,8 +19,6 @@ class DatasetView extends React.Component {
   constructor(props) {
     super(props);
 
-    this.loginCallback = this.loginCallback.bind(this);
-
     this.datasetID = this.props.match.params.id;
 
     this.dataset = db.collection('datasets').doc(this.datasetID);
@@ -30,15 +28,12 @@ class DatasetView extends React.Component {
     this.board = db.collection('boards').doc(this.datasetID);
 
     this.state = {
-      isLoggedIn: false,
       isDataLoaded: false,
       dataset: undefined
     }
   }
 
   componentDidMount() {
-    window.firebase.auth().onAuthStateChanged(this.loginCallback);
-
     this.dataset.onSnapshot((function(doc) {
       this.setState({
         isDataLoaded: true,
@@ -49,20 +44,8 @@ class DatasetView extends React.Component {
 
   }
 
-  loginCallback(user) {
-    if (user) {
-      console.log(user);
-      this.setState({
-        isLoggedIn: true,
-        user: user
-      });
-    } else {
-      window.location.href = '/';
-    }
-  }
-
   render() {
-    if (!(this.state.isLoggedIn && this.state.isDataLoaded)) {
+    if (!this.state.isDataLoaded) {
       return Loading();
     }
 
@@ -79,12 +62,12 @@ class DatasetView extends React.Component {
           {dropdownItems}
         </NavDropdown>
         <Navbar.Collapse className="justify-content-end">
-          <Nav.Link onClick={() => {logout()}}>Logout</Nav.Link>
+          <Nav.Link onClick={this.props.logoutCallback}>Logout</Nav.Link>
         </Navbar.Collapse>
       </Navbar>
       <div className="outerContainer fullHeight">
         <div className="datasetContainer">
-          <Board user={this.state.user} key={this.state.selectedTag} boardRef={this.board} datasetRef={this.dataset} tag={this.state.selectedTag} />
+          <Board user={this.props.user} key={this.state.selectedTag} boardRef={this.board} datasetRef={this.dataset} tag={this.state.selectedTag} />
         </div>
       </div>
       </>;
