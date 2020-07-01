@@ -55,7 +55,8 @@ class Document extends React.Component {
     this.updateTitle = this.updateTitle.bind(this);
     this.uploadDeltas = this.uploadDeltas.bind(this);
     this.onSelect = this.onSelect.bind(this);
-    this.onTagChange = this.onTagChange.bind(this);
+    this.onTagControlChange = this.onTagControlChange.bind(this);
+    this.onTagsChange = this.onTagsChange.bind(this);
 
     this.titleRef = React.createRef();
 
@@ -68,12 +69,15 @@ class Document extends React.Component {
     this.lastEditedContent = undefined;
     this.lastSentContent = undefined;
 
+    this.tags = {};
+
     // a delta with no insert is "not a document"
     let initialDelta = emptyDelta();
 
     this.state = {
       title: "",
       content: "",
+      highlights: {},
       delta: initialDelta,
       tagIDsInSelection: new Set()
     }
@@ -231,8 +235,8 @@ class Document extends React.Component {
     this.setState({ tagIDsInSelection: tagIDs, delta: editor.getContents() });
   }
 
-  onTagChange(tag, checked) {
-    console.log("onTagChange", tag, checked);
+  onTagControlChange(tag, checked) {
+    console.log("onTagControlChange", tag, checked);
 
     if (this.currentSelection === undefined) {
       return;
@@ -258,7 +262,24 @@ class Document extends React.Component {
     }
   }
 
+  onTagsChange(tags) {
+    // TODO: This should be done better :'(
+    this.tags = tags;
+  }
+
   render() {
+    let highlightDeltas = Object.values(this.state.highlights).flatMap((h) => {
+      if (this.tags.hasOwnProperty(h.tagID)) {
+        let color = this.tags[h.tagID].color;
+        return [new Delta([{retain: h.selection.index}, {retain: h.selection.length, attributes: {'background': color}}])];
+      }
+      return [];
+    });
+    let highlightResult = reduceDeltas(highlightDeltas);
+    let result = this.state.delta.compose(highlightResult);
+
+    console.log('result', result, 'highlightResult', highlightResult);
+
     return <div>
       <Container>
         <Row>
@@ -276,14 +297,15 @@ class Document extends React.Component {
           <Col ms={10} md={10}>
           <ReactQuill
             ref={(el) => { this.reactQuillRef = el }}
-            value={this.state.delta}
+            value={result}
             onChangeSelection={this.onSelect} />
         </Col>
         <Col ms={2} md={2}>
           <Tags
             tagsRef={this.documentRef.collection('tags')}
             tagIDsInSelection={this.state.tagIDsInSelection}
-            onChange={this.onTagChange} />
+            onChange={this.onTagControlChange}
+            onTagsChange={this.onTagsChange} />
         </Col>
         </Row>
       </Container>
@@ -308,13 +330,14 @@ class Tags extends React.Component {
 
   componentDidMount() {
     this.props.tagsRef.onSnapshot(snapshot => {
-      let tags = [];
+      let tags = {};
       snapshot.forEach(tagDoc => {
         let data = tagDoc.data();
         data['ID'] = tagDoc.id;
-        tags.push(data);
+        tags[data['ID']] = data;
       });
-      this.setState({ tags: tags });
+      this.setState({ tags: Object.values(tags) });
+      this.props.onTagsChange(tags);
     });
   }
 
