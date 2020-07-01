@@ -11,6 +11,8 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 
+import colorPair from './color.js';
+
 
 function emptyDelta() {
   return new Delta([{ insert: "" }]);
@@ -48,11 +50,12 @@ class Document extends React.Component {
 
     this.documentRef = props.documentsRef.doc(this.documentID);
     this.deltasRef = this.documentRef.collection('deltas');
+    this.highlightsRef = this.documentRef.collection('highlights');
 
     this.updateTitle = this.updateTitle.bind(this);
     this.uploadDeltas = this.uploadDeltas.bind(this);
     this.onSelect = this.onSelect.bind(this);
-    this.highlightSelection = this.highlightSelection.bind(this);
+    this.onTagChange = this.onTagChange.bind(this);
 
     this.titleRef = React.createRef();
 
@@ -71,7 +74,8 @@ class Document extends React.Component {
     this.state = {
       title: "",
       content: "",
-      delta: initialDelta
+      delta: initialDelta,
+      tagIDsInSelection: new Set()
     }
   }
 
@@ -81,6 +85,26 @@ class Document extends React.Component {
       let data = doc.data();
       this.setState({
         title: data.title
+      });
+    });
+
+    // Subscribe to highlight changes
+    this.highlightsRef.onSnapshot((snapshot) => {
+      let highlights = {};
+
+      snapshot.forEach(highlightDoc => {
+        let data = highlightDoc.data();
+        data['ID'] = highlightDoc.id;
+        highlights[data.ID] = data;
+      });
+
+      let tagIDs = this.computeTagIDsInSelection(
+        highlights,
+        this.currentSelection);
+
+      this.setState({
+        highlights: highlights,
+        tagIDsInSelection: tagIDs
       });
     });
 
@@ -120,6 +144,30 @@ class Document extends React.Component {
     });
 
     setInterval(this.uploadDeltas, 1000);
+  }
+
+  // highlights: a map of highlight ID to highlight
+  // selection: a range object with fields 'index' and 'length'
+  computeTagIDsInSelection(highlights, selection) {
+    let result = new Set();
+
+    if (selection === undefined) {
+      return result;
+    }
+
+    let selectBegin = selection.index;
+    let selectEnd = selectBegin + selection.length;
+
+    Object.values(highlights).forEach(h => {
+      let hBegin = h.selection.index
+      let hEnd = hBegin + h.selection.length;
+      if ((hBegin >= selectBegin && hBegin <= selectEnd) ||
+          (hEnd >= selectBegin && hEnd <= selectEnd)) {
+        result.add(h.tagID);
+      }
+    });
+
+    return result;
   }
 
   updateTitle(e) {
@@ -167,26 +215,47 @@ class Document extends React.Component {
     if (source !== 'user') {
       return;
     }
-    if (range === null || range.length === 0) {
+    if (range === null) {
       this.currentSelection = undefined;
-      return;
+    }
+    else {
+      this.currentSelection = range;
     }
 
-    this.currentSelection = range;
+    let tagIDs = this.computeTagIDsInSelection(
+      this.state.highlights,
+      this.currentSelection);
 
-    let selectionText = editor.getContents(range.index, range.length);
-    console.log('selected: ', selectionText);
+    this.setState({ tagIDsInSelection: tagIDs });
   }
 
-  highlightSelection(e, tag) {
+  onTagChange(tag, checked) {
+    console.log("onTagChange", tag, checked);
+
     if (this.currentSelection === undefined) {
       return;
     }
 
-    let editor = this.reactQuillRef.getEditor();
-    let selectionText = editor.getContents(this.currentSelection.index, this.currentSelection.length);
+    if (checked) {
+      console.log("Creating highlight with tag ", tag);
+      let editor = this.reactQuillRef.getEditor();
+      let selectionText = editor.getText(this.currentSelection.index, this.currentSelection.length);
 
-    console.log(`Tag '${JSON.stringify(selectionText)}' with ${tag} value: ${e.target.checked}`);
+      this.highlightsRef.doc().set({
+        tagID: tag.ID,
+        selection: {
+          index: this.currentSelection.index,
+          length: this.currentSelection.length
+        },
+        text: selectionText
+      });
+    }
+
+    if (!checked) {
+      console.log("Deleting highlight in current selection with tag ", tag);
+
+    }
+
   }
 
   render() {
@@ -195,12 +264,12 @@ class Document extends React.Component {
         <Row>
           <Col md={12}>
             <ContentEditable
-            innerRef={this.titleRef}
-            tagName='h1'
-            html={this.state.title}
-            disabled={false}
-            onBlur={this.updateTitle}
-            />
+              innerRef={this.titleRef}
+              tagName='h1'
+              html={this.state.title}
+              disabled={false}
+              onBlur={this.updateTitle}
+              />
           </Col>
         </Row>
         <Row>
@@ -208,16 +277,88 @@ class Document extends React.Component {
           <ReactQuill
             ref={(el) => { this.reactQuillRef = el }}
             value={this.state.delta}
-            onChangeSelection={this.onSelect}
-            />
+            onChangeSelection={this.onSelect} />
         </Col>
         <Col ms={2} md={2}>
-          Tags
-          <Form.Check type="checkbox" label="Problem" onChange={(e) => {this.highlightSelection(e, "Problem")}}/>
-          <Form.Check type="checkbox" label="Action"  onChange={(e) => {this.highlightSelection(e, "Action")}}/>
+          <Tags
+            tagsRef={this.documentRef.collection('tags')}
+            tagIDsInSelection={this.state.tagIDsInSelection}
+            onChange={this.onTagChange} />
         </Col>
         </Row>
       </Container>
+    </div>;
+  }
+}
+
+class Tags extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.tagsRef = props.tagsRef;
+
+    this.onChange = props.onChange;
+
+    this.createTag = this.createTag.bind(this);
+
+    this.state = {
+      tags: []
+    }
+  }
+
+  componentDidMount() {
+    this.props.tagsRef.onSnapshot(snapshot => {
+      let tags = [];
+      snapshot.forEach(tagDoc => {
+        let data = tagDoc.data();
+        data['ID'] = tagDoc.id;
+        tags.push(data);
+      });
+      this.setState({ tags: tags });
+    });
+  }
+
+  createTag(e) {
+    let name = e.target.innerText;
+
+    let color = colorPair().background;
+
+    this.tagsRef.doc().set({
+      name: name,
+      color: color
+    });
+
+    e.target.innerHTML = "";
+  }
+
+  onTagControlChange(e, tag) {
+    this.onChange(tag, e.target.checked);
+  }
+
+  render() {
+    let tagControls = this.state.tags.map(t => {
+      let checked = this.props.tagIDsInSelection.has(t.ID);
+
+      let label = <span style={{ color: t.color }} >{t.name}</span>;
+
+      return <Form.Check
+        type="checkbox"
+        checked={checked}
+        label={label}
+        onChange={(e) => {this.onTagControlChange(e, t)}}/>
+    });
+
+    return <div>
+      Tags
+      {tagControls}
+
+      <ContentEditable
+        innerRef={this.titleRef}
+        tagName='div'
+        html=""
+        disabled={false}
+        onBlur={this.createTag} />
+
     </div>;
   }
 }
