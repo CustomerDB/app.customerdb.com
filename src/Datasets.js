@@ -109,18 +109,22 @@ export default class Datasets extends React.Component {
 
   render() {
     return (
-      <div>
-        <Button onClick={this.props.logoutCallback} variant="link">Logout</Button>
-        <div className="outerContainer">
-          <div className="uploadContainer">
-            <div className="uploadTitle">
-              <div className="uploadTitleContainer">
-                <h3>Datasets</h3>
+      <div className="navContainer">
+        <div className="navLeft">
+          <Button onClick={this.props.logoutCallback} variant="link">Logout</Button>
+        </div>
+        <div className="navBody">
+          <div className="outerContainer">
+            <div className="uploadContainer">
+              <div className="uploadTitle">
+                <div className="uploadTitleContainer">
+                  <h3>Datasets</h3>
+                </div>
+                <UploadForm handleFileUploadChange={this.handleFileUploadChange} handleFileUploadSubmit={this.handleFileUploadSubmit}/>
               </div>
-              <UploadForm handleFileUploadChange={this.handleFileUploadChange} handleFileUploadSubmit={this.handleFileUploadSubmit}/>
+              <br/>
+              <DatasetTable datasets={this.state.datasets} deleteDataset={this.deleteDataset}/>
             </div>
-            <br/>
-            <DatasetTable datasets={this.state.datasets} deleteDataset={this.deleteDataset}/>
           </div>
         </div>
       </div>

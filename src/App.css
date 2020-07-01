@@ -13,6 +13,22 @@ div.fullHeight {
     height: 100%;
 }
 
+div.fullWidth {
+    height: 100%;
+}
+
+div.navContainer {
+    display: flex;
+    height: 100%;
+}
+
+div.navLeft {
+    width: 4rem;
+    box-shadow: 0 6px 6px rgba(0, 0, 0, 0.2);
+    height: 100%;
+    text-align: center;
+}
+
 div.outerContainer {
     position: relative;
 }
@@ -36,14 +52,9 @@ div.loginContainer {
 }
 
 div.uploadContainer {
-    position: fixed;
-    width: 80%;
-    padding: 2rem;
+    margin: 2rem;
+    width: 100%;
     background-color: white;
-    box-shadow: 0 6px 6px rgba(0, 0, 0, 0.2);
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
 }
 
 div.uploadTitle {
@@ -57,11 +68,11 @@ div.datasetContainer {
 }
 
 div.uploadTitleContainer {
-    width: 50%;
+    width: 80%;
 }
 
 div.uploadButtonContainer {
-    width: 50%;
+    width: 80%;
     text-align: right;
 }
 
