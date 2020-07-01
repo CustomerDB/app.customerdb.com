@@ -6,6 +6,12 @@ import 'react-quill/dist/quill.snow.css';
 import { withRouter } from 'react-router-dom';
 import { uuid } from 'uuidv4';
 
+import Container from 'react-bootstrap/Container';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
+import Form from 'react-bootstrap/Form';
+
+
 function emptyDelta() {
   return new Delta([{ insert: "" }]);
 }
@@ -172,24 +178,46 @@ class Document extends React.Component {
     console.log('selected: ', selectionText);
   }
 
-  highlightSelection(e) {
-    console.log("highlightSelection", e);
+  highlightSelection(e, tag) {
+    if (this.currentSelection === undefined) {
+      return;
+    }
+
+    let editor = this.reactQuillRef.getEditor();
+    let selectionText = editor.getContents(this.currentSelection.index, this.currentSelection.length);
+
+    console.log(`Tag '${JSON.stringify(selectionText)}' with ${tag} value: ${e.target.checked}`);
   }
 
   render() {
     return <div>
-      <ContentEditable
-        innerRef={this.titleRef}
-        tagName='h1'
-        html={this.state.title}
-        disabled={false}
-        onBlur={this.updateTitle}
-        />
-      <ReactQuill
-        ref={(el) => { this.reactQuillRef = el }}
-        value={this.state.delta}
-        onChangeSelection={this.onSelect}
-        />
+      <Container>
+        <Row>
+          <Col md={12}>
+            <ContentEditable
+            innerRef={this.titleRef}
+            tagName='h1'
+            html={this.state.title}
+            disabled={false}
+            onBlur={this.updateTitle}
+            />
+          </Col>
+        </Row>
+        <Row>
+          <Col ms={10} md={10}>
+          <ReactQuill
+            ref={(el) => { this.reactQuillRef = el }}
+            value={this.state.delta}
+            onChangeSelection={this.onSelect}
+            />
+        </Col>
+        <Col ms={2} md={2}>
+          Tags
+          <Form.Check type="checkbox" label="Problem" onChange={(e) => {this.highlightSelection(e, "Problem")}}/>
+          <Form.Check type="checkbox" label="Action"  onChange={(e) => {this.highlightSelection(e, "Action")}}/>
+        </Col>
+        </Row>
+      </Container>
     </div>;
   }
 }
