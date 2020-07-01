@@ -44,10 +44,13 @@ class Document extends React.Component {
     this.lastEditedContent = undefined;
     this.lastSentContent = undefined;
 
+    // a delta with no insert is "not a document"
+    let initialDelta = new Delta([{ insert: "" }]);
+
     this.state = {
       title: "",
       content: "",
-      delta: new Delta([])
+      delta: initialDelta
     }
   }
 
