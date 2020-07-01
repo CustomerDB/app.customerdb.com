@@ -3,15 +3,16 @@ import ReactQuill from 'react-quill';
 import Delta from 'quill-delta';
 import 'react-quill/dist/quill.snow.css';
 import { withRouter } from 'react-router-dom';
+import { uuid } from 'uuidv4';
 
 function reduceDeltas(deltas) {
   if (deltas.length === 0) {
     return new Delta([]);
   }
 
-  let result = new Delta([]);
+  let result = deltas[0];
 
-  deltas.forEach(d => {
+  deltas.slice(1).forEach(d => {
     result = result.compose(d);
   });
 
@@ -37,9 +38,11 @@ class Document extends React.Component {
     this.deltasRef = this.documentRef.collection('deltas');
     this.uploadDeltas = this.uploadDeltas.bind(this);
 
-    this.handleEdit = this.handleEdit.bind(this);
+    this.deltaSet = new Set();
+    this.reactQuillRef = undefined;
 
-    this.deltaBuffer = [];
+    this.lastEditedContent = undefined;
+    this.lastSentContent = undefined;
 
     this.state = {
       title: "",
@@ -52,7 +55,6 @@ class Document extends React.Component {
     // Subscribe to document title changes
     this.documentRef.onSnapshot((doc) => {
       let data = doc.data();
-
       this.setState({
         title: data.title
       });
@@ -63,50 +65,80 @@ class Document extends React.Component {
       let deltas = [];
 
       snapshot.forEach((delta) => {
-        let ops = delta.data()['ops'];
-        console.log('ops: ' + ops)
+        let data = delta.data();
+        if (this.deltaSet.has(data.id)) {
+          console.log(`Dropping delta with id ${data.id}`)
+          return;
+        }
+
+        console.log(`Applying delta ${JSON.stringify(data)}`)
+        let ops = data['ops'];
+
         deltas.push(new Delta(ops));
+
+        this.deltaSet.add(data.id);
       });
 
-      console.log(`Applying deltas: ${deltas}`)
+      if (deltas.length === 0) {
+        return;
+      }
 
+      let editor = this.reactQuillRef.getEditor();
+      let content = editor.getContents();
+
+      let remoteSnapshot = reduceDeltas(deltas);
+      let result = content.compose(remoteSnapshot);
       this.setState({
-        delta: reduceDeltas(deltas.concat(this.deltaBuffer))
+        delta: result
       });
+      console.log(`currentContent: ${JSON.stringify(content)} delta: ${JSON.stringify(remoteSnapshot)} applyingResult: ${JSON.stringify(result)}`);
+      this.lastSyncedContent = result;
     });
 
-    setInterval(this.uploadDeltas, 500);
-  }
-
-  handleEdit(content, delta, source, editor) {
-    this.deltaBuffer.push(delta);
+    setInterval(this.uploadDeltas, 1000);
   }
 
   uploadDeltas() {
-    if (this.deltaBuffer.length === 0) {
+    if (this.reactQuillRef  === undefined) {
       return;
     }
 
-    let delta = reduceDeltas(this.deltaBuffer);
+    let editor = this.reactQuillRef.getEditor();
+    let content = editor.getContents();
+    let diff;
+    if (this.lastSyncedContent === undefined) {
+      diff = content;
+    } else {
+      diff = this.lastSyncedContent.diff(content);
+    }
+
+    if (diff.ops.length === 0) {
+      return;
+    }
+
+    this.lastSyncedContent = content;
 
     // Create document in deltas collection
-    this.deltasRef.doc().set({
+    let id = uuid();
+    this.deltaSet.add(id);
+    let delta = {
       userID: this.props.user.uid,
-      ops: delta.ops,
+      ops: diff.ops,
+      id: id,
       timestamp: window.firebase.firestore.FieldValue.serverTimestamp()
-    })
-    .then(() => {
-      console.log("uploaded incremental delta", delta);
-      this.deltaBuffer = [];
-    });
+    };
+    console.log(`Write delta: ${JSON.stringify(delta)}`);
+    this.deltasRef.doc().set(delta);
   }
 
   render() {
     return <div>
       <h1>{this.state.title}</h1>
       <ReactQuill
+        ref={(el) => { this.reactQuillRef = el }}
         value={this.state.delta}
-        onChange={this.handleEdit} />
+        // onChange={this.handleEdit}
+        />
     </div>;
   }
 }
