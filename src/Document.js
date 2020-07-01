@@ -158,11 +158,13 @@ class Document extends React.Component {
     let selectBegin = selection.index;
     let selectEnd = selectBegin + selection.length;
 
+    console.log(`selectBegin ${selectBegin} selectEnd ${selectEnd}`);
+
     Object.values(highlights).forEach(h => {
       let hBegin = h.selection.index
       let hEnd = hBegin + h.selection.length;
-      if ((hBegin >= selectBegin && hBegin <= selectEnd) ||
-          (hEnd >= selectBegin && hEnd <= selectEnd)) {
+      console.log(`${h.name} hBegin ${hBegin} hEnd ${hEnd}`);
+      if ((selectBegin >= hBegin && selectBegin <= hEnd) || (selectEnd >= hBegin && selectEnd <= hEnd)) {
         result.add(h.tagID);
       }
     });
@@ -226,7 +228,7 @@ class Document extends React.Component {
       this.state.highlights,
       this.currentSelection);
 
-    this.setState({ tagIDsInSelection: tagIDs });
+    this.setState({ tagIDsInSelection: tagIDs, delta: editor.getContents() });
   }
 
   onTagChange(tag, checked) {
@@ -253,9 +255,7 @@ class Document extends React.Component {
 
     if (!checked) {
       console.log("Deleting highlight in current selection with tag ", tag);
-
     }
-
   }
 
   render() {
