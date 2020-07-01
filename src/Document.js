@@ -45,11 +45,16 @@ class Document extends React.Component {
 
     this.updateTitle = this.updateTitle.bind(this);
     this.uploadDeltas = this.uploadDeltas.bind(this);
+    this.onSelect = this.onSelect.bind(this);
+    this.highlightSelection = this.highlightSelection.bind(this);
 
     this.titleRef = React.createRef();
 
     this.deltaSet = new Set();
     this.reactQuillRef = undefined;
+
+    // This is a range object with fields 'index' and 'length'
+    this.currentSelection = undefined;
 
     this.lastEditedContent = undefined;
     this.lastSentContent = undefined;
@@ -152,6 +157,25 @@ class Document extends React.Component {
     this.deltasRef.doc().set(delta);
   }
 
+  onSelect(range, source, editor) {
+    if (source !== 'user') {
+      return;
+    }
+    if (range === null || range.length === 0) {
+      this.currentSelection = undefined;
+      return;
+    }
+
+    this.currentSelection = range;
+
+    let selectionText = editor.getContents(range.index, range.length);
+    console.log('selected: ', selectionText);
+  }
+
+  highlightSelection(e) {
+    console.log("highlightSelection", e);
+  }
+
   render() {
     return <div>
       <ContentEditable
@@ -164,6 +188,7 @@ class Document extends React.Component {
       <ReactQuill
         ref={(el) => { this.reactQuillRef = el }}
         value={this.state.delta}
+        onChangeSelection={this.onSelect}
         />
     </div>;
   }
