@@ -1,3 +1,4 @@
+import ContentEditable from 'react-contenteditable';
 import React from 'react';
 import ReactQuill from 'react-quill';
 import Delta from 'quill-delta';
@@ -5,9 +6,13 @@ import 'react-quill/dist/quill.snow.css';
 import { withRouter } from 'react-router-dom';
 import { uuid } from 'uuidv4';
 
+function emptyDelta() {
+  return new Delta([{ insert: "" }]);
+}
+
 function reduceDeltas(deltas) {
   if (deltas.length === 0) {
-    return new Delta([]);
+    return emptyDelta();
   }
 
   let result = deltas[0];
@@ -34,9 +39,14 @@ class Document extends React.Component {
     super(props);
 
     this.documentID = props.match.params.id;
+
     this.documentRef = props.documentsRef.doc(this.documentID);
     this.deltasRef = this.documentRef.collection('deltas');
+
+    this.updateTitle = this.updateTitle.bind(this);
     this.uploadDeltas = this.uploadDeltas.bind(this);
+
+    this.titleRef = React.createRef();
 
     this.deltaSet = new Set();
     this.reactQuillRef = undefined;
@@ -45,7 +55,7 @@ class Document extends React.Component {
     this.lastSentContent = undefined;
 
     // a delta with no insert is "not a document"
-    let initialDelta = new Delta([{ insert: "" }]);
+    let initialDelta = emptyDelta();
 
     this.state = {
       title: "",
@@ -101,8 +111,16 @@ class Document extends React.Component {
     setInterval(this.uploadDeltas, 1000);
   }
 
+  updateTitle(e) {
+    let newTitle = e.target.innerText;
+    this.documentRef.set({ title: newTitle }, { merge: true });
+  }
+
   uploadDeltas() {
     if (this.reactQuillRef  === undefined) {
+      return;
+    }
+    if (this.lastSyncedContent === undefined) {
       return;
     }
 
@@ -136,11 +154,16 @@ class Document extends React.Component {
 
   render() {
     return <div>
-      <h1>{this.state.title}</h1>
+      <ContentEditable
+        innerRef={this.titleRef}
+        tagName='h1'
+        html={this.state.title}
+        disabled={false}
+        onBlur={this.updateTitle}
+        />
       <ReactQuill
         ref={(el) => { this.reactQuillRef = el }}
         value={this.state.delta}
-        // onChange={this.handleEdit}
         />
     </div>;
   }

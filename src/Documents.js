@@ -1,6 +1,11 @@
 import React from 'react';
 import Button from 'react-bootstrap/Button';
 import Table from 'react-bootstrap/Table';
+import Delta from 'quill-delta';
+
+function initialDelta() {
+  return new Delta([{ insert: "\n" }]);
+}
 
 export default class Documents extends React.Component {
   constructor(props) {
@@ -34,9 +39,19 @@ export default class Documents extends React.Component {
 
   createNewDocument() {
     console.log("documentsRef", this.documentsRef);
-    this.documentsRef.doc().set({
+    this.documentsRef.add({
       title: "Untitled Document",
       owners: [this.props.user.uid]
+    }).then(newDocRef => {
+      let delta = initialDelta();
+      newDocRef.collection('deltas')
+        .doc()
+        .set({
+          userID: this.props.user.uid,
+          ops: delta.ops,
+          id: "",
+          timestamp: window.firebase.firestore.FieldValue.serverTimestamp()
+        });
     });
   }
 
