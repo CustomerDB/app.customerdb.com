@@ -3,6 +3,9 @@ import Button from 'react-bootstrap/Button';
 import Table from 'react-bootstrap/Table';
 import Delta from 'quill-delta';
 
+import LeftNav from './LeftNav.js';
+
+
 function initialDelta() {
   return new Delta([{ insert: "\n" }]);
 }
@@ -60,21 +63,23 @@ export default class Documents extends React.Component {
   }
 
   render() {
-    return <div>
-      <Button onClick={this.props.logoutCallback} variant="link">Logout</Button>
-      <div className="outerContainer">
-        <div className="uploadContainer">
-          <div className="uploadTitle">
-            <div className="uploadTitleContainer">
-              <h3>Documents</h3>
+    return <div className="navContainer">
+        <LeftNav logoutCallback={this.props.logoutCallback}/>
+        <div className="navBody">
+          <div className="outerContainer">
+            <div className="uploadContainer">
+              <div className="uploadTitle">
+                <div className="uploadTitleContainer">
+                  <h3>Documents</h3>
+                </div>
+                <Button onClick={this.createNewDocument}>Create</Button>
+              </div>
+              <br/>
+              <DocumentTable documents={this.state.documents} deleteDocument={this.deleteDocument}/>
             </div>
-            <Button onClick={this.createNewDocument}>Create</Button>
           </div>
-          <br/>
-          <DocumentTable documents={this.state.documents} deleteDocument={this.deleteDocument}/>
         </div>
-      </div>
-    </div>;
+      </div>;
   }
 }
 

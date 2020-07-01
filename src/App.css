@@ -27,6 +27,8 @@ div.navLeft {
     box-shadow: 0 6px 6px rgba(0, 0, 0, 0.2);
     height: 100%;
     text-align: center;
+    display: flex;
+    flex-direction: column;
 }
 
 div.outerContainer {

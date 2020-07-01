@@ -4,6 +4,8 @@ import Button from 'react-bootstrap/Button';
 import Table from 'react-bootstrap/Table';
 import ProgressBar from 'react-bootstrap/ProgressBar';
 
+import LeftNav from './LeftNav.js';
+
 import UploadForm from './UploadForm.js';
 import { now } from './Utils.js';
 
@@ -110,9 +112,7 @@ export default class Datasets extends React.Component {
   render() {
     return (
       <div className="navContainer">
-        <div className="navLeft">
-          <Button onClick={this.props.logoutCallback} variant="link">Logout</Button>
-        </div>
+        <LeftNav logoutCallback={this.props.logoutCallback}/>
         <div className="navBody">
           <div className="outerContainer">
             <div className="uploadContainer">
