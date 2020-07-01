@@ -1,16 +1,17 @@
 import React from 'react';
 import ReactQuill from 'react-quill';
+import Delta from 'quill-delta';
 import 'react-quill/dist/quill.snow.css';
 import { withRouter } from 'react-router-dom';
 
 function reduceDeltas(deltas) {
   if (deltas.length === 0) {
-    return { ops: [] };
+    return new Delta([]);
   }
 
-  let result = deltas[0].slice();
+  let result = new Delta([]);
 
-  deltas.slice(1).forEach(d => {
+  deltas.forEach(d => {
     result = result.compose(d);
   });
 
@@ -34,6 +35,7 @@ class Document extends React.Component {
     this.documentID = props.match.params.id;
     this.documentRef = props.documentsRef.doc(this.documentID);
     this.deltasRef = this.documentRef.collection('deltas');
+    this.uploadDeltas = this.uploadDeltas.bind(this);
 
     this.handleEdit = this.handleEdit.bind(this);
 
@@ -41,7 +43,8 @@ class Document extends React.Component {
 
     this.state = {
       title: "",
-      content: ""
+      content: "",
+      delta: new Delta([])
     }
   }
 
@@ -60,13 +63,19 @@ class Document extends React.Component {
       let deltas = [];
 
       snapshot.forEach((delta) => {
-        deltas.push(delta.data());
+        let ops = delta.data()['ops'];
+        console.log('ops: ' + ops)
+        deltas.push(new Delta(ops));
       });
+
+      console.log(`Applying deltas: ${deltas}`)
 
       this.setState({
         delta: reduceDeltas(deltas.concat(this.deltaBuffer))
       });
     });
+
+    setInterval(this.uploadDeltas, 500);
   }
 
   handleEdit(content, delta, source, editor) {
@@ -74,12 +83,19 @@ class Document extends React.Component {
   }
 
   uploadDeltas() {
+    if (this.deltaBuffer.length === 0) {
+      return;
+    }
+
     let delta = reduceDeltas(this.deltaBuffer);
-    delta.timestamp = window.firebase.firestore.FieldValue.serverTimestamp();
-    delta.userID = this.props.user.uid;
 
     // Create document in deltas collection
-    this.deltasRef.doc().set(delta).then(() => {
+    this.deltasRef.doc().set({
+      userID: this.props.user.uid,
+      ops: delta.ops,
+      timestamp: window.firebase.firestore.FieldValue.serverTimestamp()
+    })
+    .then(() => {
       console.log("uploaded incremental delta", delta);
       this.deltaBuffer = [];
     });
@@ -89,7 +105,6 @@ class Document extends React.Component {
     return <div>
       <h1>{this.state.title}</h1>
       <ReactQuill
-        className="textEditor"
         value={this.state.delta}
         onChange={this.handleEdit} />
     </div>;
