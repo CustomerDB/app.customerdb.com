@@ -12,6 +12,7 @@ import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 
 import colorPair from './color.js';
+import { Loading } from './Utils.js';
 
 
 function emptyDelta() {
@@ -79,7 +80,11 @@ class Document extends React.Component {
       content: "",
       highlights: {},
       delta: initialDelta,
-      tagIDsInSelection: new Set()
+      tagIDsInSelection: new Set(),
+
+      loadedTags: false,
+      loadedHighlights: false,
+      loadedDeltas: false
     }
   }
 
@@ -108,7 +113,8 @@ class Document extends React.Component {
 
       this.setState({
         highlights: highlights,
-        tagIDsInSelection: tagIDs
+        tagIDsInSelection: tagIDs,
+        loadedHighlights: true
       });
     });
 
@@ -141,7 +147,8 @@ class Document extends React.Component {
       let remoteSnapshot = reduceDeltas(deltas);
       let result = content.compose(remoteSnapshot);
       this.setState({
-        delta: result
+        delta: result,
+        loadedDeltas: true
       });
       console.log(`currentContent: ${JSON.stringify(content)} delta: ${JSON.stringify(remoteSnapshot)} applyingResult: ${JSON.stringify(result)}`);
       this.lastSyncedContent = result;
@@ -167,7 +174,8 @@ class Document extends React.Component {
     Object.values(highlights).forEach(h => {
       let hBegin = h.selection.index
       let hEnd = hBegin + h.selection.length;
-      console.log(`${h.name} hBegin ${hBegin} hEnd ${hEnd}`);
+      let tagName = this.tags[h.tagID];
+      console.log(`${tagName} hBegin ${hBegin} hEnd ${hEnd}`);
       if ((selectBegin >= hBegin && selectBegin <= hEnd) || (selectEnd >= hBegin && selectEnd <= hEnd)) {
         result.add(h.tagID);
       }
@@ -265,20 +273,33 @@ class Document extends React.Component {
   onTagsChange(tags) {
     // TODO: This should be done better :'(
     this.tags = tags;
+    this.setState({
+      loadedTags: true
+    });
   }
 
   render() {
-    let highlightDeltas = Object.values(this.state.highlights).flatMap((h) => {
-      if (this.tags.hasOwnProperty(h.tagID)) {
-        let color = this.tags[h.tagID].color;
-        return [new Delta([{retain: h.selection.index}, {retain: h.selection.length, attributes: {'background': color}}])];
-      }
-      return [];
-    });
-    let highlightResult = reduceDeltas(highlightDeltas);
-    let result = this.state.delta.compose(highlightResult);
+    let content = this.state.delta;
 
-    console.log('result', result, 'highlightResult', highlightResult);
+    if (this.state.loadedDeltas && this.state.loadedHighlights && this.state.loadedTags) {
+      Object.values(this.state.highlights).forEach(h => {
+        let color = this.tags[h.tagID].color;
+        let hDelta = new Delta([{retain: h.selection.index}, {retain: h.selection.length, attributes: {'background': color}}]);
+        content = content.compose(hDelta);
+      });
+    }
+
+  //let highlightDeltas = Object.values(this.state.highlights).flatMap((h) => {
+  //  if (this.tags.hasOwnProperty(h.tagID)) {
+  //    let color = this.tags[h.tagID].color;
+  //    return [new Delta([{retain: h.selection.index}, {retain: h.selection.length, attributes: {'background': color}}])];
+  //  }
+  //  return [];
+  //});
+  //let highlightResult = reduceDeltas(highlightDeltas);
+  //let result = this.state.delta.compose(highlightResult);
+
+    console.log('content', content);
 
     return <div>
       <Container>
@@ -297,7 +318,7 @@ class Document extends React.Component {
           <Col ms={10} md={10}>
           <ReactQuill
             ref={(el) => { this.reactQuillRef = el }}
-            value={result}
+            value={content}
             onChangeSelection={this.onSelect} />
         </Col>
         <Col ms={2} md={2}>
