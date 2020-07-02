@@ -1,9 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Button from 'react-bootstrap/Button';
-import Table from 'react-bootstrap/Table';
+import Dropdown from 'react-bootstrap/Dropdown';
 import Delta from 'quill-delta';
+import ContentEditable from 'react-contenteditable';
 
 import LeftNav from './LeftNav.js';
+import { useHistory } from "react-router-dom";
+
+import { ThreeDotsVertical } from 'react-bootstrap-icons';
+
+
 
 
 function initialDelta() {
@@ -18,6 +24,7 @@ export default class Documents extends React.Component {
 
     this.createNewDocument = this.createNewDocument.bind(this);
     this.deleteDocument = this.deleteDocument.bind(this);
+    this.renameDocument = this.renameDocument.bind(this);
 
     this.state = {
       documents: []
@@ -58,54 +65,84 @@ export default class Documents extends React.Component {
     });
   }
 
+  renameDocument(id, newTitle) {
+    this.documentsRef.doc(id).set({
+      title: newTitle
+    }, {merge: true});
+  }
+
   deleteDocument(id) {
     this.documentsRef.doc(id).delete();
   }
 
   render() {
     return <div className="navContainer">
-        <LeftNav logoutCallback={this.props.logoutCallback}/>
+        <LeftNav active="documents" logoutCallback={this.props.logoutCallback}/>
         <div className="navBody">
-          <div className="outerContainer">
-            <div className="uploadContainer">
-              <div className="uploadTitle">
-                <div className="uploadTitleContainer">
+            <div className="listContainer">
+              <div className="listTitle">
+                <div className="listTitleContainer">
                   <h3>Documents</h3>
                 </div>
-                <Button onClick={this.createNewDocument}>Create</Button>
+                <div className="listTitleButtonContainer">
+                  <Button className="addButton" onClick={this.createNewDocument}>+</Button>
+                </div>
               </div>
               <br/>
-              <DocumentTable documents={this.state.documents} deleteDocument={this.deleteDocument}/>
+              <DocumentCards documents={this.state.documents} deleteDocument={this.deleteDocument} renameDocument={this.renameDocument}/>
             </div>
-          </div>
         </div>
       </div>;
   }
 }
 
-function DocumentTable(props) {
+function DocumentCards(props) {
+  let history = useHistory();
 
-    let documentRows = props.documents.map((d) => {
-      let documentID = d['ID'];
+  const [edit, setEdit] = useState(undefined);
+  const [editValue, setEditValue] = useState("");
 
-      return <tr key={documentID}>
-        <td>{d.title}</td>
-        <td style={{textAlign: 'right'}}>
-          <Button variant="link" onClick={() => {props.deleteDocument(documentID)}}>Delete</Button>{ }
-          <Button onClick={() => {window.location.href=`/document/${documentID}`}}>Open</Button>
-        </td>
-      </tr>;
-    });
+  let documentRows = props.documents.map((d) => {
+    let title = <p onClick={() => {
+      history.push(`/document/${documentID}`);
+    }} className="listCardTitle">{d.title}</p>;
+    if (edit == d.ID) {
+      d.ref = React.createRef();
+      title = <input type="text" onBlur={(e) => {
+          props.renameDocument(d.ID, editValue);
+          setEdit(undefined);
+          setEditValue("");
+        }} onChange={(e) => {
+          setEditValue(e.target.value);
+        }}
+        defaultValue={d.title}/>;
+    }
 
-    return <Table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {documentRows}
-      </tbody>
-    </Table>;
+    let documentID = d.ID;
+
+    return <div key={documentID} className="listCard">
+      <div className="listTitle">
+        <div className="listTitleContainer">
+          {title}
+        </div>
+        <div className="listTitleButtonContainer">
+          <Dropdown>
+            <Dropdown.Toggle variant="link" className="threedots">
+              <ThreeDotsVertical/>
+            </Dropdown.Toggle>
+
+            <Dropdown.Menu>
+              <Dropdown.Item onClick={() => {
+                setEdit(documentID);
+                setEditValue(d.title);
+              }}>Rename</Dropdown.Item>
+              <Dropdown.Item onClick={() => {props.deleteDocument(documentID)}}>Delete</Dropdown.Item>
+            </Dropdown.Menu>
+          </Dropdown>
+        </div>
+      </div>
+    </div>;
+  });
+
+  return <>{documentRows}</>;
 }
