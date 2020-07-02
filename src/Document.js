@@ -6,6 +6,14 @@ import 'react-quill/dist/quill.snow.css';
 import { withRouter } from 'react-router-dom';
 import { uuid } from 'uuidv4';
 
+import Container from 'react-bootstrap/Container';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
+import Form from 'react-bootstrap/Form';
+
+import colorPair from './color.js';
+
+
 function emptyDelta() {
   return new Delta([{ insert: "" }]);
 }
@@ -42,17 +50,26 @@ class Document extends React.Component {
 
     this.documentRef = props.documentsRef.doc(this.documentID);
     this.deltasRef = this.documentRef.collection('deltas');
+    this.highlightsRef = this.documentRef.collection('highlights');
 
     this.updateTitle = this.updateTitle.bind(this);
     this.uploadDeltas = this.uploadDeltas.bind(this);
+    this.onSelect = this.onSelect.bind(this);
+    this.onTagControlChange = this.onTagControlChange.bind(this);
+    this.onTagsChange = this.onTagsChange.bind(this);
 
     this.titleRef = React.createRef();
 
     this.deltaSet = new Set();
     this.reactQuillRef = undefined;
 
+    // This is a range object with fields 'index' and 'length'
+    this.currentSelection = undefined;
+
     this.lastEditedContent = undefined;
     this.lastSentContent = undefined;
+
+    this.tags = {};
 
     // a delta with no insert is "not a document"
     let initialDelta = emptyDelta();
@@ -60,7 +77,9 @@ class Document extends React.Component {
     this.state = {
       title: "",
       content: "",
-      delta: initialDelta
+      highlights: {},
+      delta: initialDelta,
+      tagIDsInSelection: new Set()
     }
   }
 
@@ -70,6 +89,26 @@ class Document extends React.Component {
       let data = doc.data();
       this.setState({
         title: data.title
+      });
+    });
+
+    // Subscribe to highlight changes
+    this.highlightsRef.onSnapshot((snapshot) => {
+      let highlights = {};
+
+      snapshot.forEach(highlightDoc => {
+        let data = highlightDoc.data();
+        data['ID'] = highlightDoc.id;
+        highlights[data.ID] = data;
+      });
+
+      let tagIDs = this.computeTagIDsInSelection(
+        highlights,
+        this.currentSelection);
+
+      this.setState({
+        highlights: highlights,
+        tagIDsInSelection: tagIDs
       });
     });
 
@@ -109,6 +148,32 @@ class Document extends React.Component {
     });
 
     setInterval(this.uploadDeltas, 1000);
+  }
+
+  // highlights: a map of highlight ID to highlight
+  // selection: a range object with fields 'index' and 'length'
+  computeTagIDsInSelection(highlights, selection) {
+    let result = new Set();
+
+    if (selection === undefined) {
+      return result;
+    }
+
+    let selectBegin = selection.index;
+    let selectEnd = selectBegin + selection.length;
+
+    console.log(`selectBegin ${selectBegin} selectEnd ${selectEnd}`);
+
+    Object.values(highlights).forEach(h => {
+      let hBegin = h.selection.index
+      let hEnd = hBegin + h.selection.length;
+      console.log(`${h.name} hBegin ${hBegin} hEnd ${hEnd}`);
+      if ((selectBegin >= hBegin && selectBegin <= hEnd) || (selectEnd >= hBegin && selectEnd <= hEnd)) {
+        result.add(h.tagID);
+      }
+    });
+
+    return result;
   }
 
   updateTitle(e) {
@@ -152,19 +217,171 @@ class Document extends React.Component {
     this.deltasRef.doc().set(delta);
   }
 
+  onSelect(range, source, editor) {
+    if (source !== 'user') {
+      return;
+    }
+    if (range === null) {
+      this.currentSelection = undefined;
+    }
+    else {
+      this.currentSelection = range;
+    }
+
+    let tagIDs = this.computeTagIDsInSelection(
+      this.state.highlights,
+      this.currentSelection);
+
+    this.setState({ tagIDsInSelection: tagIDs, delta: editor.getContents() });
+  }
+
+  onTagControlChange(tag, checked) {
+    console.log("onTagControlChange", tag, checked);
+
+    if (this.currentSelection === undefined) {
+      return;
+    }
+
+    if (checked) {
+      console.log("Creating highlight with tag ", tag);
+      let editor = this.reactQuillRef.getEditor();
+      let selectionText = editor.getText(this.currentSelection.index, this.currentSelection.length);
+
+      this.highlightsRef.doc().set({
+        tagID: tag.ID,
+        selection: {
+          index: this.currentSelection.index,
+          length: this.currentSelection.length
+        },
+        text: selectionText
+      });
+    }
+
+    if (!checked) {
+      console.log("Deleting highlight in current selection with tag ", tag);
+    }
+  }
+
+  onTagsChange(tags) {
+    // TODO: This should be done better :'(
+    this.tags = tags;
+  }
+
   render() {
+    let highlightDeltas = Object.values(this.state.highlights).flatMap((h) => {
+      if (this.tags.hasOwnProperty(h.tagID)) {
+        let color = this.tags[h.tagID].color;
+        return [new Delta([{retain: h.selection.index}, {retain: h.selection.length, attributes: {'background': color}}])];
+      }
+      return [];
+    });
+    let highlightResult = reduceDeltas(highlightDeltas);
+    let result = this.state.delta.compose(highlightResult);
+
+    console.log('result', result, 'highlightResult', highlightResult);
+
     return <div>
+      <Container>
+        <Row>
+          <Col md={12}>
+            <ContentEditable
+              innerRef={this.titleRef}
+              tagName='h1'
+              html={this.state.title}
+              disabled={false}
+              onBlur={this.updateTitle}
+              />
+          </Col>
+        </Row>
+        <Row>
+          <Col ms={10} md={10}>
+          <ReactQuill
+            ref={(el) => { this.reactQuillRef = el }}
+            value={result}
+            onChangeSelection={this.onSelect} />
+        </Col>
+        <Col ms={2} md={2}>
+          <Tags
+            tagsRef={this.documentRef.collection('tags')}
+            tagIDsInSelection={this.state.tagIDsInSelection}
+            onChange={this.onTagControlChange}
+            onTagsChange={this.onTagsChange} />
+        </Col>
+        </Row>
+      </Container>
+    </div>;
+  }
+}
+
+class Tags extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.tagsRef = props.tagsRef;
+
+    this.onChange = props.onChange;
+
+    this.createTag = this.createTag.bind(this);
+
+    this.state = {
+      tags: []
+    }
+  }
+
+  componentDidMount() {
+    this.props.tagsRef.onSnapshot(snapshot => {
+      let tags = {};
+      snapshot.forEach(tagDoc => {
+        let data = tagDoc.data();
+        data['ID'] = tagDoc.id;
+        tags[data['ID']] = data;
+      });
+      this.setState({ tags: Object.values(tags) });
+      this.props.onTagsChange(tags);
+    });
+  }
+
+  createTag(e) {
+    let name = e.target.innerText;
+
+    let color = colorPair().background;
+
+    this.tagsRef.doc().set({
+      name: name,
+      color: color
+    });
+
+    e.target.innerHTML = "";
+  }
+
+  onTagControlChange(e, tag) {
+    this.onChange(tag, e.target.checked);
+  }
+
+  render() {
+    let tagControls = this.state.tags.map(t => {
+      let checked = this.props.tagIDsInSelection.has(t.ID);
+
+      let label = <span style={{ color: t.color }} >{t.name}</span>;
+
+      return <Form.Check
+        type="checkbox"
+        checked={checked}
+        label={label}
+        onChange={(e) => {this.onTagControlChange(e, t)}}/>
+    });
+
+    return <div>
+      Tags
+      {tagControls}
+
       <ContentEditable
         innerRef={this.titleRef}
-        tagName='h1'
-        html={this.state.title}
+        tagName='div'
+        html=""
         disabled={false}
-        onBlur={this.updateTitle}
-        />
-      <ReactQuill
-        ref={(el) => { this.reactQuillRef = el }}
-        value={this.state.delta}
-        />
+        onBlur={this.createTag} />
+
     </div>;
   }
 }
