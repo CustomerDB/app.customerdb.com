@@ -4,7 +4,6 @@ import ReactQuill from 'react-quill';
 import Delta from 'quill-delta';
 import 'react-quill/dist/quill.snow.css';
 import { withRouter } from 'react-router-dom';
-import { uuid } from 'uuidv4';
 
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
@@ -12,7 +11,6 @@ import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 
 import colorPair from './color.js';
-import { Loading } from './Utils.js';
 
 
 function emptyDelta() {
@@ -61,25 +59,23 @@ class Document extends React.Component {
 
     this.titleRef = React.createRef();
 
-    this.deltaSet = new Set();
     this.reactQuillRef = undefined;
 
     // This is a range object with fields 'index' and 'length'
     this.currentSelection = undefined;
 
-    this.lastEditedContent = undefined;
-    this.lastSentContent = undefined;
-
     this.tags = {};
 
-    // a delta with no insert is "not a document"
-    let initialDelta = emptyDelta();
+    this.latestDelta = {
+      timestamp: new window.firebase.firestore.Timestamp(0, 0),
+      delta: emptyDelta()
+    };
 
     this.state = {
       title: "",
       content: "",
       highlights: {},
-      delta: initialDelta,
+      delta: this.latestDelta.delta,
       tagIDsInSelection: new Set(),
 
       loadedTags: false,
@@ -120,38 +116,84 @@ class Document extends React.Component {
 
     // Subscribe to document edit changes
     this.deltasRef.orderBy("timestamp", "asc").onSnapshot((snapshot) => {
-      let deltas = [];
+      // for debug
+      let allDeltas = [];
+      let newDeltas = [];
+
+      newDeltas.push(this.latestDelta.delta);
 
       snapshot.forEach((delta) => {
         let data = delta.data();
-        if (this.deltaSet.has(data.id)) {
-          console.log(`Dropping delta with id ${data.id}`)
+
+        console.log("snapshot delta", data);
+        console.log("snapshot delta ts", data.timestamp);
+
+        if (data.timestamp === null) {
+          console.log("skipping delta with no timestamp");
           return;
         }
 
-        console.log(`Applying delta ${JSON.stringify(data)}`)
-        let ops = data['ops'];
+        allDeltas.push(data);
 
-        deltas.push(new Delta(ops));
+        console.log("this.latestDelta.timestamp", this.latestDelta.timestamp);
+        console.log("data.timestamp", data.timestamp);
 
-        this.deltaSet.add(data.id);
+        let haveSeenBefore = data.timestamp.valueOf() <= this.latestDelta.timestamp.valueOf();
+        if (haveSeenBefore) {
+          console.log('Dropping delta with timestamp ', data.timestamp);
+          return;
+        }
+
+        newDeltas.push(new Delta(data.ops));
+
+        this.latestDelta.timestamp = data.timestamp;
       });
 
-      if (deltas.length === 0) {
+      console.log("All deltas\n", allDeltas);
+      console.log("New deltas\n", newDeltas);
+
+      if (newDeltas.length === 1) {
+        console.log("No new deltas to apply");
         return;
       }
 
-      let editor = this.reactQuillRef.getEditor();
-      let content = editor.getContents();
+      // result is the result of composing all known
+      // deltas in the database; having started from our cached
+      // last known sync point.
+      let result = reduceDeltas(newDeltas);
 
-      let remoteSnapshot = reduceDeltas(deltas);
-      let result = content.compose(remoteSnapshot);
+      // Cache this value now.
+      this.latestDelta.delta = result;
+
+      // Compute the diff between the latest server result
+      // and the local editor contents. We add those back in
+      // locally to avoid trashing unpushed changes.
+      //
+      // But only do this if we've loaded the initial content...
+      if (this.state.loadedDeltas) {
+        let editor = this.reactQuillRef.getEditor();
+        let currentContent = editor.getContents();
+        let diff = result.diff(currentContent);
+
+        // Apply the local diff to the canonical server result
+        //
+        // ======== BUG BUG BUG ========
+        // NOTE(CD): This currently causes two editors to fight
+        // and continually reapply their local diffs over the top of
+        // each other.
+        //
+        // I think we should try caching local unsent changes by
+        // catching them in the onChange handler like we initially
+        // tried, and then use that as the diff here instead of
+        // comparing to what's in the editor window.
+        result = result.compose(diff);
+      }
+
       this.setState({
         delta: result,
         loadedDeltas: true
       });
-      console.log(`currentContent: ${JSON.stringify(content)} delta: ${JSON.stringify(remoteSnapshot)} applyingResult: ${JSON.stringify(result)}`);
-      this.lastSyncedContent = result;
+      console.log(`applyingResult: ${JSON.stringify(result)}`);
     });
 
     setInterval(this.uploadDeltas, 1000);
@@ -193,32 +235,26 @@ class Document extends React.Component {
     if (this.reactQuillRef  === undefined) {
       return;
     }
-    if (this.lastSyncedContent === undefined) {
-      return;
-    }
 
     let editor = this.reactQuillRef.getEditor();
-    let content = editor.getContents();
-    let diff;
-    if (this.lastSyncedContent === undefined) {
-      diff = content;
-    } else {
-      diff = this.lastSyncedContent.diff(content);
-    }
 
-    if (diff.ops.length === 0) {
+    if (editor.getText() === "\n") {
+      console.log("Skipping delta upload; editor is empty");
       return;
     }
 
-    this.lastSyncedContent = content;
+    let content = editor.getContents();
+    let diff = this.latestDelta.delta.diff(content);
+
+    if (diff.ops.length === 0) {
+      console.log("Skipping delta upload; no local changes to send");
+      return;
+    }
 
     // Create document in deltas collection
-    let id = uuid();
-    this.deltaSet.add(id);
     let delta = {
       userID: this.props.user.uid,
       ops: diff.ops,
-      id: id,
       timestamp: window.firebase.firestore.FieldValue.serverTimestamp()
     };
     console.log(`Write delta: ${JSON.stringify(delta)}`);
@@ -281,6 +317,7 @@ class Document extends React.Component {
   render() {
     let content = this.state.delta;
 
+    /*
     if (this.state.loadedDeltas && this.state.loadedHighlights && this.state.loadedTags) {
       Object.values(this.state.highlights).forEach(h => {
         let color = this.tags[h.tagID].color;
@@ -288,18 +325,7 @@ class Document extends React.Component {
         content = content.compose(hDelta);
       });
     }
-
-  //let highlightDeltas = Object.values(this.state.highlights).flatMap((h) => {
-  //  if (this.tags.hasOwnProperty(h.tagID)) {
-  //    let color = this.tags[h.tagID].color;
-  //    return [new Delta([{retain: h.selection.index}, {retain: h.selection.length, attributes: {'background': color}}])];
-  //  }
-  //  return [];
-  //});
-  //let highlightResult = reduceDeltas(highlightDeltas);
-  //let result = this.state.delta.compose(highlightResult);
-
-    console.log('content', content);
+    */
 
     return <div>
       <Container>
@@ -386,6 +412,7 @@ class Tags extends React.Component {
       let label = <span style={{ color: t.color }} >{t.name}</span>;
 
       return <Form.Check
+        key={t.ID}
         type="checkbox"
         checked={checked}
         label={label}
