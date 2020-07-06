@@ -429,14 +429,21 @@ class Tags extends React.Component {
     });
   }
 
+  checkReturn(e) {
+    if (e.key === 'Enter') {
+      e.target.blur();
+    }
+  }
+
   createTag(e) {
     let name = e.target.innerText;
 
-    let color = colorPair().background;
+    let color = colorPair();
 
     this.tagsRef.doc().set({
       name: name,
-      color: color
+      color: color.background,
+      textColor: color.foreground
     });
 
     e.target.innerHTML = "";
@@ -450,13 +457,19 @@ class Tags extends React.Component {
     let tagControls = this.state.tags.map(t => {
       let checked = this.props.tagIDsInSelection.has(t.ID);
 
-      let label = <span style={{ color: t.color }} >{t.name}</span>;
+      let label = <span style={{ color: t.textColor, padding: "0.25rem" }} >{t.name}</span>;
 
       return <Form.Check
         key={t.ID}
         type="checkbox"
         checked={checked}
+        style={{
+          background: t.color,
+          borderRadius: "5px",
+          marginBottom: "0.25rem"
+        }}
         label={label}
+        title={t.name}
         onChange={(e) => {this.onTagControlChange(e, t)}}/>
     });
 
@@ -467,9 +480,15 @@ class Tags extends React.Component {
       <ContentEditable
         innerRef={this.titleRef}
         tagName='div'
+        style={{
+          border: "1px solid #aaa",
+          borderRadius: "5px"
+        }}
         html=""
         disabled={false}
-        onBlur={this.createTag} />
+        onBlur={this.createTag}
+        onKeyDown={this.checkReturn}
+      />
 
     </div>;
   }
