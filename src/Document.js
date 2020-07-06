@@ -13,10 +13,15 @@ import Form from 'react-bootstrap/Form';
 import colorPair from './color.js';
 
 
+// Returns a new delta object representing an empty document.
 function emptyDelta() {
   return new Delta([{ insert: "" }]);
 }
 
+// Returns the result of folding the supplied array of deltas
+// using the item at index 0 as the initial value.
+//
+// Returns an empty delta if the supplied array is empty.
 function reduceDeltas(deltas) {
   if (deltas.length === 0) {
     return emptyDelta();
@@ -31,16 +36,37 @@ function reduceDeltas(deltas) {
   return result;
 }
 
-// How does this work with multiple editors:
+// Document is a React component that allows multiple users to edit
+// and highlight a text document simultaneously.
 //
-// - This client subscribes to all partial document updates.
-//     - When the set of patches changes, we apply all.
-//     - When a new patch is received, we apply it to the document locally.
+// It uses the Quill editor (see https://quilljs.com).
 //
-// - This client periodically uploads a merged diff of
-//   local document edits to the database, which are
-//   pushed to peer clients.
+// The Quill editor uses a handy content format called Delta, which represents
+// operations like text insertion, deletion, formatting, etc. in a manner
+// similar to `diff(1)`.
 //
+// This component manages the bidirectional synchronization necessary to
+// construct the illusion of simultaneous editing by distributed clients.
+//
+// On page load, this component loads all of the existing deltas ordered by
+// server timestamp, and iteratively applies them to construct an initial
+// document snapshot. This component also keeps track of the latest delta
+// timestamp seen from the server.
+//
+// The first synchronization operation is to upload local changes to the
+// deltas collection in firestore. For efficiency, edits are cached locally
+// and then periodically sent in a batch.
+//
+// The second synchronization operation involves subscribing to changes to
+// the deltas collection in firestore. On each change to the collection snapshot,
+// this component ignores deltas written before the last-seen timestamp. New
+// deltas are applied to the local document snapshot, followed by any locally
+// cached edits that haven't been sent back to firestore yet.
+//
+// This component also manages tags and text highlights. When this component
+// renders, it generates text formatting deltas on the fly to visually
+// communicate what text segments are associated with tags with background
+// colors.
 class Document extends React.Component {
   constructor(props) {
     super(props);
@@ -89,6 +115,8 @@ class Document extends React.Component {
     }
   }
 
+  // Set up database subscriptions and handle document/collection snapshots
+  // when they occur.
   componentDidMount() {
     // Subscribe to document title changes
     this.documentRef.onSnapshot((doc) => {
@@ -195,7 +223,6 @@ class Document extends React.Component {
     Object.values(highlights).forEach(h => {
       let hBegin = h.selection.index
       let hEnd = hBegin + h.selection.length;
-      let tagName = this.tags[h.tagID];
       if ((selectBegin >= hBegin && selectBegin <= hEnd) || (selectEnd >= hBegin && selectEnd <= hEnd)) {
         result.add(h.tagID);
       }
@@ -204,6 +231,7 @@ class Document extends React.Component {
     return result;
   }
 
+  // updateTitle is invoked when the editable document title bar loses focus.
   updateTitle(e) {
     let newTitle = e.target.innerText;
     this.documentRef.set({ title: newTitle }, { merge: true });
@@ -220,6 +248,10 @@ class Document extends React.Component {
     this.localDelta = this.localDelta.compose(delta);
   }
 
+  // uploadDeltas is invoked periodically by a timer.
+  //
+  // This function sends the contents of `this.localDelta` to the database
+  // and resets the local cache.
   uploadDeltas() {
     let opsIndex = this.localDelta.ops.length;
     if (opsIndex === 0) {
@@ -239,6 +271,8 @@ class Document extends React.Component {
     this.deltasRef.doc().set(deltaDoc);
   }
 
+  // onSelect is invoked when the content selection changes, including
+  // whenever the cursor changes position.
   onSelect(range, source, editor) {
     if (source !== 'user') {
       return;
@@ -257,6 +291,8 @@ class Document extends React.Component {
     this.setState({ tagIDsInSelection: tagIDs, delta: editor.getContents() });
   }
 
+  // onTagControlChange is invoked when the user checks or unchecks one of the
+  // tag input elements.
   onTagControlChange(tag, checked) {
     console.log("onTagControlChange", tag, checked);
 
@@ -285,6 +321,7 @@ class Document extends React.Component {
     }
   }
 
+  // onTagsChange is invoked when the set of tags is loaded, or changes.
   onTagsChange(tags) {
     // TODO: This should be done better :'(
     this.tags = tags;
