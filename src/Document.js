@@ -77,6 +77,7 @@ class Document extends React.Component {
     this.deltasRef = this.documentRef.collection('deltas');
     this.highlightsRef = this.documentRef.collection('highlights');
 
+    this.handleDeltaSnapshot = this.handleDeltaSnapshot.bind(this);
     this.updateTitle = this.updateTitle.bind(this);
     this.uploadDeltas = this.uploadDeltas.bind(this);
     this.onEdit = this.onEdit.bind(this);
@@ -147,63 +148,30 @@ class Document extends React.Component {
       });
     });
 
-    // Subscribe to document edit changes
-    this.deltasRef.orderBy("timestamp", "asc").onSnapshot((snapshot) => {
-      // for debug
-      let allDeltas = [];
-      let newDeltas = [];
+    // Get the full set of deltas once
+    this.deltasRef.orderBy("timestamp", "asc").get().then(snapshot => {
 
-      newDeltas.push(this.latestSnapshot.delta);
+      console.log("processing full list of deltas to construct initial snapshot");
+      // Process the priming read; download all existing deltas and condense
+      // them into an initial local document snapshot
+      // (`this.latestSnapshot.delta`)
+      this.handleDeltaSnapshot(snapshot);
 
-      snapshot.forEach((delta) => {
-        let data = delta.data();
+      // Start periodically uploading cached local edits to firestore.
+      setInterval(this.uploadDeltas, 1000);
 
-        if (data.timestamp === null) {
-          console.debug("skipping delta with no timestamp");
-          return;
-        }
+      console.log("subscribing to deltas after", this.latestSnapshot.timestamp);
 
-        allDeltas.push(data);
-
-        let haveSeenBefore = data.timestamp.valueOf() <= this.latestSnapshot.timestamp.valueOf();
-        if (haveSeenBefore) {
-          console.debug('Dropping delta with timestamp ', data.timestamp);
-          return;
-        }
-
-        newDeltas.push(new Delta(data.ops));
-
-        this.latestSnapshot.timestamp = data.timestamp;
-      });
-
-      console.debug("All deltas\n", allDeltas);
-      console.log("New deltas\n", newDeltas);
-
-      if (newDeltas.length === 1) {
-        console.log("No new deltas to apply");
-        return;
-      }
-
-      // result is the result of composing all known
-      // deltas in the database; having started from our cached
-      // last known sync point.
-      let result = reduceDeltas(newDeltas);
-
-      // Cache this value now.
-      this.latestSnapshot.delta = result;
-
-      if (this.state.loadedDeltas) {
-        result = result.compose(this.localDelta);
-      }
-
-      this.setState({
-        delta: result,
-        loadedDeltas: true
-      });
-      console.log('applying result', result);
+      // Now subscribe to all changes that occur after the set
+      // of initial deltas we just processed, composing any new deltas
+      // with `this.latestSnapshot.delta` and updating
+      // `this.latestSnapshot.timestamp`.
+      this.deltasRef
+        .orderBy("timestamp", "asc")
+        .where("timestamp", ">", this.latestSnapshot.timestamp)
+        .onSnapshot(this.handleDeltaSnapshot);
     });
 
-    setInterval(this.uploadDeltas, 1000);
   }
 
   // highlights: a map of highlight ID to highlight
@@ -229,6 +197,63 @@ class Document extends React.Component {
     });
 
     return result;
+  }
+
+  handleDeltaSnapshot(snapshot) {
+    // for debug
+    let allDeltas = [];
+    let newDeltas = [];
+
+    snapshot.forEach((delta) => {
+      let data = delta.data();
+
+      if (data.timestamp === null) {
+        console.debug("skipping delta with no timestamp");
+        return;
+      }
+
+      allDeltas.push(data);
+
+      let haveSeenBefore = data.timestamp.valueOf() <= this.latestSnapshot.timestamp.valueOf();
+      if (haveSeenBefore) {
+        console.debug('Dropping delta with timestamp ', data.timestamp);
+        return;
+      }
+
+      newDeltas.push(new Delta(data.ops));
+
+      this.latestSnapshot.timestamp = data.timestamp;
+    });
+
+    console.debug("All deltas\n", allDeltas);
+    console.log("New deltas\n", newDeltas);
+
+    if (newDeltas.length === 0) {
+      console.log("No new deltas to apply");
+      return;
+    }
+
+    // Seed the newDeltas list with our starting point, which is the
+    // latest content snapshot.
+    newDeltas = [this.latestSnapshot.delta].concat(newDeltas);
+
+    // result is the result of composing all known
+    // deltas in the database; having started from our cached
+    // last known sync point.
+    let result = reduceDeltas(newDeltas);
+
+    // Cache this value now.
+    this.latestSnapshot.delta = result;
+
+    if (this.state.loadedDeltas) {
+      result = result.compose(this.localDelta);
+    }
+
+    this.setState({
+      delta: result,
+      loadedDeltas: true
+    });
+    console.log('applying result', result);
   }
 
   // updateTitle is invoked when the editable document title bar loses focus.
