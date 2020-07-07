@@ -6,16 +6,16 @@ import Button from 'react-bootstrap/Button';
 import Alert from 'react-bootstrap/Alert';
 
 import Documents from './Documents.js';
-import Document from './Document.js';
 import Datasets from './Datasets.js'
 import DatasetView from './DatasetView.js'
 import { Loading } from './Utils.js';
-
+import Error404 from './404.js';
 
 import {
   BrowserRouter as Router,
   Switch,
-  Route
+  Route,
+  Redirect
 } from "react-router-dom";
 
 var provider = new window.firebase.auth.GoogleAuthProvider();
@@ -92,7 +92,7 @@ export default class App extends React.Component {
     if (this.state.phase === 'login') {
       let loginFailedMessage = this.state.loginFailed ? <Alert variant="danger">Login failed</Alert> : <div></div>;
       return <div className="outerContainer"><div className="loginContainer">
-        <h2>Customer Research Cloud</h2>
+        <h2>CustomerDB</h2>
         <br/>
         {loginFailedMessage}
         <Button onClick={this.login}>Login with Google</Button>
@@ -113,7 +113,11 @@ export default class App extends React.Component {
         <Route exact path="/documents">
           <Documents documentsRef={documentsRef} user={this.state.user} logoutCallback={this.logout} />
         </Route>
-        <Route exact path="/document/:id" children={<Document documentsRef={documentsRef} user={this.state.user} logoutCallback={this.logout} />} />
+        <Route exact path="/document/:id" children={<Documents documentsRef={documentsRef} user={this.state.user} logoutCallback={this.logout} />} />
+        <Route exact path="/404">
+          <Error404/>
+        </Route>
+        <Redirect to="/404" />
       </Switch>
     </Router></>;
   }

@@ -1,13 +1,23 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Button from 'react-bootstrap/Button';
-import Table from 'react-bootstrap/Table';
+import Dropdown from 'react-bootstrap/Dropdown';
+import Container from 'react-bootstrap/Container';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
 import Delta from 'quill-delta';
+
+import LeftNav from './LeftNav.js';
+import Document from './Document.js';
+
+import { useHistory, withRouter } from "react-router-dom";
+
+import { ThreeDotsVertical } from 'react-bootstrap-icons';
 
 function initialDelta() {
   return new Delta([{ insert: "" }]);
 }
 
-export default class Documents extends React.Component {
+class Documents extends React.Component {
   constructor(props) {
     super(props);
 
@@ -15,8 +25,10 @@ export default class Documents extends React.Component {
 
     this.createNewDocument = this.createNewDocument.bind(this);
     this.deleteDocument = this.deleteDocument.bind(this);
+    this.renameDocument = this.renameDocument.bind(this);
 
     this.state = {
+      documentID: undefined,
       documents: []
     }
   }
@@ -37,7 +49,19 @@ export default class Documents extends React.Component {
         this.setState({
           documents: docs
         })
-      });
+    });
+
+    let documentID = this.props.match.params.id;
+    this.setState({
+      documentID: documentID
+    });
+  }
+
+  componentWillReceiveProps(newProps) {
+    let documentID = newProps.match.params.id;
+    this.setState({
+      documentID: documentID
+    });
   }
 
   createNewDocument() {
@@ -64,6 +88,12 @@ export default class Documents extends React.Component {
     });
   }
 
+  renameDocument(id, newTitle) {
+    this.documentsRef.doc(id).set({
+      title: newTitle
+    }, {merge: true});
+  }
+
   deleteDocument(id) {
     // TODO(CD): Add periodic job to garbage-collect documents after some
     //           reasonable grace period.
@@ -76,47 +106,97 @@ export default class Documents extends React.Component {
   }
 
   render() {
-    return <div>
-      <Button onClick={this.props.logoutCallback} variant="link">Logout</Button>
-      <div className="outerContainer">
-        <div className="uploadContainer">
-          <div className="uploadTitle">
-            <div className="uploadTitleContainer">
-              <h3>Documents</h3>
-            </div>
-            <Button onClick={this.createNewDocument}>Create</Button>
-          </div>
-          <br/>
-          <DocumentTable documents={this.state.documents} deleteDocument={this.deleteDocument}/>
-        </div>
-      </div>
-    </div>;
+    let view = <></>;
+    if (this.state.documentID !== undefined) {
+      console.log(`this.state.documentID ${this.state.documentID}`)
+      view = <Document key={this.state.documentID} documentID={this.state.documentID} documentsRef={this.props.documentsRef} user={this.props.user} logoutCallback={this.props.logout} />;
+    }
+
+    return <div className="navContainer">
+        <LeftNav active="documents" logoutCallback={this.props.logoutCallback}/>
+        <Container className="navBody">
+          <Row>
+            <Col md={4}>
+              <Row mb={10}>
+                <Col md={10}>
+                  <h3>Documents</h3>
+                </Col>
+                <Col md={2}>
+                  <Button className="addButton" onClick={this.createNewDocument}>+</Button>
+                </Col>
+              </Row>
+              <DocumentList documentID={this.state.documentID} documents={this.state.documents} deleteDocument={this.deleteDocument} renameDocument={this.renameDocument}/>
+            </Col>
+            <Col md={8}>
+            {view}
+            </Col>
+          </Row>
+        </Container>
+      </div>;
   }
 }
 
-function DocumentTable(props) {
+function DocumentList(props) {
+  console.log("Rerender cards..");
+  let history = useHistory();
 
-    let documentRows = props.documents.map((d) => {
-      let documentID = d['ID'];
+  const [edit, setEdit] = useState(undefined);
+  const [editValue, setEditValue] = useState("");
 
-      return <tr key={documentID}>
-        <td>{d.title}</td>
-        <td style={{textAlign: 'right'}}>
-          <Button variant="link" onClick={() => {props.deleteDocument(documentID)}}>Delete</Button>{ }
-          <Button onClick={() => {window.location.href=`/document/${documentID}`}}>Open</Button>
-        </td>
-      </tr>;
-    });
+  let documentRows = props.documents.map((d) => {
+    let title = <p onClick={() => {
+      history.push(`/document/${documentID}`);
+    }} className="listCardTitle">{d.title}</p>;
+    if (edit == d.ID) {
+      d.ref = React.createRef();
+      title = <input type="text" onBlur={(e) => {
+          props.renameDocument(d.ID, editValue);
+          setEdit(undefined);
+          setEditValue("");
+        }} onChange={(e) => {
+          setEditValue(e.target.value);
+        }}
+        defaultValue={d.title}/>;
+    }
 
-    return <Table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {documentRows}
-      </tbody>
-    </Table>;
+    let documentID = d.ID;
+    let listCardClass = "listCard";
+    let threedots = <ThreeDotsVertical/>;
+
+    if (props.documentID == documentID) {
+      listCardClass = "listCardActive";
+      threedots = <ThreeDotsVertical color="white"/>;
+    }
+
+    return <Row key={documentID}>
+        <Col>
+        <Container className={listCardClass}>
+          <Row>
+            <Col className="listTitleContainer" md={10}>
+              {title}
+            </Col>
+            <Col md={2}>
+              <Dropdown>
+                <Dropdown.Toggle variant="link" className="threedots">
+                  {threedots}
+                </Dropdown.Toggle>
+
+                <Dropdown.Menu>
+                  <Dropdown.Item onClick={() => {
+                    setEdit(documentID);
+                    setEditValue(d.title);
+                  }}>Rename</Dropdown.Item>
+                  <Dropdown.Item onClick={() => {props.deleteDocument(documentID)}}>Delete</Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown>
+            </Col>
+          </Row>
+          </Container>
+          </Col>
+        </Row>;
+  });
+
+  return <Row><Col>{documentRows}</Col></Row>;
 }
+
+export default withRouter(Documents);

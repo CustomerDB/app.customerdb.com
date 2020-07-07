@@ -71,7 +71,8 @@ class Document extends React.Component {
   constructor(props) {
     super(props);
 
-    this.documentID = props.match.params.id;
+    console.log(`props.documentID ${props}`);
+    this.documentID = props.documentID;
 
     this.documentRef = props.documentsRef.doc(this.documentID);
     this.deltasRef = this.documentRef.collection('deltas');
@@ -103,6 +104,8 @@ class Document extends React.Component {
     // database and distributed to peer clients on periodic sync.
     this.localDelta = new Delta([]);
 
+    this.subscriptions = [];
+
     this.state = {
       title: "",
       content: "",
@@ -120,15 +123,15 @@ class Document extends React.Component {
   // when they occur.
   componentDidMount() {
     // Subscribe to document title changes
-    this.documentRef.onSnapshot((doc) => {
+    this.subscriptions.push(this.documentRef.onSnapshot((doc) => {
       let data = doc.data();
       this.setState({
         title: data.title
       });
-    });
+    }));
 
     // Subscribe to highlight changes
-    this.highlightsRef.onSnapshot((snapshot) => {
+    this.subscriptions.push(this.highlightsRef.onSnapshot((snapshot) => {
       let highlights = {};
 
       snapshot.forEach(highlightDoc => {
@@ -146,7 +149,7 @@ class Document extends React.Component {
         tagIDsInSelection: tagIDs,
         loadedHighlights: true
       });
-    });
+    }));
 
     // Get the full set of deltas once
     this.deltasRef.orderBy("timestamp", "asc").get().then(snapshot => {
@@ -166,12 +169,16 @@ class Document extends React.Component {
       // of initial deltas we just processed, composing any new deltas
       // with `this.latestSnapshot.delta` and updating
       // `this.latestSnapshot.timestamp`.
-      this.deltasRef
+      this.subscriptions.push(this.deltasRef
         .orderBy("timestamp", "asc")
         .where("timestamp", ">", this.latestSnapshot.timestamp)
-        .onSnapshot(this.handleDeltaSnapshot);
+        .onSnapshot(this.handleDeltaSnapshot));
     });
+  }
 
+  componentWillUnmount() {
+    this.subscriptions.forEach((unsubscribe) => {unsubscribe()});
+    this.subscriptions = [];
   }
 
   computeHighlightsInSelection(highlights, selection) {
@@ -395,37 +402,35 @@ class Document extends React.Component {
       });
     }
 
-    return <div>
-      <Container>
-        <Row>
-          <Col md={12}>
+    return <Container>
+          <Row>
+            <Col>
             <ContentEditable
               innerRef={this.titleRef}
-              tagName='h1'
+              tagName='h3'
               html={this.state.title}
               disabled={false}
               onBlur={this.updateTitle}
               />
-          </Col>
-        </Row>
-        <Row>
-          <Col ms={10} md={10}>
-          <ReactQuill
-            ref={(el) => { this.reactQuillRef = el }}
-            value={content}
-            onChange={this.onEdit}
-            onChangeSelection={this.onSelect} />
-        </Col>
-        <Col ms={2} md={2}>
-          <Tags
-            tagsRef={this.documentRef.collection('tags')}
-            tagIDsInSelection={this.state.tagIDsInSelection}
-            onChange={this.onTagControlChange}
-            onTagsChange={this.onTagsChange} />
-        </Col>
-        </Row>
-      </Container>
-    </div>;
+            </Col>
+          </Row>
+          <Row>
+            <Col ms={10} md={10}>
+              <ReactQuill
+                ref={(el) => { this.reactQuillRef = el }}
+                value={content}
+                onChange={this.onEdit}
+                onChangeSelection={this.onSelect} />
+            </Col>
+            <Col ms={2} md={2}>
+              <Tags
+                tagsRef={this.documentRef.collection('tags')}
+                tagIDsInSelection={this.state.tagIDsInSelection}
+                onChange={this.onTagControlChange}
+                onTagsChange={this.onTagsChange} />
+            </Col>
+            </Row>
+    </Container>;
   }
 }
 
@@ -442,10 +447,12 @@ class Tags extends React.Component {
     this.state = {
       tags: []
     }
+
+    this.subscriptions = [];
   }
 
   componentDidMount() {
-    this.props.tagsRef.onSnapshot(snapshot => {
+    this.subscriptions.push(this.props.tagsRef.onSnapshot(snapshot => {
       let tags = {};
       snapshot.forEach(tagDoc => {
         let data = tagDoc.data();
@@ -454,7 +461,12 @@ class Tags extends React.Component {
       });
       this.setState({ tags: Object.values(tags) });
       this.props.onTagsChange(tags);
-    });
+    }));
+  }
+
+  componentWillUnmount() {
+    this.subscriptions.forEach((unsubscribe) => {unsubscribe()});
+    this.subscriptions = [];
   }
 
   checkReturn(e) {
@@ -529,4 +541,4 @@ class Tags extends React.Component {
   }
 }
 
-export default withRouter(Document);
+export default Document;

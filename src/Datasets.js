@@ -4,6 +4,8 @@ import Button from 'react-bootstrap/Button';
 import Table from 'react-bootstrap/Table';
 import ProgressBar from 'react-bootstrap/ProgressBar';
 
+import LeftNav from './LeftNav.js';
+
 import UploadForm from './UploadForm.js';
 import { now } from './Utils.js';
 
@@ -109,18 +111,18 @@ export default class Datasets extends React.Component {
 
   render() {
     return (
-      <div>
-        <Button onClick={this.props.logoutCallback} variant="link">Logout</Button>
-        <div className="outerContainer">
-          <div className="uploadContainer">
-            <div className="uploadTitle">
-              <div className="uploadTitleContainer">
-                <h3>Datasets</h3>
+      <div className="navContainer">
+        <LeftNav active="datasets" logoutCallback={this.props.logoutCallback}/>
+        <div className="navBody">
+          <div className="listContainer">
+            <div className="listTitle">
+              <div className="listTitleContainer">
+                <h3>Patterns</h3>
               </div>
-              <UploadForm handleFileUploadChange={this.handleFileUploadChange} handleFileUploadSubmit={this.handleFileUploadSubmit}/>
+              {/* <UploadForm handleFileUploadChange={this.handleFileUploadChange} handleFileUploadSubmit={this.handleFileUploadSubmit}/> */}
             </div>
             <br/>
-            <DatasetTable datasets={this.state.datasets} deleteDataset={this.deleteDataset}/>
+            <DatasetCards datasets={this.state.datasets} deleteDataset={this.deleteDataset}/>
           </div>
         </div>
       </div>
@@ -128,32 +130,26 @@ export default class Datasets extends React.Component {
   }
 }
 
-function DatasetTable(props) {
+function DatasetCards(props) {
   let datasetRows = [];
   Object.entries(props.datasets).forEach((v) => {
-    let disabled = !(v[1].state === "");
+    // let disabled = !(v[1].state === "");
     let datasetID = v[0];
     let dataset = v[1];
 
-    datasetRows.push(<tr key={datasetID}>
-      <td>{dataset.name}</td>
-      <td>{dataset.state}</td>
-      <td style={{textAlign: 'right'}}>
-        <Button disabled={disabled} variant="link" onClick={() => {props.deleteDataset(datasetID)}}>Delete</Button>{ }
-        <Button disabled={disabled} onClick={() => {window.location.href=`/dataset/${datasetID}`}}>Open</Button>
-      </td>
-    </tr>);
+    // <Button disabled={disabled} variant="link" onClick={() => {props.deleteDataset(datasetID)}}>Delete</Button>{ }
+
+    datasetRows.push(<div key={datasetID} className="listCard" onClick={() => {
+      window.location.href=`/dataset/${datasetID}`
+    }}>
+      <p className="listCardTitle">
+        {dataset.name}
+      </p>
+      <p>{dataset.tags.length} tags</p>
+      <p>{dataset.state}</p>
+    </div>);
   });
-  return <Table>
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th style={{width: "15rem"}}>{ }</th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
+  return <div>
     {datasetRows}
-  </tbody>
-  </Table>;
+  </div>;
 }
