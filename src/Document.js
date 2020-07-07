@@ -466,6 +466,10 @@ class Tags extends React.Component {
   createTag(e) {
     let name = e.target.innerText;
 
+    if (name === "") {
+      return;
+    }
+
     let color = colorPair();
 
     this.tagsRef.doc().set({
