@@ -4,7 +4,6 @@ import ReactQuill from 'react-quill';
 import Delta from 'quill-delta';
 import 'react-quill/dist/quill.snow.css';
 import { withRouter } from 'react-router-dom';
-import { uuid } from 'uuidv4';
 
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
@@ -12,13 +11,17 @@ import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 
 import colorPair from './color.js';
-import { Loading } from './Utils.js';
 
 
+// Returns a new delta object representing an empty document.
 function emptyDelta() {
   return new Delta([{ insert: "" }]);
 }
 
+// Returns the result of folding the supplied array of deltas
+// using the item at index 0 as the initial value.
+//
+// Returns an empty delta if the supplied array is empty.
 function reduceDeltas(deltas) {
   if (deltas.length === 0) {
     return emptyDelta();
@@ -33,16 +36,37 @@ function reduceDeltas(deltas) {
   return result;
 }
 
-// How does this work with multiple editors:
+// Document is a React component that allows multiple users to edit
+// and highlight a text document simultaneously.
 //
-// - This client subscribes to all partial document updates.
-//     - When the set of patches changes, we apply all.
-//     - When a new patch is received, we apply it to the document locally.
+// It uses the Quill editor (see https://quilljs.com).
 //
-// - This client periodically uploads a merged diff of
-//   local document edits to the database, which are
-//   pushed to peer clients.
+// The Quill editor uses a handy content format called Delta, which represents
+// operations like text insertion, deletion, formatting, etc. in a manner
+// similar to `diff(1)`.
 //
+// This component manages the bidirectional synchronization necessary to
+// construct the illusion of simultaneous editing by distributed clients.
+//
+// On page load, this component loads all of the existing deltas ordered by
+// server timestamp, and iteratively applies them to construct an initial
+// document snapshot. This component also keeps track of the latest delta
+// timestamp seen from the server.
+//
+// The first synchronization operation is to upload local changes to the
+// deltas collection in firestore. For efficiency, edits are cached locally
+// and then periodically sent in a batch.
+//
+// The second synchronization operation involves subscribing to changes to
+// the deltas collection in firestore. On each change to the collection snapshot,
+// this component ignores deltas written before the last-seen timestamp. New
+// deltas are applied to the local document snapshot, followed by any locally
+// cached edits that haven't been sent back to firestore yet.
+//
+// This component also manages tags and text highlights. When this component
+// renders, it generates text formatting deltas on the fly to visually
+// communicate what text segments are associated with tags with background
+// colors.
 class Document extends React.Component {
   constructor(props) {
     super(props);
@@ -53,33 +77,37 @@ class Document extends React.Component {
     this.deltasRef = this.documentRef.collection('deltas');
     this.highlightsRef = this.documentRef.collection('highlights');
 
+    this.handleDeltaSnapshot = this.handleDeltaSnapshot.bind(this);
     this.updateTitle = this.updateTitle.bind(this);
     this.uploadDeltas = this.uploadDeltas.bind(this);
+    this.onEdit = this.onEdit.bind(this);
     this.onSelect = this.onSelect.bind(this);
     this.onTagControlChange = this.onTagControlChange.bind(this);
     this.onTagsChange = this.onTagsChange.bind(this);
 
     this.titleRef = React.createRef();
 
-    this.deltaSet = new Set();
     this.reactQuillRef = undefined;
 
     // This is a range object with fields 'index' and 'length'
     this.currentSelection = undefined;
 
-    this.lastEditedContent = undefined;
-    this.lastSentContent = undefined;
-
     this.tags = {};
 
-    // a delta with no insert is "not a document"
-    let initialDelta = emptyDelta();
+    this.latestSnapshot = {
+      timestamp: new window.firebase.firestore.Timestamp(0, 0),
+      delta: emptyDelta()
+    };
+
+    // Buffer of local editor changes, to be uploaded to the
+    // database and distributed to peer clients on periodic sync.
+    this.localDelta = new Delta([]);
 
     this.state = {
       title: "",
       content: "",
       highlights: {},
-      delta: initialDelta,
+      delta: this.latestSnapshot.delta,
       tagIDsInSelection: new Set(),
 
       loadedTags: false,
@@ -88,6 +116,8 @@ class Document extends React.Component {
     }
   }
 
+  // Set up database subscriptions and handle document/collection snapshots
+  // when they occur.
   componentDidMount() {
     // Subscribe to document title changes
     this.documentRef.onSnapshot((doc) => {
@@ -118,43 +148,30 @@ class Document extends React.Component {
       });
     });
 
-    // Subscribe to document edit changes
-    this.deltasRef.orderBy("timestamp", "asc").onSnapshot((snapshot) => {
-      let deltas = [];
+    // Get the full set of deltas once
+    this.deltasRef.orderBy("timestamp", "asc").get().then(snapshot => {
 
-      snapshot.forEach((delta) => {
-        let data = delta.data();
-        if (this.deltaSet.has(data.id)) {
-          console.log(`Dropping delta with id ${data.id}`)
-          return;
-        }
+      console.log("processing full list of deltas to construct initial snapshot");
+      // Process the priming read; download all existing deltas and condense
+      // them into an initial local document snapshot
+      // (`this.latestSnapshot.delta`)
+      this.handleDeltaSnapshot(snapshot);
 
-        console.log(`Applying delta ${JSON.stringify(data)}`)
-        let ops = data['ops'];
+      // Start periodically uploading cached local edits to firestore.
+      setInterval(this.uploadDeltas, 1000);
 
-        deltas.push(new Delta(ops));
+      console.log("subscribing to deltas after", this.latestSnapshot.timestamp);
 
-        this.deltaSet.add(data.id);
-      });
-
-      if (deltas.length === 0) {
-        return;
-      }
-
-      let editor = this.reactQuillRef.getEditor();
-      let content = editor.getContents();
-
-      let remoteSnapshot = reduceDeltas(deltas);
-      let result = content.compose(remoteSnapshot);
-      this.setState({
-        delta: result,
-        loadedDeltas: true
-      });
-      console.log(`currentContent: ${JSON.stringify(content)} delta: ${JSON.stringify(remoteSnapshot)} applyingResult: ${JSON.stringify(result)}`);
-      this.lastSyncedContent = result;
+      // Now subscribe to all changes that occur after the set
+      // of initial deltas we just processed, composing any new deltas
+      // with `this.latestSnapshot.delta` and updating
+      // `this.latestSnapshot.timestamp`.
+      this.deltasRef
+        .orderBy("timestamp", "asc")
+        .where("timestamp", ">", this.latestSnapshot.timestamp)
+        .onSnapshot(this.handleDeltaSnapshot);
     });
 
-    setInterval(this.uploadDeltas, 1000);
   }
 
   // highlights: a map of highlight ID to highlight
@@ -169,13 +186,11 @@ class Document extends React.Component {
     let selectBegin = selection.index;
     let selectEnd = selectBegin + selection.length;
 
-    console.log(`selectBegin ${selectBegin} selectEnd ${selectEnd}`);
+    console.debug(`selectBegin ${selectBegin} selectEnd ${selectEnd}`);
 
     Object.values(highlights).forEach(h => {
       let hBegin = h.selection.index
       let hEnd = hBegin + h.selection.length;
-      let tagName = this.tags[h.tagID];
-      console.log(`${tagName} hBegin ${hBegin} hEnd ${hEnd}`);
       if ((selectBegin >= hBegin && selectBegin <= hEnd) || (selectEnd >= hBegin && selectEnd <= hEnd)) {
         result.add(h.tagID);
       }
@@ -184,47 +199,105 @@ class Document extends React.Component {
     return result;
   }
 
+  handleDeltaSnapshot(snapshot) {
+    // for debug
+    let allDeltas = [];
+    let newDeltas = [];
+
+    snapshot.forEach((delta) => {
+      let data = delta.data();
+
+      if (data.timestamp === null) {
+        console.debug("skipping delta with no timestamp");
+        return;
+      }
+
+      allDeltas.push(data);
+
+      let haveSeenBefore = data.timestamp.valueOf() <= this.latestSnapshot.timestamp.valueOf();
+      if (haveSeenBefore) {
+        console.debug('Dropping delta with timestamp ', data.timestamp);
+        return;
+      }
+
+      newDeltas.push(new Delta(data.ops));
+
+      this.latestSnapshot.timestamp = data.timestamp;
+    });
+
+    console.debug("All deltas\n", allDeltas);
+    console.log("New deltas\n", newDeltas);
+
+    if (newDeltas.length === 0) {
+      console.log("No new deltas to apply");
+      return;
+    }
+
+    // Seed the newDeltas list with our starting point, which is the
+    // latest content snapshot.
+    newDeltas = [this.latestSnapshot.delta].concat(newDeltas);
+
+    // result is the result of composing all known
+    // deltas in the database; having started from our cached
+    // last known sync point.
+    let result = reduceDeltas(newDeltas);
+
+    // Cache this value now.
+    this.latestSnapshot.delta = result;
+
+    if (this.state.loadedDeltas) {
+      result = result.compose(this.localDelta);
+    }
+
+    this.setState({
+      delta: result,
+      loadedDeltas: true
+    });
+    console.log('applying result', result);
+  }
+
+  // updateTitle is invoked when the editable document title bar loses focus.
   updateTitle(e) {
     let newTitle = e.target.innerText;
     this.documentRef.set({ title: newTitle }, { merge: true });
   }
 
-  uploadDeltas() {
-    if (this.reactQuillRef  === undefined) {
+  // onEdit builds a batch of local edits in `this.deltasToUpload`
+  // which are sent to the server and reset to [] periodically
+  // in `this.uploadDeltas()`.
+  onEdit(content, delta, source, editor) {
+    if (source !== 'user') {
+      console.debug('onEdit: skipping non-user change');
       return;
     }
-    if (this.lastSyncedContent === undefined) {
-      return;
-    }
-
-    let editor = this.reactQuillRef.getEditor();
-    let content = editor.getContents();
-    let diff;
-    if (this.lastSyncedContent === undefined) {
-      diff = content;
-    } else {
-      diff = this.lastSyncedContent.diff(content);
-    }
-
-    if (diff.ops.length === 0) {
-      return;
-    }
-
-    this.lastSyncedContent = content;
-
-    // Create document in deltas collection
-    let id = uuid();
-    this.deltaSet.add(id);
-    let delta = {
-      userID: this.props.user.uid,
-      ops: diff.ops,
-      id: id,
-      timestamp: window.firebase.firestore.FieldValue.serverTimestamp()
-    };
-    console.log(`Write delta: ${JSON.stringify(delta)}`);
-    this.deltasRef.doc().set(delta);
+    this.localDelta = this.localDelta.compose(delta);
   }
 
+  // uploadDeltas is invoked periodically by a timer.
+  //
+  // This function sends the contents of `this.localDelta` to the database
+  // and resets the local cache.
+  uploadDeltas() {
+    let opsIndex = this.localDelta.ops.length;
+    if (opsIndex === 0) {
+      return;
+    }
+
+    let ops = this.localDelta.ops.slice(0, opsIndex);
+    this.localDelta = new Delta(this.localDelta.ops.slice(opsIndex));
+
+    let deltaDoc = {
+      userID: this.props.user.uid,
+      timestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+      ops: ops
+    };
+
+    console.log('uploading delta', deltaDoc);
+    this.deltasRef.doc().set(deltaDoc);
+  }
+
+  // onSelect is invoked when the content selection changes, including
+  // whenever the cursor changes position.
   onSelect(range, source, editor) {
     if (source !== 'user') {
       return;
@@ -243,6 +316,8 @@ class Document extends React.Component {
     this.setState({ tagIDsInSelection: tagIDs, delta: editor.getContents() });
   }
 
+  // onTagControlChange is invoked when the user checks or unchecks one of the
+  // tag input elements.
   onTagControlChange(tag, checked) {
     console.log("onTagControlChange", tag, checked);
 
@@ -267,9 +342,11 @@ class Document extends React.Component {
 
     if (!checked) {
       console.log("Deleting highlight in current selection with tag ", tag);
+      // TODO
     }
   }
 
+  // onTagsChange is invoked when the set of tags is loaded, or changes.
   onTagsChange(tags) {
     // TODO: This should be done better :'(
     this.tags = tags;
@@ -281,6 +358,7 @@ class Document extends React.Component {
   render() {
     let content = this.state.delta;
 
+    // Append highlight styles
     if (this.state.loadedDeltas && this.state.loadedHighlights && this.state.loadedTags) {
       Object.values(this.state.highlights).forEach(h => {
         let color = this.tags[h.tagID].color;
@@ -288,18 +366,6 @@ class Document extends React.Component {
         content = content.compose(hDelta);
       });
     }
-
-  //let highlightDeltas = Object.values(this.state.highlights).flatMap((h) => {
-  //  if (this.tags.hasOwnProperty(h.tagID)) {
-  //    let color = this.tags[h.tagID].color;
-  //    return [new Delta([{retain: h.selection.index}, {retain: h.selection.length, attributes: {'background': color}}])];
-  //  }
-  //  return [];
-  //});
-  //let highlightResult = reduceDeltas(highlightDeltas);
-  //let result = this.state.delta.compose(highlightResult);
-
-    console.log('content', content);
 
     return <div>
       <Container>
@@ -319,6 +385,7 @@ class Document extends React.Component {
           <ReactQuill
             ref={(el) => { this.reactQuillRef = el }}
             value={content}
+            onChange={this.onEdit}
             onChangeSelection={this.onSelect} />
         </Col>
         <Col ms={2} md={2}>
@@ -386,6 +453,7 @@ class Tags extends React.Component {
       let label = <span style={{ color: t.color }} >{t.name}</span>;
 
       return <Form.Check
+        key={t.ID}
         type="checkbox"
         checked={checked}
         label={label}

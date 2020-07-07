@@ -4,7 +4,7 @@ import Table from 'react-bootstrap/Table';
 import Delta from 'quill-delta';
 
 function initialDelta() {
-  return new Delta([{ insert: "\n" }]);
+  return new Delta([{ insert: "" }]);
 }
 
 export default class Documents extends React.Component {
@@ -49,7 +49,6 @@ export default class Documents extends React.Component {
         .set({
           userID: this.props.user.uid,
           ops: delta.ops,
-          id: "",
           timestamp: window.firebase.firestore.FieldValue.serverTimestamp()
         });
     });
