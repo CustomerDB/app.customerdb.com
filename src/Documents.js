@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Dropdown from 'react-bootstrap/Dropdown';
+import Container from 'react-bootstrap/Container';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
 import Delta from 'quill-delta';
 
 import LeftNav from './LeftNav.js';
@@ -11,7 +14,7 @@ import { useHistory, withRouter } from "react-router-dom";
 import { ThreeDotsVertical } from 'react-bootstrap-icons';
 
 function initialDelta() {
-  return new Delta([{ insert: "\n" }]);
+  return new Delta([{ insert: "" }]);
 }
 
 class Documents extends React.Component {
@@ -31,18 +34,21 @@ class Documents extends React.Component {
   }
 
   componentDidMount() {
-    this.documentsRef.where("owners", "array-contains", this.props.user.uid).onSnapshot((snapshot) => {
-      let docs = [];
+    this.documentsRef
+      .where("owners", "array-contains", this.props.user.uid)
+      .where("deletionTimestamp", "==", "")
+      .onSnapshot((snapshot) => {
+        let docs = [];
 
-      snapshot.forEach((doc) => {
-        let data = doc.data();
-        data['ID'] = doc.id;
-        docs.push(data);
-      });
+        snapshot.forEach((doc) => {
+          let data = doc.data();
+          data['ID'] = doc.id;
+          docs.push(data);
+        });
 
-      this.setState({
-        documents: docs
-      })
+        this.setState({
+          documents: docs
+        })
     });
 
     let documentID = this.props.match.params.id;
@@ -62,7 +68,14 @@ class Documents extends React.Component {
     console.log("documentsRef", this.documentsRef);
     this.documentsRef.add({
       title: "Untitled Document",
-      owners: [this.props.user.uid]
+      owners: [this.props.user.uid],
+      creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+
+      // Deletion is modeled as "soft-delete"; when the deletionTimestamp is set,
+      // we don't show the document anymore in the list. However, it should be
+      // possible to recover the document by unsetting this field before
+      // the deletion grace period expires and the GC sweep does a permanent delete.
+      deletionTimestamp: ""
     }).then(newDocRef => {
       let delta = initialDelta();
       newDocRef.collection('deltas')
@@ -70,7 +83,6 @@ class Documents extends React.Component {
         .set({
           userID: this.props.user.uid,
           ops: delta.ops,
-          id: "",
           timestamp: window.firebase.firestore.FieldValue.serverTimestamp()
         });
     });
@@ -83,38 +95,48 @@ class Documents extends React.Component {
   }
 
   deleteDocument(id) {
-    this.documentsRef.doc(id).delete();
+    // TODO(CD): Add periodic job to garbage-collect documents after some
+    //           reasonable grace period.
+    //
+    // TODO(CD): Add some way to recover deleted documents that are still
+    //           within the grace period.
+    this.documentsRef.doc(id).update({
+      deletionTimestamp: window.firebase.firestore.FieldValue.serverTimestamp()
+    });
   }
 
   render() {
     let view = <></>;
     if (this.state.documentID !== undefined) {
       console.log(`this.state.documentID ${this.state.documentID}`)
-      view = <Document documentID={this.state.documentID} documentsRef={this.props.documentsRef} user={this.props.user} logoutCallback={this.props.logout} />;
+      view = <Document key={this.state.documentID} documentID={this.state.documentID} documentsRef={this.props.documentsRef} user={this.props.user} logoutCallback={this.props.logout} />;
     }
 
     return <div className="navContainer">
         <LeftNav active="documents" logoutCallback={this.props.logoutCallback}/>
-        <div className="navBody">
-            <div className="listContainer">
-              <div className="listTitle">
-                <div className="listTitleContainer">
+        <Container className="navBody">
+          <Row>
+            <Col md={4}>
+              <Row mb={10}>
+                <Col md={10}>
                   <h3>Documents</h3>
-                </div>
-                <div className="listTitleButtonContainer">
+                </Col>
+                <Col md={2}>
                   <Button className="addButton" onClick={this.createNewDocument}>+</Button>
-                </div>
-              </div>
-              <br/>
-              <DocumentCards documentID={this.state.documentID} documents={this.state.documents} deleteDocument={this.deleteDocument} renameDocument={this.renameDocument}/>
-            </div>
+                </Col>
+              </Row>
+              <DocumentList documentID={this.state.documentID} documents={this.state.documents} deleteDocument={this.deleteDocument} renameDocument={this.renameDocument}/>
+            </Col>
+            <Col md={8}>
             {view}
-        </div>
+            </Col>
+          </Row>
+        </Container>
       </div>;
   }
 }
 
-function DocumentCards(props) {
+function DocumentList(props) {
   console.log("Rerender cards..");
   let history = useHistory();
 
@@ -146,31 +168,35 @@ function DocumentCards(props) {
       threedots = <ThreeDotsVertical color="white"/>;
     }
 
-    return <div key={documentID} className={listCardClass}>
-      <div className="listTitle">
-        <div className="listTitleContainer">
-          {title}
-        </div>
-        <div className="listTitleButtonContainer">
-          <Dropdown>
-            <Dropdown.Toggle variant="link" className="threedots">
-              {threedots}
-            </Dropdown.Toggle>
+    return <Row key={documentID}>
+        <Col>
+        <Container className={listCardClass}>
+          <Row>
+            <Col className="listTitleContainer" md={10}>
+              {title}
+            </Col>
+            <Col md={2}>
+              <Dropdown>
+                <Dropdown.Toggle variant="link" className="threedots">
+                  {threedots}
+                </Dropdown.Toggle>
 
-            <Dropdown.Menu>
-              <Dropdown.Item onClick={() => {
-                setEdit(documentID);
-                setEditValue(d.title);
-              }}>Rename</Dropdown.Item>
-              <Dropdown.Item onClick={() => {props.deleteDocument(documentID)}}>Delete</Dropdown.Item>
-            </Dropdown.Menu>
-          </Dropdown>
-        </div>
-      </div>
-    </div>;
+                <Dropdown.Menu>
+                  <Dropdown.Item onClick={() => {
+                    setEdit(documentID);
+                    setEditValue(d.title);
+                  }}>Rename</Dropdown.Item>
+                  <Dropdown.Item onClick={() => {props.deleteDocument(documentID)}}>Delete</Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown>
+            </Col>
+          </Row>
+          </Container>
+          </Col>
+        </Row>;
   });
 
-  return <>{documentRows}</>;
+  return <Row><Col>{documentRows}</Col></Row>;
 }
 
 export default withRouter(Documents);
