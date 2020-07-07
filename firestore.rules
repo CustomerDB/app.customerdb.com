@@ -1,8 +1,37 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if request.auth != null && request.auth.token.email.matches('.*@quantap.com');
+
+    match /invites/{document=**} {
+      // Allow users to create invitations to an org
+      // that they belong to.
+      allow write: if request.auth != null
+                   && resource.data.organizationID == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.organizationID
+                   && resource.data.senderUID == $(request.auth.uid);
+
+      // Allow users to read invitations of themselves (by email)
+      // or that are for organizations they belong to.
+      allow read: if request.auth != null
+                  && (resource.data.email == $(request.auth.token.email)
+                  || resource.data.organizationID == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.organizationID);
+    }
+
+    match /users/{uid}/{document=**} {
+      // Allow users to read their own user document.
+      allow read: if request.auth != null
+                  && uid == request.auth.uid;
+
+      // Allow users to write their own user document, if
+      // an invite document exists with the authenticated email address and the requested organization ID.
+      allow write: if request.auth != null
+                   && uid == request.auth.uid
+                   && get(/databases/$(database)/documents/invites/$(resource.data.inviteID)).data.email == request.auth.token.email
+                   && get(/databases/$(database)/documents/invites/$(resource.data.inviteID)).data.organizationID in resource.data.organizationIDs;
+    }
+
+    match /organizations/{domain}/{document=**} {
+      allow read, write: if request.auth != null
+                         && request.auth.token.email.matches('.*@' + domain);
     }
   }
 }

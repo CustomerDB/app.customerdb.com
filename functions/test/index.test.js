@@ -1,8 +1,8 @@
 const test = require('firebase-functions-test')({
-    databaseURL: "https://webapp-af09a.firebaseio.com",
-    storageBucket: "webapp-af09a.appspot.com",
-    projectId: "webapp-af09a",
-}, '/home/niklas/.quantap/webapp-secret.json');
+    databaseURL: "https://customerdb-production.firebaseio.com",
+    storageBucket: "customerdb-production.appspot.com",
+    projectId: "customerdb-production",
+}, `${process.env.HOME}/.quantap/customerdb-production-secret.json`);
 
 const functions = require('../index.js');
 const assert = require('assert');

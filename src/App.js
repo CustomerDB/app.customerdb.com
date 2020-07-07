@@ -58,11 +58,46 @@ export default class App extends React.Component {
       if (user) {
         var uid = user.uid;
 
-        // write document to users collection
+        // extract user domain from email
+        let emailParts = user.email.split('@', 2);
+        user.domain = emailParts[1];
+
+
         var userRef = db.collection("users").doc(uid);
+
+        // lookup user record
+        userRef.get().then(doc => {
+          if (doc.exists) {
+            this.setState({
+              'phase': 'logged_in',
+              'user': doc.data()
+            });
+            return;
+          }
+
+          // user does not exist yet.
+          // write document to users collection
+          userRef.set( {
+            ID: user.uid,
+            email: user.email,
+            emailVerified: user.emailVerified,
+            displayName: user.displayName,
+            domain: user.domain,
+            photoURL: user.photoURL
+          });
+
+
+        });
+
+        // write document to users collection
         userRef.set(
           {
-            email: user.email
+            ID: user.uid,
+            email: user.email,
+            emailVerified: user.emailVerified,
+            displayName: user.displayName,
+            domain: user.domain,
+            photoURL: user.photoURL
           },
           { merge: true }
         )
