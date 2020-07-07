@@ -22,6 +22,10 @@ div.navContainer {
     height: 100%;
 }
 
+div.navBody {
+    display: flex;
+}
+
 div.navLeft {
     width: 4rem;
     box-shadow: 0 6px 6px rgba(0, 0, 0, 0.2);
@@ -73,6 +77,11 @@ div.listCard {
 }
 
 div.listCardActive {
+    border-radius: 0.25rem;
+    height: 5rem;
+    width: 18rem;
+    margin: 2rem;
+    padding: 0.75rem;
     background: #487cfb;
     color: white;
 }

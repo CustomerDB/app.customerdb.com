@@ -2,21 +2,19 @@ import React, { useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Dropdown from 'react-bootstrap/Dropdown';
 import Delta from 'quill-delta';
-import ContentEditable from 'react-contenteditable';
 
 import LeftNav from './LeftNav.js';
-import { useHistory } from "react-router-dom";
+import Document from './Document.js';
+
+import { useHistory, withRouter } from "react-router-dom";
 
 import { ThreeDotsVertical } from 'react-bootstrap-icons';
-
-
-
 
 function initialDelta() {
   return new Delta([{ insert: "\n" }]);
 }
 
-export default class Documents extends React.Component {
+class Documents extends React.Component {
   constructor(props) {
     super(props);
 
@@ -27,6 +25,7 @@ export default class Documents extends React.Component {
     this.renameDocument = this.renameDocument.bind(this);
 
     this.state = {
+      documentID: undefined,
       documents: []
     }
   }
@@ -44,6 +43,18 @@ export default class Documents extends React.Component {
       this.setState({
         documents: docs
       })
+    });
+
+    let documentID = this.props.match.params.id;
+    this.setState({
+      documentID: documentID
+    });
+  }
+
+  componentWillReceiveProps(newProps) {
+    let documentID = newProps.match.params.id;
+    this.setState({
+      documentID: documentID
     });
   }
 
@@ -76,6 +87,12 @@ export default class Documents extends React.Component {
   }
 
   render() {
+    let view = <></>;
+    if (this.state.documentID !== undefined) {
+      console.log(`this.state.documentID ${this.state.documentID}`)
+      view = <Document documentID={this.state.documentID} documentsRef={this.props.documentsRef} user={this.props.user} logoutCallback={this.props.logout} />;
+    }
+
     return <div className="navContainer">
         <LeftNav active="documents" logoutCallback={this.props.logoutCallback}/>
         <div className="navBody">
@@ -89,14 +106,16 @@ export default class Documents extends React.Component {
                 </div>
               </div>
               <br/>
-              <DocumentCards documents={this.state.documents} deleteDocument={this.deleteDocument} renameDocument={this.renameDocument}/>
+              <DocumentCards documentID={this.state.documentID} documents={this.state.documents} deleteDocument={this.deleteDocument} renameDocument={this.renameDocument}/>
             </div>
+            {view}
         </div>
       </div>;
   }
 }
 
 function DocumentCards(props) {
+  console.log("Rerender cards..");
   let history = useHistory();
 
   const [edit, setEdit] = useState(undefined);
@@ -119,8 +138,15 @@ function DocumentCards(props) {
     }
 
     let documentID = d.ID;
+    let listCardClass = "listCard";
+    let threedots = <ThreeDotsVertical/>;
 
-    return <div key={documentID} className="listCard">
+    if (props.documentID == documentID) {
+      listCardClass = "listCardActive";
+      threedots = <ThreeDotsVertical color="white"/>;
+    }
+
+    return <div key={documentID} className={listCardClass}>
       <div className="listTitle">
         <div className="listTitleContainer">
           {title}
@@ -128,7 +154,7 @@ function DocumentCards(props) {
         <div className="listTitleButtonContainer">
           <Dropdown>
             <Dropdown.Toggle variant="link" className="threedots">
-              <ThreeDotsVertical/>
+              {threedots}
             </Dropdown.Toggle>
 
             <Dropdown.Menu>
@@ -146,3 +172,5 @@ function DocumentCards(props) {
 
   return <>{documentRows}</>;
 }
+
+export default withRouter(Documents);

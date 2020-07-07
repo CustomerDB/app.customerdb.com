@@ -46,7 +46,8 @@ class Document extends React.Component {
   constructor(props) {
     super(props);
 
-    this.documentID = props.match.params.id;
+    console.log(`props.documentID ${props}`);
+    this.documentID = props.documentID;
 
     this.documentRef = props.documentsRef.doc(this.documentID);
     this.deltasRef = this.documentRef.collection('deltas');
@@ -81,6 +82,10 @@ class Document extends React.Component {
       delta: initialDelta,
       tagIDsInSelection: new Set()
     }
+  }
+
+  componentWillReceiveProps(newProps) {
+    console.log("Show another document");
   }
 
   componentDidMount() {
@@ -280,35 +285,31 @@ class Document extends React.Component {
 
     console.log('result', result, 'highlightResult', highlightResult);
 
-    return <div>
-      <Container>
-        <Row>
-          <Col md={12}>
+    return <div className="listContainer">
+          <div>
             <ContentEditable
               innerRef={this.titleRef}
-              tagName='h1'
+              tagName='h3'
               html={this.state.title}
               disabled={false}
               onBlur={this.updateTitle}
               />
-          </Col>
-        </Row>
-        <Row>
-          <Col ms={10} md={10}>
-          <ReactQuill
-            ref={(el) => { this.reactQuillRef = el }}
-            value={result}
-            onChangeSelection={this.onSelect} />
-        </Col>
-        <Col ms={2} md={2}>
-          <Tags
-            tagsRef={this.documentRef.collection('tags')}
-            tagIDsInSelection={this.state.tagIDsInSelection}
-            onChange={this.onTagControlChange}
-            onTagsChange={this.onTagsChange} />
-        </Col>
-        </Row>
-      </Container>
+          </div>
+        <div>
+          <div>
+            <ReactQuill
+              ref={(el) => { this.reactQuillRef = el }}
+              value={result}
+              onChangeSelection={this.onSelect} />
+          </div>
+          <div>
+            <Tags
+              tagsRef={this.documentRef.collection('tags')}
+              tagIDsInSelection={this.state.tagIDsInSelection}
+              onChange={this.onTagControlChange}
+              onTagsChange={this.onTagsChange} />
+          </div>
+        </div>
     </div>;
   }
 }
@@ -386,4 +387,4 @@ class Tags extends React.Component {
   }
 }
 
-export default withRouter(Document);
+export default Document;

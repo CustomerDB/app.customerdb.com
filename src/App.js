@@ -6,7 +6,6 @@ import Button from 'react-bootstrap/Button';
 import Alert from 'react-bootstrap/Alert';
 
 import Documents from './Documents.js';
-import Document from './Document.js';
 import Datasets from './Datasets.js'
 import DatasetView from './DatasetView.js'
 import { Loading } from './Utils.js';
@@ -114,11 +113,10 @@ export default class App extends React.Component {
         <Route exact path="/documents">
           <Documents documentsRef={documentsRef} user={this.state.user} logoutCallback={this.logout} />
         </Route>
-        <Route exact path="/document/:id" children={<Document documentsRef={documentsRef} user={this.state.user} logoutCallback={this.logout} />} />
+        <Route exact path="/document/:id" children={<Documents documentsRef={documentsRef} user={this.state.user} logoutCallback={this.logout} />} />
         <Route exact path="/404">
           <Error404/>
         </Route>
-
         <Redirect to="/404" />
       </Switch>
     </Router></>;
