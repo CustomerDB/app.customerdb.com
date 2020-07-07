@@ -22,26 +22,36 @@ export default class Documents extends React.Component {
   }
 
   componentDidMount() {
-    this.documentsRef.where("owners", "array-contains", this.props.user.uid).onSnapshot((snapshot) => {
-      let docs = [];
+    this.documentsRef
+      .where("owners", "array-contains", this.props.user.uid)
+      .where("deletionTimestamp", "==", "")
+      .onSnapshot((snapshot) => {
+        let docs = [];
 
-      snapshot.forEach((doc) => {
-        let data = doc.data();
-        data['ID'] = doc.id;
-        docs.push(data);
+        snapshot.forEach((doc) => {
+          let data = doc.data();
+          data['ID'] = doc.id;
+          docs.push(data);
+        });
+
+        this.setState({
+          documents: docs
+        })
       });
-
-      this.setState({
-        documents: docs
-      })
-    });
   }
 
   createNewDocument() {
     console.log("documentsRef", this.documentsRef);
     this.documentsRef.add({
       title: "Untitled Document",
-      owners: [this.props.user.uid]
+      owners: [this.props.user.uid],
+      creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+
+      // Deletion is modeled as "soft-delete"; when the deletionTimestamp is set,
+      // we don't show the document anymore in the list. However, it should be
+      // possible to recover the document by unsetting this field before
+      // the deletion grace period expires and the GC sweep does a permanent delete.
+      deletionTimestamp: ""
     }).then(newDocRef => {
       let delta = initialDelta();
       newDocRef.collection('deltas')
@@ -55,7 +65,14 @@ export default class Documents extends React.Component {
   }
 
   deleteDocument(id) {
-    this.documentsRef.doc(id).delete();
+    // TODO(CD): Add periodic job to garbage-collect documents after some
+    //           reasonable grace period.
+    //
+    // TODO(CD): Add some way to recover deleted documents that are still
+    //           within the grace period.
+    this.documentsRef.doc(id).update({
+      deletionTimestamp: window.firebase.firestore.FieldValue.serverTimestamp()
+    });
   }
 
   render() {
