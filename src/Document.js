@@ -500,7 +500,7 @@ class Tags extends React.Component {
         checked={checked}
         style={{
           background: t.color,
-          borderRadius: "5px",
+          borderRadius: "0.25rem",
           marginBottom: "0.25rem",
         }}
         label={label}
@@ -517,7 +517,7 @@ class Tags extends React.Component {
         tagName='div'
         style={{
           border: "1px solid #aaa",
-          borderRadius: "5px"
+          borderRadius: "0.25rem"
         }}
         html=""
         disabled={false}
