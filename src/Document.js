@@ -174,10 +174,8 @@ class Document extends React.Component {
 
   }
 
-  // highlights: a map of highlight ID to highlight
-  // selection: a range object with fields 'index' and 'length'
-  computeTagIDsInSelection(highlights, selection) {
-    let result = new Set();
+  computeHighlightsInSelection(highlights, selection) {
+    let result = [];
 
     if (selection === undefined) {
       return result;
@@ -192,10 +190,20 @@ class Document extends React.Component {
       let hBegin = h.selection.index
       let hEnd = hBegin + h.selection.length;
       if ((selectBegin >= hBegin && selectBegin <= hEnd) || (selectEnd >= hBegin && selectEnd <= hEnd)) {
-        result.add(h.tagID);
+        result.push(h);
       }
     });
 
+    return result;
+  }
+
+  // highlights: a map of highlight ID to highlight
+  // selection: a range object with fields 'index' and 'length'
+  computeTagIDsInSelection(highlights, selection) {
+    let intersectingHighlights = this.computeHighlightsInSelection(highlights, selection);
+
+    let result = new Set();
+    intersectingHighlights.forEach(h => result.add(h.tagID));
     return result;
   }
 
@@ -225,11 +233,11 @@ class Document extends React.Component {
       this.latestSnapshot.timestamp = data.timestamp;
     });
 
-    console.debug("All deltas\n", allDeltas);
-    console.log("New deltas\n", newDeltas);
+    console.debug("all deltas\n", allDeltas);
+    console.debug("new deltas\n", newDeltas);
 
     if (newDeltas.length === 0) {
-      console.log("No new deltas to apply");
+      console.debug("no new deltas to apply");
       return;
     }
 
@@ -303,7 +311,8 @@ class Document extends React.Component {
       return;
     }
     if (range === null) {
-      this.currentSelection = undefined;
+      // this.currentSelection = undefined;
+      return;
     }
     else {
       this.currentSelection = range;
@@ -319,7 +328,7 @@ class Document extends React.Component {
   // onTagControlChange is invoked when the user checks or unchecks one of the
   // tag input elements.
   onTagControlChange(tag, checked) {
-    console.log("onTagControlChange", tag, checked);
+    console.debug("onTagControlChange", tag, checked);
 
     if (this.currentSelection === undefined) {
       return;
@@ -341,8 +350,16 @@ class Document extends React.Component {
     }
 
     if (!checked) {
-      console.log("Deleting highlight in current selection with tag ", tag);
-      // TODO
+      let intersectingHighlights = this.computeHighlightsInSelection(
+        this.state.highlights,
+        this.currentSelection);
+
+      intersectingHighlights.forEach(h => {
+        if (h.tagID === tag.ID) {
+          console.log("Deleting highlight in current selection with tag ", tag);
+          this.highlightsRef.doc(h.ID).delete();
+        }
+      });
     }
   }
 
@@ -357,6 +374,17 @@ class Document extends React.Component {
 
   render() {
     let content = this.state.delta;
+
+    // Clear pre-existing highlight styles. Some existing
+    // formatting may correspond to a highlight that was
+    // deleted.
+    let clearFormat = new Delta([
+      {
+        retain: content.length(),
+        attributes: {'background': '#FFF'}
+      }
+    ]);
+    content = content.compose(clearFormat);
 
     // Append highlight styles
     if (this.state.loadedDeltas && this.state.loadedHighlights && this.state.loadedTags) {
@@ -429,34 +457,54 @@ class Tags extends React.Component {
     });
   }
 
+  checkReturn(e) {
+    if (e.key === 'Enter') {
+      e.target.blur();
+    }
+  }
+
   createTag(e) {
     let name = e.target.innerText;
 
-    let color = colorPair().background;
+    if (name === "") {
+      return;
+    }
+
+    let color = colorPair();
 
     this.tagsRef.doc().set({
       name: name,
-      color: color
+      color: color.background,
+      textColor: color.foreground
     });
 
     e.target.innerHTML = "";
   }
 
   onTagControlChange(e, tag) {
-    this.onChange(tag, e.target.checked);
+    let target = e.target;
+    this.onChange(tag, target.checked);
   }
 
   render() {
     let tagControls = this.state.tags.map(t => {
       let checked = this.props.tagIDsInSelection.has(t.ID);
 
-      let label = <span style={{ color: t.color }} >{t.name}</span>;
+      let label = <span style={{
+        color: t.textColor
+      }}>{t.name}</span>;
 
-      return <Form.Check
+      return <Form.Switch
         key={t.ID}
-        type="checkbox"
+        id={`tag-${t.ID}`}
         checked={checked}
+        style={{
+          background: t.color,
+          borderRadius: "0.25rem",
+          marginBottom: "0.25rem",
+        }}
         label={label}
+        title={t.name}
         onChange={(e) => {this.onTagControlChange(e, t)}}/>
     });
 
@@ -467,9 +515,15 @@ class Tags extends React.Component {
       <ContentEditable
         innerRef={this.titleRef}
         tagName='div'
+        style={{
+          border: "1px solid #aaa",
+          borderRadius: "0.25rem"
+        }}
         html=""
         disabled={false}
-        onBlur={this.createTag} />
+        onBlur={this.createTag}
+        onKeyDown={this.checkReturn}
+      />
 
     </div>;
   }
