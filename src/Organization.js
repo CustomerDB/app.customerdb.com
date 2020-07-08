@@ -29,43 +29,20 @@ export default function Organization(props) {
 
   const { id } = useParams();
   const orgID = id;
-  let orgRef = db.collection("organizations").doc(orgID);
+  const orgRef = db.collection("organizations").doc(orgID);
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (props.oauthUser) {
-      orgRef.get().then((doc) => {
-        if (!doc.exists) {
-          navigate("/404");
-          return;
-        }
-
-        setOrg(doc.data());
-      }).catch((e) => {
-        // navigate("/404");
-        console.debug("error fetching org", e);
-        return;
-      })
-
-      let userRef = orgRef.collection("members").doc(props.oauthUser.email);
-
-      // lookup user record
-      userRef.get().then(doc => {
-        if (doc.exists) {
-          setUser(doc.data());
-          return;
-        }
-
+    const userRef = orgRef.collection("members").doc(props.oauthUser.email);
+    let unsubscribe = userRef.onSnapshot(doc => {
+      if (!doc.exists) {
         logout();
-      })
-      .catch((function (error) {
-        logout();
-      }));
-    } else {
-      navigate("/login");
-    }
-  }, [navigate, orgRef, props.oauthUser, user, org]);
+      }
+      setUser(doc.data());
+    });
+    return unsubscribe;
+  }, [user]);
 
   // TODO(CD): scope reads in db rules instead
   let documentsRef = db.collection("documents");
@@ -74,16 +51,18 @@ export default function Organization(props) {
   // <Route path="/dataset/:id" children={<DatasetView user={this.state.user} />} />
   // <Route path="/datasets">
   // <Datasets datasetsRef={datasetsRef} user={this.state.user} logoutCallback={this.logout} />
+  //
+  //
+  //    <Route path="documents" element={<Documents documentsRef={documentsRef} user={user}/>}>
+  //      <Route path=":id" children={<Documents documentsRef={documentsRef} user={user} />} />
+  //    </Route>
+  //    <Route path="admin" element={<Admin />} />
 
   return <div className="navContainer">
     <LeftNav active="datasets"/>
     <div className="navBody">
     <Routes>
-      <Route path="/" element={ <OrganizationHome />} >
-        <Route path="documents" element={<Documents documentsRef={documentsRef} user={user}/>}>
-          <Route path=":id" children={<Documents documentsRef={documentsRef} user={user} />} />
-        </Route>
-        <Route path="admin" element={<Admin />} />
+      <Route path="/" element={ <OrganizationHome orgRef={orgRef} />} >
       </Route>
     </Routes>
     </div>

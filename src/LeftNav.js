@@ -1,10 +1,9 @@
 import React from 'react';
-import { useEffect, useState } from 'react';
 
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
-import { DoorOpen, PieChart, People, ChatLeftQuote, GearWide, Intersect, House } from 'react-bootstrap-icons';
+import { DoorOpen, People, ChatLeftQuote, GearWide, Intersect, House } from 'react-bootstrap-icons';
 
 import { useNavigate, useLocation } from "react-router-dom";
 

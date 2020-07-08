@@ -20,13 +20,16 @@ export default function App() {
     const [ oauthLoading, setOauthLoading ] = useState(true);
 
     useEffect(() => {
+        console.log('App useEffect');
+
         const loginCallback = (user) => {
-            console.debug(user);
+            console.debug('loginCallback user', user);
             setOauthUser(user);
             setOauthLoading(false);
         }
 
-        window.firebase.auth().onAuthStateChanged(loginCallback);
+        let unsubscribe = window.firebase.auth().onAuthStateChanged(loginCallback);
+        return unsubscribe;
     }, [oauthUser, oauthLoading]);
 
     if (oauthLoading) {
