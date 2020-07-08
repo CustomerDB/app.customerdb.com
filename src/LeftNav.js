@@ -2,17 +2,34 @@ import React from 'react';
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
-import { DoorOpen, PieChart, People, ChatLeftQuote, GearWide, Intersect } from 'react-bootstrap-icons';
+import { DoorOpen, PieChart, People, ChatLeftQuote, GearWide, Intersect, House } from 'react-bootstrap-icons';
 
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+
+import { logout } from './Utils.js';
 
 export default function LeftNav(props) {
+  const location = useLocation();
+  console.log(location);
+
+  let pathParts = location.pathname.split("/");
+  let orgID;
+  let component = "home";
+  if (pathParts.length > 2) {
+    orgID = pathParts[2];
+  }
+
+  if (pathParts.length > 3) {
+    component = pathParts[3];
+  }
+
   let buttonVariants = {
+    'home': 'link',
     'people': 'link',
-    'documents': 'link',
-    'datasets': 'link'
+    'sources': 'link',
+    'explore': 'link'
   };
-  buttonVariants[props.active] = 'primary';
+  buttonVariants[component] = 'primary';
 
   let navigate = useNavigate();
 
@@ -20,10 +37,21 @@ export default function LeftNav(props) {
     <div>
     <OverlayTrigger
       placement="right" delay={{ show: 250, hide: 400 }}
+      overlay={<Tooltip>Home</Tooltip>}
+    >
+      <Button onClick={() => {
+        navigate(`/orgs/${orgID}/`);
+      }
+      } variant={buttonVariants['home']}><House/></Button>
+    </OverlayTrigger>
+    </div>
+    <div>
+    <OverlayTrigger
+      placement="right" delay={{ show: 250, hide: 400 }}
       overlay={<Tooltip>Customers</Tooltip>}
     >
       <Button onClick={() => {
-        navigate("/people");
+        navigate(`/orgs/${orgID}/people`);
       }
       } variant={buttonVariants['people']}><People/></Button>
     </OverlayTrigger>
@@ -34,18 +62,18 @@ export default function LeftNav(props) {
         overlay={<Tooltip>Documents</Tooltip>}
       >
         <Button onClick={() => {
-          navigate("/documents");
-        }} variant={buttonVariants['documents']}><ChatLeftQuote/></Button>
+          navigate(`/orgs/${orgID}/sources`);
+        }} variant={buttonVariants['sources']}><ChatLeftQuote/></Button>
       </OverlayTrigger>
     </div>
     <div>
       <OverlayTrigger
         placement="right" delay={{ show: 250, hide: 400 }}
-        overlay={<Tooltip>Patterns</Tooltip>}
+        overlay={<Tooltip>Explore</Tooltip>}
       >
         <Button onClick={() => {
-          navigate("/");
-        }} variant={buttonVariants['datasets']}><Intersect/></Button>
+          navigate(`/orgs/${orgID}/explore`);
+        }} variant={buttonVariants['explore']}><Intersect/></Button>
       </OverlayTrigger>
     </div>
     <div>
@@ -64,7 +92,7 @@ export default function LeftNav(props) {
         placement="right" delay={{ show: 250, hide: 400 }}
         overlay={<Tooltip>Log out</Tooltip>}
       >
-        <Button onClick={props.logoutCallback} variant="link"><DoorOpen/></Button>
+        <Button onClick={logout} variant="link"><DoorOpen/></Button>
       </OverlayTrigger>
     </div>
   </div>;

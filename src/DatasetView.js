@@ -8,6 +8,7 @@ import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
 import Nav from 'react-bootstrap/Nav';
 
+import { logout } from './Utils.js';
 
 import {
   useParams
@@ -63,7 +64,7 @@ class DatasetView extends React.Component {
           {dropdownItems}
         </NavDropdown>
         <Navbar.Collapse className="justify-content-end">
-          <Nav.Link onClick={this.props.logoutCallback}>Logout</Nav.Link>
+          <Nav.Link onClick={logout}}>Logout</Nav.Link>
         </Navbar.Collapse>
       </Navbar>
       <div className="outerContainer fullHeight">

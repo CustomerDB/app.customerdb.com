@@ -112,7 +112,7 @@ export default class Datasets extends React.Component {
   render() {
     return (
       <div className="navContainer">
-        <LeftNav active="datasets" logoutCallback={this.props.logoutCallback}/>
+        <LeftNav active="datasets"/>
         <div className="navBody">
           <div className="listContainer">
             <div className="listTitle">

@@ -13,7 +13,6 @@ var provider = new window.firebase.auth.GoogleAuthProvider();
 var db = window.firebase.firestore();
 
 export default function JoinOrg(props) {
-    const [ phase, setPhase ] = useState('logging_in');
     const [ user, setUser ] = useState(undefined);
     const [ inviteFailed, setInviteFailed ] = useState(false);
     const [ reason, setReason ] = useState(undefined);
@@ -32,40 +31,34 @@ export default function JoinOrg(props) {
         });
     };
 
-    useEffect(() => {
-        const loginCallback = (user) => {
-            if (!user) {
-                setPhase('login');
-                setUser(undefined);
-                return;
-            }
-
-            setUser(user);
-            setPhase('join');
-        };
-
-        window.firebase.auth().onAuthStateChanged(loginCallback);
-    }, []);
+    const onFail = () => {
+        //failed
+        setReason("Couldn't add you to the organization. Please reach out to your administrator and verify your email has been added.");
+        setInviteFailed(true);
+        return;
+    }
 
     const join = () => {
         setInviteFailed(false);
         setReason(undefined);
 
+        let user = props.oauthUser;
+
         // Get invite object.
         db.collection("organizations").doc(orgID).collection("members").doc(user.email).set({
+            displayName: user.displayName,
+            photoURL: user.photoURL,
             invited: false,
             active: true,
             joinedTimestamp: window.firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true }).then(() => {
             // Success
-            navigate(`/orgs/${orgID}`);
-        }).catch(() => {
-            //failed
-            setPhase('join');
-            setReason("Couldn't add you to the organization. Please reach out to your administrator and verify your email has been added.");
-            setInviteFailed(true);
-            return;
-        });
+            db.collection("userToOrg").doc(user.email).set({
+                orgID: orgID
+            }).then(() => {
+                navigate(`/orgs/${orgID}`);
+            }).catch(onFail);
+        }).catch(onFail);
     }
 
     const logout = () => {
@@ -74,11 +67,7 @@ export default function JoinOrg(props) {
         });
     };
 
-    if (phase === 'logging_in') {
-        return Loading();
-    }
-
-    if (phase === 'login') {
+    if (props.oauthUser === null)  {
         return <div className="outerContainer">
             <div className="loginContainer">
                 <h2>CustomerDB</h2>
@@ -87,24 +76,20 @@ export default function JoinOrg(props) {
                 <Button onClick={login}>Login with Google</Button>
             </div>
         </div>;
+
     }
+    let inviteFailedMessage;
+    if (inviteFailed) {
+        inviteFailedMessage = <Alert variant="danger">{reason}</Alert>;
+    };
 
-    if (phase === 'join') {
-        let inviteFailedMessage;
-        if (inviteFailed) {
-            inviteFailedMessage = <Alert variant="danger">{reason}</Alert>;
-        };
-
-        return <div className="outerContainer">
-            <div className="loginContainer">
-            <h2>CustomerDB</h2>
-            { inviteFailed ? inviteFailedMessage :
-                <><p>Join organization with email {user.email} <Button onClick={logout} variant="link">Logout</Button></p>
-                <br/>
-                <Button onClick={join}>Join</Button></>}
-            </div>
-        </div>;
-    }
-
-    return <p>Activate</p>;
+    return <div className="outerContainer">
+        <div className="loginContainer">
+        <h2>CustomerDB</h2>
+        { inviteFailed ? inviteFailedMessage :
+            <><p>Join organization with email {props.oauthUser.email} <Button onClick={logout} variant="link">Logout</Button></p>
+            <br/>
+            <Button onClick={join}>Join</Button></>}
+        </div>
+    </div>;
 };

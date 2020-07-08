@@ -1,11 +1,40 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Only allow users with the admin bit to add other users.
-    // Only allow users with the admin bit to change the 'active' bit.
     // Only allow verified emails with the 'invited' bit set, to change to 'active' (and remove the invited 'bit' in the same operation).
+    match /organizations/{orgID}/members/{email} {
+      allow write: if request.auth != null
+                   && request.auth.token.email_verified == true
+                   && request.auth.token.email == email
+                   && resource.data.invited == true
+                   && resource.data.active == false
+                   && request.resource.data.invited == false
+                   && request.resource.data.active == true;
+    }
+
+    // FIXME: Users can read and write their own user to org mapping. Currently only allows for 1 active org.
+    match /userToOrg/{email} {
+      allow write: if request.auth != null
+                   && request.auth.token.email_verified == true
+                   && request.auth.token.email == email
+                   && get(/databases/$(database)/documents/organizations/$(request.resource.data.orgID)/members/$(request.auth.token.email)).data.active == true;
+    
+      allow read: if request.auth != null
+                  && request.auth.token.email_verified == true
+                  && request.auth.token.email == email;
+    }
+
+    // Admins can read and write anything in the org.
+    match /organizations/{orgID}/{document=**} {
+      allow read, write: if request.auth != null
+                         && request.auth.token.email_verified == true
+                         && get(/databases/$(database)/documents/organizations/{orgID}/members/$(request.auth.token.email)).data.active == true
+                         && get(/databases/$(database)/documents/organizations/{orgID}/members/$(request.auth.token.email)).data.admin == true
+    }
+
     // Only allow users with verified emails to change displayName and photoURL.
     // Only allow users with the admin bit to delete objects rest of org.
-    // Only allow active users to read, write (but not delete objects) rest of org.
+    // Only allow active users to read rest of org.
+    // Open writes (not deletes) to each collection.
   }
 }

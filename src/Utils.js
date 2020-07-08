@@ -10,3 +10,7 @@ export function now() {
 export function Loading() {
     return  <div className="outerContainer"><div className="spinnerContainer"><Spinner animation="grow" /></div></div>;
 }
+
+export function logout() {
+    return window.firebase.auth().signOut();
+}
