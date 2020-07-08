@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import Button from 'react-bootstrap/Button';
 import Dropdown from 'react-bootstrap/Dropdown';
@@ -19,128 +19,117 @@ function initialDelta() {
   return new Delta([{ insert: "" }]);
 }
 
-class Documents extends React.Component {
-  constructor(props) {
-    super(props);
+export default function Documents(props) {
+  console.log("render documents");
 
-    this.documentsRef = props.documentsRef;
+  // let { docID } = useParams();
 
-    this.createNewDocument = this.createNewDocument.bind(this);
-    this.deleteDocument = this.deleteDocument.bind(this);
-    this.renameDocument = this.renameDocument.bind(this);
+  // const [documentID, setDocumentID] = useState(docID);
+  // const [documents, setDocuments] = useState([]);
 
-    this.state = {
-      documentID: undefined,
-      documents: []
-    }
-  }
+  return <p>One hand clapping.</p>;
 
-  componentDidMount() {
-    this.documentsRef
-      .where("owners", "array-contains", this.props.user.ID)
-      .where("deletionTimestamp", "==", "")
-      .onSnapshot((snapshot) => {
-        let docs = [];
+//useEffect(() => {
+//  console.log('useEffect', props);
+//  let unsubscribe = props.documentsRef
+//    .where("deletionTimestamp", "==", "")
+//    .onSnapshot((snapshot) => {
+//      console.log("documents snapshot received");
 
-        snapshot.forEach((doc) => {
-          let data = doc.data();
-          data['ID'] = doc.id;
-          docs.push(data);
-        });
+//      let newDocuments = [];
 
-        this.setState({
-          documents: docs
-        })
-    });
+//      snapshot.forEach((doc) => {
+//        let data = doc.data();
+//        data['ID'] = doc.id;
+//        newDocuments.push(data);
+//      });
 
-    let { id } = useParams();
-    let documentID = id;
-    this.setState({
-      documentID: documentID
-    });
-  }
+//      setDocuments(newDocuments);
+//  });
+//  return unsubscribe;
+//}, [documents]);
 
-  componentWillReceiveProps(newProps) {
-    let documentID = newProps.match.params.id;
-    this.setState({
-      documentID: documentID
-    });
-  }
+//const createNewDocument = () => {
+//  console.log("createNewDocument");
+//  props.documentsRef.add({
+//    title: "Untitled Document",
+//    createdBy: props.user.email,
+//    creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
 
-  createNewDocument() {
-    console.log("documentsRef", this.documentsRef);
-    this.documentsRef.add({
-      title: "Untitled Document",
-      owners: [this.props.user.ID],
-      creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+//    // Deletion is modeled as "soft-delete"; when the deletionTimestamp is set,
+//    // we don't show the document anymore in the list. However, it should be
+//    // possible to recover the document by unsetting this field before
+//    // the deletion grace period expires and the GC sweep does a permanent delete.
+//    deletionTimestamp: ""
+//  }).then(newDocRef => {
+//    let delta = initialDelta();
+//    newDocRef.collection('deltas')
+//      .doc()
+//      .set({
+//        userEmail: props.user.email,
+//        ops: delta.ops,
+//        timestamp: window.firebase.firestore.FieldValue.serverTimestamp()
+//      });
+//  });
+//};
 
-      // Deletion is modeled as "soft-delete"; when the deletionTimestamp is set,
-      // we don't show the document anymore in the list. However, it should be
-      // possible to recover the document by unsetting this field before
-      // the deletion grace period expires and the GC sweep does a permanent delete.
-      deletionTimestamp: ""
-    }).then(newDocRef => {
-      let delta = initialDelta();
-      newDocRef.collection('deltas')
-        .doc()
-        .set({
-          userID: this.props.user.ID,
-          ops: delta.ops,
-          timestamp: window.firebase.firestore.FieldValue.serverTimestamp()
-        });
-    });
-  }
+//const renameDocument = (id, newTitle) => {
+//  console.log("renameDocument");
+//  props.documentsRef.doc(id).set({
+//    title: newTitle
+//  }, {merge: true});
+//};
 
-  renameDocument(id, newTitle) {
-    this.documentsRef.doc(id).set({
-      title: newTitle
-    }, {merge: true});
-  }
+//const deleteDocument = (id) => {
+//  console.log("deleteDocument");
+//  // TODO(CD): Add periodic job to garbage-collect documents after some
+//  //           reasonable grace period.
+//  //
+//  // TODO(CD): Add some way to recover deleted documents that are still
+//  //           within the grace period.
+//  props.documentsRef.doc(id).update({
+//    deletedBy: props.user.email,
+//    deletionTimestamp: window.firebase.firestore.FieldValue.serverTimestamp()
+//  });
+//};
 
-  deleteDocument(id) {
-    // TODO(CD): Add periodic job to garbage-collect documents after some
-    //           reasonable grace period.
-    //
-    // TODO(CD): Add some way to recover deleted documents that are still
-    //           within the grace period.
-    this.documentsRef.doc(id).update({
-      deletionTimestamp: window.firebase.firestore.FieldValue.serverTimestamp()
-    });
-  }
+//let view = <></>;
 
-  render() {
-    let view = <></>;
-    if (this.state.documentID !== undefined) {
-      console.log(`this.state.documentID ${this.state.documentID}`)
-      view = <Document key={this.state.documentID} documentID={this.state.documentID} documentsRef={this.props.documentsRef} user={this.props.user} logoutCallback={this.props.logout} />;
-    }
+//console.log(`documentID ${documentID}`)
 
-    return <div className="navContainer">
-        <LeftNav active="documents" logoutCallback={this.props.logoutCallback}/>
-        <Container className="navBody">
-          <Row>
-            <Col md={4}>
-              <Row mb={10}>
-                <Col md={10}>
-                  <h3>Documents</h3>
-                </Col>
-                <Col md={2}>
-                  <Button className="addButton" onClick={this.createNewDocument}>+</Button>
-                </Col>
-              </Row>
-              <DocumentList documentID={this.state.documentID} documents={this.state.documents} deleteDocument={this.deleteDocument} renameDocument={this.renameDocument}/>
-            </Col>
-            <Col md={8}>
-            {view}
-            </Col>
-          </Row>
-        </Container>
-      </div>;
-  }
+//if (documentID !== undefined) {
+//  view = <Document key={documentID} documentID={documentID} documentsRef={props.documentsRef} user={props.user} />;
+//}
+
+//let documentList = <></>;
+//let documentList = <DocumentList
+//        documentID={documentID}
+//        documents={documents}
+//        deleteDocument={deleteDocument}
+//        renameDocument={renameDocument}/>
+
+//return <Container>
+//  <Row>
+//    <Col md={4}>
+//      <Row mb={10}>
+//        <Col md={10}>
+//          <h3>Documents</h3>
+//        </Col>
+//        <Col md={2}>
+//          <Button className="addButton" onClick={createNewDocument}>+</Button>
+//        </Col>
+//      </Row>
+//      {documentList}
+//    </Col>
+//    <Col md={8}>
+//    {view}
+//    </Col>
+//  </Row>
+//</Container>;
 }
 
 function DocumentList(props) {
-  console.log("Rerender cards..");
+  console.log("Rerender cards.");
   let navigate = useNavigate();
 
   const [edit, setEdit] = useState(undefined);
@@ -201,5 +190,3 @@ function DocumentList(props) {
 
   return <Row><Col>{documentRows}</Col></Row>;
 }
-
-export default Documents;

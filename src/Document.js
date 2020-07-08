@@ -301,7 +301,7 @@ export default class Document extends React.Component {
     this.localDelta = new Delta(this.localDelta.ops.slice(opsIndex));
 
     let deltaDoc = {
-      userID: this.props.user.ID,
+      userEmail: this.props.user.email,
       timestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
       ops: ops
     };
