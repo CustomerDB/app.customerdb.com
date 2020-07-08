@@ -8,6 +8,7 @@ import Button from 'react-bootstrap/Button';
 import Alert from 'react-bootstrap/Alert';
 
 import Documents from './Documents.js';
+import Admin from './Admin.js';
 // import Datasets from './Datasets.js'
 // import DatasetView from './DatasetView.js'
 import { Loading } from './Utils.js';
@@ -99,6 +100,7 @@ export default function SecuredContent(props) {
       <Route path="documents" element={<Documents documentsRef={documentsRef} user={user} logoutCallback={logout} />}>
         <Route path=":id" children={<Documents documentsRef={documentsRef} user={user} logoutCallback={logout} />} />
       </Route>
+      <Route path="admin" element={<Admin />} />
     </Route>      
   </Routes>;
 }
