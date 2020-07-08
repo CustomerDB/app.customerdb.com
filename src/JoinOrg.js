@@ -1,11 +1,8 @@
 import React from 'react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import Button from 'react-bootstrap/Button';
 import Alert from 'react-bootstrap/Alert';
-
-import { Loading } from './Utils.js';
-
 import { useParams, useNavigate } from "react-router-dom";
 
 
@@ -13,7 +10,6 @@ var provider = new window.firebase.auth.GoogleAuthProvider();
 var db = window.firebase.firestore();
 
 export default function JoinOrg(props) {
-    const [ user, setUser ] = useState(undefined);
     const [ inviteFailed, setInviteFailed ] = useState(false);
     const [ reason, setReason ] = useState(undefined);
 

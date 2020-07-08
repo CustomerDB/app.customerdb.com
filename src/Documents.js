@@ -150,7 +150,7 @@ function DocumentList(props) {
     let title = <p onClick={() => {
       navigate(`/document/${documentID}`);
     }} className="listCardTitle">{d.title}</p>;
-    if (edit == d.ID) {
+    if (edit === d.ID) {
       d.ref = React.createRef();
       title = <input type="text" onBlur={(e) => {
           props.renameDocument(d.ID, editValue);
@@ -166,7 +166,7 @@ function DocumentList(props) {
     let listCardClass = "listCard";
     let threedots = <ThreeDotsVertical/>;
 
-    if (props.documentID == documentID) {
+    if (props.documentID === documentID) {
       listCardClass = "listCardActive";
       threedots = <ThreeDotsVertical color="white"/>;
     }

@@ -31,9 +31,11 @@ export default function Login(props) {
                 let userToOrg = doc.data();
                 navigate(`/orgs/${userToOrg.orgID}`);
                 return <></>;
-            })
+            }).catch(e => {
+              console.error("failed to read userToOrg mapping", e);
+            });
         }
-    }, []);
+    }, [navigate, props.oauthUser]);
 
     let loginFailedMessage = (loginSuccess === false) ? <Alert variant="danger">Login failed</Alert> : <div></div>;
     return <div className="outerContainer"><div className="loginContainer">

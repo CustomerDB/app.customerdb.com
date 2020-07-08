@@ -18,7 +18,7 @@ service cloud.firestore {
                    && request.auth.token.email_verified == true
                    && request.auth.token.email == email
                    && get(/databases/$(database)/documents/organizations/$(request.resource.data.orgID)/members/$(request.auth.token.email)).data.active == true;
-    
+
       allow read: if request.auth != null
                   && request.auth.token.email_verified == true
                   && request.auth.token.email == email;
