@@ -21,6 +21,7 @@ export default function App() {
 
     useEffect(() => {
         const loginCallback = (user) => {
+            console.debug(user);
             setOauthUser(user);
             setOauthLoading(false);
         }

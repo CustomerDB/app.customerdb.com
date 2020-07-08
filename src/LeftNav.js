@@ -1,4 +1,6 @@
 import React from 'react';
+import { useEffect, useState } from 'react';
+
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
@@ -10,11 +12,12 @@ import { logout } from './Utils.js';
 
 export default function LeftNav(props) {
   const location = useLocation();
-  console.log(location);
+  const navigate = useNavigate();
+
+  let orgID;
+  let component = "";
 
   let pathParts = location.pathname.split("/");
-  let orgID;
-  let component = "home";
   if (pathParts.length > 2) {
     orgID = pathParts[2];
   }
@@ -24,14 +27,12 @@ export default function LeftNav(props) {
   }
 
   let buttonVariants = {
-    'home': 'link',
+    '': 'link',
     'people': 'link',
     'sources': 'link',
     'explore': 'link'
   };
   buttonVariants[component] = 'primary';
-
-  let navigate = useNavigate();
 
   return <div className="navLeft">
     <div>
@@ -42,7 +43,7 @@ export default function LeftNav(props) {
       <Button onClick={() => {
         navigate(`/orgs/${orgID}/`);
       }
-      } variant={buttonVariants['home']}><House/></Button>
+      } variant={buttonVariants['']}><House/></Button>
     </OverlayTrigger>
     </div>
     <div>
@@ -75,9 +76,6 @@ export default function LeftNav(props) {
           navigate(`/orgs/${orgID}/explore`);
         }} variant={buttonVariants['explore']}><Intersect/></Button>
       </OverlayTrigger>
-    </div>
-    <div>
-      <Button variant="link"><PieChart/></Button>
     </div>
     <div style={{flexGrow: "1", display: "flex", flexDirection: "column"}}>
       <OverlayTrigger
