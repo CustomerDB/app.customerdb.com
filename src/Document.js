@@ -3,7 +3,6 @@ import React from 'react';
 import ReactQuill from 'react-quill';
 import Delta from 'quill-delta';
 import 'react-quill/dist/quill.snow.css';
-import { withRouter } from 'react-router-dom';
 
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
@@ -67,7 +66,7 @@ function reduceDeltas(deltas) {
 // renders, it generates text formatting deltas on the fly to visually
 // communicate what text segments are associated with tags with background
 // colors.
-class Document extends React.Component {
+export default class Document extends React.Component {
   constructor(props) {
     super(props);
 
@@ -540,5 +539,3 @@ class Tags extends React.Component {
     </div>;
   }
 }
-
-export default Document;
