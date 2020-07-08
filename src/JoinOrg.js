@@ -6,7 +6,7 @@ import Alert from 'react-bootstrap/Alert';
 
 import { Loading } from './Utils.js';
 
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
 
 var provider = new window.firebase.auth.GoogleAuthProvider();
@@ -14,9 +14,11 @@ var db = window.firebase.firestore();
 
 export default function JoinOrg(props) {
     const [ phase, setPhase ] = useState('logging_in');
-    const [ user, setUser ] = userState(undefined);
+    const [ user, setUser ] = useState(undefined);
     const [ inviteFailed, setInviteFailed ] = useState(false);
     const [ reason, setReason ] = useState(undefined);
+
+    let navigate = useNavigate();
 
     // Get invite id.
     let { id } = useParams();
@@ -34,19 +36,21 @@ export default function JoinOrg(props) {
         const loginCallback = (user) => {
             if (!user) {
                 setPhase('login');
-                setInviteFailed(false);
-                setReason(undefined);
                 setUser(undefined);
                 return;
             }
 
             setUser(user);
+            setPhase('join');
         };
 
         window.firebase.auth().onAuthStateChanged(loginCallback);
-    }, [orgID]);
+    }, []);
 
     const join = () => {
+        setInviteFailed(false);
+        setReason(undefined);
+
         // Get invite object.
         db.collection("orgs").doc(orgID).collection("members").doc(user.email).set({
             invited: false,
@@ -54,35 +58,50 @@ export default function JoinOrg(props) {
             timestamp: window.firebase.firestore.FieldValue.serverTimestamp()
         }).then(() => {
             // Success
-            console.log(`Success. Added ${user.email} to organization`);
+            navigate(`/orgs/${orgID}`);
         }).catch(() => {
             //failed
-            setPhase('login');
+            setPhase('join');
             setReason("Couldn't add you to the organization. Please reach out to your administrator and verify your email has been added.");
             setInviteFailed(true);
             return;
         });
     }
 
+    const logout = () => {
+        window.firebase.auth().signOut().catch(function(error) {
+            console.error(error);
+        });
+    };
+
     if (phase === 'logging_in') {
         return Loading();
     }
 
     if (phase === 'login') {
+        return <div className="outerContainer">
+            <div className="loginContainer">
+                <h2>CustomerDB</h2>
+                <p>Log in to join organization</p>
+                <br/>
+                <Button onClick={login}>Login with Google</Button>
+            </div>
+        </div>;
+    }
+
+    if (phase === 'join') {
         let inviteFailedMessage;
         if (inviteFailed) {
             inviteFailedMessage = <Alert variant="danger">{reason}</Alert>;
         };
 
-        let loginForm = <>
-            <p>Log in to activate invite</p>
-            <br/>
-            <Button onClick={login}>Login with Google</Button></>;
-
         return <div className="outerContainer">
             <div className="loginContainer">
-                <h2>CustomerDB</h2>
-                { inviteFailed ? inviteFailedMessage : loginForm}
+            <h2>CustomerDB</h2>
+            { inviteFailed ? inviteFailedMessage :
+                <><p>Join organization with email {user.email} <Button onClick={logout} variant="link">Logout</Button></p>
+                <br/>
+                <Button onClick={join}>Join</Button></>}
             </div>
         </div>;
     }

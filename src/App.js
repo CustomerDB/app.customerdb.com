@@ -8,7 +8,7 @@ import {
 } from "react-router-dom";
 
 import SecuredContent from './SecuredContent.js';
-import ActivateInvite from './JoinOrg.js';
+import JoinOrg from './JoinOrg.js';
 import Error404 from './404.js';
 
 export default function App() {
@@ -18,7 +18,7 @@ export default function App() {
             <Route path="/404">
                 <Error404/>
             </Route>
-            <Route path="org">
+            <Route path="orgs">
                 <Route path=":id/*" element={<SecuredContent />} />
             </Route>
             <Navigate to="/404" />
