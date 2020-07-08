@@ -52,11 +52,11 @@ export default function JoinOrg(props) {
         setReason(undefined);
 
         // Get invite object.
-        db.collection("orgs").doc(orgID).collection("members").doc(user.email).set({
+        db.collection("organizations").doc(orgID).collection("members").doc(user.email).set({
             invited: false,
             active: true,
-            timestamp: window.firebase.firestore.FieldValue.serverTimestamp()
-        }).then(() => {
+            joinedTimestamp: window.firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true }).then(() => {
             // Success
             navigate(`/orgs/${orgID}`);
         }).catch(() => {
