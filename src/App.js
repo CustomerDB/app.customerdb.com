@@ -2,7 +2,6 @@ import React from 'react';
 
 import {
     BrowserRouter as Router,
-    Switch,
     Route,
     Routes,
     Navigate
@@ -13,8 +12,6 @@ import ActivateInvite from './ActivateInvite.js';
 import Error404 from './404.js';
 
 export default function App() {
-    console.log("App is rendering");
-
     return <Router>
         <Routes>
             <Route path="/activate/:id" element={<ActivateInvite />} />
