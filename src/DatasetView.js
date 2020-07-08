@@ -10,7 +10,7 @@ import Nav from 'react-bootstrap/Nav';
 
 
 import {
-  withRouter
+  useParams
 } from "react-router-dom";
 
 var db = window.firebase.firestore();
@@ -19,7 +19,8 @@ class DatasetView extends React.Component {
   constructor(props) {
     super(props);
 
-    this.datasetID = this.props.match.params.id;
+    let { id } = useParams();
+    this.datasetID = id;
 
     this.dataset = db.collection('datasets').doc(this.datasetID);
 
@@ -74,4 +75,4 @@ class DatasetView extends React.Component {
   }
 }
 
-export default withRouter(DatasetView);
+export default DatasetView;

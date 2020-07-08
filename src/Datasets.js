@@ -53,7 +53,7 @@ export default class Datasets extends React.Component {
   handleFileUploadSubmit(e) {
     this.datasetsRef.add({
       name: this.state.selectedFile.name,
-      owners: [this.user.uid]
+      owners: [this.user.ID]
     }).then((function(ref) {
       let id = ref.id
       let storagePath = `csvs/${id}`;

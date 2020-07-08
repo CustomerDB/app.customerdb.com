@@ -8,6 +8,7 @@
     "@testing-library/user-event": "^7.1.2",
     "bootstrap": "^4.5.0",
     "firebase": "^7.14.6",
+    "history": "^5.0.0",
     "quill-delta": "^4.2.2",
     "rbush": "^3.0.1",
     "rcolor": "^2.0.2",
@@ -19,7 +20,7 @@
     "react-draggable": "^4.4.3",
     "react-hotkeys": "^2.0.0",
     "react-quill": "^1.3.5",
-    "react-router-dom": "^5.2.0",
+    "react-router-dom": "^6.0.0-beta.0",
     "react-scripts": "3.4.1",
     "uuid": "^8.1.0",
     "uuidv4": "^6.1.1"

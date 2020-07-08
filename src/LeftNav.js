@@ -4,7 +4,7 @@ import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
 import { DoorOpen, PieChart, People, ChatLeftQuote, GearWide, Intersect } from 'react-bootstrap-icons';
 
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export default function LeftNav(props) {
   let buttonVariants = {
@@ -14,7 +14,7 @@ export default function LeftNav(props) {
   };
   buttonVariants[props.active] = 'primary';
 
-  let history = useHistory();
+  let navigate = useNavigate();
 
   return <div className="navLeft">
     <div>
@@ -23,7 +23,7 @@ export default function LeftNav(props) {
       overlay={<Tooltip>Customers</Tooltip>}
     >
       <Button onClick={() => {
-        history.push("/people");
+        navigate("/people");
       }
       } variant={buttonVariants['people']}><People/></Button>
     </OverlayTrigger>
@@ -34,7 +34,7 @@ export default function LeftNav(props) {
         overlay={<Tooltip>Documents</Tooltip>}
       >
         <Button onClick={() => {
-          history.push("/documents");
+          navigate("/documents");
         }} variant={buttonVariants['documents']}><ChatLeftQuote/></Button>
       </OverlayTrigger>
     </div>
@@ -44,7 +44,7 @@ export default function LeftNav(props) {
         overlay={<Tooltip>Patterns</Tooltip>}
       >
         <Button onClick={() => {
-          history.push("/");
+          navigate("/");
         }} variant={buttonVariants['datasets']}><Intersect/></Button>
       </OverlayTrigger>
     </div>

@@ -9,7 +9,7 @@ import Delta from 'quill-delta';
 import LeftNav from './LeftNav.js';
 import Document from './Document.js';
 
-import { useHistory, withRouter } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 import { ThreeDotsVertical } from 'react-bootstrap-icons';
 
@@ -35,7 +35,7 @@ class Documents extends React.Component {
 
   componentDidMount() {
     this.documentsRef
-      .where("owners", "array-contains", this.props.user.uid)
+      .where("owners", "array-contains", this.props.user.ID)
       .where("deletionTimestamp", "==", "")
       .onSnapshot((snapshot) => {
         let docs = [];
@@ -51,7 +51,8 @@ class Documents extends React.Component {
         })
     });
 
-    let documentID = this.props.match.params.id;
+    let { id } = useParams();
+    let documentID = id;
     this.setState({
       documentID: documentID
     });
@@ -68,7 +69,7 @@ class Documents extends React.Component {
     console.log("documentsRef", this.documentsRef);
     this.documentsRef.add({
       title: "Untitled Document",
-      owners: [this.props.user.uid],
+      owners: [this.props.user.ID],
       creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
 
       // Deletion is modeled as "soft-delete"; when the deletionTimestamp is set,
@@ -81,7 +82,7 @@ class Documents extends React.Component {
       newDocRef.collection('deltas')
         .doc()
         .set({
-          userID: this.props.user.uid,
+          userID: this.props.user.ID,
           ops: delta.ops,
           timestamp: window.firebase.firestore.FieldValue.serverTimestamp()
         });
@@ -138,14 +139,14 @@ class Documents extends React.Component {
 
 function DocumentList(props) {
   console.log("Rerender cards..");
-  let history = useHistory();
+  let navigate = useNavigate();
 
   const [edit, setEdit] = useState(undefined);
   const [editValue, setEditValue] = useState("");
 
   let documentRows = props.documents.map((d) => {
     let title = <p onClick={() => {
-      history.push(`/document/${documentID}`);
+      navigate(`/document/${documentID}`);
     }} className="listCardTitle">{d.title}</p>;
     if (edit == d.ID) {
       d.ref = React.createRef();
@@ -199,4 +200,4 @@ function DocumentList(props) {
   return <Row><Col>{documentRows}</Col></Row>;
 }
 
-export default withRouter(Documents);
+export default Documents;

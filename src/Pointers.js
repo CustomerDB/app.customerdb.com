@@ -34,7 +34,7 @@ class Pointers extends React.Component {
                 return
             }
 
-            let uid = this.props.user.uid
+            let uid = this.props.user.ID;
             this.props.activeUsersRef.doc(uid).set({
                 userId: uid,
                 x: this.state.mouseX,
@@ -73,8 +73,8 @@ class Pointers extends React.Component {
             });
         };
 
-        this.props.activeUsersRef.where('userId', '>', this.props.user.uid).onSnapshot(pointerHandler);
-        this.props.activeUsersRef.where('userId', '<', this.props.user.uid).onSnapshot(pointerHandler);
+        this.props.activeUsersRef.where('userId', '>', this.props.user.ID).onSnapshot(pointerHandler);
+        this.props.activeUsersRef.where('userId', '<', this.props.user.ID).onSnapshot(pointerHandler);
     }
 
     render() {
