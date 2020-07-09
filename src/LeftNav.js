@@ -5,13 +5,15 @@ import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
 import { DoorOpen, People, ChatLeftQuote, GearWide, Intersect, House } from 'react-bootstrap-icons';
 
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 
 import { logout } from './Utils.js';
 
 export default function LeftNav(props) {
   const location = useLocation();
   const navigate = useNavigate();
+  const params = useParams();
+  console.log("params", params);
 
   let orgID;
   let component = "";

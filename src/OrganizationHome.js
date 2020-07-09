@@ -13,7 +13,7 @@ export default function OrganizationHome(props) {
     });
 
     return unsubscribe;
-  }, [orgName]);
+  }, []);
 
   return <div>
     <h1>{orgName}</h1>

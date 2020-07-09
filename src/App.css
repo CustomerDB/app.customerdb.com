@@ -24,10 +24,14 @@ div.navContainer {
 
 div.navBody {
     display: flex;
+    padding: 2rem;
+    width: 100%;
+}
+
+div.noMargin {
     width: 100%!important;
     max-width: 100%!important;
     margin: 0!important;
-    padding: 2rem;
 }
 
 div.navBody > .row {

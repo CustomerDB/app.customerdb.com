@@ -8,7 +8,6 @@ import Col from 'react-bootstrap/Col';
 
 import Delta from 'quill-delta';
 
-import LeftNav from './LeftNav.js';
 import Document from './Document.js';
 
 import { useNavigate, useParams } from "react-router-dom";
@@ -21,115 +20,127 @@ function initialDelta() {
 
 export default function Documents(props) {
   console.log("render documents");
+  const [ documentID, setDocumentID ] = useState(undefined);
 
-  // let { docID } = useParams();
+  let params = useParams();
+  let navigate = useNavigate();
 
-  // const [documentID, setDocumentID] = useState(docID);
-  // const [documents, setDocuments] = useState([]);
+  const [documents, setDocuments] = useState([]);
 
-  return <p>One hand clapping.</p>;
+  useEffect(() => {
+    console.log('useEffect', props);
+    let unsubscribe = props.documentsRef
+      .where("deletionTimestamp", "==", "")
+      .onSnapshot((snapshot) => {
+        console.log("documents snapshot received");
 
-//useEffect(() => {
-//  console.log('useEffect', props);
-//  let unsubscribe = props.documentsRef
-//    .where("deletionTimestamp", "==", "")
-//    .onSnapshot((snapshot) => {
-//      console.log("documents snapshot received");
+        let newDocuments = [];
 
-//      let newDocuments = [];
+        snapshot.forEach((doc) => {
+          let data = doc.data();
+          data['ID'] = doc.id;
+          newDocuments.push(data);
+        });
 
-//      snapshot.forEach((doc) => {
-//        let data = doc.data();
-//        data['ID'] = doc.id;
-//        newDocuments.push(data);
-//      });
+        setDocuments(newDocuments);
+      });
+    return unsubscribe;
+  }, []);
 
-//      setDocuments(newDocuments);
-//  });
-//  return unsubscribe;
-//}, [documents]);
+  useEffect(() => {
+    const rest = params['*'];
+    const restParts = rest.split('/');
 
-//const createNewDocument = () => {
-//  console.log("createNewDocument");
-//  props.documentsRef.add({
-//    title: "Untitled Document",
-//    createdBy: props.user.email,
-//    creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+    if (restParts.length == 2) {
+      setDocumentID(restParts[1]);
+    } else {
+      setDocumentID(undefined);
+    }
+  }, [params]);
 
-//    // Deletion is modeled as "soft-delete"; when the deletionTimestamp is set,
-//    // we don't show the document anymore in the list. However, it should be
-//    // possible to recover the document by unsetting this field before
-//    // the deletion grace period expires and the GC sweep does a permanent delete.
-//    deletionTimestamp: ""
-//  }).then(newDocRef => {
-//    let delta = initialDelta();
-//    newDocRef.collection('deltas')
-//      .doc()
-//      .set({
-//        userEmail: props.user.email,
-//        ops: delta.ops,
-//        timestamp: window.firebase.firestore.FieldValue.serverTimestamp()
-//      });
-//  });
-//};
+  const createNewDocument = () => {
+    console.log("createNewDocument", props.user);
+    props.documentsRef.add({
+      title: "Untitled Document",
+      createdBy: props.user.email,
+      creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
 
-//const renameDocument = (id, newTitle) => {
-//  console.log("renameDocument");
-//  props.documentsRef.doc(id).set({
-//    title: newTitle
-//  }, {merge: true});
-//};
+      // Deletion is modeled as "soft-delete"; when the deletionTimestamp is set,
+      // we don't show the document anymore in the list. However, it should be
+      // possible to recover the document by unsetting this field before
+      // the deletion grace period expires and the GC sweep does a permanent delete.
+      deletionTimestamp: ""
+    }).then(newDocRef => {
+      let delta = initialDelta();
+      newDocRef.collection('deltas')
+        .doc()
+        .set({
+          userEmail: props.user.email,
+          ops: delta.ops,
+          timestamp: window.firebase.firestore.FieldValue.serverTimestamp()
+        });
+    });
+  };
 
-//const deleteDocument = (id) => {
-//  console.log("deleteDocument");
-//  // TODO(CD): Add periodic job to garbage-collect documents after some
-//  //           reasonable grace period.
-//  //
-//  // TODO(CD): Add some way to recover deleted documents that are still
-//  //           within the grace period.
-//  props.documentsRef.doc(id).update({
-//    deletedBy: props.user.email,
-//    deletionTimestamp: window.firebase.firestore.FieldValue.serverTimestamp()
-//  });
-//};
+  const renameDocument = (id, newTitle) => {
+    console.log("renameDocument");
+    props.documentsRef.doc(id).set({
+      title: newTitle
+    }, { merge: true });
+  };
 
-//let view = <></>;
+  const deleteDocument = (id) => {
+    console.log("deleteDocument");
+    // TODO(CD): Add periodic job to garbage-collect documents after some
+    //           reasonable grace period.
+    //
+    // TODO(CD): Add some way to recover deleted documents that are still
+    //           within the grace period.
+    props.documentsRef.doc(id).update({
+      deletedBy: props.user.email,
+      deletionTimestamp: window.firebase.firestore.FieldValue.serverTimestamp()
+    });
 
-//console.log(`documentID ${documentID}`)
+    // Remove focus from document selected.
+    if (documentID == id) {
+      navigate("..");
+    }
+  };
 
-//if (documentID !== undefined) {
-//  view = <Document key={documentID} documentID={documentID} documentsRef={props.documentsRef} user={props.user} />;
-//}
+  let view = <></>;
+  if (documentID !== undefined) {
+    view = <Document key={documentID} documentID={documentID} documentsRef={props.documentsRef} user={props.user} />;
+  }
 
-//let documentList = <></>;
-//let documentList = <DocumentList
-//        documentID={documentID}
-//        documents={documents}
-//        deleteDocument={deleteDocument}
-//        renameDocument={renameDocument}/>
+  let documentList = <DocumentList
+    documentID={documentID}
+    documents={documents}
+    deleteDocument={deleteDocument}
+    renameDocument={renameDocument}
+    orgID={props.orgID} />;
 
-//return <Container>
-//  <Row>
-//    <Col md={4}>
-//      <Row mb={10}>
-//        <Col md={10}>
-//          <h3>Documents</h3>
-//        </Col>
-//        <Col md={2}>
-//          <Button className="addButton" onClick={createNewDocument}>+</Button>
-//        </Col>
-//      </Row>
-//      {documentList}
-//    </Col>
-//    <Col md={8}>
-//    {view}
-//    </Col>
-//  </Row>
-//</Container>;
+  return <Container className="noMargin">
+    <Row>
+      <Col md={4}>
+        <Row mb={10}>
+          <Col md={10}>
+            <h3>Documents</h3>
+          </Col>
+          <Col md={2}>
+            <Button className="addButton" onClick={createNewDocument}>+</Button>
+          </Col>
+        </Row>
+        {documentList}
+      </Col>
+      <Col md={8}>
+        {view}
+      </Col>
+    </Row>
+  </Container>;
 }
 
 function DocumentList(props) {
-  console.log("Rerender cards.");
+  console.log("DocumentList", props);
   let navigate = useNavigate();
 
   const [edit, setEdit] = useState(undefined);
@@ -137,31 +148,31 @@ function DocumentList(props) {
 
   let documentRows = props.documents.map((d) => {
     let title = <p onClick={() => {
-      navigate(`/document/${documentID}`);
+      navigate(`/orgs/${props.orgID}/sources/${documentID}`);
     }} className="listCardTitle">{d.title}</p>;
     if (edit === d.ID) {
       d.ref = React.createRef();
       title = <input type="text" onBlur={(e) => {
-          props.renameDocument(d.ID, editValue);
-          setEdit(undefined);
-          setEditValue("");
-        }} onChange={(e) => {
-          setEditValue(e.target.value);
-        }}
-        defaultValue={d.title}/>;
+        props.renameDocument(d.ID, editValue);
+        setEdit(undefined);
+        setEditValue("");
+      }} onChange={(e) => {
+        setEditValue(e.target.value);
+      }}
+        defaultValue={d.title} />;
     }
 
     let documentID = d.ID;
     let listCardClass = "listCard";
-    let threedots = <ThreeDotsVertical/>;
+    let threedots = <ThreeDotsVertical />;
 
     if (props.documentID === documentID) {
       listCardClass = "listCardActive";
-      threedots = <ThreeDotsVertical color="white"/>;
+      threedots = <ThreeDotsVertical color="white" />;
     }
 
     return <Row key={documentID}>
-        <Col>
+      <Col>
         <Container className={listCardClass}>
           <Row>
             <Col className="listTitleContainer" md={10}>
@@ -178,14 +189,14 @@ function DocumentList(props) {
                     setEdit(documentID);
                     setEditValue(d.title);
                   }}>Rename</Dropdown.Item>
-                  <Dropdown.Item onClick={() => {props.deleteDocument(documentID)}}>Delete</Dropdown.Item>
+                  <Dropdown.Item onClick={() => { props.deleteDocument(documentID) }}>Delete</Dropdown.Item>
                 </Dropdown.Menu>
               </Dropdown>
             </Col>
           </Row>
-          </Container>
-          </Col>
-        </Row>;
+        </Container>
+      </Col>
+    </Row>;
   });
 
   return <Row><Col>{documentRows}</Col></Row>;

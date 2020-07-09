@@ -42,6 +42,7 @@ export default function JoinOrg(props) {
 
         // Get invite object.
         db.collection("organizations").doc(orgID).collection("members").doc(user.email).set({
+            email: user.email,
             displayName: user.displayName,
             photoURL: user.photoURL,
             invited: false,

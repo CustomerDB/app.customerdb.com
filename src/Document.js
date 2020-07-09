@@ -107,6 +107,8 @@ export default class Document extends React.Component {
 
     this.state = {
       title: "",
+      deletionTimestamp: "",
+      deletedBy: '',
       content: "",
       highlights: {},
       delta: this.latestSnapshot.delta,
@@ -124,8 +126,11 @@ export default class Document extends React.Component {
     // Subscribe to document title changes
     this.subscriptions.push(this.documentRef.onSnapshot((doc) => {
       let data = doc.data();
+      console.debug("data", data);
       this.setState({
-        title: data.title
+        title: data.title,
+        deletionTimestamp: data.deletionTimestamp,
+        deletedBy: data.deletedBy
       });
     }));
 
@@ -380,6 +385,23 @@ export default class Document extends React.Component {
 
   render() {
     let content = this.state.delta;
+
+    if (this.state.deletionTimestamp != "") {
+      let date = this.state.deletionTimestamp.toDate();
+
+      return <Container>
+      <Row>
+        <Col>
+          <h3>{this.state.title}</h3>
+        </Col>
+      </Row>
+      <Row>
+        <Col>
+          <p>This document was deleted at {date.toString()} by {this.state.deletedBy}</p>
+        </Col>
+      </Row>
+      </Container>;
+    }
 
     // Clear pre-existing highlight styles. Some existing
     // formatting may correspond to a highlight that was
