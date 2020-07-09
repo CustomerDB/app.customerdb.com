@@ -76,16 +76,10 @@ export default function Organization(props) {
     <div className="navBody">
       <Routes>
         <Route path="/" element={ <OrganizationHome orgID={orgID} user={user} orgRef={orgRef} />} />
-<<<<<<< HEAD
-        <Route path="sources">
-          <Route path="/"  element={ <Sources orgID={orgID} documentsRef={documentsRef} user={user} /> } />
-          <Route path=":documentID" element={ <Sources orgID={orgID} documentsRef={documentsRef} user={user} />} />
-=======
 
         <Route path="sources/*">
-          <Route path="/" element={ <Documents orgID={orgID} documentsRef={documentsRef} user={user} /> } />
-          <Route path=":docID" element={ <Documents orgID={orgID} documentsRef={documentsRef} user={user} />} />
->>>>>>> 4e6d2806beaf1dd0adf3d02dc4b741aea3595a5d
+          <Route path="/" element={ <Sources orgID={orgID} documentsRef={documentsRef} user={user} /> } />
+          <Route path=":docID" element={ <Sources orgID={orgID} documentsRef={documentsRef} user={user} />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/404" />} />

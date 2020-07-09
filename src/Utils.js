@@ -12,6 +12,5 @@ export function Loading() {
 }
 
 export function logout() {
-    window.firebase.auth().signOut();
-    window.location.assign("/");
+    return window.firebase.auth().signOut();
 }
