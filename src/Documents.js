@@ -1,203 +1,263 @@
-import React, { useState, useEffect } from 'react';
+  import React, { useState, useEffect } from 'react';
 
-import Button from 'react-bootstrap/Button';
-import Dropdown from 'react-bootstrap/Dropdown';
-import Container from 'react-bootstrap/Container';
-import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
+  import Button from 'react-bootstrap/Button';
+  import Dropdown from 'react-bootstrap/Dropdown';
+  import Container from 'react-bootstrap/Container';
+  import Row from 'react-bootstrap/Row';
+  import Col from 'react-bootstrap/Col';
+  import Modal from 'react-bootstrap/Modal';
+  import Form from 'react-bootstrap/Form';
 
-import Delta from 'quill-delta';
+  import 'react-virtualized/styles.css'; 
+  import {AutoSizer, List} from 'react-virtualized';
 
-import Document from './Document.js';
+  import Delta from 'quill-delta';
 
-import { useNavigate, useParams } from "react-router-dom";
+  import Document from './Document.js';
 
-import { ThreeDotsVertical } from 'react-bootstrap-icons';
+  import { useNavigate, useParams } from "react-router-dom";
 
-function initialDelta() {
-  return new Delta([{ insert: "" }]);
-}
+  import { ThreeDotsVertical } from 'react-bootstrap-icons';
 
-export default function Documents(props) {
-  console.log("render documents");
-  const [ documentID, setDocumentID ] = useState(undefined);
-
-  let params = useParams();
-  let navigate = useNavigate();
-
-  const [documents, setDocuments] = useState([]);
-
-  useEffect(() => {
-    console.log('useEffect', props);
-    let unsubscribe = props.documentsRef
-      .where("deletionTimestamp", "==", "")
-      .onSnapshot((snapshot) => {
-        console.log("documents snapshot received");
-
-        let newDocuments = [];
-
-        snapshot.forEach((doc) => {
-          let data = doc.data();
-          data['ID'] = doc.id;
-          newDocuments.push(data);
-        });
-
-        setDocuments(newDocuments);
-      });
-    return unsubscribe;
-  }, []);
-
-  useEffect(() => {
-    const rest = params['*'];
-    const restParts = rest.split('/');
-
-    if (restParts.length == 2) {
-      setDocumentID(restParts[1]);
-    } else {
-      setDocumentID(undefined);
-    }
-  }, [params]);
-
-  const createNewDocument = () => {
-    console.log("createNewDocument", props.user);
-    props.documentsRef.add({
-      title: "Untitled Document",
-      createdBy: props.user.email,
-      creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
-
-      // Deletion is modeled as "soft-delete"; when the deletionTimestamp is set,
-      // we don't show the document anymore in the list. However, it should be
-      // possible to recover the document by unsetting this field before
-      // the deletion grace period expires and the GC sweep does a permanent delete.
-      deletionTimestamp: ""
-    }).then(newDocRef => {
-      let delta = initialDelta();
-      newDocRef.collection('deltas')
-        .doc()
-        .set({
-          userEmail: props.user.email,
-          ops: delta.ops,
-          timestamp: window.firebase.firestore.FieldValue.serverTimestamp()
-        });
-    });
-  };
-
-  const renameDocument = (id, newTitle) => {
-    console.log("renameDocument");
-    props.documentsRef.doc(id).set({
-      title: newTitle
-    }, { merge: true });
-  };
-
-  const deleteDocument = (id) => {
-    console.log("deleteDocument");
-    // TODO(CD): Add periodic job to garbage-collect documents after some
-    //           reasonable grace period.
-    //
-    // TODO(CD): Add some way to recover deleted documents that are still
-    //           within the grace period.
-    props.documentsRef.doc(id).update({
-      deletedBy: props.user.email,
-      deletionTimestamp: window.firebase.firestore.FieldValue.serverTimestamp()
-    });
-
-    // Remove focus from document selected.
-    if (documentID == id) {
-      navigate("..");
-    }
-  };
-
-  let view = <></>;
-  if (documentID !== undefined) {
-    view = <Document key={documentID} documentID={documentID} documentsRef={props.documentsRef} user={props.user} />;
+  function initialDelta() {
+    return new Delta([{ insert: "" }]);
   }
 
-  let documentList = <DocumentList
-    documentID={documentID}
-    documents={documents}
-    deleteDocument={deleteDocument}
-    renameDocument={renameDocument}
-    orgID={props.orgID} />;
+  export default function Documents(props) {
+    const [ documentID, setDocumentID ] = useState(undefined);
 
-  return <Container className="noMargin">
-    <Row>
-      <Col md={4}>
-        <Row mb={10}>
-          <Col md={10}>
-            <h3>Documents</h3>
-          </Col>
-          <Col md={2}>
-            <Button className="addButton" onClick={createNewDocument}>+</Button>
-          </Col>
-        </Row>
-        {documentList}
-      </Col>
-      <Col md={8}>
-        {view}
-      </Col>
-    </Row>
-  </Container>;
-}
+    let params = useParams();
+    let navigate = useNavigate();
 
-function DocumentList(props) {
-  console.log("DocumentList", props);
-  let navigate = useNavigate();
+    const [documents, setDocuments] = useState([]);
 
-  const [edit, setEdit] = useState(undefined);
-  const [editValue, setEditValue] = useState("");
+    useEffect(() => {
+      console.log('useEffect', props);
+      let unsubscribe = props.documentsRef
+        .where("deletionTimestamp", "==", "")
+        .orderBy("creationTimestamp", "desc")
+        .onSnapshot((snapshot) => {
+          console.log("documents snapshot received");
 
-  let documentRows = props.documents.map((d) => {
-    let title = <p onClick={() => {
-      navigate(`/orgs/${props.orgID}/sources/${documentID}`);
-    }} className="listCardTitle">{d.title}</p>;
-    if (edit === d.ID) {
-      d.ref = React.createRef();
-      title = <input type="text" onBlur={(e) => {
-        props.renameDocument(d.ID, editValue);
-        setEdit(undefined);
-        setEditValue("");
-      }} onChange={(e) => {
-        setEditValue(e.target.value);
-      }}
-        defaultValue={d.title} />;
+          let newDocuments = [];
+
+          snapshot.forEach((doc) => {
+            let data = doc.data();
+            data['ID'] = doc.id;
+            newDocuments.push(data);
+          });
+
+          setDocuments(newDocuments);
+        });
+      return unsubscribe;
+    }, []);
+
+    useEffect(() => {
+      const rest = params['*'];
+      const restParts = rest.split('/');
+
+      if (restParts.length == 2) {
+        setDocumentID(restParts[1]);
+      } else {
+        setDocumentID(undefined);
+      }
+    }, [params]);
+
+    const createNewDocument = () => {
+      console.log("createNewDocument", props.user);
+      props.documentsRef.add({
+        title: "Untitled Document",
+        createdBy: props.user.email,
+        creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+
+        // Deletion is modeled as "soft-delete"; when the deletionTimestamp is set,
+        // we don't show the document anymore in the list. However, it should be
+        // possible to recover the document by unsetting this field before
+        // the deletion grace period expires and the GC sweep does a permanent delete.
+        deletionTimestamp: ""
+      }).then(newDocRef => {
+        let delta = initialDelta();
+        newDocRef.collection('deltas')
+          .doc()
+          .set({
+            userEmail: props.user.email,
+            ops: delta.ops,
+            timestamp: window.firebase.firestore.FieldValue.serverTimestamp()
+          });
+      });
+    };
+
+    const renameDocument = (id, newTitle) => {
+      console.log("renameDocument");
+      props.documentsRef.doc(id).set({
+        title: newTitle
+      }, { merge: true });
+    };
+
+    const deleteDocument = (id) => {
+      console.log("deleteDocument");
+      // TODO(CD): Add periodic job to garbage-collect documents after some
+      //           reasonable grace period.
+      //
+      // TODO(CD): Add some way to recover deleted documents that are still
+      //           within the grace period.
+      props.documentsRef.doc(id).update({
+        deletedBy: props.user.email,
+        deletionTimestamp: window.firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      // Remove focus from document selected.
+      if (documentID == id) {
+        navigate("..");
+      }
+    };
+
+    let view = <></>;
+    if (documentID !== undefined) {
+      view = <Document key={documentID} documentID={documentID} documentsRef={props.documentsRef} user={props.user} />;
     }
 
-    let documentID = d.ID;
-    let listCardClass = "listCard";
-    let threedots = <ThreeDotsVertical />;
+  
+    // Modals
+    const [editID, setEditID] = useState(undefined);
+    const [editValue, setEditValue] = useState("");
+    const [showEditModal, setShowEditModal] = useState(false);
 
-    if (props.documentID === documentID) {
-      listCardClass = "listCardActive";
-      threedots = <ThreeDotsVertical color="white" />;
+    const [deleteID, setDeleteID] = useState(undefined);
+    const [deleteTitle, setDeleteTitle] = useState("")
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+    const cardRenderer = ({key, index, style}) => {
+      let d = documents[index];
+
+      const linkToDocument = () => {
+        navigate(`/orgs/${props.orgID}/sources/${d.ID}`);
+      };
+
+      let title = <p className="listCardTitle" onClick={linkToDocument}>{d.title}</p>;
+ 
+      let listCardClass = "listCard";
+      let threedots = <ThreeDotsVertical />;
+
+      if (documentID === d.ID) {
+        listCardClass = "listCardActive";
+        threedots = <ThreeDotsVertical color="white" />;
+      }
+
+      return <Row key={d.ID} style={style}>
+        <Col>
+          <Container className={listCardClass}>
+            <Row>
+              <Col className="listTitleContainer align-self-center" md={8}>
+                {title}
+              </Col>
+              <Col md={4}>
+                <Dropdown style={{width: "2.5rem", marginLeft: "auto"}}>
+                  <Dropdown.Toggle variant="link" className="threedots">
+                    {threedots}
+                  </Dropdown.Toggle>
+
+                  <Dropdown.Menu>
+                    <Dropdown.Item onClick={() => {
+                      setEditID(d.ID);
+                      setEditValue(d.title);
+                      setShowEditModal(true);
+                    }}>Rename</Dropdown.Item>
+                    <Dropdown.Item onClick={() => {
+                      setDeleteID(d.ID);
+                      setDeleteTitle(d.title);
+                      setShowDeleteModal(true);
+                    }}>Delete</Dropdown.Item>
+                  </Dropdown.Menu>
+                </Dropdown>
+              </Col>
+            </Row>
+            <Row>
+              <Col>
+                <p onClick={linkToDocument}></p>
+              </Col>
+            </Row>
+          </Container>
+        </Col>
+      </Row>;
+    };
+
+    const editSubmit = () => {
+      renameDocument(editID, editValue);
+      setEditID(undefined);
+      setEditValue("");
+      setShowEditModal(false);
     }
 
-    return <Row key={documentID}>
-      <Col>
-        <Container className={listCardClass}>
-          <Row>
-            <Col className="listTitleContainer" md={10}>
-              {title}
+    return <Container className="noMargin">
+      <Row className="h-100">
+        <Col md={4} className="d-flex flex-column h-100">
+          <Row style={{paddingBottom: "2rem"}}>
+            <Col md={10} className="my-auto">
+              <h3 style={{margin: 0}}>Documents</h3>
             </Col>
             <Col md={2}>
-              <Dropdown>
-                <Dropdown.Toggle variant="link" className="threedots">
-                  {threedots}
-                </Dropdown.Toggle>
-
-                <Dropdown.Menu>
-                  <Dropdown.Item onClick={() => {
-                    setEdit(documentID);
-                    setEditValue(d.title);
-                  }}>Rename</Dropdown.Item>
-                  <Dropdown.Item onClick={() => { props.deleteDocument(documentID) }}>Delete</Dropdown.Item>
-                </Dropdown.Menu>
-              </Dropdown>
+              <Button className="addButton" onClick={createNewDocument}>+</Button>
             </Col>
           </Row>
-        </Container>
-      </Col>
-    </Row>;
-  });
+          <Row className="flex-grow-1">
+            <Col>
+            <AutoSizer>
+            {({height, width}) => (
+              <List
+                height={height}
+                rowCount={documents.length}
+                rowHeight={window.getEmPixels() * 6}
+                rowRenderer={cardRenderer}
+                width={width}
+              />
+            )}
+            </AutoSizer>
+            </Col>
+          </Row>
 
-  return <Row><Col>{documentRows}</Col></Row>;
-}
+          <Modal show={showEditModal} onHide={() => {setShowEditModal(false)}} centered>
+            <Modal.Header closeButton>
+              <Modal.Title>Rename source</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              <Form.Control type="text" defaultValue={editValue} onChange={(e) => {
+                setEditValue(e.target.value);
+              }} onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    editSubmit();
+                  }
+              }}/>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button variant="primary" onClick={editSubmit}>
+                Rename
+              </Button>
+            </Modal.Footer>
+          </Modal>
+
+          <Modal show={showDeleteModal} onHide={() => {setShowDeleteModal(false)}} centered>
+            <Modal.Header closeButton>
+              <Modal.Title>Delete source</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              Are you sure you want to delete {deleteTitle}?
+            </Modal.Body>
+            <Modal.Footer>
+              <Button variant="danger" onClick={() => {
+                deleteDocument(deleteID);
+                setDeleteID(undefined);
+                setDeleteTitle("");
+                setShowDeleteModal(false);
+              }}>
+                Delete
+              </Button>
+            </Modal.Footer>
+          </Modal>
+        </Col>
+        <Col md={8}>
+          {view}
+        </Col>
+      </Row>
+    </Container>;
+  }
