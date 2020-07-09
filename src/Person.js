@@ -29,21 +29,15 @@ export default function Person(props) {
         </Button>
       </Col>
     </Row>
-    <Tab.Container id="personTabs" defaultActiveKey="summary">
+    <Tab.Container id="personTabs" defaultActiveKey="contact">
     <Row>
     <Col>
       <Nav variant="pills">
         <Nav.Item>
-          <Nav.Link eventKey="summary">Summary</Nav.Link>
+          <Nav.Link eventKey="contact">Contact</Nav.Link>
         </Nav.Item>
         <Nav.Item>
-          <Nav.Link eventKey="sources">Sources</Nav.Link>
-        </Nav.Item>
-        <Nav.Item>
-          <Nav.Link eventKey="sources">Segment</Nav.Link>
-        </Nav.Item>
-        <Nav.Item>
-          <Nav.Link eventKey="details">Details</Nav.Link>
+          <Nav.Link eventKey="sources">Activity</Nav.Link>
         </Nav.Item>
       </Nav>
     </Col>
@@ -51,14 +45,11 @@ export default function Person(props) {
     <Row>
         <Col className="p-3">
             <Tab.Content>
-                <Tab.Pane eventKey="summary">
+                <Tab.Pane eventKey="contact">
                     <p>A summary will be ready once you add data to this contact. Click here to get started.</p>
                 </Tab.Pane>
-                <Tab.Pane eventKey="sources">
-                    <p>Sources they have been involved in</p>
-                </Tab.Pane>
-                <Tab.Pane eventKey="details">
-                    <p>Details about the person</p>
+                <Tab.Pane eventKey="activity">
+                    <p></p>
                 </Tab.Pane>
             </Tab.Content>
         </Col>
