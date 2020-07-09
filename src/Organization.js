@@ -4,9 +4,11 @@ import { useEffect, useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
-import Sources from './Sources.js';
-import OrganizationHome from './OrganizationHome.js';
 import Nav from './Nav.js';
+import OrganizationHome from './OrganizationHome.js';
+import People from './People.js';
+import Sources from './Sources.js';
+import Explore from './Explore.js';
 
 import { logout } from './Utils.js';
 
@@ -31,6 +33,7 @@ export default function Organization(props) {
   const { orgID } = useParams();
   const orgRef = db.collection("organizations").doc(orgID);
   const membersRef = orgRef.collection("members");
+  const peopleRef = orgRef.collection("people");
   const documentsRef = orgRef.collection("documents");
 
   useEffect(() => {
@@ -61,9 +64,17 @@ export default function Organization(props) {
       <Routes>
         <Route path="/" element={ <OrganizationHome orgID={orgID} user={user} orgRef={orgRef} />} />
 
+        <Route path="people/*">
+          <Route path="/" element={ <People orgID={orgID} peopleRef={peopleRef} user={user} /> } />
+        </Route>
+
         <Route path="sources/*">
           <Route path="/" element={ <Sources orgID={orgID} documentsRef={documentsRef} user={user} /> } />
           <Route path=":docID" element={ <Sources orgID={orgID} documentsRef={documentsRef} user={user} />} />
+        </Route>
+
+        <Route path="explore/*">
+          <Route path="/" element={ <Explore orgID={orgID} user={user} /> } />
         </Route>
 
         <Route path="*" element={<Navigate to="/404" />} />
