@@ -24,12 +24,33 @@ service cloud.firestore {
                   && request.auth.token.email == email;
     }
 
-    // Admins can read and write anything in the org.
+    // Active admin users can read and write anything in the org.
     match /organizations/{orgID}/{document=**} {
       allow read, write: if request.auth != null
                          && request.auth.token.email_verified == true
                          && get(/databases/$(database)/documents/organizations/$(orgID)/members/$(request.auth.token.email)).data.active == true
                          && get(/databases/$(database)/documents/organizations/$(orgID)/members/$(request.auth.token.email)).data.admin == true
+    }
+
+    // Active non-admin users can read anything in the org.
+    match /organizations/{orgID}/{document=**} {
+      allow read: if request.auth != null
+                  && request.auth.token.email_verified == true
+                  && get(/databases/$(database)/documents/organizations/$(orgID)/members/$(request.auth.token.email)).data.active == true;
+    }
+
+    // Active non-admin users can write **DOCUMENTS** in the org.
+    match /organizations/{orgID}/documents/{document=**} {
+      allow write: if request.auth != null
+                   && request.auth.token.email_verified == true
+                   && get(/databases/$(database)/documents/organizations/$(orgID)/members/$(request.auth.token.email)).data.active == true;
+    }
+
+    // Active non-admin users can write **PEOPLE** in the org.
+    match /organizations/{orgID}/people/{document=**} {
+      allow write: if request.auth != null
+                   && request.auth.token.email_verified == true
+                   && get(/databases/$(database)/documents/organizations/$(orgID)/members/$(request.auth.token.email)).data.active == true;
     }
 
     // Only allow users with verified emails to change displayName and photoURL.
