@@ -4,19 +4,17 @@ import { useEffect, useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
-import Documents from './Documents.js';
-import Admin from './Admin.js';
+import Sources from './Sources.js';
 import OrganizationHome from './OrganizationHome.js';
-import LeftNav from './LeftNav.js';
+import Nav from './Nav.js';
 
 import { logout } from './Utils.js';
-
-// import Datasets from './Datasets.js'
-// import DatasetView from './DatasetView.js'
 
 import {
   Routes,
   Route,
+  Outlet,
+  Navigate,
   useParams,
   useNavigate
 } from "react-router-dom";
@@ -37,6 +35,10 @@ export default function Organization(props) {
   const documentsRef = orgRef.collection("documents");
 
   useEffect(() => {
+    if (props.oauthUser === null) {
+      navigate('/login');
+      return;
+    }
     const userRef =  membersRef.doc(props.oauthUser.email);
     let unsubscribe = userRef.onSnapshot(doc => {
       if (!doc.exists) {
@@ -48,7 +50,7 @@ export default function Organization(props) {
       navigate('/404');
     });
     return unsubscribe;
-  }, [orgID]);
+  }, [orgID, props.oauthUser]);
 
   // useEffect(() => {
   //   let unsubscribe = orgRef.onSnapshot(doc => {
@@ -70,15 +72,20 @@ export default function Organization(props) {
   }
 
   return <div className="navContainer">
-    <LeftNav active="datasets"/>
+    <Nav active="datasets"/>
     <div className="navBody">
       <Routes>
         <Route path="/" element={ <OrganizationHome orgID={orgID} user={user} orgRef={orgRef} />} />
-        <Route path="sources">
-          <Route path="/"  element={ <Documents orgID={orgID} documentsRef={documentsRef} user={user} /> } />
-          <Route path=":documentID" element={ <Documents orgID={orgID} documentsRef={documentsRef} user={user} />} />
+
+        <Route path="sources/*">
+          <Route path="/" element={ <Sources orgID={orgID} documentsRef={documentsRef} user={user} /> } />
+          <Route path=":docID" element={ <Sources orgID={orgID} documentsRef={documentsRef} user={user} />} />
         </Route>
+
+        <Route path="*" element={<Navigate to="/404" />} />
+
       </Routes>
+      <Outlet />
     </div>
   </div>;
 }
