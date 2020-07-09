@@ -1,54 +1,55 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
+import { Routes, Route, Navigate } from "react-router-dom";
 
-import {
-    BrowserRouter as Router,
-    Route,
-    Routes,
-    Navigate
-} from "react-router-dom";
-
+import Home from './Home.js';
 import Organization from './Organization.js';
 import JoinOrg from './JoinOrg.js';
 import Login from './Login.js';
 import Error404 from './404.js';
-
 import { Loading } from './Utils.js';
 
 export default function App() {
-    const [ oauthUser, setOauthUser] = useState(null);
-    const [ oauthLoading, setOauthLoading ] = useState(true);
 
-    useEffect(() => {
-        console.log('App useEffect');
+    return <Routes caseSensitive>
 
-        const loginCallback = (user) => {
-            console.debug('loginCallback user', user);
-            setOauthUser(user);
-            setOauthLoading(false);
-        }
+      <Route path="/" element={<Home />} />
 
-        let unsubscribe = window.firebase.auth().onAuthStateChanged(loginCallback);
-        return unsubscribe;
-    }, [oauthUser, oauthLoading]);
+      <Route path="login" element={<WithOauthUser element={<Login />} />} />
 
-    if (oauthLoading) {
-        return <Loading />;
+      <Route path="join">
+        <Route path=":id" element={<WithOauthUser element={<JoinOrg />} />} />
+      </Route>
+
+      <Route path="orgs">
+        <Route path=":id/*" element={<WithOauthUser element={<Organization />} />} />
+      </Route>
+
+      <Route path="404" element={<Error404/>} />
+
+      <Route path="*" element={<Navigate to="/404" />} />
+
+    </Routes>;
+}
+
+function WithOauthUser(props) {
+  console.log('WithOauthUser :: render');
+
+  const [ oauthUser, setOauthUser] = useState(null);
+  const [ oauthLoading, setOauthLoading ] = useState(true);
+
+  useEffect(() => {
+    console.log('WithOauthUser :: useEffect');
+    const loginCallback = (user) => {
+      console.debug('loginCallback user', user);
+      setOauthUser(user);
+      setOauthLoading(false);
     }
+    let unsubscribe = window.firebase.auth().onAuthStateChanged(loginCallback);
+    return unsubscribe;
+  }, [props.element]);
 
-    return <Router>
-        <Routes>
-            <Route path="login" element={<Login oauthUser={oauthUser}/>} />
-            <Route path="join">
-                <Route path=":id" element={<JoinOrg oauthUser={oauthUser}/>} />
-            </Route>
-            <Route path="orgs">
-                <Route path=":id/*" element={<Organization oauthUser={oauthUser}/>} />
-            </Route>
-            <Route path="/404">
-                <Error404/>
-            </Route>
-            <Navigate to="/404" />
-        </Routes>
-    </Router>;
+  if (oauthLoading) { return <Loading />; }
+
+  return React.cloneElement(props.element, { oauthUser: oauthUser });
 }
