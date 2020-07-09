@@ -18,7 +18,7 @@ function initialDelta() {
   return new Delta([{ insert: "" }]);
 }
 
-export default function Documents(props) {
+export default function Sources(props) {
   console.log("render documents");
   const [ documentID, setDocumentID ] = useState(undefined);
 

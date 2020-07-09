@@ -38,6 +38,7 @@ export default function App() {
 
     return <Router>
         <Routes>
+            <Route path="/" element={<Login oauthUser={oauthUser}/>} />
             <Route path="login" element={<Login oauthUser={oauthUser}/>} />
             <Route path="join">
                 <Route path=":id" element={<JoinOrg oauthUser={oauthUser}/>} />
