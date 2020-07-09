@@ -16,7 +16,6 @@ function initialDelta() {
 }
 
 export default function Sources(props) {
-  console.log("render documents");
   const [documentID, setDocumentID] = useState(undefined);
   const [documents, setDocuments] = useState([]);
 
@@ -24,7 +23,6 @@ export default function Sources(props) {
   let navigate = useNavigate();
 
   useEffect(() => {
-    console.log('useEffect', props);
     let unsubscribe = props.documentsRef
       .where("deletionTimestamp", "==", "")
       .orderBy("creationTimestamp", "desc")
@@ -50,7 +48,6 @@ export default function Sources(props) {
   }, [docID]);
 
   const onAdd = () => {
-    console.log("createNewDocument", props.user);
     props.documentsRef.add({
       title: "Untitled Document",
       createdBy: props.user.email,
@@ -74,7 +71,6 @@ export default function Sources(props) {
   };
 
   const onDelete = (id) => {
-    console.log("deleteDocument");
     // TODO(CD): Add periodic job to garbage-collect documents after some
     //           reasonable grace period.
     //
@@ -96,7 +92,6 @@ export default function Sources(props) {
   };
 
   const onEdit = (ID, value) => {
-    console.log("renameDocument");
     props.documentsRef.doc(ID).set({
       title: value
     }, { merge: true });
