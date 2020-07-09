@@ -9,7 +9,7 @@ import { useNavigate, useLocation, useParams } from "react-router-dom";
 
 import { logout } from './Utils.js';
 
-export default function LeftNav(props) {
+export default function Nav(props) {
   const location = useLocation();
   const navigate = useNavigate();
   const params = useParams();
@@ -36,7 +36,7 @@ export default function LeftNav(props) {
   buttonVariants[component] = 'primary';
 
   return <div className="navLeft">
-    <div>
+    <div style={{marginTop: "1rem"}}>
     <OverlayTrigger
       placement="right" delay={{ show: 250, hide: 400 }}
       overlay={<Tooltip>Home</Tooltip>}
