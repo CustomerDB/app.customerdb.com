@@ -42,7 +42,7 @@ export default function Nav(props) {
       overlay={<Tooltip>Home</Tooltip>}
     >
       <Button onClick={() => {
-        navigate(`/orgs/${orgID}/`);
+        navigate(`/orgs/${orgID}`);
       }
       } variant={buttonVariants['']}><House/></Button>
     </OverlayTrigger>

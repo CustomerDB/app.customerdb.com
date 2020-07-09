@@ -13,6 +13,8 @@ import { logout } from './Utils.js';
 import {
   Routes,
   Route,
+  Outlet,
+  Navigate,
   useParams,
   useNavigate
 } from "react-router-dom";
@@ -33,6 +35,10 @@ export default function Organization(props) {
   const documentsRef = orgRef.collection("documents");
 
   useEffect(() => {
+    if (props.oauthUser === null) {
+      navigate('/login');
+      return;
+    }
     const userRef =  membersRef.doc(props.oauthUser.email);
     let unsubscribe = userRef.onSnapshot(doc => {
       if (!doc.exists) {
@@ -44,7 +50,7 @@ export default function Organization(props) {
       navigate('/404');
     });
     return unsubscribe;
-  }, [orgID]);
+  }, [orgID, props.oauthUser]);
 
   // useEffect(() => {
   //   let unsubscribe = orgRef.onSnapshot(doc => {
@@ -70,11 +76,22 @@ export default function Organization(props) {
     <div className="navBody">
       <Routes>
         <Route path="/" element={ <OrganizationHome orgID={orgID} user={user} orgRef={orgRef} />} />
+<<<<<<< HEAD
         <Route path="sources">
           <Route path="/"  element={ <Sources orgID={orgID} documentsRef={documentsRef} user={user} /> } />
           <Route path=":documentID" element={ <Sources orgID={orgID} documentsRef={documentsRef} user={user} />} />
+=======
+
+        <Route path="sources/*">
+          <Route path="/" element={ <Documents orgID={orgID} documentsRef={documentsRef} user={user} /> } />
+          <Route path=":docID" element={ <Documents orgID={orgID} documentsRef={documentsRef} user={user} />} />
+>>>>>>> 4e6d2806beaf1dd0adf3d02dc4b741aea3595a5d
         </Route>
+
+        <Route path="*" element={<Navigate to="/404" />} />
+
       </Routes>
+      <Outlet />
     </div>
   </div>;
 }
