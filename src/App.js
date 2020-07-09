@@ -6,6 +6,7 @@ import Home from './Home.js';
 import Organization from './Organization.js';
 import JoinOrg from './JoinOrg.js';
 import Login from './Login.js';
+import { logout } from './Utils.js';
 import Error404 from './404.js';
 import { Loading } from './Utils.js';
 
@@ -22,14 +23,23 @@ export default function App() {
       </Route>
 
       <Route path="orgs">
-        <Route path=":id/*" element={<WithOauthUser element={<Organization />} />} />
+        <Route path=":orgID/*" element={<WithOauthUser element={<Organization />} />} />
       </Route>
 
       <Route path="404" element={<Error404/>} />
 
+      <Route path="logout">
+        <Logout />
+      </Route>
+
       <Route path="*" element={<Navigate to="/404" />} />
 
     </Routes>;
+}
+
+function Logout(props) {
+  logout();
+  return <Navigate to="/" />
 }
 
 function WithOauthUser(props) {
