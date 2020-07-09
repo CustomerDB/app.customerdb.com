@@ -28,8 +28,7 @@ export default function Organization(props) {
 
   const navigate = useNavigate();
 
-  const { id } = useParams();
-  const orgID = id;
+  const { orgID } = useParams();
   const orgRef = db.collection("organizations").doc(orgID);
   const membersRef = orgRef.collection("members");
   const documentsRef = orgRef.collection("documents");
@@ -52,21 +51,6 @@ export default function Organization(props) {
     return unsubscribe;
   }, [orgID, props.oauthUser]);
 
-  // useEffect(() => {
-  //   let unsubscribe = orgRef.onSnapshot(doc => {
-  //     if (!doc.exists) {
-  //       navigate('/404');
-  //     }
-  //   });
-  //   return unsubscribe;
-  // }, [orgID]);
-
-  // let datasetsRef = db.collection("datasets").where("owners", "array-contains", user.ID);
-  // <Route path="/dataset/:id" children={<DatasetView user={this.state.user} />} />
-  // <Route path="/datasets">
-  // <Datasets datasetsRef={datasetsRef} user={this.state.user} logoutCallback={this.logout} />
-  //
-  //
   if (user === undefined) {
     return <Loading/>;
   }
