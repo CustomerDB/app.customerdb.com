@@ -37,6 +37,12 @@ function reduceDeltas(deltas) {
   return result;
 }
 
+function checkReturn(e) {
+  if (e.key === 'Enter') {
+    e.target.blur();
+  }
+}
+
 // Document is a React component that allows multiple users to edit
 // and highlight a text document simultaneously.
 //
@@ -444,6 +450,7 @@ export default class Document extends React.Component {
               html={this.state.title}
               disabled={false}
               onBlur={this.updateTitle}
+              onKeyDown={checkReturn}
               />
             </Col>
           </Row>
@@ -500,12 +507,6 @@ class Tags extends React.Component {
   componentWillUnmount() {
     this.subscriptions.forEach((unsubscribe) => {unsubscribe()});
     this.subscriptions = [];
-  }
-
-  checkReturn(e) {
-    if (e.key === 'Enter') {
-      e.target.blur();
-    }
   }
 
   createTag(e) {
@@ -567,7 +568,7 @@ class Tags extends React.Component {
         html=""
         disabled={false}
         onBlur={this.createTag}
-        onKeyDown={this.checkReturn}
+        onKeyDown={checkReturn}
       />
 
     </div>;
