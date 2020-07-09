@@ -96,7 +96,7 @@ export default function List(props) {
     return <>
         <Row style={{ paddingBottom: "2rem" }}>
         <Col md={10} className="my-auto">
-            <h3 style={{ margin: 0 }}>{props.title}</h3>
+            <h3>{props.title}</h3>
         </Col>
         <Col md={2}>
             <Button className="addButton" onClick={props.onAdd}>+</Button>
@@ -119,42 +119,42 @@ export default function List(props) {
         </Row>
 
         <Modal show={showEditModal} onHide={() => { setShowEditModal(false) }} centered>
-        <Modal.Header closeButton>
-            <Modal.Title>Rename {props.itemType}</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-            <Form.Control type="text" defaultValue={editValue} onChange={(e) => {
-            setEditValue(e.target.value);
-            }} onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-                editSubmit();
-            }
-            }} />
-        </Modal.Body>
-        <Modal.Footer>
-            <Button variant="primary" onClick={editSubmit}>
-            Rename
-            </Button>
-        </Modal.Footer>
-        </Modal>
-
-        <Modal show={showDeleteModal} onHide={() => { setShowDeleteModal(false) }} centered>
-        <Modal.Header closeButton>
-            <Modal.Title>Delete {props.itemType}</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-            Are you sure you want to delete {deleteTitle}?
+            <Modal.Header closeButton>
+                <Modal.Title>Rename {props.itemType}</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                <Form.Control type="text" defaultValue={editValue} onChange={(e) => {
+                setEditValue(e.target.value);
+                }} onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                    editSubmit();
+                }
+                }} />
             </Modal.Body>
-        <Modal.Footer>
-            <Button variant="danger" onClick={() => {
-                props.onDelete(deleteID);
-                setDeleteID(undefined);
-                setDeleteTitle("");
-                setShowDeleteModal(false);
-            }}>
-            Delete
-            </Button>
-        </Modal.Footer>
+            <Modal.Footer>
+                <Button variant="primary" onClick={editSubmit}>
+                Rename
+                </Button>
+            </Modal.Footer>
+            </Modal>
+
+            <Modal show={showDeleteModal} onHide={() => { setShowDeleteModal(false) }} centered>
+            <Modal.Header closeButton>
+                <Modal.Title>Delete {props.itemType}</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                Are you sure you want to delete {deleteTitle}?
+                </Modal.Body>
+            <Modal.Footer>
+                <Button variant="danger" onClick={() => {
+                    props.onDelete(deleteID);
+                    setDeleteID(undefined);
+                    setDeleteTitle("");
+                    setShowDeleteModal(false);
+                }}>
+                Delete
+                </Button>
+            </Modal.Footer>
         </Modal>
     </>;
 }

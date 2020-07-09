@@ -16,7 +16,6 @@ function initialDelta() {
 }
 
 export default function Sources(props) {
-  console.log("render documents");
   const [documentID, setDocumentID] = useState(undefined);
   const [documents, setDocuments] = useState([]);
 
@@ -24,7 +23,6 @@ export default function Sources(props) {
   let navigate = useNavigate();
 
   useEffect(() => {
-    console.log('useEffect', props);
     let unsubscribe = props.documentsRef
       .where("deletionTimestamp", "==", "")
       .orderBy("creationTimestamp", "desc")
@@ -50,7 +48,6 @@ export default function Sources(props) {
   }, [docID]);
 
   const onAdd = () => {
-    console.log("createNewDocument", props.user);
     props.documentsRef.add({
       title: "Untitled Document",
       createdBy: props.user.email,
@@ -73,20 +70,19 @@ export default function Sources(props) {
     });
   };
 
-  const onDelete = (id) => {
-    console.log("deleteDocument");
+  const onDelete = (ID) => {
     // TODO(CD): Add periodic job to garbage-collect documents after some
     //           reasonable grace period.
     //
     // TODO(CD): Add some way to recover deleted documents that are still
     //           within the grace period.
-    props.documentsRef.doc(id).update({
+    props.documentsRef.doc(ID).update({
       deletedBy: props.user.email,
       deletionTimestamp: window.firebase.firestore.FieldValue.serverTimestamp()
     });
 
     // Remove focus from document selected.
-    if (documentID === id) {
+    if (documentID === ID) {
       navigate("..");
     }
   };
@@ -96,7 +92,6 @@ export default function Sources(props) {
   };
 
   const onEdit = (ID, value) => {
-    console.log("renameDocument");
     props.documentsRef.doc(ID).set({
       title: value
     }, { merge: true });

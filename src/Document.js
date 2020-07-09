@@ -455,6 +455,9 @@ export default class Document extends React.Component {
             </Col>
           </Row>
           <Row>
+            <Col>Click here to link source to a person</Col>
+          </Row>
+          <Row>
             <Col ms={10} md={10}>
               <ReactQuill
                 ref={(el) => { this.reactQuillRef = el }}
