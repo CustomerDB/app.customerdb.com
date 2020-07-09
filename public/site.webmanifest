@@ -1,6 +1,6 @@
 {
-    "name": "Quantap",
-    "short_name": "Quantap",
+    "name": "CustomerDB",
+    "short_name": "CustomerDB",
     "icons": [
         {
             "src": "/android-chrome-192x192.png",
