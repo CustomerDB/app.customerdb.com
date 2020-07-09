@@ -22,7 +22,7 @@ export default function Documents(props) {
   console.log("render documents");
   const [ documentID, setDocumentID ] = useState(undefined);
 
-  let params = useParams();
+  let { docID } = useParams();
   let navigate = useNavigate();
 
   const [documents, setDocuments] = useState([]);
@@ -48,15 +48,8 @@ export default function Documents(props) {
   }, []);
 
   useEffect(() => {
-    const rest = params['*'];
-    const restParts = rest.split('/');
-
-    if (restParts.length == 2) {
-      setDocumentID(restParts[1]);
-    } else {
-      setDocumentID(undefined);
-    }
-  }, [params]);
+    setDocumentID(docID);
+  }, [docID]);
 
   const createNewDocument = () => {
     console.log("createNewDocument", props.user);
@@ -102,10 +95,12 @@ export default function Documents(props) {
     });
 
     // Remove focus from document selected.
-    if (documentID == id) {
+    if (documentID === id) {
       navigate("..");
     }
   };
+
+  console.log("documentID", documentID);
 
   let view = <></>;
   if (documentID !== undefined) {

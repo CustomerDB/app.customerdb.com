@@ -386,7 +386,7 @@ export default class Document extends React.Component {
   render() {
     let content = this.state.delta;
 
-    if (this.state.deletionTimestamp != "") {
+    if (this.state.deletionTimestamp !== "") {
       let date = this.state.deletionTimestamp.toDate();
 
       return <Container>
