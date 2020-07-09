@@ -5,6 +5,11 @@ import Dropdown from 'react-bootstrap/Dropdown';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
+import Modal from 'react-bootstrap/Modal';
+import Form from 'react-bootstrap/Form';
+
+import 'react-virtualized/styles.css';
+import { AutoSizer, List } from 'react-virtualized';
 
 import Delta from 'quill-delta';
 
@@ -20,17 +25,17 @@ function initialDelta() {
 
 export default function Sources(props) {
   console.log("render documents");
-  const [ documentID, setDocumentID ] = useState(undefined);
+  const [documentID, setDocumentID] = useState(undefined);
+  const [documents, setDocuments] = useState([]);
 
   let { docID } = useParams();
   let navigate = useNavigate();
-
-  const [documents, setDocuments] = useState([]);
 
   useEffect(() => {
     console.log('useEffect', props);
     let unsubscribe = props.documentsRef
       .where("deletionTimestamp", "==", "")
+      .orderBy("creationTimestamp", "desc")
       .onSnapshot((snapshot) => {
         console.log("documents snapshot received");
 
@@ -107,92 +112,147 @@ export default function Sources(props) {
     view = <Document key={documentID} documentID={documentID} documentsRef={props.documentsRef} user={props.user} />;
   }
 
-  let documentList = <DocumentList
-    documentID={documentID}
-    documents={documents}
-    deleteDocument={deleteDocument}
-    renameDocument={renameDocument}
-    orgID={props.orgID} />;
 
-  return <Container className="noMargin">
-    <Row>
-      <Col md={4}>
-        <Row mb={10}>
-          <Col md={10}>
-            <h3>Documents</h3>
-          </Col>
-          <Col md={2}>
-            <Button className="addButton" onClick={createNewDocument}>+</Button>
-          </Col>
-        </Row>
-        {documentList}
-      </Col>
-      <Col md={8}>
-        {view}
-      </Col>
-    </Row>
-  </Container>;
-}
-
-function DocumentList(props) {
-  console.log("DocumentList", props);
-  let navigate = useNavigate();
-
-  const [edit, setEdit] = useState(undefined);
+  // Modals
+  const [editID, setEditID] = useState(undefined);
   const [editValue, setEditValue] = useState("");
+  const [showEditModal, setShowEditModal] = useState(false);
 
-  let documentRows = props.documents.map((d) => {
-    let title = <p onClick={() => {
-      navigate(`/orgs/${props.orgID}/sources/${documentID}`);
-    }} className="listCardTitle">{d.title}</p>;
-    if (edit === d.ID) {
-      d.ref = React.createRef();
-      title = <input type="text" onBlur={(e) => {
-        props.renameDocument(d.ID, editValue);
-        setEdit(undefined);
-        setEditValue("");
-      }} onChange={(e) => {
-        setEditValue(e.target.value);
-      }}
-        defaultValue={d.title} />;
-    }
+  const [deleteID, setDeleteID] = useState(undefined);
+  const [deleteTitle, setDeleteTitle] = useState("")
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-    let documentID = d.ID;
+  const cardRenderer = ({ key, index, style }) => {
+    let d = documents[index];
+
+    const linkToDocument = () => {
+      navigate(`/orgs/${props.orgID}/sources/${d.ID}`);
+    };
+
+    let title = <p className="listCardTitle" onClick={linkToDocument}>{d.title}</p>;
+
     let listCardClass = "listCard";
     let threedots = <ThreeDotsVertical />;
 
-    if (props.documentID === documentID) {
+    if (documentID === d.ID) {
       listCardClass = "listCardActive";
       threedots = <ThreeDotsVertical color="white" />;
     }
 
-    return <Row key={documentID}>
+    return <Row key={d.ID} style={style}>
       <Col>
         <Container className={listCardClass}>
           <Row>
-            <Col className="listTitleContainer" md={10}>
+            <Col className="listTitleContainer align-self-center" md={8}>
               {title}
             </Col>
-            <Col md={2}>
-              <Dropdown>
+            <Col md={4}>
+              <Dropdown style={{ width: "2.5rem", marginLeft: "auto" }}>
                 <Dropdown.Toggle variant="link" className="threedots">
                   {threedots}
                 </Dropdown.Toggle>
 
                 <Dropdown.Menu>
                   <Dropdown.Item onClick={() => {
-                    setEdit(documentID);
+                    setEditID(d.ID);
                     setEditValue(d.title);
+                    setShowEditModal(true);
                   }}>Rename</Dropdown.Item>
-                  <Dropdown.Item onClick={() => { props.deleteDocument(documentID) }}>Delete</Dropdown.Item>
+                  <Dropdown.Item onClick={() => {
+                    setDeleteID(d.ID);
+                    setDeleteTitle(d.title);
+                    setShowDeleteModal(true);
+                  }}>Delete</Dropdown.Item>
                 </Dropdown.Menu>
               </Dropdown>
+            </Col>
+          </Row>
+          <Row>
+            <Col>
+              <p onClick={linkToDocument}></p>
             </Col>
           </Row>
         </Container>
       </Col>
     </Row>;
-  });
+  };
 
-  return <Row><Col>{documentRows}</Col></Row>;
+  const editSubmit = () => {
+    renameDocument(editID, editValue);
+    setEditID(undefined);
+    setEditValue("");
+    setShowEditModal(false);
+  }
+
+  return <Container className="noMargin">
+    <Row className="h-100">
+      <Col md={4} className="d-flex flex-column h-100">
+        <Row style={{ paddingBottom: "2rem" }}>
+          <Col md={10} className="my-auto">
+            <h3 style={{ margin: 0 }}>Documents</h3>
+          </Col>
+          <Col md={2}>
+            <Button className="addButton" onClick={createNewDocument}>+</Button>
+          </Col>
+        </Row>
+        <Row className="flex-grow-1">
+          <Col>
+            <AutoSizer>
+              {({ height, width }) => (
+                <List
+                  height={height}
+                  rowCount={documents.length}
+                  rowHeight={window.getEmPixels() * 6}
+                  rowRenderer={cardRenderer}
+                  width={width}
+                />
+              )}
+            </AutoSizer>
+          </Col>
+        </Row>
+
+        <Modal show={showEditModal} onHide={() => { setShowEditModal(false) }} centered>
+          <Modal.Header closeButton>
+            <Modal.Title>Rename source</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <Form.Control type="text" defaultValue={editValue} onChange={(e) => {
+              setEditValue(e.target.value);
+            }} onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                editSubmit();
+              }
+            }} />
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="primary" onClick={editSubmit}>
+              Rename
+              </Button>
+          </Modal.Footer>
+        </Modal>
+
+        <Modal show={showDeleteModal} onHide={() => { setShowDeleteModal(false) }} centered>
+          <Modal.Header closeButton>
+            <Modal.Title>Delete source</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            Are you sure you want to delete {deleteTitle}?
+            </Modal.Body>
+          <Modal.Footer>
+            <Button variant="danger" onClick={() => {
+              deleteDocument(deleteID);
+              setDeleteID(undefined);
+              setDeleteTitle("");
+              setShowDeleteModal(false);
+            }}>
+              Delete
+              </Button>
+          </Modal.Footer>
+        </Modal>
+      </Col>
+      <Col md={8}>
+        {view}
+      </Col>
+    </Row>
+  </Container>;
 }
