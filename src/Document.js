@@ -4,6 +4,8 @@ import ReactQuill from 'react-quill';
 import Delta from 'quill-delta';
 import 'react-quill/dist/quill.snow.css';
 
+import { Navigate } from 'react-router-dom';
+
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
@@ -33,6 +35,12 @@ function reduceDeltas(deltas) {
   });
 
   return result;
+}
+
+function checkReturn(e) {
+  if (e.key === 'Enter') {
+    e.target.blur();
+  }
 }
 
 // Document is a React component that allows multiple users to edit
@@ -107,6 +115,7 @@ export default class Document extends React.Component {
 
     this.state = {
       title: "",
+      exists: true,
       deletionTimestamp: "",
       deletedBy: '',
       content: "",
@@ -125,6 +134,11 @@ export default class Document extends React.Component {
   componentDidMount() {
     // Subscribe to document title changes
     this.subscriptions.push(this.documentRef.onSnapshot((doc) => {
+      if (!doc.exists) {
+        this.setState({ exists: false });
+        return;
+      }
+
       let data = doc.data();
       console.debug("data", data);
       this.setState({
@@ -384,6 +398,10 @@ export default class Document extends React.Component {
   }
 
   render() {
+    if (!this.state.exists) {
+      return <Navigate to="/404" />
+    }
+
     let content = this.state.delta;
 
     if (this.state.deletionTimestamp !== "") {
@@ -432,6 +450,7 @@ export default class Document extends React.Component {
               html={this.state.title}
               disabled={false}
               onBlur={this.updateTitle}
+              onKeyDown={checkReturn}
               />
             </Col>
           </Row>
@@ -488,12 +507,6 @@ class Tags extends React.Component {
   componentWillUnmount() {
     this.subscriptions.forEach((unsubscribe) => {unsubscribe()});
     this.subscriptions = [];
-  }
-
-  checkReturn(e) {
-    if (e.key === 'Enter') {
-      e.target.blur();
-    }
   }
 
   createTag(e) {
@@ -555,7 +568,7 @@ class Tags extends React.Component {
         html=""
         disabled={false}
         onBlur={this.createTag}
-        onKeyDown={this.checkReturn}
+        onKeyDown={checkReturn}
       />
 
     </div>;
