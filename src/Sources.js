@@ -70,19 +70,19 @@ export default function Sources(props) {
     });
   };
 
-  const onDelete = (id) => {
+  const onDelete = (ID) => {
     // TODO(CD): Add periodic job to garbage-collect documents after some
     //           reasonable grace period.
     //
     // TODO(CD): Add some way to recover deleted documents that are still
     //           within the grace period.
-    props.documentsRef.doc(id).update({
+    props.documentsRef.doc(ID).update({
       deletedBy: props.user.email,
       deletionTimestamp: window.firebase.firestore.FieldValue.serverTimestamp()
     });
 
     // Remove focus from document selected.
-    if (documentID === id) {
+    if (documentID === ID) {
       navigate("..");
     }
   };

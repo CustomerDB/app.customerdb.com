@@ -66,6 +66,7 @@ export default function Organization(props) {
 
         <Route path="people/*">
           <Route path="/" element={ <People orgID={orgID} peopleRef={peopleRef} user={user} /> } />
+          <Route path=":perID" element={ <People orgID={orgID} peopleRef={peopleRef} user={user} />} />
         </Route>
 
         <Route path="sources/*">

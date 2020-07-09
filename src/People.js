@@ -4,6 +4,7 @@ import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import List from './List.js';
+import Person from './Person.js';
 
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -51,15 +52,36 @@ export default function People(props) {
       deletionTimestamp: ""
     });
   };
-  const onEdit = () => {};
-  const onDelete = () => {};
-  const onClick = () => {};
+
+  const onEdit = (ID, value) => {
+    props.peopleRef.doc(ID).set({
+      name: value
+    }, { merge: true });
+  };
+
+  const onDelete = (ID) => {
+    props.peopleRef.doc(ID).update({
+      deletedBy: props.user.email,
+      deletionTimestamp: window.firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    if (personID === ID) {
+      navigate("..");
+    }
+  };
+
+  const onClick = (ID) => {
+    navigate(`/orgs/${props.orgID}/people/${ID}`);
+  };
 
   const itemLoad = (index) => {
     return people[index];
   }
 
   let view;
+  if (personID !== undefined) {
+    view = <Person key={personID} personID={personID} peopleRef={props.peopleRef} user={props.user} />;
+  }
 
   return <Container className="noMargin">
   <Row className="h-100">
