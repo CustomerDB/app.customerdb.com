@@ -6,26 +6,28 @@ import Col from 'react-bootstrap/Col';
 import Nav from 'react-bootstrap/Nav';
 import Tab from 'react-bootstrap/Tab';
 import Button from 'react-bootstrap/Button';
+import Modal from 'react-bootstrap/Modal';
 
-
-import { ThreeDotsVertical } from 'react-bootstrap-icons';
+import Options from './Options.js';
 
 export default function Person(props) {
-    const [name, setName] = useState("");
+    const [person, setPerson] = useState("");
 
     useEffect(() => {
         let unsubscribe = props.peopleRef.doc(props.personID).onSnapshot((doc) => {
             let data = doc.data();
-            setName(data.name);
+            data['ID'] = doc.id;
+            setPerson(data);
         });
+        return unsubscribe;
     }, []);
 
-    return <Container>
+    return <><Container>
     <Row style={{paddingBottom: "2rem"}}>
       <Col className="d-flex align-self-center">
-        <h3 className="my-auto">{name}</h3>
+        <h3 className="my-auto">{person.name}</h3>
         <Button variant="link">
-            <ThreeDotsVertical/>
+            <Options item={person} options={props.options}/>
         </Button>
       </Col>
     </Row>
@@ -55,5 +57,6 @@ export default function Person(props) {
         </Col>
     </Row>
     </Tab.Container>
-    </Container>;
+    </Container></>;
 }
+

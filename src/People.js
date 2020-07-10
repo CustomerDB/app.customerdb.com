@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from 'react';
 
-import Container from 'react-bootstrap/Container';
-import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
+import Container from 'react-bootstrap/Container';
+import Form from 'react-bootstrap/Form';
+import Modal from 'react-bootstrap/Modal';
+import Row from 'react-bootstrap/Row';
+import Button from 'react-bootstrap/Button';
+
+
 import List from './List.js';
 import Person from './Person.js';
 
@@ -53,9 +58,17 @@ export default function People(props) {
     });
   };
 
-  const onEdit = (ID, value) => {
+  const onClick = (ID) => {
+    navigate(`/orgs/${props.orgID}/people/${ID}`);
+  };
+
+  const itemLoad = (index) => {
+    return people[index];
+  }
+
+  const onRename = (ID, newName) => {
     props.peopleRef.doc(ID).set({
-      name: value
+      name: newName
     }, { merge: true });
   };
 
@@ -70,39 +83,110 @@ export default function People(props) {
     }
   };
 
-  const onClick = (ID) => {
-    navigate(`/orgs/${props.orgID}/people/${ID}`);
-  };
-
-  const itemLoad = (index) => {
-    return people[index];
-  }
+  // Modals for options (three vertical dots) for list and for person view.
+  const [modalPerson, setModalPerson] = useState(undefined);
+  const [showRenameModal, setShowRenameModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  let options = [
+    {name: "Rename", onClick: (item) => {
+      setModalPerson(item);
+      setShowRenameModal(true);
+    }},
+    {name: "Delete", onClick: (item) => {
+      setModalPerson(item);
+      setShowDeleteModal(true);
+    }}
+  ]
 
   let view;
   if (personID !== undefined) {
-    view = <Person key={personID} personID={personID} peopleRef={props.peopleRef} user={props.user} />;
+    view = <Person key={personID} personID={personID} peopleRef={props.peopleRef} user={props.user} options={options}/>;
   }
 
-  return <Container className="noMargin">
-  <Row className="h-100">
-    <Col md={4} className="d-flex flex-column h-100">
-      <List
-        title="People"
-        itemType="contact"
-        currentID={personID}
+  return <><Container className="noMargin">
+    <Row className="h-100">
+      <Col md={4} className="d-flex flex-column h-100">
+        <List
+          title="People"
+          itemType="contact"
+          currentID={personID}
 
-        itemLoad={itemLoad}
-        itemCount={people.length}
+          itemLoad={itemLoad}
+          itemCount={people.length}
 
-        onAdd={onAdd}
-        onEdit={onEdit}
-        onDelete={onDelete}
-        onClick={onClick}
-      />
-    </Col>
-    <Col md={8}>
-      {view}
-    </Col>
-  </Row>
-</Container>;
+          onAdd={onAdd}
+          options={options}
+          onClick={onClick}
+        />
+      </Col>
+      <Col md={8}>
+        {view}
+      </Col>
+    </Row>
+  </Container>
+  <RenameModal show={showRenameModal} person={modalPerson} onRename={onRename} onHide={() => {setShowRenameModal(false)}}/>
+  <DeleteModal show={showDeleteModal} person={modalPerson} onDelete={onDelete} onHide={() => {setShowDeleteModal(false)}}/>
+  </>;
+}
+
+function RenameModal(props) {
+  const [name, setName] = useState();
+
+  useEffect(() => {
+    if (props.person !== undefined) {
+      setName(props.person.name);
+    }
+  }, [props.person]);
+
+  const onSubmit = () => {
+      props.onRename(props.person.ID, name);
+      props.onHide();
+  }
+
+  return <Modal show={props.show} onHide={props.onHide} centered>
+    <Modal.Header closeButton>
+      <Modal.Title>Rename contact</Modal.Title>
+    </Modal.Header>
+    <Modal.Body>
+      <Form.Control type="text" defaultValue={name} onChange={(e) => {
+        setName(e.target.value);
+      }} onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          onSubmit();
+        }
+      }} />
+    </Modal.Body>
+    <Modal.Footer>
+      <Button variant="primary" onClick={onSubmit}>
+        Rename
+      </Button>
+    </Modal.Footer>
+  </Modal>;
+}
+
+function DeleteModal(props) {
+  const [name, setName] = useState();
+
+  useEffect(() => {
+    if (props.person !== undefined) {
+      setName(props.person.name);
+    }
+  }, [props.person]);
+
+  return <Modal show={props.show} onHide={props.onHide} centered>
+    <Modal.Header closeButton>
+      <Modal.Title>Delete contact</Modal.Title>
+    </Modal.Header>
+    <Modal.Body>
+      Are you sure you want to delete {name}?
+    </Modal.Body>
+    <Modal.Footer>
+      <Button variant="danger" onClick={() => {
+        props.onDelete(props.person.ID);
+        props.onHide();
+      }}>
+        Delete
+                </Button>
+    </Modal.Footer>
+  </Modal>;
 }
