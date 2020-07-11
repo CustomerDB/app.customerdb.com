@@ -14,8 +14,6 @@ import Person from './Person.js';
 import { useNavigate, useParams } from "react-router-dom";
 
 export default function People(props) {
-  console.log("People :: render");
-
   const [personID, setPersonID] = useState(undefined);
   const [people, setPeople] = useState([]);
 
@@ -23,7 +21,6 @@ export default function People(props) {
   let navigate = useNavigate();
 
   useEffect(() => {
-    console.log("useEffect :: subscription");
     let unsubscribe = props.peopleRef
       .where("deletionTimestamp", "==", "")
       .orderBy("creationTimestamp", "desc")
@@ -46,7 +43,6 @@ export default function People(props) {
   }, []);
 
   useEffect(() => {
-    console.log("useEffect :: personID");
     setPersonID(perID);
   }, [perID]);
 
@@ -73,7 +69,6 @@ export default function People(props) {
   }
 
   const onEdit = (item) => {
-    // TODO: Remove title and ID synthetic fields.
     let {ID, title, ...rest} = item;
     props.peopleRef.doc(item.ID).set(rest, { merge: true });
   }
