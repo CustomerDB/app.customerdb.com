@@ -53,7 +53,7 @@ export default function Person(props) {
 
     if (person.labels !== undefined) {
       let labels = Object.values(person.labels).map(label => {
-        return <Badge pill variant="secondary">{label.name}</Badge>;
+        return <Badge pill variant="secondary" style={{marginRight: "0.5rem"}}>{label.name}</Badge>;
       });
 
       if (labels.length > 0){
