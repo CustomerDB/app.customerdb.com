@@ -3,6 +3,9 @@ import React, { useState, useEffect } from 'react';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
+import Form from 'react-bootstrap/Form';
+import Modal from 'react-bootstrap/Modal';
+import Button from 'react-bootstrap/Button';
 
 import Delta from 'quill-delta';
 
@@ -91,9 +94,9 @@ export default function Sources(props) {
     navigate(`/orgs/${props.orgID}/sources/${ID}`);
   };
 
-  const onEdit = (ID, value) => {
+  const onRename = (ID, newTitle) => {
     props.documentsRef.doc(ID).set({
-      title: value
+      title: newTitle
     }, { merge: true });
   };
 
@@ -101,12 +104,27 @@ export default function Sources(props) {
     return documents[index];
   };
 
+  // Modals for options (three vertical dots) for list and for document view.
+  const [modalDocument, setModalDocument] = useState(undefined);
+  const [showRenameModal, setShowRenameModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  let options = [
+    {name: "Rename", onClick: (item) => {
+      setModalDocument(item);
+      setShowRenameModal(true);
+    }},
+    {name: "Delete", onClick: (item) => {
+      setModalDocument(item);
+      setShowDeleteModal(true);
+    }}
+  ]
+
   let view;
   if (documentID !== undefined) {
     view = <Document key={documentID} documentID={documentID} documentsRef={props.documentsRef} user={props.user} />;
   }
 
-  return <Container className="noMargin">
+  return <><Container className="noMargin">
     <Row className="h-100">
       <Col md={4} className="d-flex flex-column h-100">
         <List
@@ -118,8 +136,7 @@ export default function Sources(props) {
           itemCount={documents.length}
 
           onAdd={onAdd}
-          onEdit={onEdit}
-          onDelete={onDelete}
+          options={options}
           onClick={onClick}
         />
       </Col>
@@ -127,5 +144,70 @@ export default function Sources(props) {
         {view}
       </Col>
     </Row>
-  </Container>;
+  </Container>
+  <RenameModal show={showRenameModal} document={modalDocument} onRename={onRename} onHide={() => {setShowRenameModal(false)}}/>
+  <DeleteModal show={showDeleteModal} document={modalDocument} onDelete={onDelete} onHide={() => {setShowDeleteModal(false)}}/>
+  </>;
+}
+
+function RenameModal(props) {
+  const [title, setTitle] = useState();
+
+  useEffect(() => {
+    if (props.document !== undefined) {
+      setTitle(props.document.title);
+    }
+  }, [props.document]);
+
+  const onSubmit = () => {
+      props.onRename(props.document.ID, title);
+      props.onHide();
+  }
+
+  return <Modal show={props.show} onHide={props.onHide} centered>
+    <Modal.Header closeButton>
+      <Modal.Title>Rename document</Modal.Title>
+    </Modal.Header>
+    <Modal.Body>
+      <Form.Control type="text" defaultValue={title} onChange={(e) => {
+        setTitle(e.target.value);
+      }} onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          onSubmit();
+        }
+      }} />
+    </Modal.Body>
+    <Modal.Footer>
+      <Button variant="primary" onClick={onSubmit}>
+        Rename
+      </Button>
+    </Modal.Footer>
+  </Modal>;
+}
+
+function DeleteModal(props) {
+  const [title, setTitle] = useState();
+
+  useEffect(() => {
+    if (props.document !== undefined) {
+      setTitle(props.document.title);
+    }
+  }, [props.document]);
+
+  return <Modal show={props.show} onHide={props.onHide} centered>
+    <Modal.Header closeButton>
+      <Modal.Title>Delete document</Modal.Title>
+    </Modal.Header>
+    <Modal.Body>
+      Are you sure you want to delete {title}?
+    </Modal.Body>
+    <Modal.Footer>
+      <Button variant="danger" onClick={() => {
+        props.onDelete(props.document.ID);
+        props.onHide();
+      }}>
+        Delete
+                </Button>
+    </Modal.Footer>
+  </Modal>;
 }

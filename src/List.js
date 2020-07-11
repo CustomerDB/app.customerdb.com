@@ -3,13 +3,12 @@ import React, { useState, useEffect } from 'react';
 import Container from 'react-bootstrap/Container';
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
-import Dropdown from 'react-bootstrap/Dropdown';
-import Form from 'react-bootstrap/Form';
-import Modal from 'react-bootstrap/Modal';
 import Row from 'react-bootstrap/Row';
 
 import { AutoSizer, List as VirtList } from 'react-virtualized';
 import { ThreeDotsVertical } from 'react-bootstrap-icons';
+
+import Options from './Options.js';
 
 import 'react-virtualized/styles.css';
 
@@ -27,32 +26,16 @@ import 'react-virtualized/styles.css';
  * onDelete(index)
  */
 export default function List(props) {
-    // Modals
-    const [editID, setEditID] = useState(undefined);
-    const [editValue, setEditValue] = useState("");
-    const [showEditModal, setShowEditModal] = useState(false);
-
-    const [deleteID, setDeleteID] = useState(undefined);
-    const [deleteTitle, setDeleteTitle] = useState("")
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
-
-    const editSubmit = () => {
-        props.onEdit(editID, editValue);
-        setEditID(undefined);
-        setEditValue("");
-        setShowEditModal(false);
-    }
-
     const cardRenderer = ({ key, index, style }) => {
         let d = props.itemLoad(index);
     
         let title = <p className="listCardTitle" onClick={() => {props.onClick(d.ID)}}>{d.title}</p>;
         let listCardClass = "listCard";
-        let threedots = <ThreeDotsVertical />;
+        let invertedColors = false;
     
         if (props.currentID === d.ID) {
           listCardClass = "listCardActive";
-          threedots = <ThreeDotsVertical color="white" />;
+          invertedColors = true;
         }
     
         return <Row key={key} style={style}>
@@ -63,24 +46,7 @@ export default function List(props) {
                   {title}
                 </Col>
                 <Col md={4}>
-                  <Dropdown style={{ width: "2.5rem", marginLeft: "auto" }}>
-                    <Dropdown.Toggle variant="link" className="threedots">
-                      {threedots}
-                    </Dropdown.Toggle>
-    
-                    <Dropdown.Menu>
-                      <Dropdown.Item onClick={() => {
-                        setEditID(d.ID);
-                        setEditValue(d.title);
-                        setShowEditModal(true);
-                      }}>Rename</Dropdown.Item>
-                      <Dropdown.Item onClick={() => {
-                        setDeleteID(d.ID);
-                        setDeleteTitle(d.title);
-                        setShowDeleteModal(true);
-                      }}>Delete</Dropdown.Item>
-                    </Dropdown.Menu>
-                  </Dropdown>
+                  <Options options={props.options} item={d} inverted={invertedColors}/>
                 </Col>
               </Row>
               <Row>
@@ -117,44 +83,5 @@ export default function List(props) {
             </AutoSizer>
         </Col>
         </Row>
-
-        <Modal show={showEditModal} onHide={() => { setShowEditModal(false) }} centered>
-            <Modal.Header closeButton>
-                <Modal.Title>Rename {props.itemType}</Modal.Title>
-            </Modal.Header>
-            <Modal.Body>
-                <Form.Control type="text" defaultValue={editValue} onChange={(e) => {
-                setEditValue(e.target.value);
-                }} onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                    editSubmit();
-                }
-                }} />
-            </Modal.Body>
-            <Modal.Footer>
-                <Button variant="primary" onClick={editSubmit}>
-                Rename
-                </Button>
-            </Modal.Footer>
-            </Modal>
-
-            <Modal show={showDeleteModal} onHide={() => { setShowDeleteModal(false) }} centered>
-            <Modal.Header closeButton>
-                <Modal.Title>Delete {props.itemType}</Modal.Title>
-            </Modal.Header>
-            <Modal.Body>
-                Are you sure you want to delete {deleteTitle}?
-                </Modal.Body>
-            <Modal.Footer>
-                <Button variant="danger" onClick={() => {
-                    props.onDelete(deleteID);
-                    setDeleteID(undefined);
-                    setDeleteTitle("");
-                    setShowDeleteModal(false);
-                }}>
-                Delete
-                </Button>
-            </Modal.Footer>
-        </Modal>
     </>;
 }
