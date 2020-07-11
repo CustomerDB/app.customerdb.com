@@ -6,6 +6,7 @@ import Form from 'react-bootstrap/Form';
 import Modal from 'react-bootstrap/Modal';
 import Row from 'react-bootstrap/Row';
 import Button from 'react-bootstrap/Button';
+import Badge from 'react-bootstrap/Badge';
 
 
 import List from './List.js';
@@ -225,9 +226,24 @@ function EditModal(props) {
         <Form.Label>Other details</Form.Label>
       </Col>
     </Row>
+    <Row className="mb-3">
+      <Col>
+        <Form.Control type="text" placeholder="Name"/>
+      </Col>
+      <Col>
+        <Form.Control type="text" placeholder="Value"/>
+      </Col>
+    </Row>
     <Row>
       <Col>
         <Form.Label>Tags</Form.Label>
+      </Col>
+    </Row>
+    <Row>
+      <Col>
+        <Badge pill variant="secondary">
+          Add tag
+        </Badge>
       </Col>
     </Row>
   </>;
