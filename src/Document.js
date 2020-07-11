@@ -442,7 +442,7 @@ export default class Document extends React.Component {
     }
 
     return <Container>
-          <Row>
+          <Row style={{paddingBottom: "2rem"}}>
             <Col>
             <ContentEditable
               innerRef={this.titleRef}
@@ -453,9 +453,6 @@ export default class Document extends React.Component {
               onKeyDown={checkReturn}
               />
             </Col>
-          </Row>
-          <Row>
-            <Col>Click here to link source to a person</Col>
           </Row>
           <Row>
             <Col ms={10} md={10}>

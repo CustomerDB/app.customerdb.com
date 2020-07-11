@@ -1,13 +1,10 @@
 import React from 'react';
 
-import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
 import { DoorOpen, People, ChatLeftQuote, GearWide, Intersect, House } from 'react-bootstrap-icons';
 
-import { NavLink, Link, useLocation, useParams } from "react-router-dom";
-
-import { logout } from './Utils.js';
+import { NavLink, useParams } from "react-router-dom";
 
 export default function Nav(props) {
 
