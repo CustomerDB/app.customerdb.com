@@ -186,7 +186,7 @@ function DeleteModal(props) {
         props.onHide();
       }}>
         Delete
-                </Button>
+      </Button>
     </Modal.Footer>
   </Modal>;
 }

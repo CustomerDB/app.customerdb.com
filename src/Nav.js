@@ -10,11 +10,12 @@ import { NavLink, Link, useLocation, useParams } from "react-router-dom";
 import { logout } from './Utils.js';
 
 export default function Nav(props) {
+  let { orgID } = useParams();
 
   let accountLinks = [
     {
       name: "Settings",
-      path: "/settings",
+      path: `/orgs/${orgID}/settings`,
       icon: <GearWide/>,
       end: false
     },
@@ -27,8 +28,6 @@ export default function Nav(props) {
   ];
 
   let orgLinks = [];
-
-  let { orgID } = useParams();
 
   if (orgID) {
     orgLinks = [
