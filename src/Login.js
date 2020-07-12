@@ -11,7 +11,6 @@ import Button from 'react-bootstrap/Button';
 import Alert from 'react-bootstrap/Alert';
 
 import topFigure from './assets/images/top-figure.svg';
-import logo from './assets/images/logo.svg';
 
 var provider = new window.firebase.auth.GoogleAuthProvider();
 var db = window.firebase.firestore();

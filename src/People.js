@@ -29,9 +29,11 @@ export default function People(props) {
 
         snapshot.forEach((doc) => {
           let data = doc.data();
+
           data['ID'] = doc.id;
-          data['title'] = data['name'];
+          data['title'] = data.name;
           data['description'] = "";
+
           newPeople.push(data);
         });
 
@@ -66,6 +68,11 @@ export default function People(props) {
     return people[index];
   }
 
+  const onEdit = (item) => {
+    let {ID, title, ...rest} = item;
+    props.peopleRef.doc(item.ID).set(rest, { merge: true });
+  }
+
   const onRename = (ID, newName) => {
     props.peopleRef.doc(ID).set({
       name: newName
@@ -85,9 +92,14 @@ export default function People(props) {
 
   // Modals for options (three vertical dots) for list and for person view.
   const [modalPerson, setModalPerson] = useState(undefined);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [showRenameModal, setShowRenameModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   let options = [
+    {name: "Edit", onClick: (item) => {
+      setModalPerson(item);
+      setShowEditModal(true);
+    }},
     {name: "Rename", onClick: (item) => {
       setModalPerson(item);
       setShowRenameModal(true);
@@ -124,9 +136,144 @@ export default function People(props) {
       </Col>
     </Row>
   </Container>
+  <EditModal show={showEditModal} person={modalPerson} onEdit={onEdit} onHide={() => {setShowEditModal(false)}}/>
   <RenameModal show={showRenameModal} person={modalPerson} onRename={onRename} onHide={() => {setShowRenameModal(false)}}/>
   <DeleteModal show={showDeleteModal} person={modalPerson} onDelete={onDelete} onHide={() => {setShowDeleteModal(false)}}/>
   </>;
+}
+
+function EditModal(props) {
+  const [expanded, setExpanded] = useState(false);
+
+  const [name, setName] = useState();
+  const [email, setEmail] = useState();
+  const [company, setCompany] = useState();
+  const [job, setJob] = useState();
+  const [phone, setPhone] = useState();
+  const [country, setCountry] = useState();
+  const [state, setState] = useState();
+  const [city, setCity] = useState();
+
+  let person = props.person;
+
+  const onSubmit = () => {
+    if (name !== undefined) {
+      person.name = name;
+    }
+
+    if (email !== undefined) {
+      person.email = email;
+    }
+
+    if (company !== undefined) {
+      person.company = company;
+    }
+
+    if (job !== undefined) {
+      person.job = job;
+    }
+
+    if (phone !== undefined) {
+      person.phone = phone;
+    }
+
+    if (country !== undefined) {
+      person.country = country;
+    }
+
+    if (state !== undefined) {
+      person.state = state;
+    }
+
+    if (city !== undefined) {
+      person.city = city;
+    }
+
+    props.onEdit(person);
+    props.onHide();
+  }
+
+  if (props.person === undefined) {
+    return <></>;
+  }
+
+  let expandedControls = <>
+    <Row className="mb-3">
+      <Col>
+        <Form.Label>Phone number</Form.Label>
+        <Form.Control type="text" placeholder="Phone" defaultValue={props.person.phone} onChange={(e) => {setPhone(e.target.value)}}/>
+      </Col>
+    </Row>
+    <Row>
+      <Col>
+        <Form.Label>Location</Form.Label>
+      </Col>
+    </Row>
+    <Row className="mb-3">
+      <Col>
+        <Form.Control type="text" placeholder="Country" defaultValue={props.person.country} onChange={(e) => {setCountry(e.target.value)}}/>
+      </Col>
+      <Col>
+        <Form.Control type="text" placeholder="State" defaultValue={props.person.state} onChange={(e) => {setState(e.target.value)}}/>
+      </Col>
+      <Col>
+        <Form.Control type="text" placeholder="City" defaultValue={props.person.city} onChange={(e) => {setCity(e.target.value)}}/>
+      </Col>
+    </Row>
+    <Row>
+      <Col>
+        <Form.Label>Other details</Form.Label>
+      </Col>
+    </Row>
+    <Row>
+      <Col>
+        <Form.Label>Tags</Form.Label>
+      </Col>
+    </Row>
+  </>;
+
+  return <Modal show={props.show} onHide={props.onHide} centered>
+    <Modal.Header closeButton>
+      <Modal.Title>Edit person</Modal.Title>
+    </Modal.Header>
+    <Modal.Body>
+      <Container>
+      <Row className="mb-3">
+        <Col>
+          <Form.Label>Full name</Form.Label>
+          <Form.Control type="text" placeholder="Name" defaultValue={props.person.name} onChange={(e) => {setName(e.target.value)}}/>
+        </Col>
+      </Row>
+      <Row className="mb-3">
+        <Col>
+          <Form.Label>Email address</Form.Label>
+          <Form.Control type="email" placeholder="Email" defaultValue={props.person.email} onChange={(e) => {setEmail(e.target.value)}}/>
+        </Col>
+      </Row>
+      <Row className="mb-3">
+        <Col>
+          <Form.Label>Company name</Form.Label>
+          <Form.Control type="text" placeholder="Company" defaultValue={props.person.company} onChange={(e) => {setCompany(e.target.value)}}/>
+        </Col>
+      </Row>
+      <Row className="mb-3">
+        <Col>
+          <Form.Label>Job title</Form.Label>
+          <Form.Control type="text" placeholder="Job" defaultValue={props.person.job} onChange={(e) => {setJob(e.target.value)}}/>
+        </Col>
+      </Row>
+      {expanded ? expandedControls : <></>}
+      </Container>
+    </Modal.Body>
+    <Modal.Footer>
+      <Button variant="link" onClick={() => {setExpanded(!expanded)}}>
+        {expanded ? "Less" : "More"}
+      </Button>
+      <Button variant="primary" onClick={onSubmit}>
+        Save
+      </Button>
+    </Modal.Footer>
+  </Modal>;
 }
 
 function RenameModal(props) {
@@ -145,7 +292,7 @@ function RenameModal(props) {
 
   return <Modal show={props.show} onHide={props.onHide} centered>
     <Modal.Header closeButton>
-      <Modal.Title>Rename contact</Modal.Title>
+      <Modal.Title>Rename person</Modal.Title>
     </Modal.Header>
     <Modal.Body>
       <Form.Control type="text" defaultValue={name} onChange={(e) => {
@@ -175,7 +322,7 @@ function DeleteModal(props) {
 
   return <Modal show={props.show} onHide={props.onHide} centered>
     <Modal.Header closeButton>
-      <Modal.Title>Delete contact</Modal.Title>
+      <Modal.Title>Delete person</Modal.Title>
     </Modal.Header>
     <Modal.Body>
       Are you sure you want to delete {name}?
@@ -184,9 +331,7 @@ function DeleteModal(props) {
       <Button variant="danger" onClick={() => {
         props.onDelete(props.person.ID);
         props.onHide();
-      }}>
-        Delete
-                </Button>
+      }}>Delete</Button>
     </Modal.Footer>
   </Modal>;
 }
