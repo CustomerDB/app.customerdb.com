@@ -6,12 +6,13 @@ import Col from 'react-bootstrap/Col';
 import Nav from 'react-bootstrap/Nav';
 import Tab from 'react-bootstrap/Tab';
 import Button from 'react-bootstrap/Button';
-import Modal from 'react-bootstrap/Modal';
+import Badge from 'react-bootstrap/Badge';
+
 
 import Options from './Options.js';
 
 export default function Person(props) {
-    const [person, setPerson] = useState("");
+    const [person, setPerson] = useState(undefined);
 
     useEffect(() => {
         let unsubscribe = props.peopleRef.doc(props.personID).onSnapshot((doc) => {
@@ -20,7 +21,49 @@ export default function Person(props) {
             setPerson(data);
         });
         return unsubscribe;
-    }, []);
+    }, [props.personID]);
+
+    if (person === undefined) {
+      return <></>;
+    }
+
+    let fields = [
+      {title: 'Email', value: person.email},
+      {title: 'Company', value: person.company},
+      {title: 'Job', value: person.job},
+      {title: 'Phone', value: person.phone},
+      {title: 'Country', value: person.country},
+      {title: 'State', value: person.state},
+      {title: 'City', value: person.city}
+    ]
+
+    let contactFields = fields.flatMap((e) => {
+      if (e.value === undefined) {
+        return [];
+      }
+
+      return [<Row className="mb-3"><Col><p style={{margin: 0}}><small>{e.title}</small></p><p><large>{e.value}</large></p></Col></Row>];
+    });
+
+    if (person.customFields !== undefined) {
+      Object.values(person.customFields).forEach(field => {
+        contactFields.push(<Row className="mb-3"><Col><p style={{margin: 0}}><small>{field.kind}</small></p><p><large>{field.value}</large></p></Col></Row>);
+      });
+    }
+
+    if (person.labels !== undefined) {
+      let labels = Object.values(person.labels).map(label => {
+        return <Badge pill variant="secondary" style={{marginRight: "0.5rem"}}>{label.name}</Badge>;
+      });
+
+      if (labels.length > 0){
+        contactFields.push(<Row className="mb-3"><Col><p style={{margin: 0}}><small>Labels</small></p><p><large>{labels}</large></p></Col></Row>);
+      }
+    }
+
+    if (contactFields.length === 0) {
+      contactFields.push(<p>A summary will be ready once you add data to this contact. Click here to get started.</p>);
+    }
 
     return <><Container>
     <Row style={{paddingBottom: "2rem"}}>
@@ -48,7 +91,7 @@ export default function Person(props) {
         <Col className="p-3">
             <Tab.Content>
                 <Tab.Pane eventKey="contact">
-                    <p>A summary will be ready once you add data to this contact. Click here to get started.</p>
+                    {contactFields}
                 </Tab.Pane>
                 <Tab.Pane eventKey="activity">
                     <p></p>

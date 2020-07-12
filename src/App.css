@@ -161,3 +161,7 @@ button.addButton {
     scrollbar-width: none!important;
     outline: none;
 }
+
+span.inline-highlight {
+  border-radius: 0.25rem;
+}
