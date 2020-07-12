@@ -9,6 +9,7 @@ import OrganizationHome from './OrganizationHome.js';
 import People from './People.js';
 import Sources from './Sources.js';
 import Explore from './Explore.js';
+import Settings from './Settings.js';
 
 import { logout } from './Utils.js';
 
@@ -76,6 +77,14 @@ export default function Organization(props) {
 
         <Route path="explore/*">
           <Route path="/" element={ <Explore orgID={orgID} user={user} /> } />
+        </Route>
+
+        <Route path="settings/*">
+          <Route path="/" element={ <Settings selected="profile" user={user} membersRef={membersRef} />} />
+          <Route path="profile" element={ <Settings selected="profile" user={user} membersRef={membersRef}/>} />
+          <Route path="members" element={ <Settings selected="members" user={user} membersRef={membersRef}/>} />
+          <Route path="organization" element={ <Settings selected="organization" user={user}/>} />
+          <Route path="backup" element={ <Settings selected="backup" user={user}/>} />
         </Route>
 
         <Route path="*" element={<Navigate to="/404" />} />
