@@ -40,11 +40,11 @@ export default function List(props) {
         return <Row key={key} style={style}>
           <Col>
             <Container className={listCardClass}>
-              <Row>
+              <Row className="h-100">
                 <Col className="listTitleContainer align-self-center" md={8}>
                   {title}
                 </Col>
-                <Col md={4}>
+                <Col md={4} className="align-self-center">
                   <Options options={props.options} item={d} inverted={invertedColors}/>
                 </Col>
               </Row>
