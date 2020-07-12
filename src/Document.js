@@ -1,8 +1,10 @@
 import ContentEditable from 'react-contenteditable';
 import React from 'react';
 import ReactQuill from 'react-quill';
+import Quill from 'quill';
 import Delta from 'quill-delta';
 import 'react-quill/dist/quill.snow.css';
+import { nanoid } from 'nanoid';
 
 import { Navigate } from 'react-router-dom';
 
@@ -10,6 +12,8 @@ import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
+
+import { Loading } from './Utils.js';
 
 import colorPair from './color.js';
 
@@ -42,6 +46,61 @@ function checkReturn(e) {
     e.target.blur();
   }
 }
+
+// Declare a custom blot subclass to represent highlighted text.
+let Inline = Quill.import('blots/inline');
+
+class HighlightBlot extends Inline {
+
+  static blotName = 'highlight';
+  static className = 'inline-highlight';
+  static tagName = 'span';
+  static highlightAttribute = 'data-highightID';
+  static tagAttribute = 'data-tagID';
+
+  static styleClass(tagID) {
+    return `tag-${tagID}`;
+  }
+
+  static create(value) {
+    console.log("HighlightBlot :: create => value", value);
+
+    const node = super.create(value);
+
+    let { highlightID, tagID } = value;
+
+		node.setAttribute("id", `highlight-${highlightID}`);
+		node.setAttribute(HighlightBlot.highlightAttribute, highlightID);
+    node.setAttribute(HighlightBlot.tagAttribute, tagID);
+    node.classList.add(HighlightBlot.styleClass(tagID));
+
+		return node;
+  }
+
+  static formats(domNode) {
+		console.log("HighlightBlot (class) :: formats");
+    let highlightID = domNode.getAttribute(HighlightBlot.highlightAttribute);
+    let tagID = domNode.getAttribute(HighlightBlot.tagAttribute);
+    if (highlightID && tagID) {
+      return {
+        highlightID: highlightID,
+        tagID: tagID
+      }
+    }
+
+    return super.formats(domNode);
+  }
+
+	formats() {
+		console.log("HighlightBlot (instance) :: formats");
+		let formats = super.formats();
+		formats['highlight'] = HighlightBlot.formats(this.domNode);
+		return formats;
+	}
+}
+
+Quill.register('formats/highlight', HighlightBlot);
+
 
 // Document is a React component that allows multiple users to edit
 // and highlight a text document simultaneously.
@@ -84,6 +143,7 @@ export default class Document extends React.Component {
     this.documentRef = props.documentsRef.doc(this.documentID);
     this.deltasRef = this.documentRef.collection('deltas');
     this.highlightsRef = this.documentRef.collection('highlights');
+    this.tagsRef = this.documentRef.collection('tags');
 
     this.handleDeltaSnapshot = this.handleDeltaSnapshot.bind(this);
     this.updateTitle = this.updateTitle.bind(this);
@@ -99,8 +159,6 @@ export default class Document extends React.Component {
 
     // This is a range object with fields 'index' and 'length'
     this.currentSelection = undefined;
-
-    this.tags = {};
 
     this.latestSnapshot = {
       timestamp: new window.firebase.firestore.Timestamp(0, 0),
@@ -134,6 +192,7 @@ export default class Document extends React.Component {
   componentDidMount() {
     // Subscribe to document title changes
     this.subscriptions.push(this.documentRef.onSnapshot((doc) => {
+      console.log("received document snapshot");
       if (!doc.exists) {
         this.setState({ exists: false });
         return;
@@ -150,6 +209,7 @@ export default class Document extends React.Component {
 
     // Subscribe to highlight changes
     this.subscriptions.push(this.highlightsRef.onSnapshot((snapshot) => {
+      console.log("received highlights snapshot");
       let highlights = {};
 
       snapshot.forEach(highlightDoc => {
@@ -167,6 +227,38 @@ export default class Document extends React.Component {
         tagIDsInSelection: tagIDs,
         loadedHighlights: true
       });
+    }));
+
+    // Subscribe to tag changes
+    this.subscriptions.push(this.tagsRef.onSnapshot(snapshot => {
+      console.log("received tags snapshot");
+
+      let tags = {};
+      snapshot.forEach(tagDoc => {
+        let data = tagDoc.data();
+        data['ID'] = tagDoc.id;
+        tags[data['ID']] = data;
+      });
+
+      let tagStyleID = "documentTagStyle"
+      let tagStyleElement = document.getElementById(tagStyleID);
+      if (!tagStyleElement) {
+        tagStyleElement = document.createElement("style");
+        tagStyleElement.setAttribute("id", tagStyleID);
+        tagStyleElement.setAttribute("type", "text/css");
+        document.head.appendChild(tagStyleElement);
+      }
+
+      let styles = Object.values(tags).map(t => {
+        return `span.tag-${t.ID} { background-color: ${t.color} }`;
+      });
+
+      tagStyleElement.innerHTML = styles.join("\n");
+
+      this.setState({
+				tags: tags,
+				loadedTags: true
+			});
     }));
 
     // Get the full set of deltas once
@@ -197,6 +289,11 @@ export default class Document extends React.Component {
   componentWillUnmount() {
     this.subscriptions.forEach((unsubscribe) => {unsubscribe()});
     this.subscriptions = [];
+
+    // Clean up tag styles
+    let tagStyleID = "documentTagStyle";
+    document.getElementById(tagStyleID).remove();
+
   }
 
   computeHighlightsInSelection(highlights, selection) {
@@ -233,6 +330,8 @@ export default class Document extends React.Component {
   }
 
   handleDeltaSnapshot(snapshot) {
+    console.log("received deltas snapshot");
+
     // for debug
     let allDeltas = [];
     let newDeltas = [];
@@ -300,9 +399,10 @@ export default class Document extends React.Component {
   // in `this.uploadDeltas()`.
   onEdit(content, delta, source, editor) {
     if (source !== 'user') {
-      console.debug('onEdit: skipping non-user change');
+      console.debug('onEdit: skipping non-user change', delta, source);
       return;
     }
+    console.debug('onEdit: caching user change', delta);
     this.localDelta = this.localDelta.compose(delta);
   }
 
@@ -359,12 +459,17 @@ export default class Document extends React.Component {
       return;
     }
 
+		let editor = this.reactQuillRef.getEditor();
+
     if (checked) {
       console.log("Creating highlight with tag ", tag);
-      let editor = this.reactQuillRef.getEditor();
-      let selectionText = editor.getText(this.currentSelection.index, this.currentSelection.length);
+      let selectionText = editor.getText(
+        this.currentSelection.index,
+        this.currentSelection.length);
 
-      this.highlightsRef.doc().set({
+      let highlightID = nanoid();
+
+      this.highlightsRef.doc(highlightID).set({
         tagID: tag.ID,
         selection: {
           index: this.currentSelection.index,
@@ -372,6 +477,21 @@ export default class Document extends React.Component {
         },
         text: selectionText
       });
+
+			console.log("applying highlight formatting");
+
+      let formatDelta = editor.formatText(
+				this.currentSelection.index,
+				this.currentSelection.length,
+				'highlight',
+        { highlightID: highlightID, tagID: tag.ID },
+				'user'
+			);
+
+      console.log("highlight format delta", formatDelta);
+
+      // Cache change for upload to server.
+      this.localDelta = this.localDelta.compose(formatDelta);
     }
 
     if (!checked) {
@@ -383,6 +503,21 @@ export default class Document extends React.Component {
         if (h.tagID === tag.ID) {
           console.log("Deleting highlight in current selection with tag ", tag);
           this.highlightsRef.doc(h.ID).delete();
+
+					console.log("removing highlight formatting", h);
+
+					let formatDelta = editor.removeFormat(
+						h.selection.index,
+						h.selection.length,
+						'highlight',
+						false,  // unsets the target format
+						'user'
+					);
+
+          console.log("highlight format delta", formatDelta);
+
+          // Cache change for upload to server.
+          this.localDelta = this.localDelta.compose(formatDelta);
         }
       });
     }
@@ -391,16 +526,19 @@ export default class Document extends React.Component {
   // onTagsChange is invoked when the set of tags is loaded, or changes.
   onTagsChange(tags) {
     // TODO: This should be done better :'(
-    this.tags = tags;
-    this.setState({
-      loadedTags: true
-    });
   }
 
   render() {
     if (!this.state.exists) {
       return <Navigate to="/404" />
     }
+
+		if (
+			!this.state.loadedDeltas ||
+			!this.state.loadedHighlights ||
+			!this.state.loadedTags) {
+			return <Loading />
+		}
 
     let content = this.state.delta;
 
@@ -419,26 +557,6 @@ export default class Document extends React.Component {
         </Col>
       </Row>
       </Container>;
-    }
-
-    // Clear pre-existing highlight styles. Some existing
-    // formatting may correspond to a highlight that was
-    // deleted.
-    let clearFormat = new Delta([
-      {
-        retain: content.length(),
-        attributes: {'background': '#FFF'}
-      }
-    ]);
-    content = content.compose(clearFormat);
-
-    // Append highlight styles
-    if (this.state.loadedDeltas && this.state.loadedHighlights && this.state.loadedTags) {
-      Object.values(this.state.highlights).forEach(h => {
-        let color = this.tags[h.tagID].color;
-        let hDelta = new Delta([{retain: h.selection.index}, {retain: h.selection.length, attributes: {'background': color}}]);
-        content = content.compose(hDelta);
-      });
     }
 
     return <Container>
@@ -467,10 +585,10 @@ export default class Document extends React.Component {
             </Col>
             <Col ms={2} md={2}>
               <Tags
-                tagsRef={this.documentRef.collection('tags')}
+                tagsRef={this.tagsRef}
+								tags={Object.values(this.state.tags)}
                 tagIDsInSelection={this.state.tagIDsInSelection}
-                onChange={this.onTagControlChange}
-                onTagsChange={this.onTagsChange} />
+                onChange={this.onTagControlChange} />
             </Col>
             </Row>
     </Container>;
@@ -486,30 +604,6 @@ class Tags extends React.Component {
     this.onChange = props.onChange;
 
     this.createTag = this.createTag.bind(this);
-
-    this.state = {
-      tags: []
-    }
-
-    this.subscriptions = [];
-  }
-
-  componentDidMount() {
-    this.subscriptions.push(this.props.tagsRef.onSnapshot(snapshot => {
-      let tags = {};
-      snapshot.forEach(tagDoc => {
-        let data = tagDoc.data();
-        data['ID'] = tagDoc.id;
-        tags[data['ID']] = data;
-      });
-      this.setState({ tags: Object.values(tags) });
-      this.props.onTagsChange(tags);
-    }));
-  }
-
-  componentWillUnmount() {
-    this.subscriptions.forEach((unsubscribe) => {unsubscribe()});
-    this.subscriptions = [];
   }
 
   createTag(e) {
@@ -536,7 +630,7 @@ class Tags extends React.Component {
   }
 
   render() {
-    let tagControls = this.state.tags.map(t => {
+    let tagControls = this.props.tags.map(t => {
       let checked = this.props.tagIDsInSelection.has(t.ID);
 
       let label = <span style={{
