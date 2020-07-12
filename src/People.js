@@ -6,6 +6,9 @@ import Form from 'react-bootstrap/Form';
 import Modal from 'react-bootstrap/Modal';
 import Row from 'react-bootstrap/Row';
 import Button from 'react-bootstrap/Button';
+import { v4 as uuidv4 } from 'uuid';
+
+import { XCircleFill } from 'react-bootstrap-icons';
 
 
 import List from './List.js';
@@ -70,14 +73,8 @@ export default function People(props) {
 
   const onEdit = (item) => {
     let {ID, title, ...rest} = item;
-    props.peopleRef.doc(item.ID).set(rest, { merge: true });
+    props.peopleRef.doc(item.ID).set(rest);
   }
-
-  const onRename = (ID, newName) => {
-    props.peopleRef.doc(ID).set({
-      name: newName
-    }, { merge: true });
-  };
 
   const onDelete = (ID) => {
     props.peopleRef.doc(ID).update({
@@ -93,16 +90,11 @@ export default function People(props) {
   // Modals for options (three vertical dots) for list and for person view.
   const [modalPerson, setModalPerson] = useState(undefined);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [showRenameModal, setShowRenameModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   let options = [
     {name: "Edit", onClick: (item) => {
       setModalPerson(item);
       setShowEditModal(true);
-    }},
-    {name: "Rename", onClick: (item) => {
-      setModalPerson(item);
-      setShowRenameModal(true);
     }},
     {name: "Delete", onClick: (item) => {
       setModalPerson(item);
@@ -137,7 +129,6 @@ export default function People(props) {
     </Row>
   </Container>
   <EditModal show={showEditModal} person={modalPerson} onEdit={onEdit} onHide={() => {setShowEditModal(false)}}/>
-  <RenameModal show={showRenameModal} person={modalPerson} onRename={onRename} onHide={() => {setShowRenameModal(false)}}/>
   <DeleteModal show={showDeleteModal} person={modalPerson} onDelete={onDelete} onHide={() => {setShowDeleteModal(false)}}/>
   </>;
 }
@@ -154,7 +145,42 @@ function EditModal(props) {
   const [state, setState] = useState();
   const [city, setCity] = useState();
 
+  const [customFields, setCustomFields] = useState({});
+  const [labels, setLabels] = useState([]);
+
   let person = props.person;
+
+  const addCustomField = () => {
+    let ID = uuidv4(); 
+    let fields = {};
+    Object.assign(fields, customFields);
+    fields[ID] = {ID: ID, kind: "", value: ""};
+    setCustomFields(fields);
+  };
+
+  const addLabel = () => {
+    let ID = uuidv4(); 
+    let l = {};
+    Object.assign(l, labels);
+    l[ID] = {ID: ID, kind: ""};
+    setLabels(l);
+  };
+
+  useEffect(() => {
+    if (props.person !== undefined && props.person.customFields !== undefined) {
+      setCustomFields(props.person.customFields);
+    }
+  }, [props.person]);
+
+  useEffect(() => {
+    if (props.person !== undefined && props.person.labels !== undefined) {
+      setLabels(props.person.labels);
+    }
+  }, [props.person]);
+
+  if (props.person === undefined) {
+    return <></>;
+  }
 
   const onSubmit = () => {
     if (name !== undefined) {
@@ -189,12 +215,11 @@ function EditModal(props) {
       person.city = city;
     }
 
+    person.customFields = customFields;
+    person.labels = labels;
+
     props.onEdit(person);
     props.onHide();
-  }
-
-  if (props.person === undefined) {
-    return <></>;
   }
 
   let expandedControls = <>
@@ -225,9 +250,77 @@ function EditModal(props) {
         <Form.Label>Other details</Form.Label>
       </Col>
     </Row>
+    {Object.values(customFields).map(field => {
+    return <Row className="mb-2" key={field.ID}>
+      <Col>
+        <Row>
+          <Col md={4}><Form.Control type="text" placeholder="Kind" defaultValue={field.kind} onChange={
+            (e) => {
+              let fields = {};
+              Object.assign(fields, customFields);
+              fields[field.ID].kind = e.target.value;
+              setCustomFields(fields);
+            }
+          }/></Col>
+          <Col md={7}><Form.Control type="text" placeholder="Value" defaultValue={field.value} onChange={
+            (e) => {
+              let fields = {};
+              Object.assign(fields, customFields);
+              fields[field.ID].value = e.target.value;
+              setCustomFields(fields);
+            }
+          }/></Col>
+          <Col md={1} style={{padding: 0}}>
+            <Button variant="link"> 
+              <XCircleFill color="grey" onClick={() => {
+                let fields = {};
+                Object.assign(fields, customFields);
+                delete fields[field.ID];
+                setCustomFields(fields);
+              }}/>
+            </Button>
+          </Col>
+        </Row>
+      </Col>
+    </Row>})}
+    <Row className="mb-3">
+      <Col>
+        <Button className="addButton" style={{width: "1.5rem", height: "1.5rem", fontSize: "0.75rem"}} onClick={addCustomField}>+</Button>
+      </Col>
+    </Row>
     <Row>
       <Col>
-        <Form.Label>Tags</Form.Label>
+        <Form.Label>Labels</Form.Label>
+      </Col>
+    </Row>
+    {Object.values(labels).map(label => {
+    return <Row className="mb-2" key={label.ID}>
+      <Col>
+        <Row>
+          <Col md={8}><Form.Control type="text" placeholder="Name" defaultValue={label.name} onChange={
+            (e) => {
+              let l = {};
+              Object.assign(l, labels);
+              l[label.ID].name = e.target.value;
+              setLabels(l);
+            }
+          }/></Col>
+          <Col md={1} style={{padding: 0}}>
+            <Button variant="link"> 
+              <XCircleFill color="grey" onClick={() => {
+                let l = {};
+                Object.assign(l, labels);
+                delete l[label.ID];
+                setLabels(l);
+              }}/>
+            </Button>
+          </Col>
+        </Row>
+      </Col>
+    </Row>})}
+    <Row>
+      <Col>
+        <Button className="addButton" style={{width: "1.5rem", height: "1.5rem", fontSize: "0.75rem"}} onClick={addLabel}>+</Button>
       </Col>
     </Row>
   </>;
@@ -271,41 +364,6 @@ function EditModal(props) {
       </Button>
       <Button variant="primary" onClick={onSubmit}>
         Save
-      </Button>
-    </Modal.Footer>
-  </Modal>;
-}
-
-function RenameModal(props) {
-  const [name, setName] = useState();
-
-  useEffect(() => {
-    if (props.person !== undefined) {
-      setName(props.person.name);
-    }
-  }, [props.person]);
-
-  const onSubmit = () => {
-      props.onRename(props.person.ID, name);
-      props.onHide();
-  }
-
-  return <Modal show={props.show} onHide={props.onHide} centered>
-    <Modal.Header closeButton>
-      <Modal.Title>Rename person</Modal.Title>
-    </Modal.Header>
-    <Modal.Body>
-      <Form.Control type="text" defaultValue={name} onChange={(e) => {
-        setName(e.target.value);
-      }} onKeyDown={(e) => {
-        if (e.key === 'Enter') {
-          onSubmit();
-        }
-      }} />
-    </Modal.Body>
-    <Modal.Footer>
-      <Button variant="primary" onClick={onSubmit}>
-        Rename
       </Button>
     </Modal.Footer>
   </Modal>;

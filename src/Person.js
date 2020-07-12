@@ -6,6 +6,8 @@ import Col from 'react-bootstrap/Col';
 import Nav from 'react-bootstrap/Nav';
 import Tab from 'react-bootstrap/Tab';
 import Button from 'react-bootstrap/Button';
+import Badge from 'react-bootstrap/Badge';
+
 
 import Options from './Options.js';
 
@@ -36,13 +38,28 @@ export default function Person(props) {
     ]
 
     let contactFields = fields.flatMap((e) => {
-      console.log(person, e.title, e.value);
       if (e.value === undefined) {
         return [];
       }
 
       return [<Row className="mb-3"><Col><p style={{margin: 0}}><small>{e.title}</small></p><p><large>{e.value}</large></p></Col></Row>];
-    })
+    });
+
+    if (person.customFields !== undefined) {
+      Object.values(person.customFields).forEach(field => {
+        contactFields.push(<Row className="mb-3"><Col><p style={{margin: 0}}><small>{field.kind}</small></p><p><large>{field.value}</large></p></Col></Row>);
+      });
+    }
+
+    if (person.labels !== undefined) {
+      let labels = Object.values(person.labels).map(label => {
+        return <Badge pill variant="secondary" style={{marginRight: "0.5rem"}}>{label.name}</Badge>;
+      });
+
+      if (labels.length > 0){
+        contactFields.push(<Row className="mb-3"><Col><p style={{margin: 0}}><small>Labels</small></p><p><large>{labels}</large></p></Col></Row>);
+      }
+    }
 
     if (contactFields.length === 0) {
       contactFields.push(<p>A summary will be ready once you add data to this contact. Click here to get started.</p>);
