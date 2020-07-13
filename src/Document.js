@@ -8,6 +8,8 @@ import { nanoid } from 'nanoid';
 
 import { Navigate } from 'react-router-dom';
 
+import { AutoSizer } from 'react-virtualized';
+
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
@@ -617,7 +619,7 @@ export default class Document extends React.Component {
       </Container>;
     }
 
-    return <Container>
+    return <>
           <Row style={{paddingBottom: "2rem"}}>
             <Col>
             <ContentEditable
@@ -630,14 +632,19 @@ export default class Document extends React.Component {
               />
             </Col>
           </Row>
-          <Row>
+          <Row className="flex-grow-1">
             <Col ms={10} md={10}>
+              <AutoSizer>
+              {({height, width}) => (
               <ReactQuill
                 ref={(el) => { this.reactQuillRef = el }}
                 value={content}
+                style={{height: height, width: width}}
                 theme="bubble"
                 onChange={this.onEdit}
                 onChangeSelection={this.onSelect} />
+              )}
+              </AutoSizer>
             </Col>
             <Col ms={2} md={2}>
               <Tags
@@ -647,7 +654,7 @@ export default class Document extends React.Component {
                 onChange={this.onTagControlChange} />
             </Col>
             </Row>
-    </Container>;
+    </>;
   }
 }
 

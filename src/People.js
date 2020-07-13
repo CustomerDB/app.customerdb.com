@@ -123,7 +123,7 @@ export default function People(props) {
           onClick={onClick}
         />
       </Col>
-      <Col md={8}>
+      <Col md={8} className="d-flex flex-column h-100">
         {view}
       </Col>
     </Row>
