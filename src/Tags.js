@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 import Col from 'react-bootstrap/Col';
 import Container from 'react-bootstrap/Container';
@@ -145,7 +145,6 @@ export default function Tags(props) {
 function TagGroup(props) {
   const [tagGroup, setTagGroup] = useState();
   const [tags, setTags] = useState([]);
-  const [colorPickerOpen, setColorPickerOpen] = useState();
 
   const [tagNames, setTagNames] = useState({});
 
@@ -215,33 +214,12 @@ function TagGroup(props) {
       </Col>
     </Row>
     {tags.map(tag => {
-      console.log("tag", tag);
-      let colorPicker;
-      if (colorPickerOpen === tag.ID) {
-        colorPicker = <div style={{ position: "absolute", zIndex: 2 }} onMouseLeave={() => {
-          setColorPickerOpen(undefined)
-        }}>
-          <GithubPicker color={tag.color} onChangeComplete={(color) => {
-            props.tagGroupRef.collection("tags").doc(tag.ID).set({
-              color: color.hex,
-              textColor: getTextColorForBackground(color.hex)
-            }, { merge: true });
-
-            setColorPickerOpen(undefined);
-          }} />
-        </div>;
-      }
-
       return <Row className="mb-2" key={tag.ID}>
-        <Col>
-          <Row>
-            <Col md={3}>
-              <div style={{ background: tag.color, width: "25px", height: "100%", borderRadius: "0.25rem" }} onClick={(e) => {
-                setColorPickerOpen(tag.ID);
-              }}>{}</div>
-              {colorPicker}
-            </Col>
-            <Col md={7}><Form.Control type="text" placeholder="Name" value={tagNames[tag.ID]}
+        <Col md={10}>
+          <Row noGutters={true}>
+            <Col md={7} className="d-flex">
+              <ColorPicker tag={tag} tagGroupRef={props.tagGroupRef}/>
+              <Form.Control type="text" placeholder="Name" value={tagNames[tag.ID]}
               onChange={(e) => {
                 let tn = {};
                 Object.assign(tn, tagNames);
@@ -275,10 +253,45 @@ function TagGroup(props) {
     })}
     <Row className="mb-3">
       <Col>
-        <Button className="addButton float-right" style={{ width: "1.5rem", height: "1.5rem", fontSize: "0.75rem" }} onClick={onAdd}>+</Button>
+        <Button className="addButton" style={{ width: "1.5rem", height: "1.5rem", fontSize: "0.75rem" }} onClick={onAdd}>+</Button>
       </Col>
     </Row>
   </>;
+}
+
+function ColorPicker(props) {
+  const ref = useRef(null);
+  const [colorPickerOpen, setColorPickerOpen] = useState();
+
+  useEffect(() => {
+      const handleClose = (event) => {
+          if (ref.current && !ref.current.contains(event.target)) {
+              setColorPickerOpen(false);
+          }
+      }
+
+      document.addEventListener("mousedown", handleClose);
+      return () => {
+          document.removeEventListener("mousedown", handleClose);
+      };
+  }, [ref]);
+  
+  return <div ref={ref}>
+  <div style={{ background: props.tag.color, width: "25px", height: "100%", borderRadius: "0.25rem" }} onClick={(e) => {
+    console.log("clicked");
+    setColorPickerOpen(true);
+  }}>{}</div>
+  {colorPickerOpen ? <div style={{ position: "absolute", zIndex: 2 }}>
+    <GithubPicker color={props.tag.color} onChangeComplete={(color) => {
+      props.tagGroupRef.collection("tags").doc(props.tag.ID).set({
+        color: color.hex,
+        textColor: getTextColorForBackground(color.hex)
+      }, { merge: true });
+
+      setColorPickerOpen(false);
+    }} />
+  </div> : <></>}
+  </div>;
 }
 
 function RenameModal(props) {
