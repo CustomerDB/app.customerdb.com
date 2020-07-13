@@ -14,7 +14,7 @@ import { XCircleFill } from 'react-bootstrap-icons';
 
 import { useNavigate, useParams } from "react-router-dom";
 
-import colorPair, {getTextColorForBackground} from './color.js';
+import colorPair, { getTextColorForBackground } from './color.js';
 
 import List from './List.js';
 import Options from './Options.js';
@@ -113,7 +113,7 @@ export default function Tags(props) {
   let view;
   if (tagGroupID !== undefined) {
     let tagGroupRef = props.tagGroupsRef.doc(tagGroupID);
-    view = <TagGroup key={tagGroupID} tagGroupRef={tagGroupRef} options={options} user={props.user}/>;
+    view = <TagGroup key={tagGroupID} tagGroupRef={tagGroupRef} options={options} user={props.user} />;
   }
 
 
@@ -121,7 +121,7 @@ export default function Tags(props) {
     <Row className="h-100">
       <Col md={4} className="d-flex flex-column h-100">
         <List
-          title="Tags groups"
+          title="Data » Tag groups"
           currentID={tagGroupID}
 
           itemLoad={itemLoad}
@@ -146,7 +146,8 @@ function TagGroup(props) {
   const [tagGroup, setTagGroup] = useState();
   const [tags, setTags] = useState([]);
   const [colorPickerOpen, setColorPickerOpen] = useState();
-  const [tagName, setTagName] = useState();
+
+  const [tagNames, setTagNames] = useState({});
 
   useEffect(() => {
     let unsubscribe = props.tagGroupRef
@@ -164,16 +165,19 @@ function TagGroup(props) {
       .where("deletionTimestamp", "==", "")
       .onSnapshot((snapshot) => {
         let newTags = [];
-
-        console.log("Received new tags")
+        let newTagNames = {};
 
         snapshot.forEach((doc) => {
           let data = doc.data();
           data['ID'] = doc.id;
           newTags.push(data);
+
+          newTagNames[data.ID] = data.name;
         });
 
+        console.log("newTags");
         setTags(newTags);
+        setTagNames(newTagNames);
       });
     return unsubscribe;
   }, []);
@@ -188,6 +192,12 @@ function TagGroup(props) {
       creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
       deletionTimestamp: ""
     });
+  };
+
+  const checkReturn = (e) => {
+    if (e.key === 'Enter') {
+      e.target.blur();
+    }
   };
 
   if (props.tagGroupRef === undefined || tagGroup === undefined) {
@@ -205,15 +215,17 @@ function TagGroup(props) {
       </Col>
     </Row>
     {tags.map(tag => {
+      console.log("tag", tag);
       let colorPicker;
       if (colorPickerOpen === tag.ID) {
         colorPicker = <div style={{ position: "absolute", zIndex: 2 }} onMouseLeave={() => {
-          setColorPickerOpen(undefined)}}>
+          setColorPickerOpen(undefined)
+        }}>
           <GithubPicker color={tag.color} onChangeComplete={(color) => {
             props.tagGroupRef.collection("tags").doc(tag.ID).set({
               color: color.hex,
               textColor: getTextColorForBackground(color.hex)
-            }, {merge: true});
+            }, { merge: true });
 
             setColorPickerOpen(undefined);
           }} />
@@ -224,25 +236,36 @@ function TagGroup(props) {
         <Col>
           <Row>
             <Col md={3}>
-              <div style={{background: tag.color, width: "25px", height: "100%", borderRadius: "0.25rem"}} onClick={(e) => {
+              <div style={{ background: tag.color, width: "25px", height: "100%", borderRadius: "0.25rem" }} onClick={(e) => {
                 setColorPickerOpen(tag.ID);
-              }}>{ }</div>
+              }}>{}</div>
               {colorPicker}
             </Col>
-            <Col md={7}><Form.Control type="text" placeholder="Name" defaultValue={tag.name} 
+            <Col md={7}><Form.Control type="text" placeholder="Name" value={tagNames[tag.ID]}
+              onChange={(e) => {
+                let tn = {};
+                Object.assign(tn, tagNames);
+                tn[tag.ID] = e.target.value;
+                setTagNames(tn);
+              }}
               onBlur={(e) => {
+                if (tagNames[tag.ID] === undefined) {
+                  return;
+                }
+
                 props.tagGroupRef.collection("tags").doc(tag.ID).set({
-                  name: e.target.value
-                }, {merge: true});
-              }
-            } /></Col>
+                  name: tagNames[tag.ID]
+                }, { merge: true });
+              }}
+              onKeyDown={checkReturn} />
+            </Col>
             <Col md={1} style={{ padding: 0 }}>
               <Button variant="link">
                 <XCircleFill color="grey" onClick={() => {
                   props.tagGroupRef.collection("tags").doc(tag.ID).set({
                     deletedBy: props.user.email,
                     deletionTimestamp: window.firebase.firestore.FieldValue.serverTimestamp()
-                  }, {merge: true});
+                  }, { merge: true });
                 }} />
               </Button>
             </Col>

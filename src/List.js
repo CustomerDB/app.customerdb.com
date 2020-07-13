@@ -65,8 +65,8 @@ export default function List(props) {
         <Col md={2}>
             <Button className="addButton" onClick={props.onAdd}>+</Button>
         </Col>
-        {props.optionsRow}
         </Row>
+        {props.optionsRow}
         <Row className="flex-grow-1">
         <Col>
             <AutoSizer>
