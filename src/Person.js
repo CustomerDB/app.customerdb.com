@@ -8,6 +8,7 @@ import Tab from 'react-bootstrap/Tab';
 import Button from 'react-bootstrap/Button';
 import Badge from 'react-bootstrap/Badge';
 
+import { AutoSizer } from 'react-virtualized';
 
 import Options from './Options.js';
 
@@ -65,7 +66,7 @@ export default function Person(props) {
       contactFields.push(<p>A summary will be ready once you add data to this contact. Click here to get started.</p>);
     }
 
-    return <><Container>
+    return <>
     <Row style={{paddingBottom: "2rem"}}>
       <Col className="d-flex align-self-center">
         <h3 className="my-auto">{person.name}</h3>
@@ -87,9 +88,12 @@ export default function Person(props) {
       </Nav>
     </Col>
     </Row>
-    <Row>
+    <Row className="flex-grow-1">
+      <Col ms={10} md={10}>
+        <AutoSizer>
+        {({height, width}) => (
         <Col className="p-3">
-            <Tab.Content>
+            <Tab.Content style={{height: height, width: width, overflowY: "auto"}}>
                 <Tab.Pane eventKey="contact">
                     {contactFields}
                 </Tab.Pane>
@@ -98,8 +102,10 @@ export default function Person(props) {
                 </Tab.Pane>
             </Tab.Content>
         </Col>
+        )}
+        </AutoSizer>
+        </Col>
     </Row>
-    </Tab.Container>
-    </Container></>;
+    </Tab.Container></>;
 }
 
