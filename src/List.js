@@ -15,7 +15,6 @@ import 'react-virtualized/styles.css';
  * List wraps a firebase collection in a scrollable list.
  * 
  * title => Title of list
- * itemType => Name of items for modals
  * currentID => int (or undefined for nothing selected)
  * itemLoad(index) => (name, description)
  * itemCount => int
@@ -67,6 +66,7 @@ export default function List(props) {
             <Button className="addButton" onClick={props.onAdd}>+</Button>
         </Col>
         </Row>
+        {props.optionsRow}
         <Row className="flex-grow-1">
         <Col>
             <AutoSizer>

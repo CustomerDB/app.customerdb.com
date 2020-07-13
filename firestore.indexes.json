@@ -15,6 +15,22 @@
         { "fieldPath": "deletionTimestamp", "order": "ASCENDING" },
         { "fieldPath": "creationTimestamp", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "tagGroups",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "deletionTimestamp", "order": "ASCENDING" },
+        { "fieldPath": "creationTimestamp", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "tags",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "deletionTimestamp", "order": "ASCENDING" },
+        { "fieldPath": "creationTimestamp", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

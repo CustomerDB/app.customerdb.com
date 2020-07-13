@@ -12,7 +12,7 @@ import Delta from 'quill-delta';
 import List from './List.js';
 import Document from './Document.js';
 
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 
 function initialDelta() {
   return new Delta([{ insert: "" }]);
@@ -117,7 +117,7 @@ export default function Sources(props) {
       setModalDocument(item);
       setShowDeleteModal(true);
     }}
-  ]
+  ];
 
   let view;
   if (documentID !== undefined) {
@@ -138,6 +138,10 @@ export default function Sources(props) {
           onAdd={onAdd}
           options={options}
           onClick={onClick}
+
+          optionsRow={<Row>
+            <Col><Link to={`/orgs/${props.orgID}/sources/tags`}>Manage tags</Link></Col>
+          </Row>}
         />
       </Col>
       <Col md={8} className="d-flex flex-column h-100">
@@ -207,7 +211,7 @@ function DeleteModal(props) {
         props.onHide();
       }}>
         Delete
-                </Button>
+      </Button>
     </Modal.Footer>
   </Modal>;
 }

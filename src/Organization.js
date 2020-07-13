@@ -10,6 +10,7 @@ import People from './People.js';
 import Sources from './Sources.js';
 import Explore from './Explore.js';
 import Settings from './Settings.js';
+import Tags from './Tags.js';
 
 import { logout } from './Utils.js';
 
@@ -36,6 +37,7 @@ export default function Organization(props) {
   const membersRef = orgRef.collection("members");
   const peopleRef = orgRef.collection("people");
   const documentsRef = orgRef.collection("documents");
+  const tagGroupsRef = orgRef.collection("tagGroups");
 
   useEffect(() => {
     if (props.oauthUser === null) {
@@ -71,8 +73,12 @@ export default function Organization(props) {
         </Route>
 
         <Route path="sources/*">
-          <Route path="/" element={ <Sources orgID={orgID} documentsRef={documentsRef} user={user} /> } />
-          <Route path=":docID" element={ <Sources orgID={orgID} documentsRef={documentsRef} user={user} />} />
+          <Route path="/" element={ <Sources orgID={orgID} documentsRef={documentsRef} tagGroupsRef={tagGroupsRef} user={user} /> } />
+          <Route path="tags">
+            <Route path="/" element={ <Tags orgID={orgID} tagGroupsRef={tagGroupsRef} user={user} /> } />
+            <Route path=":tgID" element={ <Tags orgID={orgID} tagGroupsRef={tagGroupsRef} user={user} /> } />
+          </Route>
+          <Route path=":docID" element={ <Sources orgID={orgID} documentsRef={documentsRef} tagGroupsRef={tagGroupsRef} user={user} />} />
         </Route>
 
         <Route path="explore/*">
