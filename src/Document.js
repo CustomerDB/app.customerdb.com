@@ -3,7 +3,7 @@ import React from 'react';
 import ReactQuill from 'react-quill';
 import Quill from 'quill';
 import Delta from 'quill-delta';
-import 'react-quill/dist/quill.snow.css';
+import 'react-quill/dist/quill.bubble.css';
 import { nanoid } from 'nanoid';
 
 import { Navigate } from 'react-router-dom';
@@ -635,6 +635,7 @@ export default class Document extends React.Component {
               <ReactQuill
                 ref={(el) => { this.reactQuillRef = el }}
                 value={content}
+                theme="bubble"
                 onChange={this.onEdit}
                 onChangeSelection={this.onSelect} />
             </Col>
