@@ -112,7 +112,6 @@ export default function People(props) {
       <Col md={4} className="d-flex flex-column h-100">
         <List
           title="People"
-          itemType="contact"
           currentID={personID}
 
           itemLoad={itemLoad}
