@@ -8,7 +8,6 @@ import InputGroup from 'react-bootstrap/InputGroup';
 import Row from 'react-bootstrap/Row';
 import Button from 'react-bootstrap/Button';
 import { GithubPicker } from 'react-color';
-import { v4 as uuidv4 } from 'uuid';
 
 import { XCircleFill } from 'react-bootstrap-icons';
 
