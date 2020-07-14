@@ -226,7 +226,8 @@ function Members(props) {
     props.membersRef.doc(email).set({
       invited: true,
       active: false,
-      email: email
+      email: email,
+      inviteSentTimestamp: ""
     });
   };
 
