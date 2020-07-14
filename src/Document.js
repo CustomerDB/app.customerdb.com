@@ -132,10 +132,7 @@ export default class Document extends React.Component {
   constructor(props) {
     super(props);
 
-    console.debug(`props.documentID ${props}`);
-    this.documentID = props.documentID;
-
-    this.documentRef = props.documentsRef.doc(this.documentID);
+    this.documentRef = props.documentsRef.doc(this.props.documentID);
     this.deltasRef = this.documentRef.collection('deltas');
     this.highlightsRef = this.documentRef.collection('highlights');
 
@@ -569,7 +566,6 @@ export default class Document extends React.Component {
 
         // upload diff
         this.highlightsRef.doc(h.ID).set({
-          ID: h.ID,
           tagID: current.tagID,
           selection: {
             index: current.selection.index,
@@ -588,6 +584,7 @@ export default class Document extends React.Component {
         console.debug("syncHighlights: creating highlight", current);
         this.highlightsRef.doc(highlightID).set({
           ID: highlightID,
+          documentID: this.props.documentID,
           tagID: current.tagID,
           selection: {
             index: current.selection.index,
