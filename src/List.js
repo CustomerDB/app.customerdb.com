@@ -26,22 +26,22 @@ import 'react-virtualized/styles.css';
 export default function List(props) {
     const cardRenderer = ({ key, index, style }) => {
         let d = props.itemLoad(index);
-    
-        let title = <p className="listCardTitle" onClick={() => {props.onClick(d.ID)}}>{d.title}</p>;
+
+        let name = <p className="listCardTitle" onClick={() => {props.onClick(d.ID)}}>{d.name}</p>;
         let listCardClass = "listCard";
         let invertedColors = false;
-    
+
         if (props.currentID === d.ID) {
           listCardClass = "listCardActive";
           invertedColors = true;
         }
-    
+
         return <Row key={key} style={style}>
           <Col>
             <Container className={listCardClass}>
               <Row className="h-100">
                 <Col className="listTitleContainer align-self-center" md={8}>
-                  {title}
+                  {name}
                 </Col>
                 <Col md={4} className="align-self-center">
                   <Options options={props.options} item={d} inverted={invertedColors}/>
@@ -60,7 +60,7 @@ export default function List(props) {
     return <>
         <Row style={{ paddingBottom: "2rem" }}>
         <Col md={10} className="my-auto">
-            <h3>{props.title}</h3>
+            <h3>{props.name}</h3>
         </Col>
         <Col md={2}>
             <Button className="addButton" onClick={props.onAdd}>+</Button>

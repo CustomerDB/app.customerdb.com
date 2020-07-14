@@ -41,8 +41,8 @@ export default function Nav(props) {
         end: false
       },
       {
-        name: "Sources",
-        path: `/orgs/${orgID}/sources`,
+        name: "Customer Data",
+        path: `/orgs/${orgID}/data`,
         icon: <ChatLeftQuote />,
         end: false
       },

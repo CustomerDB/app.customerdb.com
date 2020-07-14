@@ -37,7 +37,6 @@ export default function Sources(props) {
         snapshot.forEach((doc) => {
           let data = doc.data();
           data['ID'] = doc.id;
-          data['description'] = "";
           newDocuments.push(data);
         });
 
@@ -52,7 +51,7 @@ export default function Sources(props) {
 
   const onAdd = () => {
     props.documentsRef.add({
-      title: "Untitled Document",
+      name: "Untitled Document",
       createdBy: props.user.email,
       creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
 
@@ -91,12 +90,12 @@ export default function Sources(props) {
   };
 
   const onClick = (ID) => {
-    navigate(`/orgs/${props.orgID}/sources/${ID}`);
+    navigate(`/orgs/${props.orgID}/data/${ID}`);
   };
 
-  const onRename = (ID, newTitle) => {
+  const onRename = (ID, newName) => {
     props.documentsRef.doc(ID).set({
-      title: newTitle
+      name: newName
     }, { merge: true });
   };
 
@@ -128,8 +127,7 @@ export default function Sources(props) {
     <Row className="h-100">
       <Col md={4} className="d-flex flex-column h-100">
         <List
-          title="Sources"
-          itemType="source"
+          name="Customer Data"
           currentID={documentID}
 
           itemLoad={itemLoad}
@@ -140,7 +138,7 @@ export default function Sources(props) {
           onClick={onClick}
 
           optionsRow={<Row>
-            <Col><Link to={`/orgs/${props.orgID}/sources/tags`}>Manage tags</Link></Col>
+            <Col><Link to={`/orgs/${props.orgID}/data/tags`}>Manage tags</Link></Col>
           </Row>}
         />
       </Col>
@@ -155,16 +153,16 @@ export default function Sources(props) {
 }
 
 function RenameModal(props) {
-  const [title, setTitle] = useState();
+  const [name, setName] = useState();
 
   useEffect(() => {
     if (props.document !== undefined) {
-      setTitle(props.document.title);
+      setName(props.document.name);
     }
   }, [props.document]);
 
   const onSubmit = () => {
-      props.onRename(props.document.ID, title);
+      props.onRename(props.document.ID, name);
       props.onHide();
   }
 
@@ -173,8 +171,8 @@ function RenameModal(props) {
       <Modal.Title>Rename document</Modal.Title>
     </Modal.Header>
     <Modal.Body>
-      <Form.Control type="text" defaultValue={title} onChange={(e) => {
-        setTitle(e.target.value);
+      <Form.Control type="text" value={name} onChange={(e) => {
+        setName(e.target.value);
       }} onKeyDown={(e) => {
         if (e.key === 'Enter') {
           onSubmit();
@@ -190,11 +188,11 @@ function RenameModal(props) {
 }
 
 function DeleteModal(props) {
-  const [title, setTitle] = useState();
+  const [name, setName] = useState();
 
   useEffect(() => {
     if (props.document !== undefined) {
-      setTitle(props.document.title);
+      setName(props.document.name);
     }
   }, [props.document]);
 
@@ -203,7 +201,7 @@ function DeleteModal(props) {
       <Modal.Title>Delete document</Modal.Title>
     </Modal.Header>
     <Modal.Body>
-      Are you sure you want to delete {title}?
+      Are you sure you want to delete {name}?
     </Modal.Body>
     <Modal.Footer>
       <Button variant="danger" onClick={() => {

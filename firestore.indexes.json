@@ -31,6 +31,14 @@
         { "fieldPath": "deletionTimestamp", "order": "ASCENDING" },
         { "fieldPath": "creationTimestamp", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "datasets",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "deletionTimestamp", "order": "ASCENDING" },
+        { "fieldPath": "creationTimestamp", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []
