@@ -32,11 +32,7 @@ export default function People(props) {
 
         snapshot.forEach((doc) => {
           let data = doc.data();
-
           data['ID'] = doc.id;
-          data['title'] = data.name;
-          data['description'] = "";
-
           newPeople.push(data);
         });
 
@@ -72,7 +68,7 @@ export default function People(props) {
   }
 
   const onEdit = (item) => {
-    let {ID, title, ...rest} = item;
+    let {ID, ...rest} = item;
     props.peopleRef.doc(item.ID).set(rest);
   }
 
@@ -111,7 +107,7 @@ export default function People(props) {
     <Row className="h-100">
       <Col md={4} className="d-flex flex-column h-100">
         <List
-          title="People"
+          name="People"
           currentID={personID}
 
           itemLoad={itemLoad}
