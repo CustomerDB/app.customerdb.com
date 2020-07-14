@@ -43,7 +43,7 @@ functions.pubsub.schedule('every 5 minutes').onRun((context) => {
                 mailHtml = mailHtml.replace("{{orgID}}", orgID);
                 mailTxt = mailTxt.replace("{{orgID}}", orgID);
 
-                sgMail.setApiKey("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");
+                sgMail.setApiKey(functions.config().sendgrid.api_key);
                 const msg = {
                   to: member.email,
                   from: 'noreply@quantap.com',
