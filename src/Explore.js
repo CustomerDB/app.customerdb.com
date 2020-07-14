@@ -113,7 +113,7 @@ export default function Explore(props) {
 
   let view;
   if (dataset !== undefined) {
-    view = <Dataset dataset={dataset} options={options} />;
+    view = <Dataset dataset={dataset} options={options} datasetRef={props.datasetsRef.doc(dataset.ID)} documentsRef={props.documentsRef}/>;
   }
 
   return <><Container className="noMargin">

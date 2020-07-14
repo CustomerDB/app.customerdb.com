@@ -741,7 +741,7 @@ export default class Document extends React.Component {
     }
 
     let contentTabPane = <Tab.Pane eventKey="content">
-      <Container>
+      <Container className="p-3">
         <Row>
           <Col>
             <ReactQuill
@@ -762,10 +762,9 @@ export default class Document extends React.Component {
     </Tab.Pane>;
 
     let detailsTabPane = <Tab.Pane eventKey="details">
-      <Container>
+      <Container className="p-3">
         <Row className="mb-3">
           <Col>
-
             <Form>
               <Form.Group>
                 <Form.Label>Tag group</Form.Label>

@@ -64,9 +64,7 @@ export default function Dataset(props) {
               <Tab.Content style={{height: height, width: width, overflowY: "auto"}}>
 
                 <Tab.Pane eventKey="data">
-                  <Container>
-                    <DatasetData dataset={props.dataset} />
-                  </Container>
+                    <DatasetData dataset={props.dataset} datasetRef={props.datasetRef} documentsRef={props.documentsRef}/>
                 </Tab.Pane>
 
                 <Tab.Pane eventKey="cluster">
