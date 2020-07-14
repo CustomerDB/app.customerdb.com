@@ -22,36 +22,39 @@ export default function Settings(props) {
   let { orgID } = useParams();
   const navigate = useNavigate();
 
-  let list = [
-    {
+  let list = [{
       name: 'profile',
       title: 'Profile',
       icon: <PersonCircle size={30}/>,
       path: `/orgs/${orgID}/settings/`,
       content: <Profile user={props.user} membersRef={props.membersRef}/>
-    },
-    {
+  }];
+
+  if (props.user.admin == true) {
+    list.push({
       name: 'members',
       title: 'Members',
       icon: <Diagram3 size={30} />,
       path: `/orgs/${orgID}/settings/members`,
       content: <Members user={props.user} membersRef={props.membersRef}/>
-    },
-    {
+    });
+
+    list.push({
       name: 'organization',
       title: 'Organization',
       icon: <Building size={30} />,
       path: `/orgs/${orgID}/settings/organization`,
       content: <Organization user={props.user}/>
-    },
-    {
+    });
+
+    list.push({
       name: 'backup',
       title: 'Backup and restore',
       icon: <Hdd size={30} />,
       path: `/orgs/${orgID}/settings/backup`,
       content: <Backup user={props.user}/>
-    }
-  ];
+    });
+  }
 
   const [view, setView] = useState();
   useEffect(() => {
