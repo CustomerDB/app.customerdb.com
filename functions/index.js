@@ -7,7 +7,7 @@ const os = require('os');
 const fs = require('fs');
 const csv = require('csv-parser');
 
-functions.pubsub.schedule('every 10 minutes').onRun((context) => {
+functions.pubsub.schedule('every 5 minutes').onRun((context) => {
   let db = admin.firestore();
 
   db.collection('organizations').get().then(snapshot => {
@@ -76,7 +76,7 @@ functions.pubsub.schedule('every 10 minutes').onRun((context) => {
     console.log("Waiting for ", organizationPromises.length, " organization promises");
     return Promise.all(organizationPromises);
   }).then(() => {
-    res.send("OK");
+    console.log("Job finished");
   }).catch(e => {
     console.log(e);
   })
