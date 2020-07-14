@@ -14,6 +14,8 @@ import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
+import Tab from 'react-bootstrap/Tab';
+import Nav from 'react-bootstrap/Nav';
 
 import { Loading } from './Utils.js';
 
@@ -136,7 +138,8 @@ export default class Document extends React.Component {
     this.documentRef = props.documentsRef.doc(this.documentID);
     this.deltasRef = this.documentRef.collection('deltas');
     this.highlightsRef = this.documentRef.collection('highlights');
-    this.tagsRef = this.documentRef.collection('tags');
+
+    this.tagsRef = undefined;
 
     this.getHighlightFromEditor = this.getHighlightFromEditor.bind(this);
     this.handleDeltaSnapshot = this.handleDeltaSnapshot.bind(this);
@@ -146,6 +149,9 @@ export default class Document extends React.Component {
     this.onEdit = this.onEdit.bind(this);
     this.onSelect = this.onSelect.bind(this);
     this.onTagControlChange = this.onTagControlChange.bind(this);
+    this.onTagGroupChange = this.onTagGroupChange.bind(this);
+    this.subscribeToTags = this.subscribeToTags.bind(this);
+    this.unsubscribeFromTags = this.unsubscribeFromTags.bind(this);
 
     this.titleRef = React.createRef();
 
@@ -164,6 +170,9 @@ export default class Document extends React.Component {
     this.localDelta = new Delta([]);
 
     this.subscriptions = [];
+
+    this.unsubscribeTagsCallback = () => {};
+
     this.intervals = [];
 
     this.highlights = {};
@@ -177,6 +186,12 @@ export default class Document extends React.Component {
       delta: this.latestSnapshot.delta,
       tagIDsInSelection: new Set(),
 
+      tagGroups: [],
+      tagGroupID: "",
+      tags: {},
+
+      loadedDocument: false,
+      loadedTagGroups: false,
       loadedTags: false,
       loadedDeltas: false
     }
@@ -186,7 +201,7 @@ export default class Document extends React.Component {
   // when they occur.
   componentDidMount() {
     // Subscribe to document title changes
-    this.subscriptions.push(this.documentRef.onSnapshot((doc) => {
+    this.subscriptions.push(this.documentRef.onSnapshot(doc => {
       if (!doc.exists) {
         this.setState({ exists: false });
         return;
@@ -194,15 +209,44 @@ export default class Document extends React.Component {
 
       let data = doc.data();
       console.debug("data", data);
+
+      let tagsRef = undefined;
+      if (data.tagGroupID && data.tagGroupID !== "") {
+        tagsRef = this.props.tagGroupsRef.doc(data.tagGroupID).collection("tags");
+      }
+
       this.setState({
+        loadedDocument: true,
         title: data.title,
         deletionTimestamp: data.deletionTimestamp,
-        deletedBy: data.deletedBy
+        deletedBy: data.deletedBy,
+        tagGroupID: data.tagGroupID,
+        tagsRef: tagsRef
+      });
+
+      this.subscribeToTags(tagsRef);
+    }));
+
+    // Subscribe to tag groups changes
+    this.subscriptions.push(this.props.tagGroupsRef.onSnapshot(snapshot => {
+      console.log("received tag groups snapshot");
+
+      let tagGroups = [];
+
+      snapshot.forEach(doc => {
+        let data = doc.data();
+        data.ID = doc.id;
+        tagGroups.push(data);
+      });
+
+      this.setState({
+        tagGroups: tagGroups,
+        loadedTagGroups: true
       });
     }));
 
     // Subscribe to highlight changes
-    this.subscriptions.push(this.highlightsRef.onSnapshot((snapshot) => {
+    this.subscriptions.push(this.highlightsRef.onSnapshot(snapshot => {
       let highlights = {};
 
       snapshot.forEach(highlightDoc => {
@@ -212,37 +256,6 @@ export default class Document extends React.Component {
       });
 
       this.highlights = highlights;
-    }));
-
-    // Subscribe to tag changes
-    this.subscriptions.push(this.tagsRef.onSnapshot(snapshot => {
-
-      let tags = {};
-      snapshot.forEach(tagDoc => {
-        let data = tagDoc.data();
-        data['ID'] = tagDoc.id;
-        tags[data['ID']] = data;
-      });
-
-      let tagStyleID = "documentTagStyle"
-      let tagStyleElement = document.getElementById(tagStyleID);
-      if (!tagStyleElement) {
-        tagStyleElement = document.createElement("style");
-        tagStyleElement.setAttribute("id", tagStyleID);
-        tagStyleElement.setAttribute("type", "text/css");
-        document.head.appendChild(tagStyleElement);
-      }
-
-      let styles = Object.values(tags).map(t => {
-        return `span.tag-${t.ID} { color: ${t.textColor}; background-color: ${t.color}; }`;
-      });
-
-      tagStyleElement.innerHTML = styles.join("\n");
-
-      this.setState({
-        tags: tags,
-        loadedTags: true
-      });
     }));
 
     // Get the full set of deltas once
@@ -273,6 +286,79 @@ export default class Document extends React.Component {
     });
   }
 
+  subscribeToTags(tagsRef) {
+    console.log("subscribing to tag changes", tagsRef);
+    this.unsubscribeFromTags();
+
+    if (!tagsRef) {
+      this.setState({
+        tags: {},
+        "loadedTags": true
+      });
+      return;
+    }
+
+    this.tagsRef = tagsRef;
+
+    this.unsubscribeTagsCallback = this.tagsRef
+      .where("deletionTimestamp", "==", "")
+      .onSnapshot(
+      snapshot => {
+        console.log("received tags snapshot");
+        let tags = {};
+        snapshot.forEach(tagDoc => {
+          let data = tagDoc.data();
+          data.ID = tagDoc.id;
+          tags[data.ID] = data;
+        });
+
+        console.log("new tags", tags);
+
+        this.addTagStyles(tags);
+
+        this.setState({
+          tags: tags,
+          loadedTags: true
+        });
+      }
+    );
+  }
+
+  unsubscribeFromTags() {
+    console.log("unsubscribing from tag changes");
+    this.unsubscribeTagsCallback();
+    this.unsubscribeTagsCallback = () => {};
+  }
+
+
+  addTagStyles(tags) {
+    console.log("adding tag styles", tags)
+    let tagStyleID = "documentTagStyle"
+    let tagStyleElement = document.getElementById(tagStyleID);
+    if (!tagStyleElement) {
+      tagStyleElement = document.createElement("style");
+      tagStyleElement.setAttribute("id", tagStyleID);
+      tagStyleElement.setAttribute("type", "text/css");
+      document.head.appendChild(tagStyleElement);
+    }
+
+    let styles = Object.values(tags).map(t => {
+      return `span.tag-${t.ID} { color: ${t.textColor}; background-color: ${t.color}; }`;
+    });
+
+    tagStyleElement.innerHTML = styles.join("\n");
+  }
+
+  removeTagStyles() {
+    console.log("removing tag styles")
+    // Clean up tag styles
+    let tagStyleID = "documentTagStyle";
+    let styleElement = document.getElementById(tagStyleID);
+    if (styleElement) {
+      styleElement.remove();
+    }
+  }
+
   componentWillUnmount() {
     this.subscriptions.forEach((unsubscribe) => {unsubscribe()});
     this.intervals.forEach(clearInterval);
@@ -280,9 +366,7 @@ export default class Document extends React.Component {
     this.subscriptions = [];
     this.intervals = [];
 
-    // Clean up tag styles
-    let tagStyleID = "documentTagStyle";
-    document.getElementById(tagStyleID).remove();
+    this.removeTagStyles();
   }
 
   // selection: a range object with fields 'index' and 'length'
@@ -589,18 +673,55 @@ export default class Document extends React.Component {
     this.setState({ tagIDsInSelection: tagIDs });
   }
 
+  onTagGroupChange(e) {
+    let newTagGroupID = e.target.value;
+
+    if (newTagGroupID !== this.state.tagGroupID) {
+
+      // Confirm this change if the the set of highlights is not empty.
+      let numHighlights = Object.keys(this.highlights).length;
+      if (numHighlights > 0) {
+
+        console.log("TODO: use a modal for this instead");
+        let proceed = window.confirm(`This operation will delete ${numHighlights} highlights.\nAre you sure you want to change tag groups?`);
+
+        if (!proceed) {
+          console.log("user declined to proceeed changing tag group");
+          e.target.value = this.state.tagGroupID;
+          return;
+        }
+
+        // Remove the highlight format from the existing text.
+        let editor = this.reactQuillRef.getEditor();
+
+        let delta = editor.removeFormat(
+          0,
+          editor.getLength(),
+          'highlight',
+          false,  // unsets the target format
+          'user'
+        );
+
+        this.localDelta = this.localDelta.compose(delta);
+      }
+
+      this.documentRef.set({
+        tagGroupID: newTagGroupID
+      }, { merge: true });
+    }
+  }
+
   render() {
     if (!this.state.exists) {
       return <Navigate to="/404" />
     }
 
-    if (
+    if (!this.state.loadedDocument ||
       !this.state.loadedDeltas ||
-      !this.state.loadedTags) {
+      !this.state.loadedTags ||
+      !this.state.loadedTagGroups) {
       return <Loading />
     }
-
-    let content = this.state.delta;
 
     if (this.state.deletionTimestamp !== "") {
       let date = this.state.deletionTimestamp.toDate();
@@ -619,41 +740,94 @@ export default class Document extends React.Component {
       </Container>;
     }
 
+    let contentTabPane = <Tab.Pane eventKey="content">
+      <Container>
+        <Row>
+          <Col>
+            <ReactQuill
+              ref={(el) => { this.reactQuillRef = el }}
+              value={this.state.delta}
+              theme="bubble"
+              onChange={this.onEdit}
+              onChangeSelection={this.onSelect} />
+            </Col>
+          <Col ms={2} md={2}>
+            <Tags
+              tags={Object.values(this.state.tags)}
+              tagIDsInSelection={this.state.tagIDsInSelection}
+              onChange={this.onTagControlChange} />
+          </Col>
+        </Row>
+      </Container>
+    </Tab.Pane>;
+
+    let detailsTabPane = <Tab.Pane eventKey="details">
+      <Container>
+        <Row className="mb-3">
+          <Col>
+
+            <Form>
+              <Form.Group>
+                <Form.Label>Tag group</Form.Label>
+                <Form.Control as="select"
+                  onChange={this.onTagGroupChange}
+                  defaultValue={this.state.tagGroupID}>
+                  <option value="" style={{ fontStyle: "italic" }}>Choose a tag group...</option>
+                  {
+                    this.state.tagGroups.map(group => {
+                      return <option value={group.ID}>{group.name}</option>
+                    })
+                  }
+                </Form.Control>
+              </Form.Group>
+            </Form>
+
+          </Col>
+        </Row>
+      </Container>
+    </Tab.Pane>;
+
     return <>
-          <Row style={{paddingBottom: "2rem"}}>
-            <Col>
-            <ContentEditable
-              innerRef={this.titleRef}
-              tagName='h3'
-              html={this.state.title}
-              disabled={false}
-              onBlur={this.updateTitle}
-              onKeyDown={checkReturn}
-              />
-            </Col>
-          </Row>
-          <Row className="flex-grow-1">
-            <Col ms={10} md={10}>
-              <AutoSizer>
-              {({height, width}) => (
-              <ReactQuill
-                ref={(el) => { this.reactQuillRef = el }}
-                value={content}
-                style={{height: height, width: width}}
-                theme="bubble"
-                onChange={this.onEdit}
-                onChangeSelection={this.onSelect} />
-              )}
-              </AutoSizer>
-            </Col>
-            <Col ms={2} md={2}>
-              <Tags
-                tagsRef={this.tagsRef}
-                tags={Object.values(this.state.tags)}
-                tagIDsInSelection={this.state.tagIDsInSelection}
-                onChange={this.onTagControlChange} />
-            </Col>
-            </Row>
+      <Row style={{paddingBottom: "2rem"}}>
+        <Col>
+        <ContentEditable
+          innerRef={this.titleRef}
+          tagName='h3'
+          html={this.state.title}
+          disabled={false}
+          onBlur={this.updateTitle}
+          onKeyDown={checkReturn}
+          />
+        </Col>
+      </Row>
+
+      <Tab.Container id="documentTabs" defaultActiveKey="content">
+        <Row>
+          <Col>
+            <Nav variant="pills">
+              <Nav.Item>
+                <Nav.Link eventKey="content">Content</Nav.Link>
+              </Nav.Item>
+              <Nav.Item>
+                <Nav.Link eventKey="details">Details</Nav.Link>
+              </Nav.Item>
+            </Nav>
+          </Col>
+        </Row>
+
+        <Row className="flex-grow-1">
+          <AutoSizer>
+            {({height, width}) => (
+              <Col>
+                <Tab.Content style={{height: height, width: width, overflowY: "auto"}}>
+                  {contentTabPane}
+                  {detailsTabPane}
+                </Tab.Content>
+              </Col>
+            )}
+          </AutoSizer>
+        </Row>
+      </Tab.Container>
     </>;
   }
 }
@@ -661,30 +835,7 @@ export default class Document extends React.Component {
 class Tags extends React.Component {
   constructor(props) {
     super(props);
-
-    this.tagsRef = props.tagsRef;
-
     this.onChange = props.onChange;
-
-    this.createTag = this.createTag.bind(this);
-  }
-
-  createTag(e) {
-    let name = e.target.innerText;
-
-    if (name === "") {
-      return;
-    }
-
-    let color = colorPair();
-
-    this.tagsRef.doc().set({
-      name: name,
-      color: color.background,
-      textColor: color.foreground
-    });
-
-    e.target.innerHTML = "";
   }
 
   onTagControlChange(e, tag) {
@@ -715,22 +866,8 @@ class Tags extends React.Component {
     });
 
     return <div>
-      Tags
-      {tagControls}
-
-      <ContentEditable
-        innerRef={this.titleRef}
-        tagName='div'
-        style={{
-          border: "1px solid #aaa",
-          borderRadius: "0.25rem"
-        }}
-        html=""
-        disabled={false}
-        onBlur={this.createTag}
-        onKeyDown={checkReturn}
-      />
-
+      Tags<br />
+      {tagControls.length > 0 ? tagControls : <small>None</small>}
     </div>;
   }
 }
