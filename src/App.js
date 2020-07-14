@@ -2,7 +2,6 @@ import React from 'react';
 import { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from "react-router-dom";
 
-import Home from './Home.js';
 import Organization from './Organization.js';
 import JoinOrg from './JoinOrg.js';
 import Login from './Login.js';
@@ -14,7 +13,7 @@ export default function App() {
 
     return <Routes caseSensitive>
 
-      <Route path="/" element={<Home />} />
+      <Route path="/" element={<WithOauthUser element={<Login />} />} />
 
       <Route path="login" element={<WithOauthUser element={<Login />} />} />
 
