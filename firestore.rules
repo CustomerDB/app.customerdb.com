@@ -53,6 +53,13 @@ service cloud.firestore {
                    && get(/databases/$(database)/documents/organizations/$(orgID)/members/$(request.auth.token.email)).data.active == true;
     }
 
+    // Active non-admin users can write **DATASETS** in the org.
+    match /organizations/{orgID}/datasets/{document=**} {
+      allow write: if request.auth != null
+                   && request.auth.token.email_verified == true
+                   && get(/databases/$(database)/documents/organizations/$(orgID)/members/$(request.auth.token.email)).data.active == true;
+    }
+
     // Only allow users with verified emails to change displayName and photoURL.
     // Only allow users with the admin bit to delete objects rest of org.
     // Only allow active users to read rest of org.

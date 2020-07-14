@@ -143,7 +143,7 @@ export default class Document extends React.Component {
 
     this.getHighlightFromEditor = this.getHighlightFromEditor.bind(this);
     this.handleDeltaSnapshot = this.handleDeltaSnapshot.bind(this);
-    this.updateTitle = this.updateTitle.bind(this);
+    this.updateName = this.updateName.bind(this);
     this.uploadDeltas = this.uploadDeltas.bind(this);
     this.syncHighlights = this.syncHighlights.bind(this);
     this.onEdit = this.onEdit.bind(this);
@@ -153,7 +153,7 @@ export default class Document extends React.Component {
     this.subscribeToTags = this.subscribeToTags.bind(this);
     this.unsubscribeFromTags = this.unsubscribeFromTags.bind(this);
 
-    this.titleRef = React.createRef();
+    this.nameRef = React.createRef();
 
     this.reactQuillRef = undefined;
 
@@ -178,7 +178,7 @@ export default class Document extends React.Component {
     this.highlights = {};
 
     this.state = {
-      title: "",
+      name: "",
       exists: true,
       deletionTimestamp: "",
       deletedBy: '',
@@ -200,7 +200,7 @@ export default class Document extends React.Component {
   // Set up database subscriptions and handle document/collection snapshots
   // when they occur.
   componentDidMount() {
-    // Subscribe to document title changes
+    // Subscribe to document name changes
     this.subscriptions.push(this.documentRef.onSnapshot(doc => {
       if (!doc.exists) {
         this.setState({ exists: false });
@@ -217,7 +217,7 @@ export default class Document extends React.Component {
 
       this.setState({
         loadedDocument: true,
-        title: data.title,
+        name: data.name,
         deletionTimestamp: data.deletionTimestamp,
         deletedBy: data.deletedBy,
         tagGroupID: data.tagGroupID,
@@ -501,10 +501,10 @@ export default class Document extends React.Component {
     });
   }
 
-  // updateTitle is invoked when the editable document title bar loses focus.
-  updateTitle(e) {
-    let newTitle = e.target.innerText;
-    this.documentRef.set({ title: newTitle }, { merge: true });
+  // updateName is invoked when the editable document name bar loses focus.
+  updateName(e) {
+    let newName = e.target.innerText;
+    this.documentRef.set({ name: newName }, { merge: true });
   }
 
   // onEdit builds a batch of local edits in `this.deltasToUpload`
@@ -729,7 +729,7 @@ export default class Document extends React.Component {
       return <Container>
       <Row>
         <Col>
-          <h3>{this.state.title}</h3>
+          <h3>{this.state.name}</h3>
         </Col>
       </Row>
       <Row>
@@ -791,11 +791,11 @@ export default class Document extends React.Component {
       <Row style={{paddingBottom: "2rem"}}>
         <Col>
         <ContentEditable
-          innerRef={this.titleRef}
+          innerRef={this.nameRef}
           tagName='h3'
-          html={this.state.title}
+          html={this.state.name}
           disabled={false}
-          onBlur={this.updateTitle}
+          onBlur={this.updateName}
           onKeyDown={checkReturn}
           />
         </Col>
