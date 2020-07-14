@@ -741,13 +741,14 @@ export default class Document extends React.Component {
     }
 
     let contentTabPane = <Tab.Pane eventKey="content">
-      <Container>
+      <Container className="p-3">
         <Row>
           <Col>
             <ReactQuill
               ref={(el) => { this.reactQuillRef = el }}
               value={this.state.delta}
               theme="bubble"
+              placeholder="Start typing here and select to mark highlights"
               onChange={this.onEdit}
               onChangeSelection={this.onSelect} />
             </Col>
