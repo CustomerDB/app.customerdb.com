@@ -278,7 +278,6 @@ function ColorPicker(props) {
   
   return <div ref={ref}>
   <div style={{ background: props.tag.color, width: "25px", height: "100%", borderRadius: "0.25rem" }} onClick={(e) => {
-    console.log("clicked");
     setColorPickerOpen(true);
   }}>{}</div>
   {colorPickerOpen ? <div style={{ position: "absolute", zIndex: 2 }}>
