@@ -92,16 +92,18 @@ export default function Person(props) {
       <Col ms={10} md={10}>
         <AutoSizer>
         {({height, width}) => (
-        <Col className="p-3">
-            <Tab.Content style={{height: height, width: width, overflowY: "auto"}}>
-                <Tab.Pane eventKey="contact">
-                    {contactFields}
-                </Tab.Pane>
-                <Tab.Pane eventKey="activity">
-                    <p></p>
-                </Tab.Pane>
-            </Tab.Content>
-        </Col>
+          <Col className="p-3">
+              <Tab.Content style={{height: height, width: width, overflowY: "auto"}}>
+                  <Tab.Pane eventKey="contact">
+                    <Container>
+                      {contactFields}
+                    </Container>
+                  </Tab.Pane>
+                  <Tab.Pane eventKey="activity">
+                      <p></p>
+                  </Tab.Pane>
+              </Tab.Content>
+          </Col>
         )}
         </AutoSizer>
         </Col>
