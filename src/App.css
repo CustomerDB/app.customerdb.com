@@ -25,7 +25,7 @@ div.navContainer {
 div.navBody {
     display: flex;
     padding: 2rem;
-    padding-bottom: 0rem;
+    padding-bottom: 0.1rem;
     width: 100%;
 }
 
