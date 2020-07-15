@@ -19,7 +19,10 @@ import Nav from 'react-bootstrap/Nav';
 
 import { Loading } from './Utils.js';
 
-import colorPair from './color.js';
+import Tags, {addTagStyles, removeTagStyles} from './editor/Tags.js';
+
+import HighlightBlot from './editor/HighlightBlot.js';
+Quill.register('formats/highlight', HighlightBlot);
 
 
 // Returns a new delta object representing an empty document.
@@ -50,52 +53,6 @@ function checkReturn(e) {
     e.target.blur();
   }
 }
-
-// Declare a custom blot subclass to represent highlighted text.
-let Inline = Quill.import('blots/inline');
-
-class HighlightBlot extends Inline {
-
-  static blotName = 'highlight';
-  static className = 'inline-highlight';
-  static tagName = 'span';
-
-  static styleClass(tagID) {
-    return `tag-${tagID}`;
-  }
-
-  static create(value) {
-    const node = super.create(value);
-    let { highlightID, tagID } = value;
-    node.setAttribute("id", `highlight-${highlightID}`);
-    node.dataset.highlightID = highlightID;
-    node.dataset.tagID = tagID;
-    node.classList.add(HighlightBlot.styleClass(tagID));
-
-    return node;
-  }
-
-  static formats(domNode) {
-    let highlightID = domNode.dataset.highlightID;
-    let tagID = domNode.dataset.tagID;
-    if (highlightID && tagID) {
-      return {
-        highlightID: highlightID,
-        tagID: tagID
-      }
-    }
-    return super.formats(domNode);
-  }
-
-  formats() {
-    let formats = super.formats();
-    formats['highlight'] = HighlightBlot.formats(this.domNode);
-    return formats;
-  }
-}
-
-Quill.register('formats/highlight', HighlightBlot);
-
 
 // Document is a React component that allows multiple users to edit
 // and highlight a text document simultaneously.
@@ -132,10 +89,7 @@ export default class Document extends React.Component {
   constructor(props) {
     super(props);
 
-    console.debug(`props.documentID ${props}`);
-    this.documentID = props.documentID;
-
-    this.documentRef = props.documentsRef.doc(this.documentID);
+    this.documentRef = props.documentsRef.doc(this.props.documentID);
     this.deltasRef = this.documentRef.collection('deltas');
     this.highlightsRef = this.documentRef.collection('highlights');
 
@@ -146,8 +100,10 @@ export default class Document extends React.Component {
     this.updateName = this.updateName.bind(this);
     this.uploadDeltas = this.uploadDeltas.bind(this);
     this.syncHighlights = this.syncHighlights.bind(this);
+    
     this.onEdit = this.onEdit.bind(this);
     this.onSelect = this.onSelect.bind(this);
+
     this.onTagControlChange = this.onTagControlChange.bind(this);
     this.onTagGroupChange = this.onTagGroupChange.bind(this);
     this.subscribeToTags = this.subscribeToTags.bind(this);
@@ -171,7 +127,7 @@ export default class Document extends React.Component {
 
     this.subscriptions = [];
 
-    this.unsubscribeTagsCallback = () => {};
+    this.unsubscribeTagsCallback = () => { };
 
     this.intervals = [];
 
@@ -229,7 +185,7 @@ export default class Document extends React.Component {
 
     // Subscribe to tag groups changes
     this.subscriptions.push(this.props.tagGroupsRef.onSnapshot(snapshot => {
-      console.log("received tag groups snapshot");
+      console.debug("received tag groups snapshot");
 
       let tagGroups = [];
 
@@ -260,7 +216,6 @@ export default class Document extends React.Component {
 
     // Get the full set of deltas once
     this.deltasRef.orderBy("timestamp", "asc").get().then(snapshot => {
-
       console.debug("processing full list of deltas to construct initial snapshot");
       // Process the priming read; download all existing deltas and condense
       // them into an initial local document snapshot
@@ -287,7 +242,7 @@ export default class Document extends React.Component {
   }
 
   subscribeToTags(tagsRef) {
-    console.log("subscribing to tag changes", tagsRef);
+    console.debug("subscribing to tag changes", tagsRef);
     this.unsubscribeFromTags();
 
     if (!tagsRef) {
@@ -303,70 +258,41 @@ export default class Document extends React.Component {
     this.unsubscribeTagsCallback = this.tagsRef
       .where("deletionTimestamp", "==", "")
       .onSnapshot(
-      snapshot => {
-        console.log("received tags snapshot");
-        let tags = {};
-        snapshot.forEach(tagDoc => {
-          let data = tagDoc.data();
-          data.ID = tagDoc.id;
-          tags[data.ID] = data;
-        });
+        snapshot => {
+          console.debug("received tags snapshot");
+          let tags = {};
+          snapshot.forEach(tagDoc => {
+            let data = tagDoc.data();
+            data.ID = tagDoc.id;
+            tags[data.ID] = data;
+          });
 
-        console.log("new tags", tags);
+          console.debug("new tags", tags);
 
-        this.addTagStyles(tags);
+          addTagStyles(tags);
 
-        this.setState({
-          tags: tags,
-          loadedTags: true
-        });
-      }
-    );
+          this.setState({
+            tags: tags,
+            loadedTags: true
+          });
+        }
+      );
   }
 
   unsubscribeFromTags() {
-    console.log("unsubscribing from tag changes");
+    console.debug("unsubscribing from tag changes");
     this.unsubscribeTagsCallback();
-    this.unsubscribeTagsCallback = () => {};
-  }
-
-
-  addTagStyles(tags) {
-    console.log("adding tag styles", tags)
-    let tagStyleID = "documentTagStyle"
-    let tagStyleElement = document.getElementById(tagStyleID);
-    if (!tagStyleElement) {
-      tagStyleElement = document.createElement("style");
-      tagStyleElement.setAttribute("id", tagStyleID);
-      tagStyleElement.setAttribute("type", "text/css");
-      document.head.appendChild(tagStyleElement);
-    }
-
-    let styles = Object.values(tags).map(t => {
-      return `span.tag-${t.ID} { color: ${t.textColor}; background-color: ${t.color}; }`;
-    });
-
-    tagStyleElement.innerHTML = styles.join("\n");
-  }
-
-  removeTagStyles() {
-    console.log("removing tag styles")
-    // Clean up tag styles
-    let tagStyleID = "documentTagStyle";
-    let styleElement = document.getElementById(tagStyleID);
-    if (styleElement) {
-      styleElement.remove();
-    }
+    this.unsubscribeTagsCallback = () => { };
   }
 
   componentWillUnmount() {
-    this.subscriptions.forEach((unsubscribe) => {unsubscribe()});
+    this.subscriptions.forEach((unsubscribe) => { unsubscribe() });
     this.intervals.forEach(clearInterval);
 
     this.subscriptions = [];
     this.intervals = [];
 
-    this.removeTagStyles();
+    removeTagStyles();
   }
 
   // selection: a range object with fields 'index' and 'length'
@@ -398,7 +324,7 @@ export default class Document extends React.Component {
   getHighlightIDsFromEditor() {
     let result = new Set();
     let domNodes = document.getElementsByClassName("inline-highlight")
-    for (let i=0; i< domNodes.length; i++) {
+    for (let i = 0; i < domNodes.length; i++) {
       let highlightID = domNodes[i].dataset.highlightID;
       if (highlightID) {
         result.add(highlightID);
@@ -561,15 +487,14 @@ export default class Document extends React.Component {
       }
 
       if (current.tagID !== h.tagID ||
-          current.selection.index !== h.selection.index ||
-          current.selection.length !== h.selection.length ||
-          current.text !== h.text) {
+        current.selection.index !== h.selection.index ||
+        current.selection.length !== h.selection.length ||
+        current.text !== h.text) {
 
         console.debug("syncHighlights: updating highlight", h, current);
 
         // upload diff
         this.highlightsRef.doc(h.ID).set({
-          ID: h.ID,
           tagID: current.tagID,
           selection: {
             index: current.selection.index,
@@ -585,9 +510,10 @@ export default class Document extends React.Component {
     editorHighlightIDs.forEach(highlightID => {
       let current = this.getHighlightFromEditor(highlightID);
       if (current !== undefined && !this.highlights.hasOwnProperty(highlightID)) {
-        console.debug("syncHighlights: creating highlight", current);
-        this.highlightsRef.doc(highlightID).set({
+        let newHighlight = {
           ID: highlightID,
+          organizationID: this.props.orgID,
+          documentID: this.props.documentID,
           tagID: current.tagID,
           selection: {
             index: current.selection.index,
@@ -597,7 +523,10 @@ export default class Document extends React.Component {
           createdBy: this.props.user.email,
           creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
           lastUpdateTimestamp: window.firebase.firestore.FieldValue.serverTimestamp()
-        });
+        };
+
+        console.debug("syncHighlights: creating highlight", newHighlight);
+        this.highlightsRef.doc(highlightID).set(newHighlight);
       }
     });
   }
@@ -682,11 +611,11 @@ export default class Document extends React.Component {
       let numHighlights = Object.keys(this.highlights).length;
       if (numHighlights > 0) {
 
-        console.log("TODO: use a modal for this instead");
+        console.debug("TODO: use a modal for this instead");
         let proceed = window.confirm(`This operation will delete ${numHighlights} highlights.\nAre you sure you want to change tag groups?`);
 
         if (!proceed) {
-          console.log("user declined to proceeed changing tag group");
+          console.debug("user declined to proceeed changing tag group");
           e.target.value = this.state.tagGroupID;
           return;
         }
@@ -727,16 +656,16 @@ export default class Document extends React.Component {
       let date = this.state.deletionTimestamp.toDate();
 
       return <Container>
-      <Row>
-        <Col>
-          <h3>{this.state.name}</h3>
-        </Col>
-      </Row>
-      <Row>
-        <Col>
-          <p>This document was deleted at {date.toString()} by {this.state.deletedBy}</p>
-        </Col>
-      </Row>
+        <Row>
+          <Col>
+            <h3>{this.state.name}</h3>
+          </Col>
+        </Row>
+        <Row>
+          <Col>
+            <p>This document was deleted at {date.toString()} by {this.state.deletedBy}</p>
+          </Col>
+        </Row>
       </Container>;
     }
 
@@ -751,7 +680,7 @@ export default class Document extends React.Component {
               placeholder="Start typing here and select to mark highlights"
               onChange={this.onEdit}
               onChangeSelection={this.onSelect} />
-            </Col>
+          </Col>
           <Col ms={2} md={2}>
             <Tags
               tags={Object.values(this.state.tags)}
@@ -763,10 +692,9 @@ export default class Document extends React.Component {
     </Tab.Pane>;
 
     let detailsTabPane = <Tab.Pane eventKey="details">
-      <Container>
+      <Container className="p-3">
         <Row className="mb-3">
           <Col>
-
             <Form>
               <Form.Group>
                 <Form.Label>Tag group</Form.Label>
@@ -789,15 +717,15 @@ export default class Document extends React.Component {
     </Tab.Pane>;
 
     return <>
-      <Row style={{paddingBottom: "2rem"}}>
+      <Row style={{ paddingBottom: "2rem" }}>
         <Col>
-        <ContentEditable
-          innerRef={this.nameRef}
-          tagName='h3'
-          html={this.state.name}
-          disabled={false}
-          onBlur={this.updateName}
-          onKeyDown={checkReturn}
+          <ContentEditable
+            innerRef={this.nameRef}
+            tagName='h3'
+            html={this.state.name}
+            disabled={false}
+            onBlur={this.updateName}
+            onKeyDown={checkReturn}
           />
         </Col>
       </Row>
@@ -818,9 +746,9 @@ export default class Document extends React.Component {
 
         <Row className="flex-grow-1">
           <AutoSizer>
-            {({height, width}) => (
+            {({ height, width }) => (
               <Col>
-                <Tab.Content style={{height: height, width: width, overflowY: "auto"}}>
+                <Tab.Content style={{ height: height, width: width, overflowY: "auto" }}>
                   {contentTabPane}
                   {detailsTabPane}
                 </Tab.Content>
@@ -830,45 +758,5 @@ export default class Document extends React.Component {
         </Row>
       </Tab.Container>
     </>;
-  }
-}
-
-class Tags extends React.Component {
-  constructor(props) {
-    super(props);
-    this.onChange = props.onChange;
-  }
-
-  onTagControlChange(e, tag) {
-    let target = e.target;
-    this.onChange(tag, target.checked);
-  }
-
-  render() {
-    let tagControls = this.props.tags.map(t => {
-      let checked = this.props.tagIDsInSelection.has(t.ID);
-
-      let label = <span style={{
-        color: t.textColor
-      }}>{t.name}</span>;
-
-      return <Form.Switch
-        key={t.ID}
-        id={`tag-${t.ID}`}
-        checked={checked}
-        style={{
-          background: t.color,
-          borderRadius: "0.25rem",
-          marginBottom: "0.25rem",
-        }}
-        label={label}
-        title={t.name}
-        onClick={(e) => {this.onTagControlChange(e, t)}}/>
-    });
-
-    return <div>
-      Tags<br />
-      {tagControls.length > 0 ? tagControls : <small>None</small>}
-    </div>;
   }
 }

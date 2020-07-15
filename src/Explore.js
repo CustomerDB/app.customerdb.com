@@ -17,8 +17,9 @@ import List from './List.js';
 import { useNavigate, useParams } from "react-router-dom";
 
 export default function Explore(props) {
-  const [dataset, setDataset] = useState(undefined);
   const [datasets, setDatasets] = useState([]);
+  const [datasetRef, setDatasetRef] = useState(undefined);
+  const [dataset, setDataset] = useState(undefined);
 
   let { datasetID } = useParams();
   let navigate = useNavigate();
@@ -44,15 +45,18 @@ export default function Explore(props) {
   useEffect(() => {
     if (!datasetID || datasetID === "") {
       setDataset(undefined);
-    }
-
-    let dset = datasets.find(ds => ds.ID === datasetID);
-    if (dset === undefined) {
-      console.log("would redirect");
-      // navigate('/404');
+      setDatasetRef(undefined);
       return;
     }
-    setDataset(dset);
+
+    let newDataset = datasets.find(ds => ds.ID === datasetID);
+    if (newDataset === undefined) {
+      navigate('/404');
+      return;
+    }
+
+    setDataset(newDataset);
+    setDatasetRef(props.datasetsRef.doc(newDataset.ID));
   }, [datasetID, datasets]);
 
   const onAdd = () => {
@@ -113,7 +117,14 @@ export default function Explore(props) {
 
   let view;
   if (dataset !== undefined) {
-    view = <Dataset dataset={dataset} options={options} />;
+    view = <Dataset
+      user={props.user}
+      orgID={props.orgID}
+      documentsRef={props.documentsRef}
+      dataset={dataset}
+      allHighlightsRef={props.allHighlightsRef}
+      datasetRef={datasetRef}
+      options={options} />;
   }
 
   return <><Container className="noMargin">
