@@ -120,7 +120,7 @@ export default function Sources(props) {
 
   let view;
   if (documentID !== undefined) {
-    view = <Document key={documentID} documentID={documentID} documentsRef={props.documentsRef} tagGroupsRef={props.tagGroupsRef} user={props.user} />;
+    view = <Document key={documentID} orgID={props.orgID} documentID={documentID} documentsRef={props.documentsRef} tagGroupsRef={props.tagGroupsRef} user={props.user} />;
   }
 
   return <><Container className="noMargin">
