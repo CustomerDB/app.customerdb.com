@@ -173,3 +173,8 @@ button.addButton {
 span.inline-highlight {
   border-radius: 0.25rem;
 }
+
+.ql-container {
+    font-size: 1rem!important;
+    font-family: HKGroteskPro!important;
+}
