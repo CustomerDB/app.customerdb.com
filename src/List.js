@@ -38,7 +38,7 @@ export default function List(props) {
 
         return <Row key={key} style={style}>
           <Col>
-            <Container className={listCardClass} style={{ overflow: "hidden" }}>
+            <Container className={listCardClass}>
               <Row className="h-100">
                 {d.icon !== undefined ? <Col className="align-self-center" md={2}>
                   {d.icon}

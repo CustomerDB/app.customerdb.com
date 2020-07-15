@@ -64,17 +64,20 @@ export default function Dataset(props) {
               <Tab.Content style={{height: height, width: width, overflowY: "auto"}}>
 
                 <Tab.Pane eventKey="data">
-                    <DatasetData dataset={props.dataset} datasetRef={props.datasetRef} documentsRef={props.documentsRef}/>
+                  <DatasetData
+                    dataset={props.dataset}
+                    datasetRef={props.datasetRef}
+                    documentsRef={props.documentsRef} />
                 </Tab.Pane>
 
                 <Tab.Pane eventKey="cluster">
-                  <Container>
-                    <DatasetClusterTab
-                      dataset={props.dataset}
-                      datasetRef={props.datasetRef}
-                      orgID={props.orgID}
-                      allHighlightsRef={props.allHighlightsRef} />
-                  </Container>
+                  <DatasetClusterTab
+                    user={props.user}
+                    orgID={props.orgID}
+                    dataset={props.dataset}
+                    datasetRef={props.datasetRef}
+                    documentsRef={props.documentsRef}
+                    allHighlightsRef={props.allHighlightsRef} />
                 </Tab.Pane>
 
               </Tab.Content>

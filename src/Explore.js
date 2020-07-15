@@ -64,6 +64,7 @@ export default function Explore(props) {
       name: "New dataset",
       createdBy: props.user.email,
       creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+      documentIDs: [],
 
       // Deletion is modeled as "soft-delete"; when the deletionTimestamp is set,
       // we don't show the document anymore in the list. However, it should be

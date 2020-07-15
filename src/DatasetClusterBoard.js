@@ -15,6 +15,7 @@ export default class DatasetClusterBoard extends React.Component {
     super(props);
 
     this.state = {
+      loadedDocuments: false,
       loadedHighlights: false,
       loadedCards: false,
       loadedGroups: false,
@@ -22,7 +23,8 @@ export default class DatasetClusterBoard extends React.Component {
       modalShow: false,
       modalCard: undefined,
 
-      highlights: [],
+      documents: {},
+      highlights: {},
       cards: {},
       groups: {}
     }
@@ -30,6 +32,11 @@ export default class DatasetClusterBoard extends React.Component {
     this.rtree = new RBush(4);
 
     this.subscriptions = [];
+    this.unsubscribeFromDocuments = () => {};
+    this.unsubscribeFromHighlights = () => {};
+
+    this.subscribeToDocuments = this.subscribeToDocuments.bind(this);
+    this.subscribeToHighlights = this.subscribeToHighlights.bind(this);
 
     this.addCardLocation = this.addCardLocation.bind(this);
     this.removeCardLocation = this.removeCardLocation.bind(this);
@@ -56,22 +63,15 @@ export default class DatasetClusterBoard extends React.Component {
         function(querySnapshot) {
           console.debug("received cards snapshot");
 
-          var cards = this.state.cards;
+          let newCards = {};
 
           querySnapshot.forEach((doc) => {
             let data = doc.data();
-
-            let existingCard = cards[doc.id];
-            if (existingCard === undefined) {
-              cards[doc.id] = data;
-              return;
-            }
-
-            Object.assign(existingCard, data);
-
+            newCards[doc.id] = data;
           });
+
           this.setState({
-            cards: cards,
+            cards: newCards,
             loadedCards: true
           });
         }
@@ -115,16 +115,44 @@ export default class DatasetClusterBoard extends React.Component {
       ).bind(this)
     ));
 
-    this.subscriptions.push(this.props.highlightsRef.onSnapshot(
+    this.subscribeToHighlights();
+
+    this.subscribeToDocuments();
+  }
+
+  subscribeToDocuments() {
+    this.unsubscribeFromDocuments = this.props.documentsRef.onSnapshot(snapshot => {
+      console.log("received documents snapshot");
+
+      let newDocuments = {};
+
+      snapshot.forEach(doc => {
+        let data = doc.data();
+
+        console.log("document", data);
+
+        newDocuments[doc.id] = data;
+      });
+
+      this.setState({
+        documents: newDocuments,
+        loadedDocuments: true
+      });
+
+    });
+  }
+
+  subscribeToHighlights() {
+    this.unsubscribeFromHighlights = this.props.highlightsRef.onSnapshot(
       (
         function(querySnapshot) {
           console.debug("received highlights snapshot");
 
-          var highlights = [];
+          var highlights = {};
           querySnapshot.forEach((doc) => {
             let data = doc.data();
-            data['ID'] = doc.id;
-            highlights.push(data);
+            data.ID = doc.id;
+            highlights[data.ID] = data;
 
             let cardData = Object.assign(data, {});
             cardData.groupColor = "#000";
@@ -152,15 +180,44 @@ export default class DatasetClusterBoard extends React.Component {
             loadedHighlights: true
           });
 
+          // Delete cards without a matching highlight
+          Object.keys(this.state.cards).forEach(cardID => {
+            if (!(cardID in this.state.highlights)) {
+              console.log("deleting card for nonexisting highlight with ID", cardID);
+              this.props.cardsRef.doc(cardID).delete();
+            }
+          });
+
         }
       ).bind(this)
-    ));
+    );
+  }
+
+  componentDidUpdate(oldProps) {
+    console.log("componentDidUpdate", oldProps, this.props);
+
+    let hasNewHighlightsRef = oldProps.highlightsRef !== this.props.highlightsRef;
+    console.log("highlightsRef is new?", hasNewHighlightsRef);
+
+    if (hasNewHighlightsRef) {
+      this.unsubscribeFromHighlights();
+      this.subscribeToHighlights();
+    }
+
+    let hasNewDocumentsRef = oldProps.documentsRef !== this.props.documentsRef;
+    console.log("documentsRef is new?", hasNewDocumentsRef);
+
+    if (hasNewDocumentsRef) {
+      this.unsubscribeFromDocuments();
+      this.subscribeToDocuments();
+    }
   }
 
   componentWillUnmount() {
     this.subscriptions.forEach(unsubscribe => {
       unsubscribe();
     })
+    this.unsubscribeFromHighlights();
   }
 
   addCardLocation(card) {
@@ -338,11 +395,13 @@ export default class DatasetClusterBoard extends React.Component {
 
   render() {
     if (
+      !this.state.loadedDocuments ||
       !this.state.loadedHighlights ||
       !this.state.loadedCards ||
       !this.state.loadedGroups ||
-      this.state.highlights.length !== Object.values(this.state.cards).length
+      Object.keys(this.state.highlights).length !== Object.keys(this.state.cards).length
     ) {
+      console.log("board state", this.state);
       return Loading();
     }
 
@@ -361,6 +420,7 @@ export default class DatasetClusterBoard extends React.Component {
       cardComponents.push(<Card
         key={card.data.ID}
         card={card}
+        document={this.state.documents[card.data.documentID]}
         minX={card.minX}
         minY={card.minY}
         groupColor={card.data.groupColor}

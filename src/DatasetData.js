@@ -8,25 +8,21 @@ export default function DatasetData(props) {
   const [documents, setDocuments] = useState([]);
 
   const onClick = (documentID) => {
-    let dataset = {};
-    Object.assign(dataset, props.dataset);
-    let documentIDs = dataset.documentIDs;
+    let newDocumentIDs = props.dataset.documentIDs.slice();
+    console.log("DatasetData select (before)", newDocumentIDs);
 
-    if (documentIDs === undefined) {
-      documentIDs = [documentID];
+    if (props.dataset.documentIDs.includes(documentID)) {
+      // Remove it.
+      newDocumentIDs = newDocumentIDs.filter(id => id !== documentID);
     } else {
-      let index = documentIDs.findIndex((id) => id == documentID);
-      if (index > 0) {
-        // If present, remove.
-        documentIDs.splice(index, 1);
-      } else {
-        // If absent, add.
-        documentIDs.push(documentID);
-      }
+      // If absent, add.
+      newDocumentIDs.push(documentID);
     }
 
+    console.log("DatasetData select (after)", newDocumentIDs);
+
     props.datasetRef.set({
-      documentIDs: documentIDs
+      documentIDs: newDocumentIDs
     }, {merge: true});
   };
 

@@ -196,7 +196,7 @@ export default class Card extends React.Component {
               backgroundColor: titleBarColor,
               color: titleBarTextColor
             }}>
-            {this.props.card.data.documentID}
+            {this.props.document.name}
           </div>
           <div className="quote" onClick={this.showModal}>{this.props.card.data.text}</div>
         </div>
