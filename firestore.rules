@@ -56,8 +56,7 @@ service cloud.firestore {
                   && activeOrgMember(resource.data.organizationID);
 
       allow write: if signedInAndVerified()
-                   && activeOrgMember(request.resource.data.organizationID)
-                   && request.resource.data.createdBy == request.auth.token.email;
+                   && activeOrgMember(request.resource.data.organizationID);
     }
 
     // Active non-admin users can write **TAG GROUPS** in the org.
