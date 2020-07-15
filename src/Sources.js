@@ -140,10 +140,6 @@ export default function Sources(props) {
           onAdd={onAdd}
           options={options}
           onClick={onClick}
-
-          optionsRow={<Row>
-            <Col><Link to={`/orgs/${props.orgID}/data/tags`}>Manage tags</Link></Col>
-          </Row>}
         />
       </Col>
       <Col md={8} className="d-flex flex-column h-100">

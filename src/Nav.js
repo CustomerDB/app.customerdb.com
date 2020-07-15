@@ -56,7 +56,7 @@ export default function Nav(props) {
   }
 
   const toNavLink = (target) => {
-    return <div style={{marginTop: "1rem"}}>
+    return <div style={{marginTop: "1rem"}} key={target.path}>
       <OverlayTrigger
         placement="right" delay={{ show: 250, hide: 400 }}
         overlay={<Tooltip>{target.name}</Tooltip>} >

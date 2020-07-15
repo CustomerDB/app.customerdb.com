@@ -11,9 +11,13 @@ import Toast from 'react-bootstrap/Toast';
 import Table from 'react-bootstrap/Table';
 import Modal from 'react-bootstrap/Modal';
 
-import Options from './Options.js';
 import { useParams, useNavigate } from "react-router-dom";
-import { Building, PersonCircle, Hdd, Diagram3 } from 'react-bootstrap-icons';
+import { Building, PersonCircle, Hdd, Diagram3, Tags as TagsIcon } from 'react-bootstrap-icons';
+
+import Options from './Options.js';
+
+import Tags from './Tags.js';
+
 
 import { AutoSizer, List as VirtList } from 'react-virtualized';
 
@@ -27,7 +31,7 @@ export default function Settings(props) {
       title: 'Profile',
       icon: <PersonCircle size={30}/>,
       path: `/orgs/${orgID}/settings/`,
-      content: <Profile user={props.user} membersRef={props.membersRef}/>
+      content: <Col md={8}><Profile user={props.user} membersRef={props.membersRef}/></Col>
   }];
 
   if (props.user.admin == true) {
@@ -36,7 +40,7 @@ export default function Settings(props) {
       title: 'Members',
       icon: <Diagram3 size={30} />,
       path: `/orgs/${orgID}/settings/members`,
-      content: <Members user={props.user} membersRef={props.membersRef}/>
+      content: <Col md={8}><Members user={props.user} membersRef={props.membersRef}/></Col>
     });
 
     list.push({
@@ -44,7 +48,7 @@ export default function Settings(props) {
       title: 'Organization',
       icon: <Building size={30} />,
       path: `/orgs/${orgID}/settings/organization`,
-      content: <Organization user={props.user}/>
+      content: <Col md={8}><Organization user={props.user}/></Col>
     });
 
     list.push({
@@ -52,9 +56,17 @@ export default function Settings(props) {
       title: 'Backup and restore',
       icon: <Hdd size={30} />,
       path: `/orgs/${orgID}/settings/backup`,
-      content: <Backup user={props.user}/>
+      content: <Col md={8}><Backup user={props.user}/></Col>
     });
   }
+
+  list.push({
+    name: 'tags',
+    title: 'Tag management',
+    icon: <TagsIcon size={30} />,
+    path: `/orgs/${orgID}/settings/tags`,
+    content: <Tags user={props.user} orgID={props.orgID} tagGroupsRef={props.tagGroupsRef} user={props.user}/>
+  });
 
   const [view, setView] = useState();
   useEffect(() => {
@@ -115,9 +127,7 @@ export default function Settings(props) {
           </Col>
         </Row>
       </Col>
-      <Col md={8}>
-        {view}
-      </Col>
+      {view}
     </Row>
   </Container>;
 }
