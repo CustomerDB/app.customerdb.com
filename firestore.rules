@@ -60,6 +60,12 @@ service cloud.firestore {
                    && request.resource.data.createdBy == request.auth.token.email;
     }
 
+    // Active non-admin users can write **TAG GROUPS** in the org.
+    match /organizations/{orgID}/tagGroups/{document=**} {
+      allow write: if signedInAndVerified()
+                   && activeOrgMember(orgID);
+    }
+
     // Active non-admin users can write **DOCUMENTS** in the org.
     match /organizations/{orgID}/documents/{document} {
       allow write: if signedInAndVerified()

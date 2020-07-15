@@ -379,7 +379,7 @@ export default class DatasetClusterBoard extends React.Component {
       let cards = Object.values(this.state.cards).filter((card) => {
         return card.data.groupID === group.data.ID;
       });
-      let groupRef = this.groupsRef.doc(group.data.ID);
+      let groupRef = this.props.groupsRef.doc(group.data.ID);
       return <Group
         key={group.data.ID}
         name={group.data.name}
@@ -410,10 +410,8 @@ export default class DatasetClusterBoard extends React.Component {
     // pointers = <Pointers activeUsersRef={this.props.activeUsersRef} user={this.props.user}/>;
 
     return <HotKeys keyMap={keyMap} handlers={keyHandlers}>
-      <div className="cardContainer fullHeight">
-        {groupComponents}
-        {cardComponents}
-      </div>
+      {groupComponents}
+      {cardComponents}
       {pointers}
       <HighlightModal
         show={this.state.modalShow}
