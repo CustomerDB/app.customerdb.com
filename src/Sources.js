@@ -7,6 +7,9 @@ import Form from 'react-bootstrap/Form';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 
+import { FileEarmarkText } from 'react-bootstrap-icons';
+
+
 import Delta from 'quill-delta';
 
 import List from './List.js';
@@ -37,6 +40,7 @@ export default function Sources(props) {
         snapshot.forEach((doc) => {
           let data = doc.data();
           data['ID'] = doc.id;
+          data['icon'] = <FileEarmarkText size={24}/>
           newDocuments.push(data);
         });
 
@@ -120,7 +124,7 @@ export default function Sources(props) {
 
   let view;
   if (documentID !== undefined) {
-    view = <Document key={documentID} documentID={documentID} documentsRef={props.documentsRef} tagGroupsRef={props.tagGroupsRef} user={props.user} />;
+    view = <Document key={documentID} orgID={props.orgID} documentID={documentID} documentsRef={props.documentsRef} tagGroupsRef={props.tagGroupsRef} user={props.user} />;
   }
 
   return <><Container className="noMargin">

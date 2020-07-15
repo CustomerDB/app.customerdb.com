@@ -196,9 +196,9 @@ export default class Card extends React.Component {
               backgroundColor: titleBarColor,
               color: titleBarTextColor
             }}>
-            {this.props.card.data['Note - Title']}
+            {this.props.card.data.documentID}
           </div>
-          <div className="quote" onClick={this.showModal}>{this.props.card.data['Text']}</div>
+          <div className="quote" onClick={this.showModal}>{this.props.card.data.text}</div>
         </div>
     </Draggable>
 

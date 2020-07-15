@@ -10,7 +10,7 @@ import Tab from 'react-bootstrap/Tab';
 import { AutoSizer } from 'react-virtualized';
 
 import DatasetData from './DatasetData.js';
-import DatasetCluster from './DatasetCluster.js';
+import DatasetClusterTab from './DatasetClusterTab.js';
 import Options from './Options.js';
 
 export default function Dataset(props) {
@@ -64,14 +64,16 @@ export default function Dataset(props) {
               <Tab.Content style={{height: height, width: width, overflowY: "auto"}}>
 
                 <Tab.Pane eventKey="data">
-                  <Container>
-                    <DatasetData dataset={props.dataset} />
-                  </Container>
+                    <DatasetData dataset={props.dataset} datasetRef={props.datasetRef} documentsRef={props.documentsRef}/>
                 </Tab.Pane>
 
                 <Tab.Pane eventKey="cluster">
                   <Container>
-                    <DatasetCluster dataset={props.dataset} />
+                    <DatasetClusterTab
+                      dataset={props.dataset}
+                      datasetRef={props.datasetRef}
+                      orgID={props.orgID}
+                      allHighlightsRef={props.allHighlightsRef} />
                   </Container>
                 </Tab.Pane>
 

@@ -38,18 +38,16 @@ export default function List(props) {
 
         return <Row key={key} style={style}>
           <Col>
-            <Container className={listCardClass}>
+            <Container className={listCardClass} style={{ overflow: "hidden" }}>
               <Row className="h-100">
-                <Col className="listTitleContainer align-self-center" md={8}>
+                {d.icon !== undefined ? <Col className="align-self-center" md={2}>
+                  {d.icon}
+                </Col> : <></>}
+                <Col className="align-self-center" md={8}>
                   {name}
                 </Col>
-                <Col md={4} className="align-self-center">
+                <Col md={d.icon !== undefined ? 2 : 4} className="align-self-center">
                   <Options options={props.options} item={d} inverted={invertedColors}/>
-                </Col>
-              </Row>
-              <Row>
-                <Col>
-                  <p onClick={() => {props.onClick(d.ID)}}>{d.description}</p>
                 </Col>
               </Row>
             </Container>
