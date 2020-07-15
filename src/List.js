@@ -27,8 +27,6 @@ export default function List(props) {
     const cardRenderer = ({ key, index, style }) => {
         let d = props.itemLoad(index);
 
-        console.log("Rendering item", d);
-
         let name = <p className="listCardTitle" onClick={() => {props.onClick(d.ID)}}>{d.name}</p>;
         let listCardClass = "listCard";
         let invertedColors = false;
