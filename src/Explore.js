@@ -120,6 +120,7 @@ export default function Explore(props) {
     view = <Dataset
       user={props.user}
       orgID={props.orgID}
+      documentsRef={props.documentsRef}
       dataset={dataset}
       allHighlightsRef={props.allHighlightsRef}
       datasetRef={datasetRef}

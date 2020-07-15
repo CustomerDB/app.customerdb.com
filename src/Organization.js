@@ -84,8 +84,8 @@ export default function Organization(props) {
         </Route>
 
         <Route path="explore/*">
-          <Route path="/" element={ <Explore orgID={orgID} user={user} datasetsRef={datasetsRef} allHighlightsRef={allHighlightsRef} /> } />
-          <Route path=":datasetID" element={ <Explore orgID={orgID} user={user} datasetsRef={datasetsRef} allHighlightsRef={allHighlightsRef} /> } />
+          <Route path="/" element={ <Explore orgID={orgID} user={user} documentsRef={documentsRef} datasetsRef={datasetsRef} allHighlightsRef={allHighlightsRef} /> } />
+          <Route path=":datasetID" element={ <Explore orgID={orgID} user={user} documentsRef={documentsRef} datasetsRef={datasetsRef} allHighlightsRef={allHighlightsRef} /> } />
         </Route>
 
         <Route path="settings/*">
