@@ -39,6 +39,15 @@
         { "fieldPath": "deletionTimestamp", "order": "ASCENDING" },
         { "fieldPath": "creationTimestamp", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "highlights",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "documentID", "order": "ASCENDING" },
+        { "fieldPath": "organizationID", "order": "ASCENDING" },
+        { "fieldPath": "tagID", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

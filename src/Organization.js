@@ -39,6 +39,7 @@ export default function Organization(props) {
   const documentsRef = orgRef.collection("documents");
   const tagGroupsRef = orgRef.collection("tagGroups");
   const datasetsRef = orgRef.collection("datasets");
+  const allHighlightsRef = db.collectionGroup("highlights");
 
   useEffect(() => {
     if (props.oauthUser === null) {
@@ -83,8 +84,8 @@ export default function Organization(props) {
         </Route>
 
         <Route path="explore/*">
-          <Route path="/" element={ <Explore orgID={orgID} user={user} datasetsRef={datasetsRef} /> } />
-          <Route path=":datasetID" element={ <Explore orgID={orgID} user={user} documentsRef={documentsRef} datasetsRef={datasetsRef} /> } />
+          <Route path="/" element={ <Explore orgID={orgID} user={user} documentsRef={documentsRef} datasetsRef={datasetsRef} allHighlightsRef={allHighlightsRef} /> } />
+          <Route path=":datasetID" element={ <Explore orgID={orgID} user={user} documentsRef={documentsRef} datasetsRef={datasetsRef} allHighlightsRef={allHighlightsRef} /> } />
         </Route>
 
         <Route path="settings/*">

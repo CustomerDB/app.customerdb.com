@@ -8,7 +8,6 @@ import InputGroup from 'react-bootstrap/InputGroup';
 import Row from 'react-bootstrap/Row';
 import Button from 'react-bootstrap/Button';
 import { GithubPicker } from 'react-color';
-import { v4 as uuidv4 } from 'uuid';
 
 import { XCircleFill } from 'react-bootstrap-icons';
 
@@ -37,7 +36,6 @@ export default function Tags(props) {
           let data = doc.data();
 
           data['ID'] = doc.id;
-          data['title'] = data.name;
           data['description'] = "";
 
           newtagGroups.push(data);
@@ -67,7 +65,7 @@ export default function Tags(props) {
   };
 
   const onClick = (ID) => {
-    navigate(`/orgs/${props.orgID}/sources/tags/${ID}`);
+    navigate(`/orgs/${props.orgID}/data/tags/${ID}`);
   };
 
   const itemLoad = (index) => {
@@ -121,7 +119,7 @@ export default function Tags(props) {
     <Row className="h-100">
       <Col md={4} className="d-flex flex-column h-100">
         <List
-          title="Data » Tag groups"
+          name="Data » Tag groups"
           currentID={tagGroupID}
 
           itemLoad={itemLoad}

@@ -38,7 +38,7 @@ export default function List(props) {
 
         return <Row key={key} style={style}>
           <Col>
-            <Container className={listCardClass}>
+            <Container className={listCardClass} style={{ overflow: "hidden" }}>
               <Row className="h-100">
                 <Col className="listTitleContainer align-self-center" md={8}>
                   {name}

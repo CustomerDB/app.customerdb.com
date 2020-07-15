@@ -132,10 +132,7 @@ export default class Document extends React.Component {
   constructor(props) {
     super(props);
 
-    console.debug(`props.documentID ${props}`);
-    this.documentID = props.documentID;
-
-    this.documentRef = props.documentsRef.doc(this.documentID);
+    this.documentRef = props.documentsRef.doc(this.props.documentID);
     this.deltasRef = this.documentRef.collection('deltas');
     this.highlightsRef = this.documentRef.collection('highlights');
 
@@ -569,7 +566,6 @@ export default class Document extends React.Component {
 
         // upload diff
         this.highlightsRef.doc(h.ID).set({
-          ID: h.ID,
           tagID: current.tagID,
           selection: {
             index: current.selection.index,
@@ -585,9 +581,10 @@ export default class Document extends React.Component {
     editorHighlightIDs.forEach(highlightID => {
       let current = this.getHighlightFromEditor(highlightID);
       if (current !== undefined && !this.highlights.hasOwnProperty(highlightID)) {
-        console.debug("syncHighlights: creating highlight", current);
-        this.highlightsRef.doc(highlightID).set({
+        let newHighlight = {
           ID: highlightID,
+          organizationID: this.props.orgID,
+          documentID: this.props.documentID,
           tagID: current.tagID,
           selection: {
             index: current.selection.index,
@@ -597,7 +594,10 @@ export default class Document extends React.Component {
           createdBy: this.props.user.email,
           creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
           lastUpdateTimestamp: window.firebase.firestore.FieldValue.serverTimestamp()
-        });
+        };
+
+        console.debug("syncHighlights: creating highlight", newHighlight);
+        this.highlightsRef.doc(highlightID).set(newHighlight);
       }
     });
   }
@@ -748,6 +748,7 @@ export default class Document extends React.Component {
               ref={(el) => { this.reactQuillRef = el }}
               value={this.state.delta}
               theme="bubble"
+              placeholder="Start typing here and select to mark highlights"
               onChange={this.onEdit}
               onChangeSelection={this.onSelect} />
             </Col>
