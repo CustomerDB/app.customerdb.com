@@ -12,7 +12,11 @@ export default function DatasetClusterTab(props) {
 
   // Faking the document selection for now...
   // TODO: get this from props.dataset.documentIDs
-  let documentIDs = ["7zML8Lg9s6InMdeHWVo4", "IPf5imetS20SF78OQlrP"];
+  let documentIDs = [
+    "PnHhykH1yC0Mb6JFjnm4",
+    "V7Di7RDYDcy3mBIHAHyd",
+    "vcigWItnhGt4ETuw2Czk"
+  ];
 
   // TODO: allow user to select what tag to cluster
   let tagID = "V7a9sjPoXaib1iS2qXkF";  // (problem)
@@ -20,6 +24,7 @@ export default function DatasetClusterTab(props) {
   // NB: the `in` clause is limited to ten values for filtering.
   //     For now, we support clustering highlights from up to ten documents.
   let highlightsRef = props.allHighlightsRef
+    .where('organizationID', '==', props.orgID)
     .where('documentID', 'in', documentIDs)
     .where("tagID", "==", tagID)
 

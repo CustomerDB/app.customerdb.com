@@ -42,9 +42,11 @@
     },
     {
       "collectionGroup": "highlights",
-      "queryScope": "COLLECTION",
+      "queryScope": "COLLECTION_GROUP",
       "fields": [
-        { "fieldPath": "documentID" }
+        { "fieldPath": "documentID", "order": "ASCENDING" },
+        { "fieldPath": "organizationID", "order": "ASCENDING" },
+        { "fieldPath": "tagID", "order": "ASCENDING" }
       ]
     }
   ],

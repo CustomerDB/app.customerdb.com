@@ -1,10 +1,25 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    function signedInAndVerified() {
+      return request.auth.uid != null &&
+             request.auth.token.email_verified == true;
+    }
+
+    function activeOrgAdmin(orgID) {
+      let member = get(/databases/$(database)/documents/organizations/$(orgID)/members/$(request.auth.token.email));
+      return member.data.active == true && member.data.admin == true;
+    }
+
+    function activeOrgMember(orgID) {
+      let member = get(/databases/$(database)/documents/organizations/$(orgID)/members/$(request.auth.token.email));
+      return member.data.active == true;
+    }
+
     // Only allow verified emails with the 'invited' bit set, to change to 'active' (and remove the invited 'bit' in the same operation).
     match /organizations/{orgID}/members/{email} {
-      allow write: if request.auth != null
-                   && request.auth.token.email_verified == true
+      allow write: if signedInAndVerified()
                    && request.auth.token.email == email
                    && resource.data.invited == true
                    && resource.data.active == false
@@ -14,55 +29,60 @@ service cloud.firestore {
 
     // FIXME: Users can read and write their own user to org mapping. Currently only allows for 1 active org.
     match /userToOrg/{email} {
-      allow write: if request.auth != null
-                   && request.auth.token.email_verified == true
-                   && request.auth.token.email == email
-                   && get(/databases/$(database)/documents/organizations/$(request.resource.data.orgID)/members/$(request.auth.token.email)).data.active == true;
+      allow write: if signedInAndVerified()
+                   && activeOrgMember(request.resource.data.orgID)
+                   && request.auth.token.email == email;
 
-      allow read: if request.auth != null
-                  && request.auth.token.email_verified == true
+      allow read: if signedInAndVerified()
                   && request.auth.token.email == email;
     }
 
-    // Active admin users can read and write anything in the org.
-    match /organizations/{orgID}/{document=**} {
-      allow read, write: if request.auth != null
-                         && request.auth.token.email_verified == true
-                         && get(/databases/$(database)/documents/organizations/$(orgID)/members/$(request.auth.token.email)).data.active == true
-                         && get(/databases/$(database)/documents/organizations/$(orgID)/members/$(request.auth.token.email)).data.admin == true
+    // Active admin users can read and write **MEMBERS** in the org
+    match /organizations/{orgID}/members/{document=**} {
+      allow read, write: if signedInAndVerified()
+                         && activeOrgAdmin(orgID);
     }
 
     // Active non-admin users can read anything in the org.
     match /organizations/{orgID}/{document=**} {
-      allow read: if request.auth != null
-                  && request.auth.token.email_verified == true
-                  && get(/databases/$(database)/documents/organizations/$(orgID)/members/$(request.auth.token.email)).data.active == true;
+      allow read: if signedInAndVerified()
+                  && activeOrgMember(orgID);
+    }
+
+    // Active users can read highlights from their org via the
+    // highlights collectionGroup index.
+    match /{path=**}/highlights/{document} {
+      allow read: if signedInAndVerified()
+                  && activeOrgMember(resource.data.organizationID);
+
+      allow write: if signedInAndVerified()
+                   && activeOrgMember(request.resource.data.organizationID)
+                   && request.resource.data.createdBy == request.auth.token.email;
     }
 
     // Active non-admin users can write **DOCUMENTS** in the org.
-    match /organizations/{orgID}/documents/{document=**} {
-      allow write: if request.auth != null
-                   && request.auth.token.email_verified == true
-                   && get(/databases/$(database)/documents/organizations/$(orgID)/members/$(request.auth.token.email)).data.active == true;
+    match /organizations/{orgID}/documents/{document} {
+      allow write: if signedInAndVerified()
+                   && activeOrgMember(orgID);
+    }
+
+    // Active non-admin users can write **DOCUMENT DELTAS** in the org.
+    match /organizations/{orgID}/documents/{document}/deltas/{delta} {
+      allow write: if signedInAndVerified()
+                   && activeOrgMember(orgID);
     }
 
     // Active non-admin users can write **PEOPLE** in the org.
     match /organizations/{orgID}/people/{document=**} {
-      allow write: if request.auth != null
-                   && request.auth.token.email_verified == true
-                   && get(/databases/$(database)/documents/organizations/$(orgID)/members/$(request.auth.token.email)).data.active == true;
+      allow write: if signedInAndVerified()
+                   && activeOrgMember(orgID);
     }
 
     // Active non-admin users can write **DATASETS** in the org.
     match /organizations/{orgID}/datasets/{document=**} {
-      allow write: if request.auth != null
-                   && request.auth.token.email_verified == true
-                   && get(/databases/$(database)/documents/organizations/$(orgID)/members/$(request.auth.token.email)).data.active == true;
+      allow write: if signedInAndVerified()
+                   && activeOrgMember(orgID);
     }
 
-    // Only allow users with verified emails to change displayName and photoURL.
-    // Only allow users with the admin bit to delete objects rest of org.
-    // Only allow active users to read rest of org.
-    // Open writes (not deletes) to each collection.
   }
 }

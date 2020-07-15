@@ -581,9 +581,9 @@ export default class Document extends React.Component {
     editorHighlightIDs.forEach(highlightID => {
       let current = this.getHighlightFromEditor(highlightID);
       if (current !== undefined && !this.highlights.hasOwnProperty(highlightID)) {
-        console.debug("syncHighlights: creating highlight", current);
-        this.highlightsRef.doc(highlightID).set({
+        let newHighlight = {
           ID: highlightID,
+          organizationID: this.props.orgID,
           documentID: this.props.documentID,
           tagID: current.tagID,
           selection: {
@@ -594,7 +594,10 @@ export default class Document extends React.Component {
           createdBy: this.props.user.email,
           creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
           lastUpdateTimestamp: window.firebase.firestore.FieldValue.serverTimestamp()
-        });
+        };
+
+        console.debug("syncHighlights: creating highlight", newHighlight);
+        this.highlightsRef.doc(highlightID).set(newHighlight);
       }
     });
   }

@@ -10,16 +10,16 @@ import { ThreeDotsVertical } from 'react-bootstrap-icons';
  * 
  */
 export default function Options(props) {
-    let threedots = <ThreeDotsVertical />;
-    if (props.inverted === true) {
-        threedots = <ThreeDotsVertical color="white" />;
-    }
+  let threedots = <ThreeDotsVertical />;
+  if (props.inverted === true) {
+    threedots = <ThreeDotsVertical color="white" />;
+  }
 
-    let list = props.options.map((option) => {
-        return <Dropdown.Item onClick={() => {option.onClick(props.item)}}>{option.name}</Dropdown.Item>;
-    });
+  let list = props.options.map((option) => {
+    return <Dropdown.Item onClick={() => {option.onClick(props.item)}}>{option.name}</Dropdown.Item>;
+  });
 
-    return <Dropdown style={{ width: "2.5rem", marginLeft: "auto" }}>
+  return <Dropdown style={{ width: "2.5rem", marginLeft: "auto" }}>
     <Dropdown.Toggle variant="link" className="threedots">
       {threedots}
     </Dropdown.Toggle>

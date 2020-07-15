@@ -119,6 +119,7 @@ export default function Explore(props) {
   if (dataset !== undefined) {
     view = <Dataset
       user={props.user}
+      orgID={props.orgID}
       dataset={dataset}
       allHighlightsRef={props.allHighlightsRef}
       datasetRef={datasetRef}

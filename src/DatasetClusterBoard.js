@@ -406,12 +406,15 @@ export default class DatasetClusterBoard extends React.Component {
       }
     };
 
+    let pointers = undefined
+    // pointers = <Pointers activeUsersRef={this.props.activeUsersRef} user={this.props.user}/>;
+
     return <HotKeys keyMap={keyMap} handlers={keyHandlers}>
       <div className="cardContainer fullHeight">
         {groupComponents}
         {cardComponents}
       </div>
-      <Pointers activeUsersRef={this.props.activeUsersRef} user={this.props.user}/>
+      {pointers}
       <HighlightModal
         show={this.state.modalShow}
         card={this.state.modalCard}

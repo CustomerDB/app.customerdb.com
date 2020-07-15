@@ -74,6 +74,7 @@ export default function Dataset(props) {
                     <DatasetClusterTab
                       dataset={props.dataset}
                       datasetRef={props.datasetRef}
+                      orgID={props.orgID}
                       allHighlightsRef={props.allHighlightsRef} />
                   </Container>
                 </Tab.Pane>
