@@ -11,6 +11,7 @@ import Button from 'react-bootstrap/Button';
 import Alert from 'react-bootstrap/Alert';
 
 import topFigure from './assets/images/top-figure.svg';
+import logo from './assets/images/logo.svg';
 
 var provider = new window.firebase.auth.GoogleAuthProvider();
 var db = window.firebase.firestore();
@@ -48,19 +49,22 @@ export default function Login(props) {
             <Row className="align-items-center">
                 <Col md={6}>
                     <Row className="align-items-center">
-                        <Col><h2>CustomerDB</h2></Col>
+                        <Col className="pb-5"><img style={{width: "50%"}} src={logo} alt="CustomerDB logo" /></Col>
                     </Row>
                     <Row>
                         <Col>
-                            <p>Welcome to CustomerDB! To continue, please login by clicking the button below</p>
-                            {loginFailedMessage}
-                            <Button onClick={login}>Login with Google</Button>
+                            <p>Log in by clicking the button below.</p>
+
+                            If you don't have an account yet, <a href="https://niklas415573.typeform.com/to/at7S5LVl">join the wait list</a>.
                         </Col>
                     </Row>
                     <Row>
                         <Col>
-                            <small>If you don't have an account with CustomerDB yet. Click here to join the wait list.</small>
+                        {loginFailedMessage}
                         </Col>
+                    </Row>
+                    <Row className="pt-5">
+                        <Col><Button onClick={login}>Login with Google</Button></Col>
                     </Row>
                 </Col>
                 <Col md={6}>
