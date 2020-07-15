@@ -7,7 +7,7 @@ const os = require('os');
 const fs = require('fs');
 const csv = require('csv-parser');
 
-functions.pubsub.schedule('every 5 minutes').onRun((context) => {
+exports.emailInviteJob = functions.pubsub.schedule('every 5 minutes').onRun((context) => {
   let db = admin.firestore();
 
   db.collection('organizations').get().then(snapshot => {
