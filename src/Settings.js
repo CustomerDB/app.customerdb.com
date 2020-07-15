@@ -31,7 +31,7 @@ export default function Settings(props) {
       title: 'Profile',
       icon: <PersonCircle size={30}/>,
       path: `/orgs/${orgID}/settings/`,
-      content: <Profile user={props.user} membersRef={props.membersRef}/>
+      content: <Col md={8}><Profile user={props.user} membersRef={props.membersRef}/></Col>
   }];
 
   if (props.user.admin == true) {
@@ -40,7 +40,7 @@ export default function Settings(props) {
       title: 'Members',
       icon: <Diagram3 size={30} />,
       path: `/orgs/${orgID}/settings/members`,
-      content: <Members user={props.user} membersRef={props.membersRef}/>
+      content: <Col md={8}><Members user={props.user} membersRef={props.membersRef}/></Col>
     });
 
     list.push({
@@ -48,7 +48,7 @@ export default function Settings(props) {
       title: 'Organization',
       icon: <Building size={30} />,
       path: `/orgs/${orgID}/settings/organization`,
-      content: <Organization user={props.user}/>
+      content: <Col md={8}><Organization user={props.user}/></Col>
     });
 
     list.push({
@@ -56,7 +56,7 @@ export default function Settings(props) {
       title: 'Backup and restore',
       icon: <Hdd size={30} />,
       path: `/orgs/${orgID}/settings/backup`,
-      content: <Backup user={props.user}/>
+      content: <Col md={8}><Backup user={props.user}/></Col>
     });
   }
 
@@ -127,9 +127,7 @@ export default function Settings(props) {
           </Col>
         </Row>
       </Col>
-      <Col md={8}>
-        {view}
-      </Col>
+      {view}
     </Row>
   </Container>;
 }

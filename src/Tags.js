@@ -116,24 +116,22 @@ export default function Tags(props) {
 
 
   return <>
-    <Row className="h-100">
-      <Col md={4} className="d-flex flex-column h-100">
-        <List
-          name="Tag groups"
-          currentID={tagGroupID}
+    <Col md={4} className="d-flex flex-column h-100">
+      <List
+        name="Tag groups"
+        currentID={tagGroupID}
 
-          itemLoad={itemLoad}
-          itemCount={tagGroups.length}
+        itemLoad={itemLoad}
+        itemCount={tagGroups.length}
 
-          onAdd={onAdd}
-          options={options}
-          onClick={onClick}
-        />
-      </Col>
-      <Col md={8}>
-        {view}
-      </Col>
-    </Row>
+        onAdd={onAdd}
+        options={options}
+        onClick={onClick}
+      />
+    </Col>
+    <Col md={4}>
+      {view}
+    </Col>
     <RenameModal show={showRenameModal} tagGroup={modalTagGroup} onRename={onRename} onHide={() => { setShowRenameModal(false) }} />
     <DeleteModal show={showDeleteModal} tagGroup={modalTagGroup} onDelete={onDelete} onHide={() => { setShowDeleteModal(false) }} />
   </>;
@@ -212,9 +210,9 @@ function TagGroup(props) {
     </Row>
     {tags.map(tag => {
       return <Row className="mb-2" key={tag.ID}>
-        <Col md={10}>
+        <Col md={12}>
           <Row noGutters={true}>
-            <Col md={7} className="d-flex">
+            <Col md={11} className="d-flex">
               <ColorPicker tag={tag} tagGroupRef={props.tagGroupRef}/>
               <Form.Control type="text" placeholder="Name" value={tagNames[tag.ID]}
               onChange={(e) => {
