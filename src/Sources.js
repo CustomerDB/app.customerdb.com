@@ -7,6 +7,9 @@ import Form from 'react-bootstrap/Form';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 
+import { FileEarmarkText } from 'react-bootstrap-icons';
+
+
 import Delta from 'quill-delta';
 
 import List from './List.js';
@@ -37,6 +40,7 @@ export default function Sources(props) {
         snapshot.forEach((doc) => {
           let data = doc.data();
           data['ID'] = doc.id;
+          data['icon'] = <FileEarmarkText size={24}/>
           newDocuments.push(data);
         });
 
