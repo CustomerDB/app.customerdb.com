@@ -11,9 +11,13 @@ import Toast from 'react-bootstrap/Toast';
 import Table from 'react-bootstrap/Table';
 import Modal from 'react-bootstrap/Modal';
 
-import Options from './Options.js';
 import { useParams, useNavigate } from "react-router-dom";
-import { Building, PersonCircle, Hdd, Diagram3 } from 'react-bootstrap-icons';
+import { Building, PersonCircle, Hdd, Diagram3, Tags as TagsIcon } from 'react-bootstrap-icons';
+
+import Options from './Options.js';
+
+import Tags from './Tags.js';
+
 
 import { AutoSizer, List as VirtList } from 'react-virtualized';
 
@@ -55,6 +59,14 @@ export default function Settings(props) {
       content: <Backup user={props.user}/>
     });
   }
+
+  list.push({
+    name: 'tags',
+    title: 'Tag management',
+    icon: <TagsIcon size={30} />,
+    path: `/orgs/${orgID}/settings/tags`,
+    content: <Tags user={props.user} orgID={props.orgID} tagGroupsRef={props.tagGroupsRef} user={props.user}/>
+  });
 
   const [view, setView] = useState();
   useEffect(() => {

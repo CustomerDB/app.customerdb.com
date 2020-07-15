@@ -10,7 +10,6 @@ import People from './People.js';
 import Sources from './Sources.js';
 import Explore from './Explore.js';
 import Settings from './Settings.js';
-import Tags from './Tags.js';
 
 import { logout } from './Utils.js';
 
@@ -75,10 +74,6 @@ export default function Organization(props) {
 
         <Route path="data/*">
           <Route path="/" element={ <Sources orgID={orgID} documentsRef={documentsRef} tagGroupsRef={tagGroupsRef} user={user} /> } />
-          <Route path="tags">
-            <Route path="/" element={ <Tags orgID={orgID} tagGroupsRef={tagGroupsRef} user={user} /> } />
-            <Route path=":tgID" element={ <Tags orgID={orgID} tagGroupsRef={tagGroupsRef} user={user} /> } />
-          </Route>
           <Route path=":docID" element={ <Sources orgID={orgID} documentsRef={documentsRef} tagGroupsRef={tagGroupsRef} user={user} />} />
         </Route>
 
@@ -93,6 +88,10 @@ export default function Organization(props) {
           <Route path="members" element={ <Settings selected="members" user={user} membersRef={membersRef}/>} />
           <Route path="organization" element={ <Settings selected="organization" user={user}/>} />
           <Route path="backup" element={ <Settings selected="backup" user={user}/>} />
+          <Route path="tags">
+            <Route path="/" element={ <Settings selected="tags" orgID={orgID} tagGroupsRef={tagGroupsRef} user={user} /> } />
+            <Route path=":tgID" element={ <Settings selected="tags" orgID={orgID} tagGroupsRef={tagGroupsRef} user={user} /> } />
+          </Route>
         </Route>
 
         <Route path="*" element={<Navigate to="/404" />} />

@@ -20,7 +20,7 @@ import Options from './Options.js';
 
 export default function Tags(props) {
   const [tagGroupID, settagGroupID] = useState(undefined);
-  const [tagGroups, settagGroups] = useState([]);
+  const [tagGroups, setTagGroups] = useState([]);
 
   let { tgID } = useParams();
   let navigate = useNavigate();
@@ -36,13 +36,10 @@ export default function Tags(props) {
           let data = doc.data();
 
           data['ID'] = doc.id;
-          data['title'] = data.name;
-          data['description'] = "";
-
           newtagGroups.push(data);
         });
 
-        settagGroups(newtagGroups);
+        setTagGroups(newtagGroups);
       });
     return unsubscribe;
   }, []);
@@ -66,7 +63,7 @@ export default function Tags(props) {
   };
 
   const onClick = (ID) => {
-    navigate(`/orgs/${props.orgID}/sources/tags/${ID}`);
+    navigate(`/orgs/${props.orgID}/settings/tags/${ID}`);
   };
 
   const itemLoad = (index) => {
@@ -109,6 +106,8 @@ export default function Tags(props) {
     }
   ];
 
+  console.log("tagGroups in render", tagGroups);
+
   let view;
   if (tagGroupID !== undefined) {
     let tagGroupRef = props.tagGroupsRef.doc(tagGroupID);
@@ -116,11 +115,11 @@ export default function Tags(props) {
   }
 
 
-  return <><Container className="noMargin">
+  return <>
     <Row className="h-100">
       <Col md={4} className="d-flex flex-column h-100">
         <List
-          title="Data » Tag groups"
+          name="Tag groups"
           currentID={tagGroupID}
 
           itemLoad={itemLoad}
@@ -135,7 +134,6 @@ export default function Tags(props) {
         {view}
       </Col>
     </Row>
-  </Container>
     <RenameModal show={showRenameModal} tagGroup={modalTagGroup} onRename={onRename} onHide={() => { setShowRenameModal(false) }} />
     <DeleteModal show={showDeleteModal} tagGroup={modalTagGroup} onDelete={onDelete} onHide={() => { setShowDeleteModal(false) }} />
   </>;
