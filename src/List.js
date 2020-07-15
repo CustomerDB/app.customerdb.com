@@ -40,7 +40,7 @@ export default function List(props) {
           <Col>
             <Container className={listCardClass} style={{ overflow: "hidden" }}>
               <Row className="h-100">
-                <Col className="listTitleContainer align-self-center" md={8}>
+                <Col className="align-self-center" md={8}>
                   {name}
                 </Col>
                 <Col md={4} className="align-self-center">
