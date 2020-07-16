@@ -52,11 +52,11 @@ service cloud.firestore {
     // Active users can read highlights from their org via the
     // highlights collectionGroup index.
     match /{path=**}/highlights/{document} {
-      allow read: if signedInAndVerified()
-                  && activeOrgMember(resource.data.organizationID);
+      allow read, update, delete: if signedInAndVerified()
+                                  && activeOrgMember(resource.data.organizationID);
 
-      allow write: if signedInAndVerified()
-                   && activeOrgMember(request.resource.data.organizationID);
+      allow create: if signedInAndVerified()
+                    && activeOrgMember(request.resource.data.organizationID);
     }
 
     // Active non-admin users can write **TAG GROUPS** in the org.
