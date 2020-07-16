@@ -6,10 +6,6 @@ import Form from 'react-bootstrap/Form';
 import Modal from 'react-bootstrap/Modal';
 import Row from 'react-bootstrap/Row';
 import Button from 'react-bootstrap/Button';
-import { v4 as uuidv4 } from 'uuid';
-
-import { XCircleFill } from 'react-bootstrap-icons';
-
 
 import Dataset from './Dataset.js';
 import List from './List.js';
@@ -17,7 +13,7 @@ import List from './List.js';
 import { useNavigate, useParams } from "react-router-dom";
 
 export default function Explore(props) {
-  const [datasets, setDatasets] = useState([]);
+  const [datasets, setDatasets] = useState(undefined);
   const [datasetRef, setDatasetRef] = useState(undefined);
   const [dataset, setDataset] = useState(undefined);
 
@@ -38,12 +34,14 @@ export default function Explore(props) {
         });
 
         setDatasets(newDatasets);
+
+        console.log('setDatasets', newDatasets);
       });
     return unsubscribe;
   }, []);
 
   useEffect(() => {
-    if (!datasetID || datasetID === "") {
+    if (!datasetID || datasetID === "" || !datasets) {
       setDataset(undefined);
       setDatasetRef(undefined);
       return;
@@ -115,6 +113,11 @@ export default function Explore(props) {
       setShowDeleteModal(true);
     }}
   ]
+
+  if (datasets === undefined) {
+    // TODO: Could be made a loader in the list instead.
+    return <></>;
+  }
 
   let view;
   if (dataset !== undefined) {

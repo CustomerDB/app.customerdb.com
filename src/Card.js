@@ -187,8 +187,6 @@ export default class Card extends React.Component {
             border: `3px solid ${this.state.previewColor}`
           }} />;
 
-    console.debug("Card.render (state)", this.state);
-
 		// Draggable nodeRef required to fix findDOMNode warnings.
 		// see: https://github.com/STRML/react-draggable/pull/478
     return <><Draggable
