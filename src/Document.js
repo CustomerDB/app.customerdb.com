@@ -27,7 +27,7 @@ Quill.register('formats/highlight', HighlightBlot);
 
 // Returns a new delta object representing an empty document.
 function emptyDelta() {
-  return new Delta([{ insert: "" }]);
+  return new Delta([{ insert: "\n" }]);
 }
 
 // Returns the result of folding the supplied array of deltas
@@ -118,6 +118,7 @@ export default class Document extends React.Component {
     this.currentSelection = undefined;
 
     this.latestDeltaTimestamp = new window.firebase.firestore.Timestamp(0, 0);
+    this.latestDelta = undefined;
 
     this.editorID = nanoid();
 
@@ -227,7 +228,7 @@ export default class Document extends React.Component {
       // Start periodically uploading cached highlight edits to firestore.
       this.intervals.push(setInterval(this.syncHighlights, 1000));
 
-      console.debug("subscribing to deltas after", this.latestDeltatimestamp);
+      console.debug("subscribing to deltas after", this.latestDeltaTimestamp);
 
       // Now subscribe to all changes that occur after the set
       // of initial deltas we just processed and updating
@@ -385,10 +386,10 @@ export default class Document extends React.Component {
 
     // result is the result of composing all known
     // deltas in the database
-    let result = reduceDeltas(deltas);
+    this.latestDelta = reduceDeltas(deltas);
 
     this.setState({
-      initialDelta: result,
+      initialDelta: this.latestDelta,
       loadedDeltas: true
     });
   }
@@ -399,12 +400,6 @@ export default class Document extends React.Component {
     snapshot.forEach((delta) => {
       let data = delta.data();
 
-      // Skip deltas from this client
-      if (data.editorID === this.editorID) {
-        console.debug("skipping delta from this client");
-        return;
-      }
-
       // Skip deltas with no timestamp
       if (data.timestamp === null) {
         console.debug("skipping delta with no timestamp");
@@ -412,13 +407,28 @@ export default class Document extends React.Component {
       }
 
       // Skip deltas older than the latest timestamp we have applied already
-      let haveSeenBefore = data.timestamp.valueOf() <= this.latestDeltaTimestamp.valueOf();
+      let haveSeenBefore =
+        data.timestamp.valueOf() <= this.latestDeltaTimestamp.valueOf();
+
       if (haveSeenBefore) {
         console.debug('Dropping delta with timestamp ', data.timestamp);
         return;
       }
 
-      newDeltas.push(new Delta(data.ops));
+      let newDelta = new Delta(data.ops)
+
+      // Hang the editorID off of the delta.
+      newDelta.editorID = data.editorID;
+
+      this.latestDelta = this.latestDelta.compose(newDelta);
+
+      // Skip deltas from this client
+      if (data.editorID === this.editorID) {
+        console.debug("skipping delta from this client");
+        return;
+      }
+
+      newDeltas.push(newDelta);
       this.latestDeltaTimestamp = data.timestamp;
     });
 
@@ -430,10 +440,36 @@ export default class Document extends React.Component {
     console.debug('applying deltas to editor', newDeltas);
 
     let editor = this.reactQuillRef.getEditor();
+
+    // What we have:
+    // - this.latestDelta: the document as constructed from all db deltas
+    // - this.localDelta: the buffered local edits that haven't been uploaded yet
+    // - editor.getContents(): document delta representing local editor content
+
+    // Compute inverse of local delta.
+    let editorContents = editor.getContents();
+    console.log("editorContents", editorContents);
+
+    console.log("localDelta (before)", this.localDelta);
+    let inverseLocalDelta = this.localDelta.invert(editorContents);
+    console.log("inverseLocalDelta", inverseLocalDelta);
+
+    // Undo local edits
+    console.log("unapplying local delta");
+    editor.updateContents(inverseLocalDelta);
+
     newDeltas.forEach(delta => {
       console.log("editor.updateContents", delta);
       editor.updateContents(delta);
+
+      console.log("transform local delta");
+      const localFirst =  false;
+      this.localDelta = delta.transform(this.localDelta, localFirst);
     });
+
+    // Reapply local edits
+    console.log("applying transformed local delta", this.localDelta);
+    editor.updateContents(this.localDelta);
   }
 
   // updateName is invoked when the editable document name bar loses focus.

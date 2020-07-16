@@ -18,7 +18,7 @@ import Document from './Document.js';
 import { useNavigate, useParams, Link } from "react-router-dom";
 
 function initialDelta() {
-  return new Delta([{ insert: "" }]);
+  return new Delta([{ insert: "\n" }]);
 }
 
 export default function Sources(props) {
