@@ -32,14 +32,12 @@ export default class Card extends React.Component {
 
     boundingBox.x = x;
     boundingBox.y = y;
-  
+
+    let rect = bboxToRect(boundingBox);
     return bboxToRect(boundingBox);
   }
 
   componentDidMount() {
-    this.rect = this.getRect();
-    Object.assign(this.props.card, this.rect);
-    this.cardRef.set(this.props.card);
     this.props.addLocationCallBack(this.props.card);
   }
 
@@ -63,8 +61,6 @@ export default class Card extends React.Component {
 
     let intersections = this.props.getIntersectingCardsCallBack(rect);
 
-    console.log("handleDrag (intersections)\n", intersections);
-
     // Nothing to do
     if (intersections.length === 0) {
       this.setState({
@@ -78,8 +74,6 @@ export default class Card extends React.Component {
       cardGroupIDs.add(card.data.groupID);
     });
 
-    console.log("handleDrag (cardGroupIDs)\n", cardGroupIDs);
-
     // Check whether we are intersecting cards of more than one
     // group. (Includes case where we are intersecting an ungrouped
     // card and a grouped card.)
@@ -92,8 +86,6 @@ export default class Card extends React.Component {
     }
 
     let groupID = cardGroupIDs.values().next().value; // may be `undefined`
-
-    console.log("handleDrag (groupID)\n", groupID);
 
     // Check whether the intersecting cards are not already part
     // of a group, in which case we would create a new group if
