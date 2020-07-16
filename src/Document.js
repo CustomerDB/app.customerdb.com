@@ -757,7 +757,7 @@ export default class Document extends React.Component {
                 <Form.Label>Tag group</Form.Label>
                 <Form.Control as="select"
                   onChange={this.onTagGroupChange}
-                  defaultValue={this.state.tagGroupID}>
+                  value={this.state.tagGroupID}>
                   <option value="" style={{ fontStyle: "italic" }}>Choose a tag group...</option>
                   {
                     this.state.tagGroups.map(group => {
