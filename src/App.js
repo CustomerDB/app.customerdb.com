@@ -42,13 +42,10 @@ function Logout(props) {
 }
 
 function WithOauthUser(props) {
-  console.log('WithOauthUser :: render');
-
   const [ oauthUser, setOauthUser] = useState(null);
   const [ oauthLoading, setOauthLoading ] = useState(true);
 
   useEffect(() => {
-    console.log('WithOauthUser :: useEffect');
     const loginCallback = (user) => {
       console.debug('loginCallback user', user);
       setOauthUser(user);
@@ -60,5 +57,5 @@ function WithOauthUser(props) {
 
   if (oauthLoading) { return <Loading />; }
 
-  return React.cloneElement(props.element, { oauthUser: oauthUser });
+  return React.cloneElement(props.element, { oauthUser: oauthUser, oauthLoading: oauthLoading });
 }
