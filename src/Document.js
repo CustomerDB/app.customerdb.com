@@ -96,11 +96,12 @@ export default class Document extends React.Component {
     this.tagsRef = undefined;
 
     this.getHighlightFromEditor = this.getHighlightFromEditor.bind(this);
+    this.handleInitialDeltas = this.handleInitialDeltas.bind(this);
     this.handleDeltaSnapshot = this.handleDeltaSnapshot.bind(this);
     this.updateName = this.updateName.bind(this);
     this.uploadDeltas = this.uploadDeltas.bind(this);
     this.syncHighlights = this.syncHighlights.bind(this);
-    
+
     this.onEdit = this.onEdit.bind(this);
     this.onSelect = this.onSelect.bind(this);
 
@@ -116,10 +117,9 @@ export default class Document extends React.Component {
     // This is a range object with fields 'index' and 'length'
     this.currentSelection = undefined;
 
-    this.latestSnapshot = {
-      timestamp: new window.firebase.firestore.Timestamp(0, 0),
-      delta: emptyDelta()
-    };
+    this.latestDeltaTimestamp = new window.firebase.firestore.Timestamp(0, 0);
+
+    this.editorID = nanoid();
 
     // Buffer of local editor changes, to be uploaded to the
     // database and distributed to peer clients on periodic sync.
@@ -138,8 +138,7 @@ export default class Document extends React.Component {
       exists: true,
       deletionTimestamp: "",
       deletedBy: '',
-      content: "",
-      delta: this.latestSnapshot.delta,
+      initialDelta: emptyDelta(),
       tagIDsInSelection: new Set(),
 
       tagGroups: [],
@@ -219,8 +218,8 @@ export default class Document extends React.Component {
       console.debug("processing full list of deltas to construct initial snapshot");
       // Process the priming read; download all existing deltas and condense
       // them into an initial local document snapshot
-      // (`this.latestSnapshot.delta`)
-      this.handleDeltaSnapshot(snapshot);
+      // (`this.state.initialDelta`)
+      this.handleInitialDeltas(snapshot);
 
       // Start periodically uploading cached local document edits to firestore.
       this.intervals.push(setInterval(this.uploadDeltas, 1000));
@@ -228,15 +227,14 @@ export default class Document extends React.Component {
       // Start periodically uploading cached highlight edits to firestore.
       this.intervals.push(setInterval(this.syncHighlights, 1000));
 
-      console.debug("subscribing to deltas after", this.latestSnapshot.timestamp);
+      console.debug("subscribing to deltas after", this.latestDeltatimestamp);
 
       // Now subscribe to all changes that occur after the set
-      // of initial deltas we just processed, composing any new deltas
-      // with `this.latestSnapshot.delta` and updating
-      // `this.latestSnapshot.timestamp`.
+      // of initial deltas we just processed and updating
+      // `this.latestDeltatimestamp`.
       this.subscriptions.push(this.deltasRef
         .orderBy("timestamp", "asc")
-        .where("timestamp", ">", this.latestSnapshot.timestamp)
+        .where("timestamp", ">", this.latestDeltaTimestamp)
         .onSnapshot(this.handleDeltaSnapshot));
     });
   }
@@ -369,10 +367,9 @@ export default class Document extends React.Component {
     return result;
   }
 
-  handleDeltaSnapshot(snapshot) {
-    // for debug
-    let allDeltas = [];
-    let newDeltas = [];
+  handleInitialDeltas(snapshot) {
+    console.log("handling initial set of deltas");
+    let deltas = [];
 
     snapshot.forEach((delta) => {
       let data = delta.data();
@@ -382,48 +379,60 @@ export default class Document extends React.Component {
         return;
       }
 
-      allDeltas.push(data);
+      deltas.push(new Delta(data.ops));
+      this.latestDeltaTimestamp = data.timestamp;
+    });
 
-      let haveSeenBefore = data.timestamp.valueOf() <= this.latestSnapshot.timestamp.valueOf();
+    // result is the result of composing all known
+    // deltas in the database
+    let result = reduceDeltas(deltas);
+
+    this.setState({
+      initialDelta: result,
+      loadedDeltas: true
+    });
+  }
+
+  handleDeltaSnapshot(snapshot) {
+    let newDeltas = [];
+
+    snapshot.forEach((delta) => {
+      let data = delta.data();
+
+      // Skip deltas from this client
+      if (data.editorID === this.editorID) {
+        console.debug("skipping delta from this client");
+        return;
+      }
+
+      // Skip deltas with no timestamp
+      if (data.timestamp === null) {
+        console.debug("skipping delta with no timestamp");
+        return;
+      }
+
+      // Skip deltas older than the latest timestamp we have applied already
+      let haveSeenBefore = data.timestamp.valueOf() <= this.latestDeltaTimestamp.valueOf();
       if (haveSeenBefore) {
         console.debug('Dropping delta with timestamp ', data.timestamp);
         return;
       }
 
       newDeltas.push(new Delta(data.ops));
-
-      this.latestSnapshot.timestamp = data.timestamp;
+      this.latestDeltaTimestamp = data.timestamp;
     });
-
-    console.debug("all deltas\n", allDeltas);
-    console.debug("new deltas\n", newDeltas);
 
     if (newDeltas.length === 0) {
       console.debug("no new deltas to apply");
       return;
     }
 
-    // Seed the newDeltas list with our starting point, which is the
-    // latest content snapshot.
-    newDeltas = [this.latestSnapshot.delta].concat(newDeltas);
+    console.debug('applying deltas to editor', newDeltas);
 
-    // result is the result of composing all known
-    // deltas in the database; having started from our cached
-    // last known sync point.
-    let result = reduceDeltas(newDeltas);
-
-    // Cache this value now.
-    this.latestSnapshot.delta = result;
-
-    if (this.state.loadedDeltas) {
-      result = result.compose(this.localDelta);
-    }
-
-    console.debug('applying result', result);
-
-    this.setState({
-      delta: result,
-      loadedDeltas: true
+    let editor = this.reactQuillRef.getEditor();
+    newDeltas.forEach(delta => {
+      console.log("editor.updateContents", delta);
+      editor.updateContents(delta);
     });
   }
 
@@ -459,6 +468,7 @@ export default class Document extends React.Component {
     this.localDelta = new Delta(this.localDelta.ops.slice(opsIndex));
 
     let deltaDoc = {
+      editorID: this.editorID,
       userEmail: this.props.user.email,
       timestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
       ops: ops
@@ -675,7 +685,7 @@ export default class Document extends React.Component {
           <Col>
             <ReactQuill
               ref={(el) => { this.reactQuillRef = el }}
-              value={this.state.delta}
+              defaultValue={this.state.initialDelta}
               theme="bubble"
               placeholder="Start typing here and select to mark highlights"
               onChange={this.onEdit}
