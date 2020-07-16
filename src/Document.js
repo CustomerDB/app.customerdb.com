@@ -446,6 +446,9 @@ export default class Document extends React.Component {
     // - this.localDelta: the buffered local edits that haven't been uploaded yet
     // - editor.getContents(): document delta representing local editor content
 
+    let selection = editor.getSelection();
+    let selectionIndex = selection ? selection.index : 0;
+
     // Compute inverse of local delta.
     let editorContents = editor.getContents();
     console.log("editorContents", editorContents);
@@ -457,10 +460,12 @@ export default class Document extends React.Component {
     // Undo local edits
     console.log("unapplying local delta");
     editor.updateContents(inverseLocalDelta);
+    selectionIndex = inverseLocalDelta.transformPosition(selectionIndex);
 
     newDeltas.forEach(delta => {
       console.log("editor.updateContents", delta);
       editor.updateContents(delta);
+      selectionIndex = delta.transformPosition(selectionIndex);
 
       console.log("transform local delta");
       const serverFirst =  true;
@@ -470,6 +475,12 @@ export default class Document extends React.Component {
     // Reapply local edits
     console.log("applying transformed local delta", this.localDelta);
     editor.updateContents(this.localDelta);
+    selectionIndex = this.localDelta.transformPosition(selectionIndex);
+
+    if (selection) {
+      console.log("updating selection index");
+      editor.setSelection(selectionIndex, selection.length);
+    }
   }
 
   // updateName is invoked when the editable document name bar loses focus.
