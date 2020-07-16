@@ -3,7 +3,7 @@ import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 
 export default function HighlightModal(props) {
-  if (props.card === undefined) {
+  if (props.data === undefined) {
     return <></>;
   }
 
@@ -15,12 +15,12 @@ export default function HighlightModal(props) {
       centered >
       <Modal.Header closeButton>
         <Modal.Title id="contained-modal-title-vcenter">
-          {props.card.data['Note - Title']}
+          {props.data.document.name}
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <p>
-          {props.card.data.Text}
+          {props.data.highlight.Text}
         </p>
       </Modal.Body>
       <Modal.Footer>

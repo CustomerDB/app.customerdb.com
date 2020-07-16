@@ -71,7 +71,7 @@ export default class Card extends React.Component {
     }
 
     intersections.forEach((card) => {
-      cardGroupIDs.add(card.data.groupID);
+      cardGroupIDs.add(card.groupID);
     });
 
     // Check whether we are intersecting cards of more than one
@@ -93,8 +93,8 @@ export default class Card extends React.Component {
     if (groupID !== undefined) {
       let intersectingGroups = this.props.getIntersectingGroupsCallBack(rect);
       intersectingGroups.forEach((group) => {
-        if (group.data.ID === groupID) {
-          cardGroupColor = group.data.color;
+        if (group.ID === groupID) {
+          cardGroupColor = group.color;
           intersections.push(group);
         }
       });
@@ -127,12 +127,12 @@ export default class Card extends React.Component {
     // Update group membership based on location.
     let groupData = this.props.groupDataForCardCallback(this.props.card);
     if (groupData.ID === undefined) {
-      delete this.props.card.data['groupID'];
+      delete this.props.card['groupID'];
     } else {
-      this.props.card.data.groupID = groupData.ID;
+      this.props.card.groupID = groupData.ID;
     }
-		this.props.card.data.groupColor = groupData.color;
-		this.props.card.data.textColor = groupData.textColor;
+		this.props.card.groupColor = groupData.color;
+		this.props.card.textColor = groupData.textColor;
 
     this.props.addLocationCallBack(this.props.card);
 
@@ -147,9 +147,9 @@ export default class Card extends React.Component {
 
   showModal() {
     this.props.modalCallBack(
-      this.props.card.data,
       this.props.card,
-      this.ref.current.getBoundingClientRect());
+      this.props.highlight,
+      this.props.document);
   }
 
   render() {
@@ -199,7 +199,7 @@ export default class Card extends React.Component {
             }}>
             {this.props.document.name}
           </div>
-          <div className="quote" onClick={this.showModal}>{this.props.card.data.text}</div>
+          <div className="quote" onClick={this.showModal}>{this.props.highlight.text}</div>
         </div>
     </Draggable>
 

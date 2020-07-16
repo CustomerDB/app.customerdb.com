@@ -32,7 +32,7 @@ export default class Group extends React.Component {
   }
 
   updateName(e) {
-    this.props.group.data.name = e.target.innerText;
+    this.props.group.name = e.target.innerText;
     this.props.groupRef.update(this.props.group);
   }
 
@@ -55,14 +55,14 @@ export default class Group extends React.Component {
 
     this.props.addGroupLocationCallback(this.props.group);
 
-    let cardTitles = new Set();
+    let documentIDs = new Set();
     this.props.cards.forEach((card) => {
-      cardTitles.add(card.data['Note - Title']);
+      documentIDs.add(card.documentID);
     })
-    let representation = cardTitles.size;
+    let representation = documentIDs.size;
 
     let circle = circumscribingCircle(rect);
-    let color = this.props.group.data.color;
+    let color = this.props.group.color;
 
     let border = `2px ${color} solid`;
 

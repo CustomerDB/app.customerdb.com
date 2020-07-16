@@ -1,7 +1,6 @@
 import React from 'react';
 import RBush from 'rbush';
-import { HotKeys } from 'react-hotkeys';
-import { v4 as uuidv4 } from 'uuid';
+import { nanoid } from 'nanoid';
 
 import Card from './Card.js';
 import Group from './Group.js';
@@ -21,7 +20,7 @@ export default class DatasetClusterBoard extends React.Component {
       loadedGroups: false,
 
       modalShow: false,
-      modalCard: undefined,
+      modalData: undefined,
 
       documents: {},
       highlights: {},
@@ -163,12 +162,13 @@ export default class DatasetClusterBoard extends React.Component {
             cardRef.get().then((cardSnapshot) => {
               if (!cardSnapshot.exists) {
                 cardRef.set({
+                  ID: doc.id,
                   minX: 0,
                   minY: 0,
                   maxX: 0,
                   maxY: 0,
                   kind: "card",
-                  data: data
+                  documentID: data.documentID
                 });
               }
             });
@@ -231,10 +231,10 @@ export default class DatasetClusterBoard extends React.Component {
     this.rtree.remove(
       card,
       (a, b) => {
-        console.debug(`comparing\n${a.data.ID}\n${b.data.ID}`);
+        console.debug(`comparing\n${a.ID}\n${b.ID}`);
         return a.kind === "card" &&
           b.kind === "card" &&
-          a.data.ID === b.data.ID;
+          a.ID === b.ID;
       }
     );
     console.log(`removeCardLocation (size@post: ${this.rtree.all().length})`);
@@ -251,10 +251,10 @@ export default class DatasetClusterBoard extends React.Component {
     this.rtree.remove(
       group,
       (a, b) => {
-        console.debug(`comparing\n${a.data.ID}\n${b.data.ID}`);
+        console.debug(`comparing\n${a.ID}\n${b.ID}`);
         return a.kind === "group" &&
           b.kind === "group" &&
-          a.data.ID === b.data.ID;
+          a.ID === b.ID;
       }
     );
     console.debug(`removeGroupLocation (size@post: ${this.rtree.all().length})`);
@@ -293,7 +293,7 @@ export default class DatasetClusterBoard extends React.Component {
 
     let cardGroupIDs = new Set();
     let intersections = this.getIntersectingCards(card).filter((c) => {
-      return c.data.ID !== card.data.ID
+      return c.ID !== card.ID
     });
 
     console.log('groupDataForCard (intersections):\n', intersections);
@@ -303,24 +303,24 @@ export default class DatasetClusterBoard extends React.Component {
 
       // If this card was previously part of a group, check whether we need
       // to delete that group (because it became empty or only has one other card)
-      if (card.data.groupID !== undefined) {
+      if (card.groupID !== undefined) {
 
         // Collect the cards (besides this one) that remain in this card's old group.
         let remainingCards = Object.values(this.state.cards).filter((item) => {
-          return (item.data.groupID === card.data.groupID) && (item.data.ID !== card.data.ID);
+          return (item.groupID === card.groupID) && (item.ID !== card.ID);
         });
 
         if (remainingCards.length < 2) {
           // Delete the group.
-          this.props.groupsRef.doc(card.data.groupID).delete();
+          this.props.groupsRef.doc(card.groupID).delete();
 
           console.log("remainingCards to clean up\n", remainingCards);
 
           remainingCards.forEach((cardToCleanUP) => {
-            cardToCleanUP.data.groupColor = "#000";
-            cardToCleanUP.data.textColor = "#FFF";
-            delete cardToCleanUP.data['groupID'];
-            this.props.cardsRef.doc(cardToCleanUP.data.ID).set(cardToCleanUP);
+            cardToCleanUP.groupColor = "#000";
+            cardToCleanUP.textColor = "#FFF";
+            delete cardToCleanUP['groupID'];
+            this.props.cardsRef.doc(cardToCleanUP.ID).set(cardToCleanUP);
           })
         }
       }
@@ -329,8 +329,8 @@ export default class DatasetClusterBoard extends React.Component {
     }
 
     intersections.forEach((obj) => {
-      if (obj.data.groupID !== undefined) {
-        cardGroupIDs.add(obj.data.groupID);
+      if (obj.groupID !== undefined) {
+        cardGroupIDs.add(obj.groupID);
       }
     });
 
@@ -344,8 +344,8 @@ export default class DatasetClusterBoard extends React.Component {
       }
       return {
         ID: groupID,
-        color: group.data.color,
-        textColor: group.data.textColor
+        color: group.color,
+        textColor: group.textColor
       };
     }
 
@@ -355,23 +355,21 @@ export default class DatasetClusterBoard extends React.Component {
     if (cardGroupIDs.size === 0) {
       // Create a group.
       console.log("Creating a group");
-      let groupID = uuidv4();
+      let groupID = nanoid();
       let colors = colorPair();
       this.props.groupsRef.doc(groupID).set({
         kind: "group",
-        data: {
-          ID: groupID,
-          name: "Unnamed group",
-          color: colors.background,
-          textColor: colors.foreground
-        }
+        ID: groupID,
+        name: "Unnamed group",
+        color: colors.background,
+        textColor: colors.foreground
       });
 
       intersections.forEach((c) => {
-        c.data.groupID = groupID;
-        c.data.groupColor = colors.background;
-        c.data.textColor = colors.foreground;
-        this.props.cardsRef.doc(c.data.ID).set(c);
+        c.groupID = groupID;
+        c.groupColor = colors.background;
+        c.textColor = colors.foreground;
+        this.props.cardsRef.doc(c.ID).set(c);
       });
       this.setState({ cards: Object.assign({}, this.state.cards) });
 
@@ -386,11 +384,15 @@ export default class DatasetClusterBoard extends React.Component {
     return undefinedGroupData;
   }
 
-  modalCallBack(card) {
+  modalCallBack(card, highlight, document) {
     this.setState({
       modalShow: true,
-      modalCard: card
-    })
+      modalData: {
+        card: card,
+        highlight: highlight,
+        document: document
+      }
+    });
   }
 
   render() {
@@ -415,17 +417,19 @@ export default class DatasetClusterBoard extends React.Component {
         card.minY = 50 + (i * 20);
       }
 
-      cardTitles.add(card.data['Note - Title']);
+      let highlight = this.state.highlights[card.ID];
+      cardTitles.add(highlight.documentID);
 
       cardComponents.push(<Card
-        key={card.data.ID}
+        key={card.ID}
         card={card}
-        document={this.state.documents[card.data.documentID]}
+        highlight={highlight}
+        document={this.state.documents[highlight.documentID]}
         minX={card.minX}
         minY={card.minY}
-        groupColor={card.data.groupColor}
-        textColor={card.data.textColor}
-        cardRef={this.props.cardsRef.doc(card.data.ID)}
+        groupColor={card.groupColor}
+        textColor={card.textColor}
+        cardRef={this.props.cardsRef.doc(card.ID)}
         modalCallBack={this.modalCallBack}
         addLocationCallBack={this.addCardLocation}
         removeLocationCallBack={this.removeCardLocation}
@@ -437,12 +441,12 @@ export default class DatasetClusterBoard extends React.Component {
 
     let groupComponents = Object.values(this.state.groups).map((group) => {
       let cards = Object.values(this.state.cards).filter((card) => {
-        return card.data.groupID === group.data.ID;
+        return card.groupID === group.ID;
       });
-      let groupRef = this.props.groupsRef.doc(group.data.ID);
+      let groupRef = this.props.groupsRef.doc(group.ID);
       return <Group
-        key={group.data.ID}
-        name={group.data.name}
+        key={group.ID}
+        name={group.name}
         group={group}
         cards={cards}
         totalCardCount={cardTitles.size}
@@ -460,7 +464,7 @@ export default class DatasetClusterBoard extends React.Component {
       {pointers}
       <HighlightModal
         show={this.state.modalShow}
-        card={this.state.modalCard}
+        data={this.state.modalData}
         onHide={() => this.setState({'modalShow': false})}
       />
     </>;
