@@ -463,8 +463,8 @@ export default class Document extends React.Component {
       editor.updateContents(delta);
 
       console.log("transform local delta");
-      const localFirst =  false;
-      this.localDelta = delta.transform(this.localDelta, localFirst);
+      const serverFirst =  true;
+      this.localDelta = delta.transform(this.localDelta, serverFirst);
     });
 
     // Reapply local edits
