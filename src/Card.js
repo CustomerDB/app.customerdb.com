@@ -25,7 +25,15 @@ export default class Card extends React.Component {
   }
 
   getRect() {
-    return bboxToRect(this.ref.current.getBoundingClientRect());
+    let translateCSS = this.ref.current.style.transform;
+    const [x, y] = translateCSS.match(/(\d+)/g);
+
+    let boundingBox = this.ref.current.getBoundingClientRect();
+
+    boundingBox.x = x;
+    boundingBox.y = y;
+  
+    return bboxToRect(boundingBox);
   }
 
   componentDidMount() {
@@ -41,6 +49,9 @@ export default class Card extends React.Component {
 
   handleStart(e) {
     this.setState({zIndex: 100});
+
+    console.log("handleStart rect", this.rect);
+
     this.props.removeLocationCallBack(this.props.card);
   }
 

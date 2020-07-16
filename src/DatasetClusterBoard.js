@@ -451,25 +451,10 @@ export default class DatasetClusterBoard extends React.Component {
         removeGroupLocationCallback={this.removeGroupLocation}/>;
     });
 
-    const keyMap = {
-      PRINT_TREE: "/",
-      PRINT_TREE_ITEMS: "shift+?"
-    };
-
-    const keyHandlers = {
-      PRINT_TREE: (event) => {
-        this.printRTree();
-      },
-
-      PRINT_TREE_ITEMS: (event) => {
-        this.printRTreeItems();
-      }
-    };
-
     let pointers = undefined
     // pointers = <Pointers activeUsersRef={this.props.activeUsersRef} user={this.props.user}/>;
 
-    return <HotKeys keyMap={keyMap} handlers={keyHandlers}>
+    return <>
       {groupComponents}
       {cardComponents}
       {pointers}
@@ -478,6 +463,6 @@ export default class DatasetClusterBoard extends React.Component {
         card={this.state.modalCard}
         onHide={() => this.setState({'modalShow': false})}
       />
-    </HotKeys>;
+    </>;
   }
 }

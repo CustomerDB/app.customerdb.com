@@ -37,8 +37,8 @@ export default function DatasetClusterTab(props) {
            'in',
            props.dataset.documentIDs);
 
-  return <Container className="p-3">
-    <Row>
+  return <Container className="p-3 fullHeight" fluid>
+    <Row className="fullHeight">
       <Col>
         <DatasetClusterBoard
           user={props.user}

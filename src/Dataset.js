@@ -70,7 +70,7 @@ export default function Dataset(props) {
                     documentsRef={props.documentsRef} />
                 </Tab.Pane>
 
-                <Tab.Pane eventKey="cluster">
+                <Tab.Pane eventKey="cluster" className="fullHeight">
                   <DatasetClusterTab
                     user={props.user}
                     orgID={props.orgID}
