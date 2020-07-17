@@ -121,6 +121,17 @@ export default function Organization(props) {
                 />
               }
             />
+            <Route
+              path=":documentID/:tabID"
+              element={
+                <Sources
+                  documentsRef={documentsRef}
+                  tagGroupsRef={tagGroupsRef}
+                  peopleRef={peopleRef}
+                  user={user}
+                />
+              }
+            />
           </Route>
 
           <Route path="explore/*">
@@ -140,7 +151,17 @@ export default function Organization(props) {
               path=":datasetID"
               element={
                 <Explore
-                  orgID={orgID}
+                  user={user}
+                  documentsRef={documentsRef}
+                  datasetsRef={datasetsRef}
+                  allHighlightsRef={allHighlightsRef}
+                />
+              }
+            />
+            <Route
+              path=":datasetID/:tabID"
+              element={
+                <Explore
                   user={user}
                   documentsRef={documentsRef}
                   datasetsRef={datasetsRef}

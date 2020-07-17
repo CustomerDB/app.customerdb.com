@@ -872,6 +872,21 @@ export default class Document extends React.Component {
       </Tab.Pane>
     );
 
+    let tabPanes = {
+      "content": contentTabPane,
+      "details": detailsTabPane
+    };
+
+    if (this.props.tabID && !(this.props.tabID in tabPanes)) {
+      return <Navigate to="/404" />;
+    }
+
+    let activeTab = this.props.tabID || "content";
+
+    const onTabClick = (key) => {
+      this.props.navigate(`/orgs/${this.props.orgID}/data/${this.props.documentID}/${key}`);
+    };
+
     return (
       <>
         <Row style={{ paddingBottom: "2rem" }}>
@@ -887,7 +902,10 @@ export default class Document extends React.Component {
           </Col>
         </Row>
 
-        <Tab.Container id="documentTabs" defaultActiveKey="content">
+        <Tab.Container
+          id="documentTabs"
+          activeKey={activeTab}
+          onSelect={onTabClick}>
           <Row className="mb-3">
             <Col>
               <Nav variant="pills">
@@ -909,8 +927,7 @@ export default class Document extends React.Component {
                     className="scrollBox"
                     style={{ height: height, width: width }}
                   >
-                    {contentTabPane}
-                    {detailsTabPane}
+                    {Object.values(tabPanes)}
                   </Tab.Content>
                 </Col>
               )}

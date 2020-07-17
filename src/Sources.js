@@ -23,7 +23,7 @@ function initialDelta() {
 export default function Sources(props) {
   const [documents, setDocuments] = useState([]);
 
-  let { orgID, documentID } = useParams();
+  let { orgID, documentID, tabID } = useParams();
   let navigate = useNavigate();
 
   useEffect(() => {
@@ -129,9 +129,11 @@ export default function Sources(props) {
   if (documentID !== undefined) {
     view = (
       <Document
-        orgID={orgID}
         key={documentID}
+        orgID={orgID}
         documentID={documentID}
+        tabID={tabID}
+        navigate={navigate}
         documentsRef={props.documentsRef}
         tagGroupsRef={props.tagGroupsRef}
         peopleRef={props.peopleRef}
