@@ -89,6 +89,7 @@ export default class Document extends React.Component {
     super(props);
 
     this.documentRef = props.documentsRef.doc(this.props.documentID);
+
     this.deltasRef = this.documentRef.collection("deltas");
     this.highlightsRef = this.documentRef.collection("highlights");
 
@@ -106,6 +107,7 @@ export default class Document extends React.Component {
 
     this.onTagControlChange = this.onTagControlChange.bind(this);
     this.onTagGroupChange = this.onTagGroupChange.bind(this);
+    this.onPersonChange = this.onPersonChange.bind(this);
     this.subscribeToTags = this.subscribeToTags.bind(this);
     this.unsubscribeFromTags = this.unsubscribeFromTags.bind(this);
 
@@ -135,15 +137,16 @@ export default class Document extends React.Component {
 
     this.state = {
       exists: true,
-      name: "",
-      deletionTimestamp: "",
-      deletedBy: "",
+
+      document: undefined,
+
       initialDelta: emptyDelta(),
       tagIDsInSelection: new Set(),
 
       tagGroups: [],
-      tagGroupID: "",
       tags: {},
+
+      people: [],
 
       loadedDocument: false,
       loadedTagGroups: false,
@@ -158,11 +161,6 @@ export default class Document extends React.Component {
     // Subscribe to document name changes
     this.subscriptions.push(
       this.documentRef.onSnapshot((doc) => {
-        if (!doc.exists) {
-          this.setState({ exists: false });
-          return;
-        }
-
         let data = doc.data();
         console.debug("data", data);
 
@@ -175,19 +173,31 @@ export default class Document extends React.Component {
 
         this.setState({
           loadedDocument: true,
-
           document: data,
-
-          // name: data.name,
-          // deletionTimestamp: data.deletionTimestamp,
-          // deletedBy: data.deletedBy,
-          // tagGroupID: data.tagGroupID,
-
           tagsRef: tagsRef,
         });
 
         this.subscribeToTags(tagsRef);
       })
+    );
+
+    this.subscriptions.push(
+      this.props.peopleRef
+        .where("deletionTimestamp", "==", "")
+        .orderBy("name")
+        .onSnapshot((snapshot) => {
+          let newPeople = [];
+
+          snapshot.forEach((doc) => {
+            let data = doc.data();
+            data.ID = doc.id;
+            newPeople.push(data);
+          });
+
+          this.setState({
+            people: newPeople,
+          });
+        })
     );
 
     // Subscribe to tag groups changes
@@ -689,10 +699,21 @@ export default class Document extends React.Component {
     this.setState({ tagIDsInSelection: tagIDs });
   }
 
+  onPersonChange(e) {
+    let newPersonID = e.target.value;
+
+    this.documentRef.set(
+      {
+        personID: newPersonID,
+      },
+      { merge: true }
+    );
+  }
+
   onTagGroupChange(e) {
     let newTagGroupID = e.target.value;
 
-    if (newTagGroupID !== this.state.tagGroupID) {
+    if (newTagGroupID !== this.state.document.tagGroupID) {
       // Confirm this change if the the set of highlights is not empty.
       let numHighlights = Object.keys(this.highlights).length;
       if (numHighlights > 0) {
@@ -703,7 +724,7 @@ export default class Document extends React.Component {
 
         if (!proceed) {
           console.debug("user declined to proceeed changing tag group");
-          e.target.value = this.state.tagGroupID;
+          e.target.value = this.state.document.tagGroupID;
           return;
         }
 
@@ -744,8 +765,8 @@ export default class Document extends React.Component {
       return <Loading />;
     }
 
-    if (this.state.deletionTimestamp !== "") {
-      let date = this.state.deletionTimestamp.toDate();
+    if (this.state.document.deletionTimestamp !== "") {
+      let date = this.state.document.deletionTimestamp.toDate();
 
       return (
         <Container>
@@ -758,7 +779,7 @@ export default class Document extends React.Component {
             <Col>
               <p>
                 This document was deleted at {date.toString()} by{" "}
-                {this.state.deletedBy}
+                {this.state.document.deletedBy}
               </p>
             </Col>
           </Row>
@@ -809,11 +830,32 @@ export default class Document extends React.Component {
             <Col>
               <Form>
                 <Form.Group>
+                  <Form.Label>Link to customer</Form.Label>
+                  <Form.Control
+                    as="select"
+                    onChange={this.onPersonChange}
+                    value={this.state.document.personID}
+                  >
+                    <option value="" style={{ fontStyle: "italic" }}>
+                      Choose person...
+                    </option>
+                    {this.state.people.map((person) => {
+                      return <option value={person.ID}>{person.name}</option>;
+                    })}
+                  </Form.Control>
+                </Form.Group>
+              </Form>
+            </Col>
+          </Row>
+          <Row className="mb-3">
+            <Col>
+              <Form>
+                <Form.Group>
                   <Form.Label>Tag group</Form.Label>
                   <Form.Control
                     as="select"
                     onChange={this.onTagGroupChange}
-                    defaultValue={this.state.tagGroupID}
+                    value={this.state.document.tagGroupID}
                   >
                     <option value="" style={{ fontStyle: "italic" }}>
                       Choose a tag group...

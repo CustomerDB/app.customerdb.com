@@ -139,6 +139,7 @@ export default function Sources(props) {
         documentID={documentID}
         documentsRef={props.documentsRef}
         tagGroupsRef={props.tagGroupsRef}
+        peopleRef={props.peopleRef}
         user={props.user}
       />
     );
