@@ -1,7 +1,7 @@
-import React from 'react';
-import Draggable from 'react-draggable';
+import React from "react";
+import Draggable from "react-draggable";
 
-import { bboxToRect, circumscribingCircle } from './geom.js';
+import { bboxToRect, circumscribingCircle } from "./geom.js";
 
 export default class Card extends React.Component {
   constructor(props) {
@@ -13,14 +13,14 @@ export default class Card extends React.Component {
     this.showModal = this.showModal.bind(this);
     this.getRect = this.getRect.bind(this);
 
-		// This is a react handle to the rendered dom element
+    // This is a react handle to the rendered dom element
     this.ref = React.createRef();
 
-		// This is a reference to a document in firestore database
-		this.cardRef = this.props.cardRef;
+    // This is a reference to a document in firestore database
+    this.cardRef = this.props.cardRef;
 
     this.state = {
-      zIndex: 0
+      zIndex: 0,
     };
   }
 
@@ -46,7 +46,7 @@ export default class Card extends React.Component {
   }
 
   handleStart(e) {
-    this.setState({zIndex: 100});
+    this.setState({ zIndex: 100 });
 
     console.log("handleStart rect", this.rect);
 
@@ -65,7 +65,7 @@ export default class Card extends React.Component {
     if (intersections.length === 0) {
       this.setState({
         previewCircle: undefined,
-        previewColor: undefined
+        previewColor: undefined,
       });
       return;
     }
@@ -80,7 +80,7 @@ export default class Card extends React.Component {
     if (cardGroupIDs.size !== 1) {
       this.setState({
         previewCircle: undefined,
-        previewColor: undefined
+        previewColor: undefined,
       });
       return;
     }
@@ -114,9 +114,8 @@ export default class Card extends React.Component {
 
     this.setState({
       previewCircle: circle,
-      previewColor: cardGroupColor
+      previewColor: cardGroupColor,
     });
-
   }
 
   handleStop(e) {
@@ -127,19 +126,19 @@ export default class Card extends React.Component {
     // Update group membership based on location.
     let groupData = this.props.groupDataForCardCallback(this.props.card);
     if (groupData.ID === undefined) {
-      delete this.props.card['groupID'];
+      delete this.props.card["groupID"];
     } else {
       this.props.card.groupID = groupData.ID;
     }
-		this.props.card.groupColor = groupData.color;
-		this.props.card.textColor = groupData.textColor;
+    this.props.card.groupColor = groupData.color;
+    this.props.card.textColor = groupData.textColor;
 
     this.props.addLocationCallBack(this.props.card);
 
     this.setState({
       zIndex: 0,
       previewCircle: undefined,
-      previewColor: undefined
+      previewColor: undefined,
     });
 
     this.cardRef.set(this.props.card);
@@ -149,7 +148,8 @@ export default class Card extends React.Component {
     this.props.modalCallBack(
       this.props.card,
       this.props.highlight,
-      this.props.document);
+      this.props.document
+    );
   }
 
   render() {
@@ -157,17 +157,19 @@ export default class Card extends React.Component {
     let titleBarTextColor = this.props.textColor;
 
     let divStyle = {
-      zIndex: this.state.zIndex
-    }
+      zIndex: this.state.zIndex,
+    };
 
-		let position = {
-			x: this.props.minX,
-			y: this.props.minY
-		}
+    let position = {
+      x: this.props.minX,
+      y: this.props.minY,
+    };
 
-    let groupPreview = this.state.previewCircle === undefined
-      ? <></>
-      : <div
+    let groupPreview =
+      this.state.previewCircle === undefined ? (
+        <></>
+      ) : (
+        <div
           className="groupLabel"
           style={{
             position: "absolute",
@@ -176,35 +178,43 @@ export default class Card extends React.Component {
             height: this.state.previewCircle.diameter,
             width: this.state.previewCircle.diameter,
             borderRadius: "50%",
-            border: `3px solid ${this.state.previewColor}`
-          }} />;
+            border: `3px solid ${this.state.previewColor}`,
+          }}
+        />
+      );
 
-		// Draggable nodeRef required to fix findDOMNode warnings.
-		// see: https://github.com/STRML/react-draggable/pull/478
-    return <><Draggable
-			nodeRef={this.ref}
-      handle=".handle"
-      bounds="parent"
-      position={position}
-      scale={1}
-      onStart={this.handleStart}
-      onDrag={this.handleDrag}
-      onStop={this.handleStop} >
-        <div ref={this.ref} className="card" style={divStyle} >
-          <div
-            className="handle titlebar"
-            style={{
-              backgroundColor: titleBarColor,
-              color: titleBarTextColor
-            }}>
-            {this.props.document.name}
+    // Draggable nodeRef required to fix findDOMNode warnings.
+    // see: https://github.com/STRML/react-draggable/pull/478
+    return (
+      <>
+        <Draggable
+          nodeRef={this.ref}
+          handle=".handle"
+          bounds="parent"
+          position={position}
+          scale={1}
+          onStart={this.handleStart}
+          onDrag={this.handleDrag}
+          onStop={this.handleStop}
+        >
+          <div ref={this.ref} className="card" style={divStyle}>
+            <div
+              className="handle titlebar"
+              style={{
+                backgroundColor: titleBarColor,
+                color: titleBarTextColor,
+              }}
+            >
+              {this.props.document.name}
+            </div>
+            <div className="quote" onClick={this.showModal}>
+              {this.props.highlight.text}
+            </div>
           </div>
-          <div className="quote" onClick={this.showModal}>{this.props.highlight.text}</div>
-        </div>
-    </Draggable>
+        </Draggable>
 
-    {groupPreview}
-    </>;
+        {groupPreview}
+      </>
+    );
   }
 }
-

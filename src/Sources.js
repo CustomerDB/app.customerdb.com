@@ -1,19 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
-import Container from 'react-bootstrap/Container';
-import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
-import Form from 'react-bootstrap/Form';
-import Modal from 'react-bootstrap/Modal';
-import Button from 'react-bootstrap/Button';
+import Container from "react-bootstrap/Container";
+import Row from "react-bootstrap/Row";
+import Col from "react-bootstrap/Col";
+import Form from "react-bootstrap/Form";
+import Modal from "react-bootstrap/Modal";
+import Button from "react-bootstrap/Button";
 
-import { FileEarmarkText } from 'react-bootstrap-icons';
+import { FileEarmarkText } from "react-bootstrap-icons";
 
+import Delta from "quill-delta";
 
-import Delta from 'quill-delta';
-
-import List from './List.js';
-import Document from './Document.js';
+import List from "./List.js";
+import Document from "./Document.js";
 
 import { useNavigate, useParams, Link } from "react-router-dom";
 
@@ -39,8 +38,8 @@ export default function Sources(props) {
 
         snapshot.forEach((doc) => {
           let data = doc.data();
-          data['ID'] = doc.id;
-          data['icon'] = <FileEarmarkText size={24}/>
+          data["ID"] = doc.id;
+          data["icon"] = <FileEarmarkText size={24} />;
           newDocuments.push(data);
         });
 
@@ -54,26 +53,26 @@ export default function Sources(props) {
   }, [docID]);
 
   const onAdd = () => {
-    props.documentsRef.add({
-      name: "Untitled Document",
-      createdBy: props.user.email,
-      creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+    props.documentsRef
+      .add({
+        name: "Untitled Document",
+        createdBy: props.user.email,
+        creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
 
-      // Deletion is modeled as "soft-delete"; when the deletionTimestamp is set,
-      // we don't show the document anymore in the list. However, it should be
-      // possible to recover the document by unsetting this field before
-      // the deletion grace period expires and the GC sweep does a permanent delete.
-      deletionTimestamp: ""
-    }).then(newDocRef => {
-      let delta = initialDelta();
-      newDocRef.collection('deltas')
-        .doc()
-        .set({
+        // Deletion is modeled as "soft-delete"; when the deletionTimestamp is set,
+        // we don't show the document anymore in the list. However, it should be
+        // possible to recover the document by unsetting this field before
+        // the deletion grace period expires and the GC sweep does a permanent delete.
+        deletionTimestamp: "",
+      })
+      .then((newDocRef) => {
+        let delta = initialDelta();
+        newDocRef.collection("deltas").doc().set({
           userEmail: props.user.email,
           ops: delta.ops,
-          timestamp: window.firebase.firestore.FieldValue.serverTimestamp()
+          timestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
         });
-    });
+      });
   };
 
   const onDelete = (ID) => {
@@ -84,7 +83,7 @@ export default function Sources(props) {
     //           within the grace period.
     props.documentsRef.doc(ID).update({
       deletedBy: props.user.email,
-      deletionTimestamp: window.firebase.firestore.FieldValue.serverTimestamp()
+      deletionTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
     });
 
     // Remove focus from document selected.
@@ -98,9 +97,12 @@ export default function Sources(props) {
   };
 
   const onRename = (ID, newName) => {
-    props.documentsRef.doc(ID).set({
-      name: newName
-    }, { merge: true });
+    props.documentsRef.doc(ID).set(
+      {
+        name: newName,
+      },
+      { merge: true }
+    );
   };
 
   const itemLoad = (index) => {
@@ -112,44 +114,74 @@ export default function Sources(props) {
   const [showRenameModal, setShowRenameModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   let options = [
-    {name: "Rename", onClick: (item) => {
-      setModalDocument(item);
-      setShowRenameModal(true);
-    }},
-    {name: "Delete", onClick: (item) => {
-      setModalDocument(item);
-      setShowDeleteModal(true);
-    }}
+    {
+      name: "Rename",
+      onClick: (item) => {
+        setModalDocument(item);
+        setShowRenameModal(true);
+      },
+    },
+    {
+      name: "Delete",
+      onClick: (item) => {
+        setModalDocument(item);
+        setShowDeleteModal(true);
+      },
+    },
   ];
 
   let view;
   if (documentID !== undefined) {
-    view = <Document key={documentID} orgID={props.orgID} documentID={documentID} documentsRef={props.documentsRef} tagGroupsRef={props.tagGroupsRef} user={props.user} />;
+    view = (
+      <Document
+        key={documentID}
+        orgID={props.orgID}
+        documentID={documentID}
+        documentsRef={props.documentsRef}
+        tagGroupsRef={props.tagGroupsRef}
+        user={props.user}
+      />
+    );
   }
 
-  return <><Container className="noMargin">
-    <Row className="h-100">
-      <Col md={4} className="d-flex flex-column h-100">
-        <List
-          name="Customer Data"
-          currentID={documentID}
-
-          itemLoad={itemLoad}
-          itemCount={documents.length}
-
-          onAdd={onAdd}
-          options={options}
-          onClick={onClick}
-        />
-      </Col>
-      <Col md={8} className="d-flex flex-column h-100">
-        {view}
-      </Col>
-    </Row>
-  </Container>
-  <RenameModal show={showRenameModal} document={modalDocument} onRename={onRename} onHide={() => {setShowRenameModal(false)}}/>
-  <DeleteModal show={showDeleteModal} document={modalDocument} onDelete={onDelete} onHide={() => {setShowDeleteModal(false)}}/>
-  </>;
+  return (
+    <>
+      <Container className="noMargin">
+        <Row className="h-100">
+          <Col md={4} className="d-flex flex-column h-100">
+            <List
+              name="Customer Data"
+              currentID={documentID}
+              itemLoad={itemLoad}
+              itemCount={documents.length}
+              onAdd={onAdd}
+              options={options}
+              onClick={onClick}
+            />
+          </Col>
+          <Col md={8} className="d-flex flex-column h-100">
+            {view}
+          </Col>
+        </Row>
+      </Container>
+      <RenameModal
+        show={showRenameModal}
+        document={modalDocument}
+        onRename={onRename}
+        onHide={() => {
+          setShowRenameModal(false);
+        }}
+      />
+      <DeleteModal
+        show={showDeleteModal}
+        document={modalDocument}
+        onDelete={onDelete}
+        onHide={() => {
+          setShowDeleteModal(false);
+        }}
+      />
+    </>
+  );
 }
 
 function RenameModal(props) {
@@ -162,29 +194,36 @@ function RenameModal(props) {
   }, [props.document]);
 
   const onSubmit = () => {
-      props.onRename(props.document.ID, name);
-      props.onHide();
-  }
+    props.onRename(props.document.ID, name);
+    props.onHide();
+  };
 
-  return <Modal show={props.show} onHide={props.onHide} centered>
-    <Modal.Header closeButton>
-      <Modal.Title>Rename document</Modal.Title>
-    </Modal.Header>
-    <Modal.Body>
-      <Form.Control type="text" value={name} onChange={(e) => {
-        setName(e.target.value);
-      }} onKeyDown={(e) => {
-        if (e.key === 'Enter') {
-          onSubmit();
-        }
-      }} />
-    </Modal.Body>
-    <Modal.Footer>
-      <Button variant="primary" onClick={onSubmit}>
-        Rename
-      </Button>
-    </Modal.Footer>
-  </Modal>;
+  return (
+    <Modal show={props.show} onHide={props.onHide} centered>
+      <Modal.Header closeButton>
+        <Modal.Title>Rename document</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <Form.Control
+          type="text"
+          value={name}
+          onChange={(e) => {
+            setName(e.target.value);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              onSubmit();
+            }
+          }}
+        />
+      </Modal.Body>
+      <Modal.Footer>
+        <Button variant="primary" onClick={onSubmit}>
+          Rename
+        </Button>
+      </Modal.Footer>
+    </Modal>
+  );
 }
 
 function DeleteModal(props) {
@@ -196,20 +235,23 @@ function DeleteModal(props) {
     }
   }, [props.document]);
 
-  return <Modal show={props.show} onHide={props.onHide} centered>
-    <Modal.Header closeButton>
-      <Modal.Title>Delete document</Modal.Title>
-    </Modal.Header>
-    <Modal.Body>
-      Are you sure you want to delete {name}?
-    </Modal.Body>
-    <Modal.Footer>
-      <Button variant="danger" onClick={() => {
-        props.onDelete(props.document.ID);
-        props.onHide();
-      }}>
-        Delete
-      </Button>
-    </Modal.Footer>
-  </Modal>;
+  return (
+    <Modal show={props.show} onHide={props.onHide} centered>
+      <Modal.Header closeButton>
+        <Modal.Title>Delete document</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>Are you sure you want to delete {name}?</Modal.Body>
+      <Modal.Footer>
+        <Button
+          variant="danger"
+          onClick={() => {
+            props.onDelete(props.document.ID);
+            props.onHide();
+          }}
+        >
+          Delete
+        </Button>
+      </Modal.Footer>
+    </Modal>
+  );
 }

@@ -1,18 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
-import Col from 'react-bootstrap/Col';
-import Container from 'react-bootstrap/Container';
-import Form from 'react-bootstrap/Form';
-import Modal from 'react-bootstrap/Modal';
-import Row from 'react-bootstrap/Row';
-import Button from 'react-bootstrap/Button';
-import { v4 as uuidv4 } from 'uuid';
+import Col from "react-bootstrap/Col";
+import Container from "react-bootstrap/Container";
+import Form from "react-bootstrap/Form";
+import Modal from "react-bootstrap/Modal";
+import Row from "react-bootstrap/Row";
+import Button from "react-bootstrap/Button";
+import { v4 as uuidv4 } from "uuid";
 
-import { XCircleFill } from 'react-bootstrap-icons';
+import { XCircleFill } from "react-bootstrap-icons";
 
-
-import List from './List.js';
-import Person from './Person.js';
+import List from "./List.js";
+import Person from "./Person.js";
 
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -32,7 +31,7 @@ export default function People(props) {
 
         snapshot.forEach((doc) => {
           let data = doc.data();
-          data['ID'] = doc.id;
+          data["ID"] = doc.id;
           newPeople.push(data);
         });
 
@@ -55,7 +54,7 @@ export default function People(props) {
       // we don't show the document anymore in the list. However, it should be
       // possible to recover the document by unsetting this field before
       // the deletion grace period expires and the GC sweep does a permanent delete.
-      deletionTimestamp: ""
+      deletionTimestamp: "",
     });
   };
 
@@ -65,17 +64,17 @@ export default function People(props) {
 
   const itemLoad = (index) => {
     return people[index];
-  }
+  };
 
   const onEdit = (item) => {
-    let {ID, ...rest} = item;
+    let { ID, ...rest } = item;
     props.peopleRef.doc(item.ID).set(rest);
-  }
+  };
 
   const onDelete = (ID) => {
     props.peopleRef.doc(ID).update({
       deletedBy: props.user.email,
-      deletionTimestamp: window.firebase.firestore.FieldValue.serverTimestamp()
+      deletionTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
     });
 
     if (personID === ID) {
@@ -88,44 +87,73 @@ export default function People(props) {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   let options = [
-    {name: "Edit", onClick: (item) => {
-      setModalPerson(item);
-      setShowEditModal(true);
-    }},
-    {name: "Delete", onClick: (item) => {
-      setModalPerson(item);
-      setShowDeleteModal(true);
-    }}
-  ]
+    {
+      name: "Edit",
+      onClick: (item) => {
+        setModalPerson(item);
+        setShowEditModal(true);
+      },
+    },
+    {
+      name: "Delete",
+      onClick: (item) => {
+        setModalPerson(item);
+        setShowDeleteModal(true);
+      },
+    },
+  ];
 
   let view;
   if (personID !== undefined) {
-    view = <Person key={personID} personID={personID} peopleRef={props.peopleRef} user={props.user} options={options}/>;
+    view = (
+      <Person
+        key={personID}
+        personID={personID}
+        peopleRef={props.peopleRef}
+        user={props.user}
+        options={options}
+      />
+    );
   }
 
-  return <><Container className="noMargin">
-    <Row className="h-100">
-      <Col md={4} className="d-flex flex-column h-100">
-        <List
-          name="People"
-          currentID={personID}
-
-          itemLoad={itemLoad}
-          itemCount={people.length}
-
-          onAdd={onAdd}
-          options={options}
-          onClick={onClick}
-        />
-      </Col>
-      <Col md={8} className="d-flex flex-column h-100">
-        {view}
-      </Col>
-    </Row>
-  </Container>
-  <EditModal show={showEditModal} person={modalPerson} onEdit={onEdit} onHide={() => {setShowEditModal(false)}}/>
-  <DeleteModal show={showDeleteModal} person={modalPerson} onDelete={onDelete} onHide={() => {setShowDeleteModal(false)}}/>
-  </>;
+  return (
+    <>
+      <Container className="noMargin">
+        <Row className="h-100">
+          <Col md={4} className="d-flex flex-column h-100">
+            <List
+              name="People"
+              currentID={personID}
+              itemLoad={itemLoad}
+              itemCount={people.length}
+              onAdd={onAdd}
+              options={options}
+              onClick={onClick}
+            />
+          </Col>
+          <Col md={8} className="d-flex flex-column h-100">
+            {view}
+          </Col>
+        </Row>
+      </Container>
+      <EditModal
+        show={showEditModal}
+        person={modalPerson}
+        onEdit={onEdit}
+        onHide={() => {
+          setShowEditModal(false);
+        }}
+      />
+      <DeleteModal
+        show={showDeleteModal}
+        person={modalPerson}
+        onDelete={onDelete}
+        onHide={() => {
+          setShowDeleteModal(false);
+        }}
+      />
+    </>
+  );
 }
 
 function EditModal(props) {
@@ -146,18 +174,18 @@ function EditModal(props) {
   let person = props.person;
 
   const addCustomField = () => {
-    let ID = uuidv4(); 
+    let ID = uuidv4();
     let fields = {};
     Object.assign(fields, customFields);
-    fields[ID] = {ID: ID, kind: "", value: ""};
+    fields[ID] = { ID: ID, kind: "", value: "" };
     setCustomFields(fields);
   };
 
   const addLabel = () => {
-    let ID = uuidv4(); 
+    let ID = uuidv4();
     let l = {};
     Object.assign(l, labels);
-    l[ID] = {ID: ID, kind: ""};
+    l[ID] = { ID: ID, kind: "" };
     setLabels(l);
   };
 
@@ -215,153 +243,257 @@ function EditModal(props) {
 
     props.onEdit(person);
     props.onHide();
-  }
+  };
 
-  let expandedControls = <>
-    <Row className="mb-3">
-      <Col>
-        <Form.Label>Phone number</Form.Label>
-        <Form.Control type="text" placeholder="Phone" defaultValue={props.person.phone} onChange={(e) => {setPhone(e.target.value)}}/>
-      </Col>
-    </Row>
-    <Row>
-      <Col>
-        <Form.Label>Location</Form.Label>
-      </Col>
-    </Row>
-    <Row className="mb-3">
-      <Col>
-        <Form.Control type="text" placeholder="Country" defaultValue={props.person.country} onChange={(e) => {setCountry(e.target.value)}}/>
-      </Col>
-      <Col>
-        <Form.Control type="text" placeholder="State" defaultValue={props.person.state} onChange={(e) => {setState(e.target.value)}}/>
-      </Col>
-      <Col>
-        <Form.Control type="text" placeholder="City" defaultValue={props.person.city} onChange={(e) => {setCity(e.target.value)}}/>
-      </Col>
-    </Row>
-    <Row>
-      <Col>
-        <Form.Label>Other details</Form.Label>
-      </Col>
-    </Row>
-    {Object.values(customFields).map(field => {
-    return <Row className="mb-2" key={field.ID}>
-      <Col>
-        <Row>
-          <Col md={4}><Form.Control type="text" placeholder="Kind" defaultValue={field.kind} onChange={
-            (e) => {
-              let fields = {};
-              Object.assign(fields, customFields);
-              fields[field.ID].kind = e.target.value;
-              setCustomFields(fields);
-            }
-          }/></Col>
-          <Col md={7}><Form.Control type="text" placeholder="Value" defaultValue={field.value} onChange={
-            (e) => {
-              let fields = {};
-              Object.assign(fields, customFields);
-              fields[field.ID].value = e.target.value;
-              setCustomFields(fields);
-            }
-          }/></Col>
-          <Col md={1} style={{padding: 0}}>
-            <Button variant="link"> 
-              <XCircleFill color="grey" onClick={() => {
-                let fields = {};
-                Object.assign(fields, customFields);
-                delete fields[field.ID];
-                setCustomFields(fields);
-              }}/>
-            </Button>
-          </Col>
-        </Row>
-      </Col>
-    </Row>})}
-    <Row className="mb-3">
-      <Col>
-        <Button className="addButton" style={{width: "1.5rem", height: "1.5rem", fontSize: "0.75rem"}} onClick={addCustomField}>+</Button>
-      </Col>
-    </Row>
-    <Row>
-      <Col>
-        <Form.Label>Labels</Form.Label>
-      </Col>
-    </Row>
-    {Object.values(labels).map(label => {
-    return <Row className="mb-2" key={label.ID}>
-      <Col>
-        <Row>
-          <Col md={8}><Form.Control type="text" placeholder="Name" defaultValue={label.name} onChange={
-            (e) => {
-              let l = {};
-              Object.assign(l, labels);
-              l[label.ID].name = e.target.value;
-              setLabels(l);
-            }
-          }/></Col>
-          <Col md={1} style={{padding: 0}}>
-            <Button variant="link"> 
-              <XCircleFill color="grey" onClick={() => {
-                let l = {};
-                Object.assign(l, labels);
-                delete l[label.ID];
-                setLabels(l);
-              }}/>
-            </Button>
-          </Col>
-        </Row>
-      </Col>
-    </Row>})}
-    <Row>
-      <Col>
-        <Button className="addButton" style={{width: "1.5rem", height: "1.5rem", fontSize: "0.75rem"}} onClick={addLabel}>+</Button>
-      </Col>
-    </Row>
-  </>;
+  let expandedControls = (
+    <>
+      <Row className="mb-3">
+        <Col>
+          <Form.Label>Phone number</Form.Label>
+          <Form.Control
+            type="text"
+            placeholder="Phone"
+            defaultValue={props.person.phone}
+            onChange={(e) => {
+              setPhone(e.target.value);
+            }}
+          />
+        </Col>
+      </Row>
+      <Row>
+        <Col>
+          <Form.Label>Location</Form.Label>
+        </Col>
+      </Row>
+      <Row className="mb-3">
+        <Col>
+          <Form.Control
+            type="text"
+            placeholder="Country"
+            defaultValue={props.person.country}
+            onChange={(e) => {
+              setCountry(e.target.value);
+            }}
+          />
+        </Col>
+        <Col>
+          <Form.Control
+            type="text"
+            placeholder="State"
+            defaultValue={props.person.state}
+            onChange={(e) => {
+              setState(e.target.value);
+            }}
+          />
+        </Col>
+        <Col>
+          <Form.Control
+            type="text"
+            placeholder="City"
+            defaultValue={props.person.city}
+            onChange={(e) => {
+              setCity(e.target.value);
+            }}
+          />
+        </Col>
+      </Row>
+      <Row>
+        <Col>
+          <Form.Label>Other details</Form.Label>
+        </Col>
+      </Row>
+      {Object.values(customFields).map((field) => {
+        return (
+          <Row className="mb-2" key={field.ID}>
+            <Col>
+              <Row>
+                <Col md={4}>
+                  <Form.Control
+                    type="text"
+                    placeholder="Kind"
+                    defaultValue={field.kind}
+                    onChange={(e) => {
+                      let fields = {};
+                      Object.assign(fields, customFields);
+                      fields[field.ID].kind = e.target.value;
+                      setCustomFields(fields);
+                    }}
+                  />
+                </Col>
+                <Col md={7}>
+                  <Form.Control
+                    type="text"
+                    placeholder="Value"
+                    defaultValue={field.value}
+                    onChange={(e) => {
+                      let fields = {};
+                      Object.assign(fields, customFields);
+                      fields[field.ID].value = e.target.value;
+                      setCustomFields(fields);
+                    }}
+                  />
+                </Col>
+                <Col md={1} style={{ padding: 0 }}>
+                  <Button variant="link">
+                    <XCircleFill
+                      color="grey"
+                      onClick={() => {
+                        let fields = {};
+                        Object.assign(fields, customFields);
+                        delete fields[field.ID];
+                        setCustomFields(fields);
+                      }}
+                    />
+                  </Button>
+                </Col>
+              </Row>
+            </Col>
+          </Row>
+        );
+      })}
+      <Row className="mb-3">
+        <Col>
+          <Button
+            className="addButton"
+            style={{ width: "1.5rem", height: "1.5rem", fontSize: "0.75rem" }}
+            onClick={addCustomField}
+          >
+            +
+          </Button>
+        </Col>
+      </Row>
+      <Row>
+        <Col>
+          <Form.Label>Labels</Form.Label>
+        </Col>
+      </Row>
+      {Object.values(labels).map((label) => {
+        return (
+          <Row className="mb-2" key={label.ID}>
+            <Col>
+              <Row>
+                <Col md={8}>
+                  <Form.Control
+                    type="text"
+                    placeholder="Name"
+                    defaultValue={label.name}
+                    onChange={(e) => {
+                      let l = {};
+                      Object.assign(l, labels);
+                      l[label.ID].name = e.target.value;
+                      setLabels(l);
+                    }}
+                  />
+                </Col>
+                <Col md={1} style={{ padding: 0 }}>
+                  <Button variant="link">
+                    <XCircleFill
+                      color="grey"
+                      onClick={() => {
+                        let l = {};
+                        Object.assign(l, labels);
+                        delete l[label.ID];
+                        setLabels(l);
+                      }}
+                    />
+                  </Button>
+                </Col>
+              </Row>
+            </Col>
+          </Row>
+        );
+      })}
+      <Row>
+        <Col>
+          <Button
+            className="addButton"
+            style={{ width: "1.5rem", height: "1.5rem", fontSize: "0.75rem" }}
+            onClick={addLabel}
+          >
+            +
+          </Button>
+        </Col>
+      </Row>
+    </>
+  );
 
-  return <Modal show={props.show} onHide={props.onHide} centered>
-    <Modal.Header closeButton>
-      <Modal.Title>Edit person</Modal.Title>
-    </Modal.Header>
-    <Modal.Body>
-      <Container>
-      <Row className="mb-3">
-        <Col>
-          <Form.Label>Full name</Form.Label>
-          <Form.Control type="text" placeholder="Name" defaultValue={props.person.name} onChange={(e) => {setName(e.target.value)}}/>
-        </Col>
-      </Row>
-      <Row className="mb-3">
-        <Col>
-          <Form.Label>Email address</Form.Label>
-          <Form.Control type="email" placeholder="Email" defaultValue={props.person.email} onChange={(e) => {setEmail(e.target.value)}}/>
-        </Col>
-      </Row>
-      <Row className="mb-3">
-        <Col>
-          <Form.Label>Company name</Form.Label>
-          <Form.Control type="text" placeholder="Company" defaultValue={props.person.company} onChange={(e) => {setCompany(e.target.value)}}/>
-        </Col>
-      </Row>
-      <Row className="mb-3">
-        <Col>
-          <Form.Label>Job title</Form.Label>
-          <Form.Control type="text" placeholder="Job" defaultValue={props.person.job} onChange={(e) => {setJob(e.target.value)}}/>
-        </Col>
-      </Row>
-      {expanded ? expandedControls : <></>}
-      </Container>
-    </Modal.Body>
-    <Modal.Footer>
-      <Button variant="link" onClick={() => {setExpanded(!expanded)}}>
-        {expanded ? "Less" : "More"}
-      </Button>
-      <Button variant="primary" onClick={onSubmit}>
-        Save
-      </Button>
-    </Modal.Footer>
-  </Modal>;
+  return (
+    <Modal show={props.show} onHide={props.onHide} centered>
+      <Modal.Header closeButton>
+        <Modal.Title>Edit person</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <Container>
+          <Row className="mb-3">
+            <Col>
+              <Form.Label>Full name</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Name"
+                defaultValue={props.person.name}
+                onChange={(e) => {
+                  setName(e.target.value);
+                }}
+              />
+            </Col>
+          </Row>
+          <Row className="mb-3">
+            <Col>
+              <Form.Label>Email address</Form.Label>
+              <Form.Control
+                type="email"
+                placeholder="Email"
+                defaultValue={props.person.email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                }}
+              />
+            </Col>
+          </Row>
+          <Row className="mb-3">
+            <Col>
+              <Form.Label>Company name</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Company"
+                defaultValue={props.person.company}
+                onChange={(e) => {
+                  setCompany(e.target.value);
+                }}
+              />
+            </Col>
+          </Row>
+          <Row className="mb-3">
+            <Col>
+              <Form.Label>Job title</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Job"
+                defaultValue={props.person.job}
+                onChange={(e) => {
+                  setJob(e.target.value);
+                }}
+              />
+            </Col>
+          </Row>
+          {expanded ? expandedControls : <></>}
+        </Container>
+      </Modal.Body>
+      <Modal.Footer>
+        <Button
+          variant="link"
+          onClick={() => {
+            setExpanded(!expanded);
+          }}
+        >
+          {expanded ? "Less" : "More"}
+        </Button>
+        <Button variant="primary" onClick={onSubmit}>
+          Save
+        </Button>
+      </Modal.Footer>
+    </Modal>
+  );
 }
 
 function DeleteModal(props) {
@@ -373,18 +505,23 @@ function DeleteModal(props) {
     }
   }, [props.person]);
 
-  return <Modal show={props.show} onHide={props.onHide} centered>
-    <Modal.Header closeButton>
-      <Modal.Title>Delete person</Modal.Title>
-    </Modal.Header>
-    <Modal.Body>
-      Are you sure you want to delete {name}?
-    </Modal.Body>
-    <Modal.Footer>
-      <Button variant="danger" onClick={() => {
-        props.onDelete(props.person.ID);
-        props.onHide();
-      }}>Delete</Button>
-    </Modal.Footer>
-  </Modal>;
+  return (
+    <Modal show={props.show} onHide={props.onHide} centered>
+      <Modal.Header closeButton>
+        <Modal.Title>Delete person</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>Are you sure you want to delete {name}?</Modal.Body>
+      <Modal.Footer>
+        <Button
+          variant="danger"
+          onClick={() => {
+            props.onDelete(props.person.ID);
+            props.onHide();
+          }}
+        >
+          Delete
+        </Button>
+      </Modal.Footer>
+    </Modal>
+  );
 }

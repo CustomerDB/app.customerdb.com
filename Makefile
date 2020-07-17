@@ -21,3 +21,12 @@ deploy-functions:
 local:
 	GOOGLE_APPLICATION_CREDENTIALS=$(FIREBASE_CREDENTIALS_FILE) \
 		firebase emulators:exec --only functions,firestore,ui "yarn start"
+
+apply-format:
+	yarn prettier --write src/
+
+check-format:
+	yarn prettier --check src/
+
+install-git-hooks:
+	cp scripts/pre-commit .git/hooks/pre-commit

@@ -1,16 +1,22 @@
-import React from 'react';
+import React from "react";
 
-import Spinner from 'react-bootstrap/Spinner';
+import Spinner from "react-bootstrap/Spinner";
 
 export function now() {
-    let now = new Date();
-    return now.toISOString();
+  let now = new Date();
+  return now.toISOString();
 }
 
 export function Loading() {
-    return  <div className="outerContainer"><div className="spinnerContainer"><Spinner animation="grow" /></div></div>;
+  return (
+    <div className="outerContainer">
+      <div className="spinnerContainer">
+        <Spinner animation="grow" />
+      </div>
+    </div>
+  );
 }
 
 export function logout() {
-    return window.firebase.auth().signOut();
+  return window.firebase.auth().signOut();
 }
