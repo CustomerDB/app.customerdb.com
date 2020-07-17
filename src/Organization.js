@@ -100,6 +100,7 @@ export default function Organization(props) {
                   orgID={orgID}
                   documentsRef={documentsRef}
                   tagGroupsRef={tagGroupsRef}
+                  peopleRef={peopleRef}
                   user={user}
                 />
               }
@@ -111,6 +112,7 @@ export default function Organization(props) {
                   orgID={orgID}
                   documentsRef={documentsRef}
                   tagGroupsRef={tagGroupsRef}
+                  peopleRef={peopleRef}
                   user={user}
                 />
               }

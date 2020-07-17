@@ -48,6 +48,14 @@
         { "fieldPath": "organizationID", "order": "ASCENDING" },
         { "fieldPath": "tagID", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "people",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "deletionTimestamp", "order": "ASCENDING" },
+        { "fieldPath": "name", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []
