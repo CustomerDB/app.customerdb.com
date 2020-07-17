@@ -1,13 +1,13 @@
-import React from 'react';
-import Quill from 'quill';
+import React from "react";
+import Quill from "quill";
 
 // Declare a custom blot subclass to represent highlighted text.
-let Inline = Quill.import('blots/inline');
+let Inline = Quill.import("blots/inline");
 
 export default class HighlightBlot extends Inline {
-  static blotName = 'highlight';
-  static className = 'inline-highlight';
-  static tagName = 'span';
+  static blotName = "highlight";
+  static className = "inline-highlight";
+  static tagName = "span";
 
   static styleClass(tagID) {
     return `tag-${tagID}`;
@@ -30,15 +30,15 @@ export default class HighlightBlot extends Inline {
     if (highlightID && tagID) {
       return {
         highlightID: highlightID,
-        tagID: tagID
-      }
+        tagID: tagID,
+      };
     }
     return super.formats(domNode);
   }
 
   formats() {
     let formats = super.formats();
-    formats['highlight'] = HighlightBlot.formats(this.domNode);
+    formats["highlight"] = HighlightBlot.formats(this.domNode);
     return formats;
   }
 }

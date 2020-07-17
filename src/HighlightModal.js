@@ -1,6 +1,6 @@
-import React from 'react';
-import Modal from 'react-bootstrap/Modal';
-import Button from 'react-bootstrap/Button';
+import React from "react";
+import Modal from "react-bootstrap/Modal";
+import Button from "react-bootstrap/Button";
 
 export default function HighlightModal(props) {
   if (props.data === undefined) {
@@ -12,16 +12,15 @@ export default function HighlightModal(props) {
       {...props}
       size="lg"
       aria-labelledby="contained-modal-title-vcenter"
-      centered >
+      centered
+    >
       <Modal.Header closeButton>
         <Modal.Title id="contained-modal-title-vcenter">
           {props.data.document.name}
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <p>
-          {props.data.highlight.Text}
-        </p>
+        <p>{props.data.highlight.Text}</p>
       </Modal.Body>
       <Modal.Footer>
         <Button onClick={props.onHide}>Close</Button>
@@ -29,5 +28,3 @@ export default function HighlightModal(props) {
     </Modal>
   );
 }
-
-

@@ -1,7 +1,7 @@
-import React from 'react';
-import ContentEditable from 'react-contenteditable';
+import React from "react";
+import ContentEditable from "react-contenteditable";
 
-import { circumscribingCircle } from './geom.js';
+import { circumscribingCircle } from "./geom.js";
 
 function computeGroupBounds(cards) {
   let rect = {};
@@ -58,7 +58,7 @@ export default class Group extends React.Component {
     let documentIDs = new Set();
     this.props.cards.forEach((card) => {
       documentIDs.add(card.documentID);
-    })
+    });
     let representation = documentIDs.size;
 
     let circle = circumscribingCircle(rect);
@@ -66,37 +66,45 @@ export default class Group extends React.Component {
 
     let border = `2px ${color} solid`;
 
-    return <><div
-      className="group"
-      style={{
-        position: "absolute",
-        left: circle.minX,
-        top: circle.minY,
-        width: circle.diameter,
-        height: circle.diameter,
-        borderRadius: "50%",
-        border: border
-      }}>
-      { }
-    </div>
+    return (
+      <>
+        <div
+          className="group"
+          style={{
+            position: "absolute",
+            left: circle.minX,
+            top: circle.minY,
+            width: circle.diameter,
+            height: circle.diameter,
+            borderRadius: "50%",
+            border: border,
+          }}
+        >
+          {}
+        </div>
 
-    <div className="groupLabel"
-      style={{
-        position: "absolute",
-        left: circle.minX,
-        top: circle.maxY + 10,
-        width: circle.diameter,
-        textAlign: "center"
-      }}>
-    <ContentEditable
-      innerRef={this.nameRef}
-      tagName='div'
-      html={this.props.name}
-      disabled={false}
-      onBlur={this.updateName}
-      />
-    <p>{representation} out of {this.props.totalCardCount}</p>
-    </div>
-    </>;
+        <div
+          className="groupLabel"
+          style={{
+            position: "absolute",
+            left: circle.minX,
+            top: circle.maxY + 10,
+            width: circle.diameter,
+            textAlign: "center",
+          }}
+        >
+          <ContentEditable
+            innerRef={this.nameRef}
+            tagName="div"
+            html={this.props.name}
+            disabled={false}
+            onBlur={this.updateName}
+          />
+          <p>
+            {representation} out of {this.props.totalCardCount}
+          </p>
+        </div>
+      </>
+    );
   }
 }

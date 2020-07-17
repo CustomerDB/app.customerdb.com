@@ -1,13 +1,13 @@
-import React from 'react';
-import RBush from 'rbush';
-import { nanoid } from 'nanoid';
+import React from "react";
+import RBush from "rbush";
+import { nanoid } from "nanoid";
 
-import Card from './Card.js';
-import Group from './Group.js';
-import Pointers from './Pointers.js';
-import HighlightModal from './HighlightModal.js';
-import colorPair from './color.js';
-import { Loading } from './Utils.js';
+import Card from "./Card.js";
+import Group from "./Group.js";
+import Pointers from "./Pointers.js";
+import HighlightModal from "./HighlightModal.js";
+import colorPair from "./color.js";
+import { Loading } from "./Utils.js";
 
 export default class DatasetClusterBoard extends React.Component {
   constructor(props) {
@@ -25,8 +25,8 @@ export default class DatasetClusterBoard extends React.Component {
       documents: {},
       highlights: {},
       cards: {},
-      groups: {}
-    }
+      groups: {},
+    };
 
     this.rtree = new RBush(4);
 
@@ -55,11 +55,9 @@ export default class DatasetClusterBoard extends React.Component {
   }
 
   componentDidMount() {
-
-    this.subscriptions.push(this.props.cardsRef
-      .onSnapshot(
-      (
-        function(querySnapshot) {
+    this.subscriptions.push(
+      this.props.cardsRef.onSnapshot(
+        function (querySnapshot) {
           console.debug("received cards snapshot");
 
           let newCards = {};
@@ -71,15 +69,15 @@ export default class DatasetClusterBoard extends React.Component {
 
           this.setState({
             cards: newCards,
-            loadedCards: true
+            loadedCards: true,
           });
-        }
-      ).bind(this)
-    ));
+        }.bind(this)
+      )
+    );
 
-    this.subscriptions.push(this.props.groupsRef.onSnapshot(
-      (
-        function(querySnapshot) {
+    this.subscriptions.push(
+      this.props.groupsRef.onSnapshot(
+        function (querySnapshot) {
           console.debug("received groups snapshot");
 
           var groups = this.state.groups;
@@ -97,7 +95,6 @@ export default class DatasetClusterBoard extends React.Component {
             }
 
             Object.assign(existingGroup, data);
-
           });
 
           Object.keys(this.state.groups).forEach((id) => {
@@ -108,11 +105,11 @@ export default class DatasetClusterBoard extends React.Component {
 
           this.setState({
             groups: groups,
-            loadedGroups: true
+            loadedGroups: true,
           });
-        }
-      ).bind(this)
-    ));
+        }.bind(this)
+      )
+    );
 
     this.subscribeToHighlights();
 
@@ -120,83 +117,84 @@ export default class DatasetClusterBoard extends React.Component {
   }
 
   subscribeToDocuments() {
-    this.unsubscribeFromDocuments = this.props.documentsRef.onSnapshot(snapshot => {
-      console.log("received documents snapshot");
+    this.unsubscribeFromDocuments = this.props.documentsRef.onSnapshot(
+      (snapshot) => {
+        console.log("received documents snapshot");
 
-      let newDocuments = {};
+        let newDocuments = {};
 
-      snapshot.forEach(doc => {
-        let data = doc.data();
+        snapshot.forEach((doc) => {
+          let data = doc.data();
 
-        console.log("document", data);
+          console.log("document", data);
 
-        newDocuments[doc.id] = data;
-      });
+          newDocuments[doc.id] = data;
+        });
 
-      this.setState({
-        documents: newDocuments,
-        loadedDocuments: true
-      });
-
-    });
+        this.setState({
+          documents: newDocuments,
+          loadedDocuments: true,
+        });
+      }
+    );
   }
 
   subscribeToHighlights() {
     this.unsubscribeFromHighlights = this.props.highlightsRef.onSnapshot(
-      (
-        function(querySnapshot) {
-          console.debug("received highlights snapshot");
+      function (querySnapshot) {
+        console.debug("received highlights snapshot");
 
-          var highlights = {};
-          querySnapshot.forEach((doc) => {
-            let data = doc.data();
-            data.ID = doc.id;
-            highlights[data.ID] = data;
+        var highlights = {};
+        querySnapshot.forEach((doc) => {
+          let data = doc.data();
+          data.ID = doc.id;
+          highlights[data.ID] = data;
 
-            let cardData = Object.assign(data, {});
-            cardData.groupColor = "#000";
-            cardData.textColor = "#FFF";
+          let cardData = Object.assign(data, {});
+          cardData.groupColor = "#000";
+          cardData.textColor = "#FFF";
 
-            // Each highlight should have a card
-            let cardRef = this.props.cardsRef.doc(cardData.ID);
-            cardRef.get().then((cardSnapshot) => {
-              if (!cardSnapshot.exists) {
-                cardRef.set({
-                  ID: doc.id,
-                  minX: 0,
-                  minY: 0,
-                  maxX: 0,
-                  maxY: 0,
-                  kind: "card",
-                  documentID: data.documentID
-                });
-              }
-            });
-
-          });
-
-          this.setState({
-            highlights: highlights,
-            loadedHighlights: true
-          });
-
-          // Delete cards without a matching highlight
-          Object.keys(this.state.cards).forEach(cardID => {
-            if (!(cardID in this.state.highlights)) {
-              console.log("deleting card for nonexisting highlight with ID", cardID);
-              this.props.cardsRef.doc(cardID).delete();
+          // Each highlight should have a card
+          let cardRef = this.props.cardsRef.doc(cardData.ID);
+          cardRef.get().then((cardSnapshot) => {
+            if (!cardSnapshot.exists) {
+              cardRef.set({
+                ID: doc.id,
+                minX: 0,
+                minY: 0,
+                maxX: 0,
+                maxY: 0,
+                kind: "card",
+                documentID: data.documentID,
+              });
             }
           });
+        });
 
-        }
-      ).bind(this)
+        this.setState({
+          highlights: highlights,
+          loadedHighlights: true,
+        });
+
+        // Delete cards without a matching highlight
+        Object.keys(this.state.cards).forEach((cardID) => {
+          if (!(cardID in this.state.highlights)) {
+            console.log(
+              "deleting card for nonexisting highlight with ID",
+              cardID
+            );
+            this.props.cardsRef.doc(cardID).delete();
+          }
+        });
+      }.bind(this)
     );
   }
 
   componentDidUpdate(oldProps) {
     console.log("componentDidUpdate", oldProps, this.props);
 
-    let hasNewHighlightsRef = oldProps.highlightsRef !== this.props.highlightsRef;
+    let hasNewHighlightsRef =
+      oldProps.highlightsRef !== this.props.highlightsRef;
     console.log("highlightsRef is new?", hasNewHighlightsRef);
 
     if (hasNewHighlightsRef) {
@@ -214,58 +212,66 @@ export default class DatasetClusterBoard extends React.Component {
   }
 
   componentWillUnmount() {
-    this.subscriptions.forEach(unsubscribe => {
+    this.subscriptions.forEach((unsubscribe) => {
       unsubscribe();
-    })
+    });
     this.unsubscribeFromHighlights();
   }
 
   addCardLocation(card) {
-    console.debug(`addCardLocation (size@pre: ${this.rtree.all().length})`, card);
+    console.debug(
+      `addCardLocation (size@pre: ${this.rtree.all().length})`,
+      card
+    );
     this.rtree.insert(card);
-    console.debug(`addCardLocation add (size@post: ${this.rtree.all().length})`);
+    console.debug(
+      `addCardLocation add (size@post: ${this.rtree.all().length})`
+    );
   }
 
   removeCardLocation(card) {
-    console.log(`removeCardLocation (size@pre: ${this.rtree.all().length})`, card);
-    this.rtree.remove(
-      card,
-      (a, b) => {
-        console.debug(`comparing\n${a.ID}\n${b.ID}`);
-        return a.kind === "card" &&
-          b.kind === "card" &&
-          a.ID === b.ID;
-      }
+    console.log(
+      `removeCardLocation (size@pre: ${this.rtree.all().length})`,
+      card
     );
+    this.rtree.remove(card, (a, b) => {
+      console.debug(`comparing\n${a.ID}\n${b.ID}`);
+      return a.kind === "card" && b.kind === "card" && a.ID === b.ID;
+    });
     console.log(`removeCardLocation (size@post: ${this.rtree.all().length})`);
   }
 
   addGroupLocation(group) {
-    console.debug(`addGroupLocation (size@pre: ${this.rtree.all().length})`, group);
+    console.debug(
+      `addGroupLocation (size@pre: ${this.rtree.all().length})`,
+      group
+    );
     this.rtree.insert(group);
-    console.debug(`addGroupLocation add (size@post: ${this.rtree.all().length})`);
+    console.debug(
+      `addGroupLocation add (size@post: ${this.rtree.all().length})`
+    );
   }
 
   removeGroupLocation(group) {
-    console.debug(`removeGroupLocation (size@pre: ${this.rtree.all().length})`, group);
-    this.rtree.remove(
-      group,
-      (a, b) => {
-        console.debug(`comparing\n${a.ID}\n${b.ID}`);
-        return a.kind === "group" &&
-          b.kind === "group" &&
-          a.ID === b.ID;
-      }
+    console.debug(
+      `removeGroupLocation (size@pre: ${this.rtree.all().length})`,
+      group
     );
-    console.debug(`removeGroupLocation (size@post: ${this.rtree.all().length})`);
+    this.rtree.remove(group, (a, b) => {
+      console.debug(`comparing\n${a.ID}\n${b.ID}`);
+      return a.kind === "group" && b.kind === "group" && a.ID === b.ID;
+    });
+    console.debug(
+      `removeGroupLocation (size@post: ${this.rtree.all().length})`
+    );
   }
 
   printRTree(rect) {
-    console.log('RTree\n', this.rtree.toJSON());
+    console.log("RTree\n", this.rtree.toJSON());
   }
 
   printRTreeItems(rect) {
-    console.log('RTree items\n', this.rtree.all());
+    console.log("RTree items\n", this.rtree.all());
   }
 
   getIntersecting(rect) {
@@ -273,41 +279,35 @@ export default class DatasetClusterBoard extends React.Component {
   }
 
   getIntersectingCards(rect) {
-    return this.getIntersecting(rect).filter(
-      item => item.kind === "card"
-    );
+    return this.getIntersecting(rect).filter((item) => item.kind === "card");
   }
 
   getIntersectingGroups(rect) {
-    return this.getIntersecting(rect).filter(
-      item => item.kind === "group"
-    );
+    return this.getIntersecting(rect).filter((item) => item.kind === "group");
   }
 
   groupDataForCard(card) {
     let undefinedGroupData = {
       ID: undefined,
-      color: '#000',
-      textColor: '#FFF'
+      color: "#000",
+      textColor: "#FFF",
     };
 
     let cardGroupIDs = new Set();
     let intersections = this.getIntersectingCards(card).filter((c) => {
-      return c.ID !== card.ID
+      return c.ID !== card.ID;
     });
 
-    console.log('groupDataForCard (intersections):\n', intersections);
+    console.log("groupDataForCard (intersections):\n", intersections);
 
     // Case 1: The new card location does not intersect with any other card
     if (intersections.length === 0) {
-
       // If this card was previously part of a group, check whether we need
       // to delete that group (because it became empty or only has one other card)
       if (card.groupID !== undefined) {
-
         // Collect the cards (besides this one) that remain in this card's old group.
         let remainingCards = Object.values(this.state.cards).filter((item) => {
-          return (item.groupID === card.groupID) && (item.ID !== card.ID);
+          return item.groupID === card.groupID && item.ID !== card.ID;
         });
 
         if (remainingCards.length < 2) {
@@ -319,9 +319,9 @@ export default class DatasetClusterBoard extends React.Component {
           remainingCards.forEach((cardToCleanUP) => {
             cardToCleanUP.groupColor = "#000";
             cardToCleanUP.textColor = "#FFF";
-            delete cardToCleanUP['groupID'];
+            delete cardToCleanUP["groupID"];
             this.props.cardsRef.doc(cardToCleanUP.ID).set(cardToCleanUP);
-          })
+          });
         }
       }
 
@@ -345,7 +345,7 @@ export default class DatasetClusterBoard extends React.Component {
       return {
         ID: groupID,
         color: group.color,
-        textColor: group.textColor
+        textColor: group.textColor,
       };
     }
 
@@ -362,7 +362,7 @@ export default class DatasetClusterBoard extends React.Component {
         ID: groupID,
         name: "Unnamed group",
         color: colors.background,
-        textColor: colors.foreground
+        textColor: colors.foreground,
       });
 
       intersections.forEach((c) => {
@@ -376,8 +376,8 @@ export default class DatasetClusterBoard extends React.Component {
       return {
         ID: groupID,
         color: colors.background,
-        textColor: colors.foreground
-      }
+        textColor: colors.foreground,
+      };
     }
 
     // Case 4: This card intersects more than one group so we can't join any.
@@ -390,8 +390,8 @@ export default class DatasetClusterBoard extends React.Component {
       modalData: {
         card: card,
         highlight: highlight,
-        document: document
-      }
+        document: document,
+      },
     });
   }
 
@@ -401,7 +401,8 @@ export default class DatasetClusterBoard extends React.Component {
       !this.state.loadedHighlights ||
       !this.state.loadedCards ||
       !this.state.loadedGroups ||
-      Object.keys(this.state.highlights).length !== Object.keys(this.state.cards).length
+      Object.keys(this.state.highlights).length !==
+        Object.keys(this.state.cards).length
     ) {
       console.log("board state", this.state);
       return Loading();
@@ -410,33 +411,35 @@ export default class DatasetClusterBoard extends React.Component {
     let cardComponents = [];
     let cardTitles = new Set();
     let cards = Object.values(this.state.cards);
-    for (let i=0; i<cards.length; i++) {
+    for (let i = 0; i < cards.length; i++) {
       let card = cards[i];
       if (card.minX === 0 && card.maxX === 0) {
-        card.minX = 0 + (i * 20);
-        card.minY = 50 + (i * 20);
+        card.minX = 0 + i * 20;
+        card.minY = 50 + i * 20;
       }
 
       let highlight = this.state.highlights[card.ID];
       cardTitles.add(highlight.documentID);
 
-      cardComponents.push(<Card
-        key={card.ID}
-        card={card}
-        highlight={highlight}
-        document={this.state.documents[highlight.documentID]}
-        minX={card.minX}
-        minY={card.minY}
-        groupColor={card.groupColor}
-        textColor={card.textColor}
-        cardRef={this.props.cardsRef.doc(card.ID)}
-        modalCallBack={this.modalCallBack}
-        addLocationCallBack={this.addCardLocation}
-        removeLocationCallBack={this.removeCardLocation}
-        getIntersectingCardsCallBack={this.getIntersectingCards}
-        getIntersectingGroupsCallBack={this.getIntersectingGroups}
-        groupDataForCardCallback={this.groupDataForCard}
-      />);
+      cardComponents.push(
+        <Card
+          key={card.ID}
+          card={card}
+          highlight={highlight}
+          document={this.state.documents[highlight.documentID]}
+          minX={card.minX}
+          minY={card.minY}
+          groupColor={card.groupColor}
+          textColor={card.textColor}
+          cardRef={this.props.cardsRef.doc(card.ID)}
+          modalCallBack={this.modalCallBack}
+          addLocationCallBack={this.addCardLocation}
+          removeLocationCallBack={this.removeCardLocation}
+          getIntersectingCardsCallBack={this.getIntersectingCards}
+          getIntersectingGroupsCallBack={this.getIntersectingGroups}
+          groupDataForCardCallback={this.groupDataForCard}
+        />
+      );
     }
 
     let groupComponents = Object.values(this.state.groups).map((group) => {
@@ -444,29 +447,34 @@ export default class DatasetClusterBoard extends React.Component {
         return card.groupID === group.ID;
       });
       let groupRef = this.props.groupsRef.doc(group.ID);
-      return <Group
-        key={group.ID}
-        name={group.name}
-        group={group}
-        cards={cards}
-        totalCardCount={cardTitles.size}
-        groupRef={groupRef}
-        addGroupLocationCallback={this.addGroupLocation}
-        removeGroupLocationCallback={this.removeGroupLocation}/>;
+      return (
+        <Group
+          key={group.ID}
+          name={group.name}
+          group={group}
+          cards={cards}
+          totalCardCount={cardTitles.size}
+          groupRef={groupRef}
+          addGroupLocationCallback={this.addGroupLocation}
+          removeGroupLocationCallback={this.removeGroupLocation}
+        />
+      );
     });
 
-    let pointers = undefined
+    let pointers = undefined;
     // pointers = <Pointers activeUsersRef={this.props.activeUsersRef} user={this.props.user}/>;
 
-    return <>
-      {groupComponents}
-      {cardComponents}
-      {pointers}
-      <HighlightModal
-        show={this.state.modalShow}
-        data={this.state.modalData}
-        onHide={() => this.setState({'modalShow': false})}
-      />
-    </>;
+    return (
+      <>
+        {groupComponents}
+        {cardComponents}
+        {pointers}
+        <HighlightModal
+          show={this.state.modalShow}
+          data={this.state.modalData}
+          onHide={() => this.setState({ modalShow: false })}
+        />
+      </>
+    );
   }
 }

@@ -1,29 +1,28 @@
-import ContentEditable from 'react-contenteditable';
-import React from 'react';
-import ReactQuill from 'react-quill';
-import Quill from 'quill';
-import Delta from 'quill-delta';
-import 'react-quill/dist/quill.bubble.css';
-import { nanoid } from 'nanoid';
+import ContentEditable from "react-contenteditable";
+import React from "react";
+import ReactQuill from "react-quill";
+import Quill from "quill";
+import Delta from "quill-delta";
+import "react-quill/dist/quill.bubble.css";
+import { nanoid } from "nanoid";
 
-import { Navigate } from 'react-router-dom';
+import { Navigate } from "react-router-dom";
 
-import { AutoSizer } from 'react-virtualized';
+import { AutoSizer } from "react-virtualized";
 
-import Container from 'react-bootstrap/Container';
-import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
-import Form from 'react-bootstrap/Form';
-import Tab from 'react-bootstrap/Tab';
-import Nav from 'react-bootstrap/Nav';
+import Container from "react-bootstrap/Container";
+import Row from "react-bootstrap/Row";
+import Col from "react-bootstrap/Col";
+import Form from "react-bootstrap/Form";
+import Tab from "react-bootstrap/Tab";
+import Nav from "react-bootstrap/Nav";
 
-import { Loading } from './Utils.js';
+import { Loading } from "./Utils.js";
 
-import Tags, {addTagStyles, removeTagStyles} from './editor/Tags.js';
+import Tags, { addTagStyles, removeTagStyles } from "./editor/Tags.js";
 
-import HighlightBlot from './editor/HighlightBlot.js';
-Quill.register('formats/highlight', HighlightBlot);
-
+import HighlightBlot from "./editor/HighlightBlot.js";
+Quill.register("formats/highlight", HighlightBlot);
 
 // Returns a new delta object representing an empty document.
 function emptyDelta() {
@@ -41,7 +40,7 @@ function reduceDeltas(deltas) {
 
   let result = deltas[0];
 
-  deltas.slice(1).forEach(d => {
+  deltas.slice(1).forEach((d) => {
     result = result.compose(d);
   });
 
@@ -49,7 +48,7 @@ function reduceDeltas(deltas) {
 }
 
 function checkReturn(e) {
-  if (e.key === 'Enter') {
+  if (e.key === "Enter") {
     e.target.blur();
   }
 }
@@ -90,8 +89,8 @@ export default class Document extends React.Component {
     super(props);
 
     this.documentRef = props.documentsRef.doc(this.props.documentID);
-    this.deltasRef = this.documentRef.collection('deltas');
-    this.highlightsRef = this.documentRef.collection('highlights');
+    this.deltasRef = this.documentRef.collection("deltas");
+    this.highlightsRef = this.documentRef.collection("highlights");
 
     this.tagsRef = undefined;
 
@@ -128,7 +127,7 @@ export default class Document extends React.Component {
 
     this.subscriptions = [];
 
-    this.unsubscribeTagsCallback = () => { };
+    this.unsubscribeTagsCallback = () => {};
 
     this.intervals = [];
 
@@ -138,7 +137,7 @@ export default class Document extends React.Component {
       name: "",
       exists: true,
       deletionTimestamp: "",
-      deletedBy: '',
+      deletedBy: "",
       initialDelta: emptyDelta(),
       tagIDsInSelection: new Set(),
 
@@ -149,95 +148,110 @@ export default class Document extends React.Component {
       loadedDocument: false,
       loadedTagGroups: false,
       loadedTags: false,
-      loadedDeltas: false
-    }
+      loadedDeltas: false,
+    };
   }
 
   // Set up database subscriptions and handle document/collection snapshots
   // when they occur.
   componentDidMount() {
     // Subscribe to document name changes
-    this.subscriptions.push(this.documentRef.onSnapshot(doc => {
-      if (!doc.exists) {
-        this.setState({ exists: false });
-        return;
-      }
+    this.subscriptions.push(
+      this.documentRef.onSnapshot((doc) => {
+        if (!doc.exists) {
+          this.setState({ exists: false });
+          return;
+        }
 
-      let data = doc.data();
-      console.debug("data", data);
+        let data = doc.data();
+        console.debug("data", data);
 
-      let tagsRef = undefined;
-      if (data.tagGroupID && data.tagGroupID !== "") {
-        tagsRef = this.props.tagGroupsRef.doc(data.tagGroupID).collection("tags");
-      }
+        let tagsRef = undefined;
+        if (data.tagGroupID && data.tagGroupID !== "") {
+          tagsRef = this.props.tagGroupsRef
+            .doc(data.tagGroupID)
+            .collection("tags");
+        }
 
-      this.setState({
-        loadedDocument: true,
-        name: data.name,
-        deletionTimestamp: data.deletionTimestamp,
-        deletedBy: data.deletedBy,
-        tagGroupID: data.tagGroupID,
-        tagsRef: tagsRef
-      });
+        this.setState({
+          loadedDocument: true,
+          name: data.name,
+          deletionTimestamp: data.deletionTimestamp,
+          deletedBy: data.deletedBy,
+          tagGroupID: data.tagGroupID,
+          tagsRef: tagsRef,
+        });
 
-      this.subscribeToTags(tagsRef);
-    }));
+        this.subscribeToTags(tagsRef);
+      })
+    );
 
     // Subscribe to tag groups changes
-    this.subscriptions.push(this.props.tagGroupsRef.onSnapshot(snapshot => {
-      console.debug("received tag groups snapshot");
+    this.subscriptions.push(
+      this.props.tagGroupsRef.onSnapshot((snapshot) => {
+        console.debug("received tag groups snapshot");
 
-      let tagGroups = [];
+        let tagGroups = [];
 
-      snapshot.forEach(doc => {
-        let data = doc.data();
-        data.ID = doc.id;
-        tagGroups.push(data);
-      });
+        snapshot.forEach((doc) => {
+          let data = doc.data();
+          data.ID = doc.id;
+          tagGroups.push(data);
+        });
 
-      this.setState({
-        tagGroups: tagGroups,
-        loadedTagGroups: true
-      });
-    }));
+        this.setState({
+          tagGroups: tagGroups,
+          loadedTagGroups: true,
+        });
+      })
+    );
 
     // Subscribe to highlight changes
-    this.subscriptions.push(this.highlightsRef.onSnapshot(snapshot => {
-      let highlights = {};
+    this.subscriptions.push(
+      this.highlightsRef.onSnapshot((snapshot) => {
+        let highlights = {};
 
-      snapshot.forEach(highlightDoc => {
-        let data = highlightDoc.data();
-        data['ID'] = highlightDoc.id;
-        highlights[data.ID] = data;
-      });
+        snapshot.forEach((highlightDoc) => {
+          let data = highlightDoc.data();
+          data["ID"] = highlightDoc.id;
+          highlights[data.ID] = data;
+        });
 
-      this.highlights = highlights;
-    }));
+        this.highlights = highlights;
+      })
+    );
 
     // Get the full set of deltas once
-    this.deltasRef.orderBy("timestamp", "asc").get().then(snapshot => {
-      console.debug("processing full list of deltas to construct initial snapshot");
-      // Process the priming read; download all existing deltas and condense
-      // them into an initial local document snapshot
-      // (`this.state.initialDelta`)
-      this.handleInitialDeltas(snapshot);
+    this.deltasRef
+      .orderBy("timestamp", "asc")
+      .get()
+      .then((snapshot) => {
+        console.debug(
+          "processing full list of deltas to construct initial snapshot"
+        );
+        // Process the priming read; download all existing deltas and condense
+        // them into an initial local document snapshot
+        // (`this.state.initialDelta`)
+        this.handleInitialDeltas(snapshot);
 
-      // Start periodically uploading cached local document edits to firestore.
-      this.intervals.push(setInterval(this.uploadDeltas, 1000));
+        // Start periodically uploading cached local document edits to firestore.
+        this.intervals.push(setInterval(this.uploadDeltas, 1000));
 
-      // Start periodically uploading cached highlight edits to firestore.
-      this.intervals.push(setInterval(this.syncHighlights, 1000));
+        // Start periodically uploading cached highlight edits to firestore.
+        this.intervals.push(setInterval(this.syncHighlights, 1000));
 
-      console.debug("subscribing to deltas after", this.latestDeltaTimestamp);
+        console.debug("subscribing to deltas after", this.latestDeltaTimestamp);
 
-      // Now subscribe to all changes that occur after the set
-      // of initial deltas we just processed and updating
-      // `this.latestDeltatimestamp`.
-      this.subscriptions.push(this.deltasRef
-        .orderBy("timestamp", "asc")
-        .where("timestamp", ">", this.latestDeltaTimestamp)
-        .onSnapshot(this.handleDeltaSnapshot));
-    });
+        // Now subscribe to all changes that occur after the set
+        // of initial deltas we just processed and updating
+        // `this.latestDeltatimestamp`.
+        this.subscriptions.push(
+          this.deltasRef
+            .orderBy("timestamp", "asc")
+            .where("timestamp", ">", this.latestDeltaTimestamp)
+            .onSnapshot(this.handleDeltaSnapshot)
+        );
+      });
   }
 
   subscribeToTags(tagsRef) {
@@ -247,7 +261,7 @@ export default class Document extends React.Component {
     if (!tagsRef) {
       this.setState({
         tags: {},
-        "loadedTags": true
+        loadedTags: true,
       });
       return;
     }
@@ -256,36 +270,36 @@ export default class Document extends React.Component {
 
     this.unsubscribeTagsCallback = this.tagsRef
       .where("deletionTimestamp", "==", "")
-      .onSnapshot(
-        snapshot => {
-          console.debug("received tags snapshot");
-          let tags = {};
-          snapshot.forEach(tagDoc => {
-            let data = tagDoc.data();
-            data.ID = tagDoc.id;
-            tags[data.ID] = data;
-          });
+      .onSnapshot((snapshot) => {
+        console.debug("received tags snapshot");
+        let tags = {};
+        snapshot.forEach((tagDoc) => {
+          let data = tagDoc.data();
+          data.ID = tagDoc.id;
+          tags[data.ID] = data;
+        });
 
-          console.debug("new tags", tags);
+        console.debug("new tags", tags);
 
-          addTagStyles(tags);
+        addTagStyles(tags);
 
-          this.setState({
-            tags: tags,
-            loadedTags: true
-          });
-        }
-      );
+        this.setState({
+          tags: tags,
+          loadedTags: true,
+        });
+      });
   }
 
   unsubscribeFromTags() {
     console.debug("unsubscribing from tag changes");
     this.unsubscribeTagsCallback();
-    this.unsubscribeTagsCallback = () => { };
+    this.unsubscribeTagsCallback = () => {};
   }
 
   componentWillUnmount() {
-    this.subscriptions.forEach((unsubscribe) => { unsubscribe() });
+    this.subscriptions.forEach((unsubscribe) => {
+      unsubscribe();
+    });
     this.intervals.forEach(clearInterval);
 
     this.subscriptions = [];
@@ -307,13 +321,13 @@ export default class Document extends React.Component {
     let selectionDelta = editor.getContents(selection.index, length);
     let selectedHighlightIDs = [];
 
-    selectionDelta.ops.forEach(op => {
+    selectionDelta.ops.forEach((op) => {
       if (op.attributes && op.attributes.highlight) {
         selectedHighlightIDs.push(op.attributes.highlight.highlightID);
       }
     });
 
-    return selectedHighlightIDs.flatMap(id => {
+    return selectedHighlightIDs.flatMap((id) => {
       let highlight = this.getHighlightFromEditor(id);
       if (highlight) return [highlight];
       return [];
@@ -322,7 +336,7 @@ export default class Document extends React.Component {
 
   getHighlightIDsFromEditor() {
     let result = new Set();
-    let domNodes = document.getElementsByClassName("inline-highlight")
+    let domNodes = document.getElementsByClassName("inline-highlight");
     for (let i = 0; i < domNodes.length; i++) {
       let highlightID = domNodes[i].dataset.highlightID;
       if (highlightID) {
@@ -353,9 +367,9 @@ export default class Document extends React.Component {
       tagID: tagID,
       selection: {
         index: index,
-        length: length
+        length: length,
       },
-      text: text
+      text: text,
     };
   }
 
@@ -364,7 +378,7 @@ export default class Document extends React.Component {
     let intersectingHighlights = this.computeHighlightsInSelection(selection);
 
     let result = new Set();
-    intersectingHighlights.forEach(h => result.add(h.tagID));
+    intersectingHighlights.forEach((h) => result.add(h.tagID));
     return result;
   }
 
@@ -390,7 +404,7 @@ export default class Document extends React.Component {
 
     this.setState({
       initialDelta: this.latestDelta,
-      loadedDeltas: true
+      loadedDeltas: true,
     });
   }
 
@@ -411,11 +425,11 @@ export default class Document extends React.Component {
         data.timestamp.valueOf() <= this.latestDeltaTimestamp.valueOf();
 
       if (haveSeenBefore) {
-        console.debug('Dropping delta with timestamp ', data.timestamp);
+        console.debug("Dropping delta with timestamp ", data.timestamp);
         return;
       }
 
-      let newDelta = new Delta(data.ops)
+      let newDelta = new Delta(data.ops);
 
       // Hang the editorID off of the delta.
       newDelta.editorID = data.editorID;
@@ -437,7 +451,7 @@ export default class Document extends React.Component {
       return;
     }
 
-    console.debug('applying deltas to editor', newDeltas);
+    console.debug("applying deltas to editor", newDeltas);
 
     let editor = this.reactQuillRef.getEditor();
 
@@ -462,13 +476,13 @@ export default class Document extends React.Component {
     editor.updateContents(inverseLocalDelta);
     selectionIndex = inverseLocalDelta.transformPosition(selectionIndex);
 
-    newDeltas.forEach(delta => {
+    newDeltas.forEach((delta) => {
       console.log("editor.updateContents", delta);
       editor.updateContents(delta);
       selectionIndex = delta.transformPosition(selectionIndex);
 
       console.log("transform local delta");
-      const serverFirst =  true;
+      const serverFirst = true;
       this.localDelta = delta.transform(this.localDelta, serverFirst);
     });
 
@@ -493,11 +507,11 @@ export default class Document extends React.Component {
   // which are sent to the server and reset to [] periodically
   // in `this.uploadDeltas()`.
   onEdit(content, delta, source, editor) {
-    if (source !== 'user') {
-      console.debug('onEdit: skipping non-user change', delta, source);
+    if (source !== "user") {
+      console.debug("onEdit: skipping non-user change", delta, source);
       return;
     }
-    console.debug('onEdit: caching user change', delta);
+    console.debug("onEdit: caching user change", delta);
     this.localDelta = this.localDelta.compose(delta);
   }
 
@@ -518,10 +532,10 @@ export default class Document extends React.Component {
       editorID: this.editorID,
       userEmail: this.props.user.email,
       timestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
-      ops: ops
+      ops: ops,
     };
 
-    console.debug('uploading delta', deltaDoc);
+    console.debug("uploading delta", deltaDoc);
     this.deltasRef.doc().set(deltaDoc);
   }
 
@@ -533,7 +547,7 @@ export default class Document extends React.Component {
     }
 
     // Update or delete highlights based on local edits.
-    Object.values(this.highlights).forEach(h => {
+    Object.values(this.highlights).forEach((h) => {
       let current = this.getHighlightFromEditor(h.ID);
 
       if (current === undefined) {
@@ -543,30 +557,37 @@ export default class Document extends React.Component {
         return;
       }
 
-      if (current.tagID !== h.tagID ||
+      if (
+        current.tagID !== h.tagID ||
         current.selection.index !== h.selection.index ||
         current.selection.length !== h.selection.length ||
-        current.text !== h.text) {
-
+        current.text !== h.text
+      ) {
         console.debug("syncHighlights: updating highlight", h, current);
 
         // upload diff
-        this.highlightsRef.doc(h.ID).set({
-          tagID: current.tagID,
-          selection: {
-            index: current.selection.index,
-            length: current.selection.length,
+        this.highlightsRef.doc(h.ID).set(
+          {
+            tagID: current.tagID,
+            selection: {
+              index: current.selection.index,
+              length: current.selection.length,
+            },
+            text: current.text,
+            lastUpdateTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
           },
-          text: current.text,
-          lastUpdateTimestamp: window.firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
+          { merge: true }
+        );
       }
     });
 
     let editorHighlightIDs = this.getHighlightIDsFromEditor();
-    editorHighlightIDs.forEach(highlightID => {
+    editorHighlightIDs.forEach((highlightID) => {
       let current = this.getHighlightFromEditor(highlightID);
-      if (current !== undefined && !this.highlights.hasOwnProperty(highlightID)) {
+      if (
+        current !== undefined &&
+        !this.highlights.hasOwnProperty(highlightID)
+      ) {
         let newHighlight = {
           ID: highlightID,
           organizationID: this.props.orgID,
@@ -579,7 +600,7 @@ export default class Document extends React.Component {
           text: current.text,
           createdBy: this.props.user.email,
           creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
-          lastUpdateTimestamp: window.firebase.firestore.FieldValue.serverTimestamp()
+          lastUpdateTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
         };
 
         console.debug("syncHighlights: creating highlight", newHighlight);
@@ -591,14 +612,13 @@ export default class Document extends React.Component {
   // onSelect is invoked when the content selection changes, including
   // whenever the cursor changes position.
   onSelect(range, source, editor) {
-    if (source !== 'user') {
+    if (source !== "user") {
       return;
     }
     if (range === null) {
       // this.currentSelection = undefined;
       return;
-    }
-    else {
+    } else {
       this.currentSelection = range;
     }
 
@@ -622,32 +642,38 @@ export default class Document extends React.Component {
       console.debug("formatting highlight with tag ", tag);
       let selectionText = editor.getText(
         this.currentSelection.index,
-        this.currentSelection.length);
+        this.currentSelection.length
+      );
 
       let highlightID = nanoid();
 
       let delta = editor.formatText(
         this.currentSelection.index,
         this.currentSelection.length,
-        'highlight',
+        "highlight",
         { highlightID: highlightID, tagID: tag.ID },
-        'user'
+        "user"
       );
     }
 
     if (!checked) {
-      let intersectingHighlights = this.computeHighlightsInSelection(this.currentSelection);
+      let intersectingHighlights = this.computeHighlightsInSelection(
+        this.currentSelection
+      );
 
-      intersectingHighlights.forEach(h => {
+      intersectingHighlights.forEach((h) => {
         if (h.tagID === tag.ID) {
-          console.debug("deleting highlight format in current selection with tag ", tag);
+          console.debug(
+            "deleting highlight format in current selection with tag ",
+            tag
+          );
 
           let delta = editor.removeFormat(
             h.selection.index,
             h.selection.length,
-            'highlight',
-            false,  // unsets the target format
-            'user'
+            "highlight",
+            false, // unsets the target format
+            "user"
           );
 
           this.localDelta = this.localDelta.compose(delta);
@@ -663,13 +689,13 @@ export default class Document extends React.Component {
     let newTagGroupID = e.target.value;
 
     if (newTagGroupID !== this.state.tagGroupID) {
-
       // Confirm this change if the the set of highlights is not empty.
       let numHighlights = Object.keys(this.highlights).length;
       if (numHighlights > 0) {
-
         console.debug("TODO: use a modal for this instead");
-        let proceed = window.confirm(`This operation will delete ${numHighlights} highlights.\nAre you sure you want to change tag groups?`);
+        let proceed = window.confirm(
+          `This operation will delete ${numHighlights} highlights.\nAre you sure you want to change tag groups?`
+        );
 
         if (!proceed) {
           console.debug("user declined to proceeed changing tag group");
@@ -683,137 +709,160 @@ export default class Document extends React.Component {
         let delta = editor.removeFormat(
           0,
           editor.getLength(),
-          'highlight',
-          false,  // unsets the target format
-          'user'
+          "highlight",
+          false, // unsets the target format
+          "user"
         );
 
         this.localDelta = this.localDelta.compose(delta);
       }
 
-      this.documentRef.set({
-        tagGroupID: newTagGroupID
-      }, { merge: true });
+      this.documentRef.set(
+        {
+          tagGroupID: newTagGroupID,
+        },
+        { merge: true }
+      );
     }
   }
 
   render() {
     if (!this.state.exists) {
-      return <Navigate to="/404" />
+      return <Navigate to="/404" />;
     }
 
-    if (!this.state.loadedDocument ||
+    if (
+      !this.state.loadedDocument ||
       !this.state.loadedDeltas ||
       !this.state.loadedTags ||
-      !this.state.loadedTagGroups) {
-      return <Loading />
+      !this.state.loadedTagGroups
+    ) {
+      return <Loading />;
     }
 
     if (this.state.deletionTimestamp !== "") {
       let date = this.state.deletionTimestamp.toDate();
 
-      return <Container>
-        <Row>
-          <Col>
-            <h3>{this.state.name}</h3>
-          </Col>
-        </Row>
-        <Row>
-          <Col>
-            <p>This document was deleted at {date.toString()} by {this.state.deletedBy}</p>
-          </Col>
-        </Row>
-      </Container>;
+      return (
+        <Container>
+          <Row>
+            <Col>
+              <h3>{this.state.name}</h3>
+            </Col>
+          </Row>
+          <Row>
+            <Col>
+              <p>
+                This document was deleted at {date.toString()} by{" "}
+                {this.state.deletedBy}
+              </p>
+            </Col>
+          </Row>
+        </Container>
+      );
     }
 
-    let contentTabPane = <Tab.Pane eventKey="content">
-      <Container className="p-3">
-        <Row>
+    let contentTabPane = (
+      <Tab.Pane eventKey="content">
+        <Container className="p-3">
+          <Row>
+            <Col>
+              <ReactQuill
+                ref={(el) => {
+                  this.reactQuillRef = el;
+                }}
+                defaultValue={this.state.initialDelta}
+                theme="bubble"
+                placeholder="Start typing here and select to mark highlights"
+                onChange={this.onEdit}
+                onChangeSelection={this.onSelect}
+              />
+            </Col>
+            <Col ms={2} md={2}>
+              <Tags
+                tags={Object.values(this.state.tags)}
+                tagIDsInSelection={this.state.tagIDsInSelection}
+                onChange={this.onTagControlChange}
+              />
+            </Col>
+          </Row>
+        </Container>
+      </Tab.Pane>
+    );
+
+    let detailsTabPane = (
+      <Tab.Pane eventKey="details">
+        <Container className="p-3">
+          <Row className="mb-3">
+            <Col>
+              <Form>
+                <Form.Group>
+                  <Form.Label>Tag group</Form.Label>
+                  <Form.Control
+                    as="select"
+                    onChange={this.onTagGroupChange}
+                    defaultValue={this.state.tagGroupID}
+                  >
+                    <option value="" style={{ fontStyle: "italic" }}>
+                      Choose a tag group...
+                    </option>
+                    {this.state.tagGroups.map((group) => {
+                      return <option value={group.ID}>{group.name}</option>;
+                    })}
+                  </Form.Control>
+                </Form.Group>
+              </Form>
+            </Col>
+          </Row>
+        </Container>
+      </Tab.Pane>
+    );
+
+    return (
+      <>
+        <Row style={{ paddingBottom: "2rem" }}>
           <Col>
-            <ReactQuill
-              ref={(el) => { this.reactQuillRef = el }}
-              defaultValue={this.state.initialDelta}
-              theme="bubble"
-              placeholder="Start typing here and select to mark highlights"
-              onChange={this.onEdit}
-              onChangeSelection={this.onSelect} />
-          </Col>
-          <Col ms={2} md={2}>
-            <Tags
-              tags={Object.values(this.state.tags)}
-              tagIDsInSelection={this.state.tagIDsInSelection}
-              onChange={this.onTagControlChange} />
-          </Col>
-        </Row>
-      </Container>
-    </Tab.Pane>;
-
-    let detailsTabPane = <Tab.Pane eventKey="details">
-      <Container className="p-3">
-        <Row className="mb-3">
-          <Col>
-            <Form>
-              <Form.Group>
-                <Form.Label>Tag group</Form.Label>
-                <Form.Control as="select"
-                  onChange={this.onTagGroupChange}
-                  defaultValue={this.state.tagGroupID}>
-                  <option value="" style={{ fontStyle: "italic" }}>Choose a tag group...</option>
-                  {
-                    this.state.tagGroups.map(group => {
-                      return <option value={group.ID}>{group.name}</option>
-                    })
-                  }
-                </Form.Control>
-              </Form.Group>
-            </Form>
-
-          </Col>
-        </Row>
-      </Container>
-    </Tab.Pane>;
-
-    return <>
-      <Row style={{ paddingBottom: "2rem" }}>
-        <Col>
-          <ContentEditable
-            innerRef={this.nameRef}
-            tagName='h3'
-            html={this.state.name}
-            disabled={false}
-            onBlur={this.updateName}
-            onKeyDown={checkReturn}
-          />
-        </Col>
-      </Row>
-
-      <Tab.Container id="documentTabs" defaultActiveKey="content">
-        <Row>
-          <Col>
-            <Nav variant="pills">
-              <Nav.Item>
-                <Nav.Link eventKey="content">Content</Nav.Link>
-              </Nav.Item>
-              <Nav.Item>
-                <Nav.Link eventKey="details">Details</Nav.Link>
-              </Nav.Item>
-            </Nav>
+            <ContentEditable
+              innerRef={this.nameRef}
+              tagName="h3"
+              html={this.state.name}
+              disabled={false}
+              onBlur={this.updateName}
+              onKeyDown={checkReturn}
+            />
           </Col>
         </Row>
 
-        <Row className="flex-grow-1">
-          <AutoSizer>
-            {({ height, width }) => (
-              <Col>
-                <Tab.Content style={{ height: height, width: width, overflowY: "auto" }}>
-                  {contentTabPane}
-                  {detailsTabPane}
-                </Tab.Content>
-              </Col>
-            )}
-          </AutoSizer>
-        </Row>
-      </Tab.Container>
-    </>;
+        <Tab.Container id="documentTabs" defaultActiveKey="content">
+          <Row>
+            <Col>
+              <Nav variant="pills">
+                <Nav.Item>
+                  <Nav.Link eventKey="content">Content</Nav.Link>
+                </Nav.Item>
+                <Nav.Item>
+                  <Nav.Link eventKey="details">Details</Nav.Link>
+                </Nav.Item>
+              </Nav>
+            </Col>
+          </Row>
+
+          <Row className="flex-grow-1">
+            <AutoSizer>
+              {({ height, width }) => (
+                <Col>
+                  <Tab.Content
+                    style={{ height: height, width: width, overflowY: "auto" }}
+                  >
+                    {contentTabPane}
+                    {detailsTabPane}
+                  </Tab.Content>
+                </Col>
+              )}
+            </AutoSizer>
+          </Row>
+        </Tab.Container>
+      </>
+    );
   }
 }
