@@ -8,12 +8,18 @@ import Tab from "react-bootstrap/Tab";
 import Button from "react-bootstrap/Button";
 import Badge from "react-bootstrap/Badge";
 
+import { Navigate, useNavigate, useParams } from "react-router-dom";
+
 import { AutoSizer } from "react-virtualized";
 
 import Options from "./Options.js";
 
 export default function Person(props) {
   const [person, setPerson] = useState(undefined);
+
+  let { orgID, personID, tabID } = useParams();
+
+  let navigate = useNavigate();
 
   useEffect(() => {
     let unsubscribe = props.peopleRef.doc(props.personID).onSnapshot((doc) => {
@@ -108,6 +114,25 @@ export default function Person(props) {
     );
   }
 
+  let tabPanes = {
+    "contact": <Tab.Pane eventKey="contact">
+      <Container>{contactFields}</Container>
+    </Tab.Pane>,
+    "activity": <Tab.Pane eventKey="activity">
+      <p>None</p>
+    </Tab.Pane>
+  };
+
+  if (tabID && !(tabID in tabPanes)) {
+    return <Navigate to="/404" />;
+  }
+
+  let activeTab = tabID || "contact";
+
+  const onTabClick = (key) => {
+    navigate(`/orgs/${orgID}/people/${personID}/${key}`);
+  };
+
   return (
     <>
       <Row style={{ paddingBottom: "2rem" }}>
@@ -118,7 +143,10 @@ export default function Person(props) {
           </Button>
         </Col>
       </Row>
-      <Tab.Container id="personTabs" defaultActiveKey="contact">
+      <Tab.Container
+        id="personTabs"
+        activeKey={activeTab}
+        onSelect={onTabClick}>
         <Row>
           <Col>
             <Nav variant="pills">
@@ -126,7 +154,7 @@ export default function Person(props) {
                 <Nav.Link eventKey="contact">Contact</Nav.Link>
               </Nav.Item>
               <Nav.Item>
-                <Nav.Link eventKey="sources">Activity</Nav.Link>
+                <Nav.Link eventKey="activity">Activity</Nav.Link>
               </Nav.Item>
             </Nav>
           </Col>
@@ -139,12 +167,7 @@ export default function Person(props) {
                   <Tab.Content
                     style={{ height: height, width: width, overflowY: "auto" }}
                   >
-                    <Tab.Pane eventKey="contact">
-                      <Container>{contactFields}</Container>
-                    </Tab.Pane>
-                    <Tab.Pane eventKey="activity">
-                      <p></p>
-                    </Tab.Pane>
+                    {Object.values(tabPanes)}
                   </Tab.Content>
                 </Col>
               )}

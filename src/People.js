@@ -16,10 +16,10 @@ import Person from "./Person.js";
 import { useNavigate, useParams } from "react-router-dom";
 
 export default function People(props) {
-  const [personID, setPersonID] = useState(undefined);
+  let { personID, orgID } = useParams();
+
   const [people, setPeople] = useState([]);
 
-  let { perID } = useParams();
   let navigate = useNavigate();
 
   useEffect(() => {
@@ -40,10 +40,6 @@ export default function People(props) {
     return unsubscribe;
   }, []);
 
-  useEffect(() => {
-    setPersonID(perID);
-  }, [perID]);
-
   const onAdd = () => {
     props.peopleRef.add({
       name: "New contact",
@@ -59,7 +55,7 @@ export default function People(props) {
   };
 
   const onClick = (ID) => {
-    navigate(`/orgs/${props.orgID}/people/${ID}`);
+    navigate(`/orgs/${orgID}/people/${ID}`);
   };
 
   const itemLoad = (index) => {
