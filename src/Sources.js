@@ -21,10 +21,9 @@ function initialDelta() {
 }
 
 export default function Sources(props) {
-  const [documentID, setDocumentID] = useState(undefined);
   const [documents, setDocuments] = useState([]);
 
-  let { docID } = useParams();
+  let { orgID, documentID, tabID } = useParams();
   let navigate = useNavigate();
 
   useEffect(() => {
@@ -47,10 +46,6 @@ export default function Sources(props) {
       });
     return unsubscribe;
   }, []);
-
-  useEffect(() => {
-    setDocumentID(docID);
-  }, [docID]);
 
   const onAdd = () => {
     props.documentsRef
@@ -93,7 +88,7 @@ export default function Sources(props) {
   };
 
   const onClick = (ID) => {
-    navigate(`/orgs/${props.orgID}/data/${ID}`);
+    navigate(`/orgs/${orgID}/data/${ID}`);
   };
 
   const onRename = (ID, newName) => {
@@ -135,8 +130,10 @@ export default function Sources(props) {
     view = (
       <Document
         key={documentID}
-        orgID={props.orgID}
+        orgID={orgID}
         documentID={documentID}
+        tabID={tabID}
+        navigate={navigate}
         documentsRef={props.documentsRef}
         tagGroupsRef={props.tagGroupsRef}
         peopleRef={props.peopleRef}

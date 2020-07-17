@@ -17,7 +17,7 @@ export default function Explore(props) {
   const [datasetRef, setDatasetRef] = useState(undefined);
   const [dataset, setDataset] = useState(undefined);
 
-  let { datasetID } = useParams();
+  let { orgID, datasetID } = useParams();
   let navigate = useNavigate();
 
   useEffect(() => {
@@ -73,7 +73,7 @@ export default function Explore(props) {
   };
 
   const onClick = (ID) => {
-    navigate(`/orgs/${props.orgID}/explore/${ID}`);
+    navigate(`/orgs/${orgID}/explore/${ID}`);
   };
 
   const itemLoad = (index) => {
@@ -133,7 +133,6 @@ export default function Explore(props) {
     view = (
       <Dataset
         user={props.user}
-        orgID={props.orgID}
         documentsRef={props.documentsRef}
         dataset={dataset}
         allHighlightsRef={props.allHighlightsRef}

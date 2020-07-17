@@ -7,6 +7,8 @@ import Button from "react-bootstrap/Button";
 import Nav from "react-bootstrap/Nav";
 import Tab from "react-bootstrap/Tab";
 
+import { useParams, useNavigate, Navigate } from 'react-router-dom';
+
 import { AutoSizer } from "react-virtualized";
 
 import DatasetData from "./DatasetData.js";
@@ -14,6 +16,10 @@ import DatasetClusterTab from "./DatasetClusterTab.js";
 import Options from "./Options.js";
 
 export default function Dataset(props) {
+
+  let { orgID, datasetID, tabID } = useParams();
+  let navigate = useNavigate();
+
   // Give a hint if this dataset was deleted while in view.
   if (props.dataset.deletionTimestamp !== "") {
     let date = this.state.deletionTimestamp.toDate();
@@ -37,6 +43,37 @@ export default function Dataset(props) {
     );
   }
 
+  let tabPanes = {
+    "data": <Tab.Pane eventKey="data">
+      <DatasetData
+        dataset={props.dataset}
+        datasetRef={props.datasetRef}
+        documentsRef={props.documentsRef}
+      />
+    </Tab.Pane>,
+
+    "cluster": <Tab.Pane eventKey="cluster" className="fullHeight">
+      <DatasetClusterTab
+        user={props.user}
+        orgID={orgID}
+        dataset={props.dataset}
+        datasetRef={props.datasetRef}
+        documentsRef={props.documentsRef}
+        allHighlightsRef={props.allHighlightsRef}
+      />
+    </Tab.Pane>
+  };
+
+  if (tabID && !(tabID in tabPanes)) {
+    return <Navigate to="/404" />;
+  }
+
+  let activeTab = tabID || "data";
+
+  const onTabClick = (key) => {
+    navigate(`/orgs/${orgID}/explore/${datasetID}/${key}`);
+  };
+
   return (
     <>
       <Row style={{ paddingBottom: "2rem" }}>
@@ -48,7 +85,10 @@ export default function Dataset(props) {
         </Col>
       </Row>
 
-      <Tab.Container id="documentTabs" defaultActiveKey="data">
+      <Tab.Container
+        id="documentTabs"
+        activeKey={activeTab}
+        onSelect={onTabClick}>
         <Row>
           <Col>
             <Nav variant="pills">
@@ -69,24 +109,7 @@ export default function Dataset(props) {
                 <Tab.Content
                   style={{ height: height, width: width, overflowY: "auto" }}
                 >
-                  <Tab.Pane eventKey="data">
-                    <DatasetData
-                      dataset={props.dataset}
-                      datasetRef={props.datasetRef}
-                      documentsRef={props.documentsRef}
-                    />
-                  </Tab.Pane>
-
-                  <Tab.Pane eventKey="cluster" className="fullHeight">
-                    <DatasetClusterTab
-                      user={props.user}
-                      orgID={props.orgID}
-                      dataset={props.dataset}
-                      datasetRef={props.datasetRef}
-                      documentsRef={props.documentsRef}
-                      allHighlightsRef={props.allHighlightsRef}
-                    />
-                  </Tab.Pane>
+                  {Object.values(tabPanes)}
                 </Tab.Content>
               </Col>
             )}
