@@ -134,8 +134,8 @@ export default class Document extends React.Component {
     this.highlights = {};
 
     this.state = {
-      name: "",
       exists: true,
+      name: "",
       deletionTimestamp: "",
       deletedBy: "",
       initialDelta: emptyDelta(),
@@ -175,10 +175,14 @@ export default class Document extends React.Component {
 
         this.setState({
           loadedDocument: true,
-          name: data.name,
-          deletionTimestamp: data.deletionTimestamp,
-          deletedBy: data.deletedBy,
-          tagGroupID: data.tagGroupID,
+
+          document: data,
+
+          // name: data.name,
+          // deletionTimestamp: data.deletionTimestamp,
+          // deletedBy: data.deletedBy,
+          // tagGroupID: data.tagGroupID,
+
           tagsRef: tagsRef,
         });
 
@@ -747,7 +751,7 @@ export default class Document extends React.Component {
         <Container>
           <Row>
             <Col>
-              <h3>{this.state.name}</h3>
+              <h3>{this.state.document.name}</h3>
             </Col>
           </Row>
           <Row>
@@ -795,6 +799,14 @@ export default class Document extends React.Component {
         <Container className="p-3">
           <Row className="mb-3">
             <Col>
+              <p>
+                <small>Created by</small>
+              </p>
+              <p>{this.state.document.createdBy}</p>
+            </Col>
+          </Row>
+          <Row className="mb-3">
+            <Col>
               <Form>
                 <Form.Group>
                   <Form.Label>Tag group</Form.Label>
@@ -825,7 +837,7 @@ export default class Document extends React.Component {
             <ContentEditable
               innerRef={this.nameRef}
               tagName="h3"
-              html={this.state.name}
+              html={this.state.document.name}
               disabled={false}
               onBlur={this.updateName}
               onKeyDown={checkReturn}
@@ -834,7 +846,7 @@ export default class Document extends React.Component {
         </Row>
 
         <Tab.Container id="documentTabs" defaultActiveKey="content">
-          <Row>
+          <Row className="mb-3">
             <Col>
               <Nav variant="pills">
                 <Nav.Item>
@@ -852,7 +864,8 @@ export default class Document extends React.Component {
               {({ height, width }) => (
                 <Col>
                   <Tab.Content
-                    style={{ height: height, width: width, overflowY: "auto" }}
+                    className="scrollBox"
+                    style={{ height: height, width: width }}
                   >
                     {contentTabPane}
                     {detailsTabPane}
