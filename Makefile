@@ -27,3 +27,7 @@ apply-format:
 
 check-format:
 	yarn prettier --check src/
+
+install-git-hooks:
+	rm -f .git/hooks/pre-commit
+	ln -s scripts/pre-commit .git/hooks/pre-commit
