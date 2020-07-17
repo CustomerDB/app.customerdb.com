@@ -788,7 +788,7 @@ export default class Document extends React.Component {
       </Row>
 
       <Tab.Container id="documentTabs" defaultActiveKey="content">
-        <Row>
+        <Row className="mb-3">
           <Col>
             <Nav variant="pills">
               <Nav.Item>
@@ -805,7 +805,7 @@ export default class Document extends React.Component {
           <AutoSizer>
             {({ height, width }) => (
               <Col>
-                <Tab.Content style={{ height: height, width: width, overflowY: "auto" }}>
+                <Tab.Content className="scrollBox" style={{ height: height, width: width }}>
                   {contentTabPane}
                   {detailsTabPane}
                 </Tab.Content>
