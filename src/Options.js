@@ -18,6 +18,7 @@ export default function Options(props) {
   let list = props.options.map((option) => {
     return (
       <Dropdown.Item
+        key={option.name}
         onClick={() => {
           option.onClick(props.item);
         }}
