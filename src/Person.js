@@ -115,12 +115,16 @@ export default function Person(props) {
   }
 
   let tabPanes = {
-    "contact": <Tab.Pane eventKey="contact">
-      <Container>{contactFields}</Container>
-    </Tab.Pane>,
-    "activity": <Tab.Pane eventKey="activity">
-      <p>None</p>
-    </Tab.Pane>
+    contact: (
+      <Tab.Pane eventKey="contact">
+        <Container>{contactFields}</Container>
+      </Tab.Pane>
+    ),
+    activity: (
+      <Tab.Pane eventKey="activity">
+        <p>None</p>
+      </Tab.Pane>
+    ),
   };
 
   if (tabID && !(tabID in tabPanes)) {
@@ -146,7 +150,8 @@ export default function Person(props) {
       <Tab.Container
         id="personTabs"
         activeKey={activeTab}
-        onSelect={onTabClick}>
+        onSelect={onTabClick}
+      >
         <Row>
           <Col>
             <Nav variant="pills">
