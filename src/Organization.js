@@ -72,29 +72,21 @@ export default function Organization(props) {
         <Routes>
           <Route
             path="/"
-            element={
-              <OrganizationHome user={user} orgRef={orgRef} />
-            }
+            element={<OrganizationHome user={user} orgRef={orgRef} />}
           />
 
           <Route path="people/*">
             <Route
               path="/"
-              element={
-                <People peopleRef={peopleRef} user={user} />
-              }
+              element={<People peopleRef={peopleRef} user={user} />}
             />
             <Route
               path=":personID"
-              element={
-                <People peopleRef={peopleRef} user={user} />
-              }
+              element={<People peopleRef={peopleRef} user={user} />}
             />
             <Route
               path=":personID/:tabID"
-              element={
-                <People peopleRef={peopleRef} user={user} />
-              }
+              element={<People peopleRef={peopleRef} user={user} />}
             />
           </Route>
 

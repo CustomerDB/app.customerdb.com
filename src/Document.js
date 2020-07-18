@@ -873,8 +873,8 @@ export default class Document extends React.Component {
     );
 
     let tabPanes = {
-      "content": contentTabPane,
-      "details": detailsTabPane
+      content: contentTabPane,
+      details: detailsTabPane,
     };
 
     if (this.props.tabID && !(this.props.tabID in tabPanes)) {
@@ -884,7 +884,9 @@ export default class Document extends React.Component {
     let activeTab = this.props.tabID || "content";
 
     const onTabClick = (key) => {
-      this.props.navigate(`/orgs/${this.props.orgID}/data/${this.props.documentID}/${key}`);
+      this.props.navigate(
+        `/orgs/${this.props.orgID}/data/${this.props.documentID}/${key}`
+      );
     };
 
     return (
@@ -905,7 +907,8 @@ export default class Document extends React.Component {
         <Tab.Container
           id="documentTabs"
           activeKey={activeTab}
-          onSelect={onTabClick}>
+          onSelect={onTabClick}
+        >
           <Row className="mb-3">
             <Col>
               <Nav variant="pills">

@@ -7,7 +7,7 @@ import Button from "react-bootstrap/Button";
 import Nav from "react-bootstrap/Nav";
 import Tab from "react-bootstrap/Tab";
 
-import { useParams, useNavigate, Navigate } from 'react-router-dom';
+import { useParams, useNavigate, Navigate } from "react-router-dom";
 
 import { AutoSizer } from "react-virtualized";
 
@@ -16,7 +16,6 @@ import DatasetClusterTab from "./DatasetClusterTab.js";
 import Options from "./Options.js";
 
 export default function Dataset(props) {
-
   let { orgID, datasetID, tabID } = useParams();
   let navigate = useNavigate();
 
@@ -44,24 +43,28 @@ export default function Dataset(props) {
   }
 
   let tabPanes = {
-    "data": <Tab.Pane eventKey="data">
-      <DatasetData
-        dataset={props.dataset}
-        datasetRef={props.datasetRef}
-        documentsRef={props.documentsRef}
-      />
-    </Tab.Pane>,
+    data: (
+      <Tab.Pane eventKey="data">
+        <DatasetData
+          dataset={props.dataset}
+          datasetRef={props.datasetRef}
+          documentsRef={props.documentsRef}
+        />
+      </Tab.Pane>
+    ),
 
-    "cluster": <Tab.Pane eventKey="cluster" className="fullHeight">
-      <DatasetClusterTab
-        user={props.user}
-        orgID={orgID}
-        dataset={props.dataset}
-        datasetRef={props.datasetRef}
-        documentsRef={props.documentsRef}
-        allHighlightsRef={props.allHighlightsRef}
-      />
-    </Tab.Pane>
+    cluster: (
+      <Tab.Pane eventKey="cluster" className="fullHeight">
+        <DatasetClusterTab
+          user={props.user}
+          orgID={orgID}
+          dataset={props.dataset}
+          datasetRef={props.datasetRef}
+          documentsRef={props.documentsRef}
+          allHighlightsRef={props.allHighlightsRef}
+        />
+      </Tab.Pane>
+    ),
   };
 
   if (tabID && !(tabID in tabPanes)) {
@@ -88,7 +91,8 @@ export default function Dataset(props) {
       <Tab.Container
         id="documentTabs"
         activeKey={activeTab}
-        onSelect={onTabClick}>
+        onSelect={onTabClick}
+      >
         <Row>
           <Col>
             <Nav variant="pills">

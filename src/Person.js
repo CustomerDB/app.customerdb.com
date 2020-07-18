@@ -115,12 +115,16 @@ export default function Person(props) {
   }
 
   let tabPanes = {
-    "contact": <Tab.Pane eventKey="contact">
-      <Container>{contactFields}</Container>
-    </Tab.Pane>,
-    "activity": <Tab.Pane eventKey="activity">
-      <p>None</p>
-    </Tab.Pane>
+    contact: (
+      <Tab.Pane eventKey="contact">
+        <Container>{contactFields}</Container>
+      </Tab.Pane>
+    ),
+    activity: (
+      <Tab.Pane eventKey="activity">
+        <p>None</p>
+      </Tab.Pane>
+    ),
   };
 
   if (tabID && !(tabID in tabPanes)) {
@@ -146,7 +150,8 @@ export default function Person(props) {
       <Tab.Container
         id="personTabs"
         activeKey={activeTab}
-        onSelect={onTabClick}>
+        onSelect={onTabClick}
+      >
         <Row>
           <Col>
             <Nav variant="pills">
@@ -160,19 +165,18 @@ export default function Person(props) {
           </Col>
         </Row>
         <Row className="flex-grow-1">
-          <Col ms={10} md={10}>
-            <AutoSizer>
-              {({ height, width }) => (
-                <Col className="p-3">
-                  <Tab.Content
-                    style={{ height: height, width: width, overflowY: "auto" }}
-                  >
-                    {Object.values(tabPanes)}
-                  </Tab.Content>
-                </Col>
-              )}
-            </AutoSizer>
-          </Col>
+          <AutoSizer>
+            {({ height, width }) => (
+              <Col>
+                <Tab.Content
+                  className="p-3"
+                  style={{ height: height, width: width, overflowY: "auto" }}
+                >
+                  {Object.values(tabPanes)}
+                </Tab.Content>
+              </Col>
+            )}
+          </AutoSizer>
         </Row>
       </Tab.Container>
     </>
