@@ -165,19 +165,18 @@ export default function Person(props) {
           </Col>
         </Row>
         <Row className="flex-grow-1">
-          <Col ms={10} md={10}>
-            <AutoSizer>
-              {({ height, width }) => (
-                <Col className="p-3">
-                  <Tab.Content
-                    style={{ height: height, width: width, overflowY: "auto" }}
-                  >
-                    {Object.values(tabPanes)}
-                  </Tab.Content>
-                </Col>
-              )}
-            </AutoSizer>
-          </Col>
+          <AutoSizer>
+            {({ height, width }) => (
+              <Col>
+                <Tab.Content
+                  className="p-3"
+                  style={{ height: height, width: width, overflowY: "auto" }}
+                >
+                  {Object.values(tabPanes)}
+                </Tab.Content>
+              </Col>
+            )}
+          </AutoSizer>
         </Row>
       </Tab.Container>
     </>

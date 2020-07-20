@@ -170,6 +170,24 @@ button.addButton {
 .ReactVirtualized__Grid {
   scrollbar-width: none !important;
   outline: none;
+  background: linear-gradient(white 30%, rgba(255, 255, 255, 0)),
+    linear-gradient(rgba(255, 255, 255, 0), white 70%) 0 100%,
+    radial-gradient(
+      farthest-side at 50% 0,
+      rgba(0, 0, 0, 0.2),
+      rgba(0, 0, 0, 0)
+    ),
+    radial-gradient(
+        farthest-side at 50% 100%,
+        rgba(0, 0, 0, 0.2),
+        rgba(0, 0, 0, 0)
+      )
+      0 100%;
+  background-repeat: no-repeat;
+  background-color: white;
+  background-size: 100% 40px, 100% 40px, 100% 14px, 100% 14px;
+  /* Opera doesn't support this in the shorthand */
+  background-attachment: local, local, scroll, scroll;
 }
 
 div.ReactVirtualized__List div.ReactVirtualized__Grid__innerScrollContainer {
@@ -185,8 +203,18 @@ span.inline-highlight {
   font-family: HKGroteskPro !important;
 }
 
+.scrollBoxContainer {
+  display: flex;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+}
+
 .scrollBox {
   overflow-y: auto;
+  flex-grow: 1;
   background: linear-gradient(white 30%, rgba(255, 255, 255, 0)),
     linear-gradient(rgba(255, 255, 255, 0), white 70%) 0 100%,
     radial-gradient(

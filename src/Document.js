@@ -788,22 +788,26 @@ export default class Document extends React.Component {
     }
 
     let contentTabPane = (
-      <Tab.Pane eventKey="content">
-        <Container className="p-3">
-          <Row>
+      <Tab.Pane eventKey="content" className="h-100">
+        <Container className="p-3 h-100">
+          <Row className="h-100 w-100">
             <Col>
-              <ReactQuill
-                ref={(el) => {
-                  this.reactQuillRef = el;
-                }}
-                defaultValue={this.state.initialDelta}
-                theme="bubble"
-                placeholder="Start typing here and select to mark highlights"
-                onChange={this.onEdit}
-                onChangeSelection={this.onSelect}
-              />
+              <div className="scrollBoxContainer">
+                <div className="scrollBox">
+                  <ReactQuill
+                    ref={(el) => {
+                      this.reactQuillRef = el;
+                    }}
+                    defaultValue={this.state.initialDelta}
+                    theme="bubble"
+                    placeholder="Start typing here and select to mark highlights"
+                    onChange={this.onEdit}
+                    onChangeSelection={this.onSelect}
+                  />
+                </div>
+              </div>
             </Col>
-            <Col ms={2} md={2}>
+            <Col md={2}>
               <Tags
                 tags={Object.values(this.state.tags)}
                 tagIDsInSelection={this.state.tagIDsInSelection}
@@ -923,18 +927,9 @@ export default class Document extends React.Component {
           </Row>
 
           <Row className="flex-grow-1">
-            <AutoSizer>
-              {({ height, width }) => (
-                <Col>
-                  <Tab.Content
-                    className="scrollBox"
-                    style={{ height: height, width: width }}
-                  >
-                    {Object.values(tabPanes)}
-                  </Tab.Content>
-                </Col>
-              )}
-            </AutoSizer>
+            <Tab.Content className="w-100">
+              {Object.values(tabPanes)}
+            </Tab.Content>
           </Row>
         </Tab.Container>
       </>
