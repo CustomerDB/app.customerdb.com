@@ -4,6 +4,8 @@ import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
 
+import { useNavigate } from "react-router-dom";
+
 export default class List extends React.Component {
   constructor(props) {
     super(props);
@@ -42,12 +44,19 @@ export default class List extends React.Component {
   }
 
   static Item(props) {
+    const navigate = useNavigate();
+
     return (
       <Row noGutters={true} className="pb-3">
         <Col
           className="ListItem"
-          onClick={() => {
-            console.log(`${props.name} clicked`);
+          onClick={(e) => {
+            // FIXME: Avoid event propagation in a more robust way.
+            let buttonElements = ["path", "svg", "BUTTON"];
+            if (buttonElements.includes(e.target.nodeName)) {
+              return;
+            }
+            navigate(props.path);
           }}
         >
           <Row noGutters={true} className="h-100 p-3">

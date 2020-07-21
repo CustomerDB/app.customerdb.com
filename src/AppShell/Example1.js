@@ -72,7 +72,7 @@ export default function ExampleApp(props) {
           <Navigation.Item
             name="Messages"
             icon={<Mailbox />}
-            path="/debug/shell/messages"
+            path="//debug/shell/messages"
             end={false}
           />
         </Navigation.Top>
@@ -103,212 +103,212 @@ export default function ExampleApp(props) {
             <Scrollable>
               <List.Item
                 name="Connor"
-                path="/debug/shell/connor"
+                path="/debug/shell/messages/connor"
                 options={options(1)}
               />
               <List.Item
                 name="Andrea"
-                path="/debug/shell/andrea"
+                path="/debug/shell/messages/andrea"
                 options={options(1)}
               />
               <List.Item
                 name="Tobi"
-                path="/debug/shell/tobi"
+                path="/debug/shell/messages/tobi"
                 options={options(1)}
               />
               <List.Item
                 name="Tim"
-                path="/debug/shell/tim"
+                path="/debug/shell/messages//tim"
                 options={options(1)}
               />
               <List.Item
                 name="Arjun"
-                path="/debug/shell/arjun"
+                path="/debug/shell/messages/arjun"
                 options={options(1)}
               />
               <List.Item
                 name="Brian"
-                path="/debug/shell/brian"
+                path="/debug/shell/messages/brian"
                 options={options(1)}
               />
               <List.Item
                 name="Connor"
-                path="/debug/shell/connor"
+                path="//debug/shell/messages/connor"
                 options={options(1)}
               />
               <List.Item
                 name="Andrea"
-                path="/debug/shell/andrea"
+                path="/debug/shell/messages/andrea"
                 options={options(1)}
               />
               <List.Item
                 name="Tobi"
-                path="/debug/shell/tobi"
+                path="/debug/shell/messages/tobi"
                 options={options(1)}
               />
               <List.Item
                 name="Tim"
-                path="/debug/shell/tim"
+                path="/debug/shell/messages//tim"
                 options={options(1)}
               />
               <List.Item
                 name="Arjun"
-                path="/debug/shell/arjun"
+                path="/debug/shell/messages/arjun"
                 options={options(1)}
               />
               <List.Item
                 name="Brian"
-                path="/debug/shell/brian"
+                path="/debug/shell/messages/brian"
                 options={options(1)}
               />
               <List.Item
                 name="Connor"
-                path="/debug/shell/connor"
+                path="//debug/shell/messages/connor"
                 options={options(1)}
               />
               <List.Item
                 name="Andrea"
-                path="/debug/shell/andrea"
+                path="/debug/shell/messages/andrea"
                 options={options(1)}
               />
               <List.Item
                 name="Tobi"
-                path="/debug/shell/tobi"
+                path="/debug/shell/messages/tobi"
                 options={options(1)}
               />
               <List.Item
                 name="Tim"
-                path="/debug/shell/tim"
+                path="/debug/shell/messages//tim"
                 options={options(1)}
               />
               <List.Item
                 name="Arjun"
-                path="/debug/shell/arjun"
+                path="/debug/shell/messages/arjun"
                 options={options(1)}
               />
               <List.Item
                 name="Brian"
-                path="/debug/shell/brian"
+                path="/debug/shell/messages/brian"
                 options={options(1)}
               />
               <List.Item
                 name="Connor"
-                path="/debug/shell/connor"
+                path="//debug/shell/messages/connor"
                 options={options(1)}
               />
               <List.Item
                 name="Andrea"
-                path="/debug/shell/andrea"
+                path="/debug/shell/messages/andrea"
                 options={options(1)}
               />
               <List.Item
                 name="Tobi"
-                path="/debug/shell/tobi"
+                path="/debug/shell/messages/tobi"
                 options={options(1)}
               />
               <List.Item
                 name="Tim"
-                path="/debug/shell/tim"
+                path="/debug/shell/messages//tim"
                 options={options(1)}
               />
               <List.Item
                 name="Arjun"
-                path="/debug/shell/arjun"
+                path="/debug/shell/messages/arjun"
                 options={options(1)}
               />
               <List.Item
                 name="Brian"
-                path="/debug/shell/brian"
+                path="/debug/shell/messages/brian"
                 options={options(1)}
               />
               <List.Item
                 name="Connor"
-                path="/debug/shell/connor"
+                path="//debug/shell/messages/connor"
                 options={options(1)}
               />
               <List.Item
                 name="Andrea"
-                path="/debug/shell/andrea"
+                path="/debug/shell/messages/andrea"
                 options={options(1)}
               />
               <List.Item
                 name="Tobi"
-                path="/debug/shell/tobi"
+                path="/debug/shell/messages/tobi"
                 options={options(1)}
               />
               <List.Item
                 name="Tim"
-                path="/debug/shell/tim"
+                path="/debug/shell/messages//tim"
                 options={options(1)}
               />
               <List.Item
                 name="Arjun"
-                path="/debug/shell/arjun"
+                path="/debug/shell/messages/arjun"
                 options={options(1)}
               />
               <List.Item
                 name="Brian"
-                path="/debug/shell/brian"
+                path="/debug/shell/messages/brian"
                 options={options(1)}
               />
               <List.Item
                 name="Connor"
-                path="/debug/shell/connor"
+                path="//debug/shell/messages/connor"
                 options={options(1)}
               />
               <List.Item
                 name="Andrea"
-                path="/debug/shell/andrea"
+                path="/debug/shell/messages/andrea"
                 options={options(1)}
               />
               <List.Item
                 name="Tobi"
-                path="/debug/shell/tobi"
+                path="/debug/shell/messages/tobi"
                 options={options(1)}
               />
               <List.Item
                 name="Tim"
-                path="/debug/shell/tim"
+                path="/debug/shell/messages//tim"
                 options={options(1)}
               />
               <List.Item
                 name="Arjun"
-                path="/debug/shell/arjun"
+                path="/debug/shell/messages/arjun"
                 options={options(1)}
               />
               <List.Item
                 name="Brian"
-                path="/debug/shell/brian"
+                path="/debug/shell/messages/brian"
                 options={options(1)}
               />
               <List.Item
                 name="Connor"
-                path="/debug/shell/connor"
+                path="//debug/shell/messages/connor"
                 options={options(1)}
               />
               <List.Item
                 name="Andrea"
-                path="/debug/shell/andrea"
+                path="/debug/shell/messages/andrea"
                 options={options(1)}
               />
               <List.Item
                 name="Tobi"
-                path="/debug/shell/tobi"
+                path="/debug/shell/messages/tobi"
                 options={options(1)}
               />
               <List.Item
                 name="Tim"
-                path="/debug/shell/tim"
+                path="/debug/shell/messages/tim"
                 options={options(1)}
               />
               <List.Item
                 name="Arjun"
-                path="/debug/shell/arjun"
+                path="/debug/shell/messages/arjun"
                 options={options(1)}
               />
               <List.Item
                 name="Brian"
-                path="/debug/shell/brian"
+                path="/debug/shell/messages/brian"
                 options={options(1)}
               />
             </Scrollable>
@@ -325,7 +325,18 @@ export default function ExampleApp(props) {
                   <div style={{ height: "1000rem" }}>{}</div>
                 </Scrollable>
               </Tabs.Content>
-              <Tabs.SidePane></Tabs.SidePane>
+              <Tabs.SidePane>
+                <Tabs.SidePaneCard>
+                  <small>Tags</small>
+                  <p>Some tag</p>
+                  <p>Another tag</p>
+                </Tabs.SidePaneCard>
+                <Tabs.SidePaneCard>
+                  <small>Machine learning</small>
+                  <p>Some tag</p>
+                  <p>Another tag</p>
+                </Tabs.SidePaneCard>
+              </Tabs.SidePane>
             </Tabs.Pane>
             <Tabs.Pane name="details"></Tabs.Pane>
           </Tabs>

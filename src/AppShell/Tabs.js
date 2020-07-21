@@ -24,7 +24,7 @@ export default class Tabs extends React.Component {
 
   static Content(props) {
     return (
-      <Col className="h-100" md={8}>
+      <Col className="h-100" md={9}>
         {props.children}
       </Col>
     );
@@ -32,9 +32,15 @@ export default class Tabs extends React.Component {
 
   static SidePane(props) {
     return (
-      <Col className="h-100" md={4}>
+      <Col className="h-100" md={3}>
         {props.children}
       </Col>
+    );
+  }
+
+  static SidePaneCard(props) {
+    return (
+      <div className="SidePaneCard p-3 ml-3 mr-3 mb-3">{props.children}</div>
     );
   }
 

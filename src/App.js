@@ -37,9 +37,12 @@ export default function App() {
       <Route path="debug">
         <Route path="shell">
           <Route path="/" element={<ExampleApp />} />
-          <Route path="/messages" element={<ExampleApp />} />
-          <Route path="/settings" element={<ExampleApp />} />
-          <Route path="/logout" element={<ExampleApp />} />
+          <Route path="messages">
+            <Route path="/" element={<ExampleApp />} />
+            <Route path=":id" element={<ExampleApp />} />
+          </Route>
+          <Route path="settings" element={<ExampleApp />} />
+          <Route path="logout" element={<ExampleApp />} />
         </Route>
       </Route>
 
