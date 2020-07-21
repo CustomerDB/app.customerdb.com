@@ -8,7 +8,7 @@ import JoinOrg from "./JoinOrg.js";
 import Login from "./Login.js";
 import Organization from "./Organization.js";
 
-import Shell from "./AppShell/Shell.js";
+import ExampleApp from "./AppShell/Example1.js";
 
 export default function App() {
   return (
@@ -36,10 +36,10 @@ export default function App() {
 
       <Route path="debug">
         <Route path="shell">
-          <Route path="/" element={<Shell />} />
-          <Route path="/messages" element={<Shell />} />
-          <Route path="/settings" element={<Shell />} />
-          <Route path="/logout" element={<Shell />} />
+          <Route path="/" element={<ExampleApp />} />
+          <Route path="/messages" element={<ExampleApp />} />
+          <Route path="/settings" element={<ExampleApp />} />
+          <Route path="/logout" element={<ExampleApp />} />
         </Route>
       </Route>
 
