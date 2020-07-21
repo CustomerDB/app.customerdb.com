@@ -1,5 +1,46 @@
-import React from "react";
+import React, { useState } from "react";
 
-export default function Options(props) {
-  return <></>;
+import Dropdown from "react-bootstrap/Dropdown";
+
+import { ThreeDotsVertical } from "react-bootstrap-icons";
+
+export default class Option extends React.Component {
+  constructor(props) {
+    super(props);
+  }
+
+  static Item(props) {
+    const [showModal, setShowModal] = useState(false);
+
+    let modal = React.cloneElement(props.modal, {
+      show: showModal,
+      onHide: () => {
+        setShowModal(false);
+      },
+    });
+
+    return (
+      <>
+        <Dropdown.Item
+          onClick={() => {
+            setShowModal(true);
+          }}
+        >
+          {props.name}
+        </Dropdown.Item>
+        {modal}
+      </>
+    );
+  }
+
+  render() {
+    return (
+      <Dropdown style={{ width: "2.5rem", marginLeft: "auto" }}>
+        <Dropdown.Toggle variant="link" className="threedots">
+          <ThreeDotsVertical />
+        </Dropdown.Toggle>
+        <Dropdown.Menu>{this.props.children}</Dropdown.Menu>
+      </Dropdown>
+    );
+  }
 }
