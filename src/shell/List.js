@@ -49,8 +49,12 @@ export default class List extends React.Component {
     const navigate = useNavigate();
 
     let listClass = "ListItem";
+    let options = props.options;
     if (props.active) {
       listClass += " Active";
+      options = React.cloneElement(options, {
+        active: true,
+      });
     }
 
     return (
@@ -71,7 +75,7 @@ export default class List extends React.Component {
               <p className="ListItemName">{props.name}</p>
             </Col>
             <Col className="align-self-center" md="auto">
-              <div>{props.options}</div>
+              <div>{options}</div>
             </Col>
           </Row>
         </Col>

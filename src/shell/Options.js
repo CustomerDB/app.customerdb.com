@@ -34,10 +34,17 @@ export default class Option extends React.Component {
   }
 
   render() {
+    let color;
+    if (this.props.active) {
+      color = "white";
+    }
+
+    console.log("option props", this.props);
+
     return (
       <Dropdown style={{ width: "2.5rem", marginLeft: "auto" }}>
         <Dropdown.Toggle variant="link" className="threedots">
-          <ThreeDotsVertical />
+          <ThreeDotsVertical color={color} />
         </Dropdown.Toggle>
         <Dropdown.Menu>{this.props.children}</Dropdown.Menu>
       </Dropdown>
