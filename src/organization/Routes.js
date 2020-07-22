@@ -1,8 +1,9 @@
 import React from "react";
 
-import OrganizationHome from "../OrganizationHome.js";
+import OrganizationHome from "./OrganizationHome.js";
 import People from "../people/People.js";
-import Sources from "../Sources.js";
+// import Sources from "../Sources.js";
+import Data from "../data/Data.js";
 import Explore from "../Explore.js";
 import Settings from "../Settings.js";
 
@@ -49,7 +50,7 @@ export default function OrganizationRoutes(props) {
           <Route
             path="/"
             element={
-              <Sources
+              <Data
                 documentsRef={documentsRef}
                 tagGroupsRef={tagGroupsRef}
                 peopleRef={peopleRef}
@@ -60,7 +61,7 @@ export default function OrganizationRoutes(props) {
           <Route
             path=":documentID"
             element={
-              <Sources
+              <Data
                 documentsRef={documentsRef}
                 tagGroupsRef={tagGroupsRef}
                 peopleRef={peopleRef}
@@ -71,7 +72,7 @@ export default function OrganizationRoutes(props) {
           <Route
             path=":documentID/:tabID"
             element={
-              <Sources
+              <Data
                 documentsRef={documentsRef}
                 tagGroupsRef={tagGroupsRef}
                 peopleRef={peopleRef}

@@ -2,16 +2,11 @@ import React from "react";
 import { useEffect, useState } from "react";
 
 import "bootstrap/dist/css/bootstrap.min.css";
-import "./App.css";
-
-import OrganizationRoutes from "./organization/Routes.js";
+import "../App.css";
 
 import { useNavigate, useParams } from "react-router-dom";
 
-import { logout, Loading } from "./Utils.js";
-
-import Shell from "./shell/Shell.js";
-import Navigation from "./shell/Navigation.js";
+import { logout, Loading } from "../Utils.js";
 
 import {
   DoorOpen,
@@ -21,6 +16,12 @@ import {
   Intersect,
   House,
 } from "react-bootstrap-icons";
+
+import OrganizationRoutes from "./Routes.js";
+
+import Shell from "../shell/Shell.js";
+import Navigation from "../shell/Navigation.js";
+
 const db = window.firebase.firestore();
 
 export default function Organization(props) {
