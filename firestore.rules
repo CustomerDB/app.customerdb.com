@@ -17,6 +17,12 @@ service cloud.firestore {
       return member.data.active == true;
     }
 
+    // Allow clients to subscribe to their own token refresh trigger
+    match /uids/{uid} {
+      allow read: if signedInAndVerified()
+                  && request.auth.uid == uid;
+    }
+
     // Only allow verified emails with the 'invited' bit set, to change to 'active' (and remove the invited 'bit' in the same operation).
     match /organizations/{orgID}/members/{email} {
       allow write: if signedInAndVerified()

@@ -1,28 +1,53 @@
 import React from "react";
-import { useState, useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 
-import { Loading, logout } from "./Utils.js";
+import WithOauthUser from "./auth/WithOauthUser.js";
+import Login from "./auth/Login.js";
+import Logout from "./auth/Logout.js";
+import JoinOrg from "./auth/JoinOrg.js";
 import Error404 from "./404.js";
-import JoinOrg from "./JoinOrg.js";
-import Login from "./Login.js";
 import Organization from "./organization/Organization.js";
 
 export default function App() {
   return (
     <Routes caseSensitive>
-      <Route path="/" element={<WithOauthUser element={<Login />} />} />
+      <Route
+        path="/"
+        element={
+          <WithOauthUser>
+            <Login />
+          </WithOauthUser>
+        }
+      />
 
-      <Route path="login" element={<WithOauthUser element={<Login />} />} />
+      <Route
+        path="login"
+        element={
+          <WithOauthUser>
+            <Login />
+          </WithOauthUser>
+        }
+      />
 
       <Route path="join">
-        <Route path=":id" element={<WithOauthUser element={<JoinOrg />} />} />
+        <Route
+          path=":id"
+          element={
+            <WithOauthUser>
+              <JoinOrg />
+            </WithOauthUser>
+          }
+        />
       </Route>
 
       <Route path="orgs">
         <Route
           path=":orgID/*"
-          element={<WithOauthUser element={<Organization />} />}
+          element={
+            <WithOauthUser>
+              <Organization />
+            </WithOauthUser>
+          }
         />
       </Route>
 
@@ -34,33 +59,4 @@ export default function App() {
       <Route path="*" element={<Navigate to="/404" />} />
     </Routes>
   );
-}
-
-function Logout(props) {
-  logout();
-  return <Navigate to="/" />;
-}
-
-function WithOauthUser(props) {
-  const [oauthUser, setOauthUser] = useState(null);
-  const [oauthLoading, setOauthLoading] = useState(true);
-
-  useEffect(() => {
-    const loginCallback = (user) => {
-      console.debug("loginCallback user", user);
-      setOauthUser(user);
-      setOauthLoading(false);
-    };
-    let unsubscribe = window.firebase.auth().onAuthStateChanged(loginCallback);
-    return unsubscribe;
-  }, [props.element]);
-
-  if (oauthLoading) {
-    return <Loading />;
-  }
-
-  return React.cloneElement(props.element, {
-    oauthUser: oauthUser,
-    oauthLoading: oauthLoading,
-  });
 }

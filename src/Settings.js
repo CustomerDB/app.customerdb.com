@@ -1,5 +1,6 @@
-import React from "react";
-import { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
+
+import UserAuthContext from "./auth/UserAuthContext";
 
 import Col from "react-bootstrap/Col";
 import Container from "react-bootstrap/Container";
@@ -27,7 +28,9 @@ import Tags from "./Tags.js";
 import { AutoSizer, List as VirtList } from "react-virtualized";
 
 export default function Settings(props) {
-  let { orgID } = useParams();
+  const auth = useContext(UserAuthContext);
+
+  const { orgID } = useParams();
   const navigate = useNavigate();
 
   let list = [
@@ -38,13 +41,13 @@ export default function Settings(props) {
       path: `/orgs/${orgID}/settings/`,
       content: (
         <Col md={8}>
-          <Profile user={props.user} membersRef={props.membersRef} />
+          <Profile membersRef={props.membersRef} />
         </Col>
       ),
     },
   ];
 
-  if (props.user.admin == true) {
+  if (auth.oauthClaims.admin === true) {
     list.push({
       name: "members",
       title: "Members",
@@ -52,7 +55,7 @@ export default function Settings(props) {
       path: `/orgs/${orgID}/settings/members`,
       content: (
         <Col md={8}>
-          <Members user={props.user} membersRef={props.membersRef} />
+          <Members membersRef={props.membersRef} />
         </Col>
       ),
     });
@@ -64,7 +67,7 @@ export default function Settings(props) {
       path: `/orgs/${orgID}/settings/organization`,
       content: (
         <Col md={8}>
-          <Organization user={props.user} />
+          <Organization />
         </Col>
       ),
     });
@@ -76,7 +79,7 @@ export default function Settings(props) {
       path: `/orgs/${orgID}/settings/backup`,
       content: (
         <Col md={8}>
-          <Backup user={props.user} />
+          <Backup />
         </Col>
       ),
     });
@@ -87,14 +90,7 @@ export default function Settings(props) {
     title: "Tag management",
     icon: <TagsIcon size={30} />,
     path: `/orgs/${orgID}/settings/tags`,
-    content: (
-      <Tags
-        user={props.user}
-        orgID={props.orgID}
-        tagGroupsRef={props.tagGroupsRef}
-        user={props.user}
-      />
-    ),
+    content: <Tags orgID={props.orgID} tagGroupsRef={props.tagGroupsRef} />,
   });
 
   const [view, setView] = useState();
@@ -174,6 +170,7 @@ export default function Settings(props) {
 }
 
 function Profile(props) {
+  const auth = useContext(UserAuthContext);
   const [displayName, setDisplayName] = useState();
   const [profile, setProfile] = useState();
   const [show, setShow] = useState(false);
@@ -181,21 +178,21 @@ function Profile(props) {
   useEffect(() => {
     let unsubscribe;
     if (props.membersRef !== undefined) {
-      console.log("Profile :: useEffect");
-
-      unsubscribe = props.membersRef.doc(props.user.email).onSnapshot((doc) => {
-        let data = doc.data();
-        console.log("data", data);
-        setDisplayName(data.displayName);
-        setProfile(data);
-      });
+      unsubscribe = props.membersRef
+        .doc(auth.oauthClaims.email)
+        .onSnapshot((doc) => {
+          let data = doc.data();
+          console.log("data", data);
+          setDisplayName(data.displayName);
+          setProfile(data);
+        });
     }
     return unsubscribe;
   }, [props.membersRef]);
 
   const onSave = () => {
     profile.displayName = displayName;
-    props.membersRef.doc(props.user.email).set(profile);
+    props.membersRef.doc(auth.oauthClaims.email).set(profile);
     setShow(true);
   };
 
@@ -213,7 +210,7 @@ function Profile(props) {
             <br />
             <Image
               style={{ width: "10rem" }}
-              src={props.user.photoURL}
+              src={auth.oauthClaims.picture}
               roundedCircle
               alt="..."
             />
@@ -223,7 +220,7 @@ function Profile(props) {
           <Col>
             <Form.Label>Email</Form.Label>
             <br />
-            <p>{props.user.email}</p>
+            <p>{auth.oauthClaims.email}</p>
           </Col>
         </Row>
         <Row className="mb-3">

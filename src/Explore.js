@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useContext, useState, useEffect } from "react";
+
+import UserAuthContext from "./auth/UserAuthContext.js";
 
 import Col from "react-bootstrap/Col";
 import Container from "react-bootstrap/Container";
@@ -13,6 +15,8 @@ import List from "./List.js";
 import { useNavigate, useParams } from "react-router-dom";
 
 export default function Explore(props) {
+  const auth = useContext(UserAuthContext);
+
   const [datasets, setDatasets] = useState(undefined);
   const [datasetRef, setDatasetRef] = useState(undefined);
   const [dataset, setDataset] = useState(undefined);
@@ -60,7 +64,7 @@ export default function Explore(props) {
   const onAdd = () => {
     props.datasetsRef.add({
       name: "New dataset",
-      createdBy: props.user.email,
+      createdBy: auth.oauthClaims.email,
       creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
       documentIDs: [],
 
@@ -91,7 +95,7 @@ export default function Explore(props) {
 
   const onDelete = (ID) => {
     props.datasetsRef.doc(ID).update({
-      deletedBy: props.user.email,
+      deletedBy: auth.oauthClaims.email,
       deletionTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
     });
 
@@ -132,7 +136,6 @@ export default function Explore(props) {
   if (dataset !== undefined) {
     view = (
       <Dataset
-        user={props.user}
         documentsRef={props.documentsRef}
         dataset={dataset}
         allHighlightsRef={props.allHighlightsRef}

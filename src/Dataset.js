@@ -56,7 +56,6 @@ export default function Dataset(props) {
     cluster: (
       <Tab.Pane eventKey="cluster" className="fullHeight">
         <DatasetClusterTab
-          user={props.user}
           orgID={orgID}
           dataset={props.dataset}
           datasetRef={props.datasetRef}

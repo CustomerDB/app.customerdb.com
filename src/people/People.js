@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useContext, useState, useEffect } from "react";
+
+import UserAuthContext from "../auth/UserAuthContext.js";
 
 import Page from "../shell/Page.js";
 import List from "../shell/List.js";
@@ -18,9 +20,11 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Loading } from "../Utils.js";
 
 export default function People(props) {
-  let navigate = useNavigate();
+  const auth = useContext(UserAuthContext);
 
-  let { personID, orgID } = useParams();
+  const navigate = useNavigate();
+
+  const { personID, orgID } = useParams();
 
   const [peopleList, setPeopleList] = useState();
   const [peopleMap, setPeopleMap] = useState();
@@ -47,7 +51,7 @@ export default function People(props) {
                     console.log(`Delete ${person.name} with ${person.ID}!`);
                     personRef.set(
                       {
-                        deletedBy: props.user.email,
+                        deletedBy: auth.oauthClaims.email,
                         deletionTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
                       },
                       { merge: true }
@@ -134,7 +138,7 @@ export default function People(props) {
               props.peopleRef
                 .add({
                   name: "Unnamed person",
-                  createdBy: props.user.email,
+                  createdBy: auth.oauthClaims.email,
                   creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
                   deletionTimestamp: "",
                 })
