@@ -38,7 +38,7 @@ export default class Tags extends React.Component {
           }}
           label={label}
           title={t.name}
-          onClick={(e) => {
+          onChange={(e) => {
             this.onTagControlChange(e, t);
           }}
         />

@@ -17,11 +17,11 @@ import Form from "react-bootstrap/Form";
 import Tab from "react-bootstrap/Tab";
 import Nav from "react-bootstrap/Nav";
 
-import { Loading } from "./Utils.js";
+import { Loading } from "../Utils.js";
 
-import Tags, { addTagStyles, removeTagStyles } from "./editor/Tags.js";
+import Tags, { addTagStyles, removeTagStyles } from "./Tags.js";
+import HighlightBlot from "./HighlightBlot.js";
 
-import HighlightBlot from "./editor/HighlightBlot.js";
 Quill.register("formats/highlight", HighlightBlot);
 
 // Returns a new delta object representing an empty document.
@@ -161,8 +161,13 @@ export default class Document extends React.Component {
     // Subscribe to document name changes
     this.subscriptions.push(
       this.documentRef.onSnapshot((doc) => {
+        if (!doc.exists) {
+          console.log("document does not exist");
+          this.props.navigate("/404");
+          return;
+        }
+
         let data = doc.data();
-        console.debug("data", data);
 
         let tagsRef = undefined;
         if (data.tagGroupID && data.tagGroupID !== "") {
@@ -788,7 +793,7 @@ export default class Document extends React.Component {
     }
 
     let contentTabPane = (
-      <Tab.Pane eventKey="content" className="h-100">
+      <Tab.Pane key="content" eventKey="content" className="h-100">
         <Container className="p-3 h-100">
           <Row className="h-100 w-100">
             <Col>
@@ -820,7 +825,7 @@ export default class Document extends React.Component {
     );
 
     let detailsTabPane = (
-      <Tab.Pane eventKey="details">
+      <Tab.Pane key="details" eventKey="details">
         <Container className="p-3">
           <Row className="mb-3">
             <Col>
@@ -844,7 +849,11 @@ export default class Document extends React.Component {
                       Choose person...
                     </option>
                     {this.state.people.map((person) => {
-                      return <option value={person.ID}>{person.name}</option>;
+                      return (
+                        <option key={person.ID} value={person.ID}>
+                          {person.name}
+                        </option>
+                      );
                     })}
                   </Form.Control>
                 </Form.Group>
@@ -865,7 +874,11 @@ export default class Document extends React.Component {
                       Choose a tag group...
                     </option>
                     {this.state.tagGroups.map((group) => {
-                      return <option value={group.ID}>{group.name}</option>;
+                      return (
+                        <option key={group.ID} value={group.ID}>
+                          {group.name}
+                        </option>
+                      );
                     })}
                   </Form.Control>
                 </Form.Group>

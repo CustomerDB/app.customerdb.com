@@ -113,7 +113,7 @@ export default function People(props) {
       <></>
     );
 
-  let modal = (
+  let addModal = (
     <PersonEditModal
       show={addModalShow}
       onHide={() => {
@@ -145,7 +145,7 @@ export default function People(props) {
                 });
             }}
           />
-          {modal}
+          {addModal}
         </List.Title>
         <List.Items>
           <Scrollable>{peopleComponents}</Scrollable>

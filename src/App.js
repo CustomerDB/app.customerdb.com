@@ -6,7 +6,7 @@ import { Loading, logout } from "./Utils.js";
 import Error404 from "./404.js";
 import JoinOrg from "./JoinOrg.js";
 import Login from "./Login.js";
-import Organization from "./Organization.js";
+import Organization from "./organization/Organization.js";
 
 export default function App() {
   return (
