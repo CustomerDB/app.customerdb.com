@@ -6,8 +6,8 @@ import Card from "./Card.js";
 import Group from "./Group.js";
 import Pointers from "./Pointers.js";
 import HighlightModal from "./HighlightModal.js";
-import colorPair from "./color.js";
-import { Loading } from "./Utils.js";
+import colorPair from "../util/color.js";
+import { Loading } from "../util/Utils.js";
 
 export default class DatasetClusterBoard extends React.Component {
   constructor(props) {

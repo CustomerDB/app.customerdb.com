@@ -8,7 +8,7 @@ import "../App.css";
 
 import { useNavigate, useParams } from "react-router-dom";
 
-import { Loading } from "../Utils.js";
+import { Loading } from "../util/Utils.js";
 
 import {
   DoorOpen,
@@ -19,8 +19,7 @@ import {
   House,
 } from "react-bootstrap-icons";
 
-import OrganizationRoutes from "./Routes.js";
-
+import OrganizationRoutes from "./OrganizationRoutes.js";
 import Shell from "../shell/Shell.js";
 import Navigation from "../shell/Navigation.js";
 

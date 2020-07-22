@@ -17,7 +17,7 @@ import Button from "react-bootstrap/Button";
 
 import { useParams, useNavigate } from "react-router-dom";
 
-import { Loading } from "../Utils.js";
+import { Loading } from "../util/Utils.js";
 
 export default function People(props) {
   const auth = useContext(UserAuthContext);

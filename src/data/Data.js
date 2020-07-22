@@ -18,7 +18,7 @@ import Options from "../shell/Options.js";
 import Page from "../shell/Page.js";
 import Scrollable from "../shell/Scrollable.js";
 
-import { Loading } from "../Utils.js";
+import { Loading } from "../util/Utils.js";
 
 function initialDelta() {
   return new Delta([{ insert: "\n" }]);

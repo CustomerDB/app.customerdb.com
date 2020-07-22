@@ -13,7 +13,7 @@ import { AutoSizer } from "react-virtualized";
 
 import DatasetData from "./DatasetData.js";
 import DatasetClusterTab from "./DatasetClusterTab.js";
-import Options from "./Options.js";
+import Options from "../Options.js";
 
 export default function Dataset(props) {
   let { orgID, datasetID, tabID } = useParams();
