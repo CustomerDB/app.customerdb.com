@@ -45,13 +45,17 @@ export default class Tabs extends React.Component {
   }
 
   render() {
+    let children = this.props.children;
+    if (!Array.isArray(children)) {
+      children = [children];
+    }
     return (
       <BootstrapTabs
         activeKey={this.state.key}
         onSelect={(k) => this.setState({ key: k })}
         variant="pills"
       >
-        {this.props.children.map((pane) => (
+        {children.map((pane) => (
           <BootstrapTab eventKey={pane.props.name} title={pane.props.name}>
             {pane}
           </BootstrapTab>

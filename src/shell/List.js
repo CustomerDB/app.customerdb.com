@@ -30,7 +30,9 @@ export default class List extends React.Component {
   static Add(props) {
     return (
       <Col md={2}>
-        <Button className="Add">+</Button>
+        <Button className="Add" onClick={props.onClick}>
+          +
+        </Button>
       </Col>
     );
   }
@@ -46,10 +48,15 @@ export default class List extends React.Component {
   static Item(props) {
     const navigate = useNavigate();
 
+    let listClass = "ListItem";
+    if (props.active) {
+      listClass += " Active";
+    }
+
     return (
       <Row noGutters={true} className="pb-3">
         <Col
-          className="ListItem"
+          className={listClass}
           onClick={(e) => {
             // FIXME: Avoid event propagation in a more robust way.
             let buttonElements = ["path", "svg", "BUTTON"];

@@ -8,8 +8,6 @@ import JoinOrg from "./JoinOrg.js";
 import Login from "./Login.js";
 import Organization from "./Organization.js";
 
-import ExampleApp from "./AppShell/Example1.js";
-
 export default function App() {
   return (
     <Routes caseSensitive>
@@ -33,19 +31,6 @@ export default function App() {
       <Route path="logout">
         <Logout />
       </Route>
-
-      <Route path="debug">
-        <Route path="shell">
-          <Route path="/" element={<ExampleApp />} />
-          <Route path="messages">
-            <Route path="/" element={<ExampleApp />} />
-            <Route path=":id" element={<ExampleApp />} />
-          </Route>
-          <Route path="settings" element={<ExampleApp />} />
-          <Route path="logout" element={<ExampleApp />} />
-        </Route>
-      </Route>
-
       <Route path="*" element={<Navigate to="/404" />} />
     </Routes>
   );

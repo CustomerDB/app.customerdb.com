@@ -15,8 +15,12 @@ div.ListItem {
   cursor: pointer;
 }
 
+div.ListItem.Active {
+  background-color: #487cfb;
+  color: white;
+}
+
 p.ListItemName {
-  font-size: 1.25rem;
   margin: 0;
 }
 
