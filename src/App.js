@@ -59,6 +59,8 @@ function WithOauthUser(props) {
     return <Loading />;
   }
 
+  console.log(oauthUser);
+
   return React.cloneElement(props.element, {
     oauthUser: oauthUser,
     oauthLoading: oauthLoading,

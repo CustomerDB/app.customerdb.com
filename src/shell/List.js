@@ -6,12 +6,22 @@ import Button from "react-bootstrap/Button";
 
 import { useNavigate } from "react-router-dom";
 
+import {
+  InstantSearch,
+  SearchBox,
+  connectStateResults,
+  Configure,
+} from "react-instantsearch-dom";
+
 export default class List extends React.Component {
   constructor(props) {
     super(props);
   }
 
   static Search(props) {
+    // props.path = (ID) => {}
+    // props.options = (ID) => {}
+    // return <SearchBox />;
     return <></>;
   }
 
@@ -84,6 +94,8 @@ export default class List extends React.Component {
   }
 
   render() {
+    // Check whether a search component is
+
     return (
       <Col md={3} className="pt-4">
         <Container className="d-flex flex-column h-100">

@@ -1,11 +1,18 @@
 const sgMail = require("@sendgrid/mail");
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
-admin.initializeApp();
 const path = require("path");
 const os = require("os");
 const fs = require("fs");
 const csv = require("csv-parser");
+const algoliasearch = require("algoliasearch");
+
+admin.initializeApp();
+
+const ALGOLIA_ID = functions.config().algolia.app_id;
+const ALGOLIA_ADMIN_KEY = functions.config().algolia.api_key;
+const ALGOLIA_SEARCH_KEY = functions.config().algolia.search_key;
+const client = algoliasearch(ALGOLIA_ID, ALGOLIA_ADMIN_KEY);
 
 exports.getSearchKey = functions.https.onCall((data, context) => {
   // Require authenticated requests
