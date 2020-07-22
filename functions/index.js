@@ -1,11 +1,10 @@
 const sgMail = require("@sendgrid/mail");
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
-const path = require("path");
-const os = require("os");
 const fs = require("fs");
-const csv = require("csv-parser");
 const algoliasearch = require("algoliasearch");
+const Delta = require("quill-delta");
+const toPlaintext = require("quill-delta-to-plaintext");
 
 admin.initializeApp();
 
@@ -209,9 +208,9 @@ exports.onDocumentWritten = functions.firestore
       return index.deleteObject(context.params.documentID);
     }
 
-    if (data.needsIndex === true) {
-      let latestSnapshot = new Delta(data.latestSnapshot.ops);
+    let latestSnapshot = new Delta(data.latestSnapshot.ops);
 
+    if (data.needsIndex === true) {
       let ts = data.latestSnapshotTimestamp;
       if (ts === "") {
         ts = new admin.firestore.Timestamp(0, 0);
@@ -267,7 +266,7 @@ exports.onDocumentWritten = functions.firestore
       createdBy: data.createdBy,
       creationTimestamp: data.creationTimestamp,
       latestSnapshotTimestamp: data.latestSnapshotTimestamp.seconds,
-      text: toPlaintext(data.latestSnapshot),
+      text: toPlaintext(latestSnapshot),
     });
   });
 
