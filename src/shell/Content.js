@@ -19,6 +19,10 @@ export default class Content extends React.Component {
     );
   }
 
+  static Options(props) {
+    return <Col>{props.children}</Col>;
+  }
+
   render() {
     return (
       <Col md={9} className="pt-4 pl-4 d-flex flex-column">

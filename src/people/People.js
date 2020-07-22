@@ -27,36 +27,7 @@ export default function People(props) {
   const [addModalShow, setAddModalShow] = useState();
   const [newPersonRef, setNewPersonRef] = useState();
 
-  useEffect(() => {
-    let unsubscribe = props.peopleRef
-      .where("deletionTimestamp", "==", "")
-      .orderBy("creationTimestamp", "desc")
-      .onSnapshot((snapshot) => {
-        let newPeopleList = [];
-        let newPeopleMap = {};
-
-        snapshot.forEach((doc) => {
-          let data = doc.data();
-          data.ID = doc.id;
-          newPeopleList.push(data);
-          newPeopleMap[data.ID] = data;
-        });
-
-        setPeopleList(newPeopleList);
-        setPeopleMap(newPeopleMap);
-      });
-    return unsubscribe;
-  }, []);
-
-  if (!peopleList || !peopleMap) {
-    return <Loading />;
-  }
-
-  if (personID && !(personID in peopleMap)) {
-    navigate("/404");
-  }
-
-  let options = (person) => {
+  const options = (person) => {
     let personRef = props.peopleRef.doc(person.ID);
     return (
       <Options>
@@ -97,6 +68,35 @@ export default function People(props) {
     );
   };
 
+  useEffect(() => {
+    let unsubscribe = props.peopleRef
+      .where("deletionTimestamp", "==", "")
+      .orderBy("creationTimestamp", "desc")
+      .onSnapshot((snapshot) => {
+        let newPeopleList = [];
+        let newPeopleMap = {};
+
+        snapshot.forEach((doc) => {
+          let data = doc.data();
+          data.ID = doc.id;
+          newPeopleList.push(data);
+          newPeopleMap[data.ID] = data;
+        });
+
+        setPeopleList(newPeopleList);
+        setPeopleMap(newPeopleMap);
+      });
+    return unsubscribe;
+  }, []);
+
+  if (!peopleList || !peopleMap) {
+    return <Loading />;
+  }
+
+  if (personID && !(personID in peopleMap)) {
+    navigate("/404");
+  }
+
   let peopleComponents = peopleList.map((person) => (
     <List.Item
       name={person.name}
@@ -108,7 +108,7 @@ export default function People(props) {
 
   let content =
     personID && peopleMap[personID] ? (
-      <Person person={peopleMap[personID]} />
+      <Person person={peopleMap[personID]} options={options} />
     ) : (
       <></>
     );

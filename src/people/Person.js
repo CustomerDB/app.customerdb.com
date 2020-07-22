@@ -7,6 +7,7 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Badge from "react-bootstrap/Badge";
 import Tabs from "../shell/Tabs.js";
+import Options from "../Options.js";
 
 export default function Person(props) {
   let person = props.person;
@@ -95,6 +96,7 @@ export default function Person(props) {
     <>
       <Content.Title>
         <Content.Name>{props.person.name}</Content.Name>
+        <Content.Options>{props.options(props.person)}</Content.Options>
       </Content.Title>
       <Tabs>
         <Tabs.Pane name="Contact">
