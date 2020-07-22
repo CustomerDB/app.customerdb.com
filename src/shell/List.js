@@ -67,7 +67,9 @@ export default class List extends React.Component {
             if (buttonElements.includes(e.target.nodeName)) {
               return;
             }
-            navigate(props.path);
+            if (props.path) {
+              navigate(props.path);
+            }
           }}
         >
           <Row noGutters={true} className="h-100 p-3">
