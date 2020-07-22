@@ -36,9 +36,14 @@ exports.getSearchKey = functions.https.onCall((data, context) => {
   // Call the Algolia API to generate a unique key based on our search key
   const key = client.generateSecuredApiKey(ALGOLIA_SEARCH_KEY, params);
 
-  // Then return this key as {key: '...key'}
-  return { key: key };
-
+  // Store it in the user's api key document.
+  let db = admin.firestore();
+  let apiKeyRef = db.collection("organizations").doc(orgID).collection("apiKeys").doc(context.auth.uid);
+  
+  return apiKeyRef.set({
+    'searchKey': key
+  })
+  .then(() => {return {key: key}})
 })
 
 exports.emailInviteJob = functions.pubsub
