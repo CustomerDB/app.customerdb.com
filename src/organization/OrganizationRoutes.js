@@ -3,7 +3,7 @@ import React from "react";
 import OrganizationHome from "./OrganizationHome.js";
 import People from "../people/People.js";
 import Data from "../data/Data.js";
-import Explore from "../Explore.js";
+import Explore from "../explore/Explore.js";
 import Settings from "../settings/Settings.js";
 
 import { Routes, Route, Outlet, Navigate, useParams } from "react-router-dom";

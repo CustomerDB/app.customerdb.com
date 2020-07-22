@@ -17,7 +17,7 @@ import Form from "react-bootstrap/Form";
 import Tab from "react-bootstrap/Tab";
 import Nav from "react-bootstrap/Nav";
 
-import { Loading } from "../Utils.js";
+import { Loading } from "../util/Utils.js";
 
 import Tags, { addTagStyles, removeTagStyles } from "./Tags.js";
 import HighlightBlot from "./HighlightBlot.js";

@@ -15,7 +15,7 @@ import { XCircleFill } from "react-bootstrap-icons";
 
 import { useNavigate, useParams } from "react-router-dom";
 
-import colorPair, { getTextColorForBackground } from "../color.js";
+import colorPair, { getTextColorForBackground } from "../util/color.js";
 
 import List from "../List.js";
 import Options from "../Options.js";
