@@ -17,6 +17,12 @@ service cloud.firestore {
       return member.data.active == true;
     }
 
+    // Allow clients to subscribe to their own token refresh trigger
+    match /uids/{uid} {
+      allow read: if signedInAndVerified()
+                  && request.auth.uid == uid;
+    }
+
     // Only allow verified emails with the 'invited' bit set, to change to 'active' (and remove the invited 'bit' in the same operation).
     match /organizations/{orgID}/members/{email} {
       allow write: if signedInAndVerified()
@@ -35,6 +41,13 @@ service cloud.firestore {
 
       allow read: if signedInAndVerified()
                   && request.auth.token.email == email;
+    }
+
+    // Allow everyone to read their own org api keys
+    match /organizations/{orgID}/apiKeys/{uid} {
+      allow read: if signedInAndVerified()
+                  && activeOrgMember(orgID)
+                  && request.auth.uid == uid;
     }
 
     // Active admin users can read and write **MEMBERS** in the org

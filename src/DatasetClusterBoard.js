@@ -462,7 +462,7 @@ export default class DatasetClusterBoard extends React.Component {
     });
 
     let pointers = undefined;
-    // pointers = <Pointers activeUsersRef={this.props.activeUsersRef} user={this.props.user}/>;
+    // pointers = <Pointers activeUsersRef={this.props.activeUsersRef} />;
 
     return (
       <>

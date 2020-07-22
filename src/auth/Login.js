@@ -1,5 +1,5 @@
 import React from "react";
-import { useState, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 
 import { useNavigate } from "react-router-dom";
 
@@ -10,8 +10,10 @@ import Col from "react-bootstrap/Col";
 import Button from "react-bootstrap/Button";
 import Alert from "react-bootstrap/Alert";
 
-import topFigure from "./assets/images/top-figure.svg";
-import logo from "./assets/images/logo.svg";
+import UserAuthContext from "./UserAuthContext.js";
+
+import topFigure from "../assets/images/top-figure.svg";
+import logo from "../assets/images/logo.svg";
 
 var provider = new window.firebase.auth.GoogleAuthProvider();
 var db = window.firebase.firestore();
@@ -19,6 +21,8 @@ var db = window.firebase.firestore();
 export default function Login(props) {
   const navigate = useNavigate();
   const [loginSuccess, setLoginSuccess] = useState(undefined);
+
+  const auth = useContext(UserAuthContext);
 
   const login = () => {
     window.firebase
@@ -30,9 +34,9 @@ export default function Login(props) {
   };
 
   useEffect(() => {
-    if (props.oauthUser !== null) {
+    if (auth.oauthUser !== null) {
       db.collection("userToOrg")
-        .doc(props.oauthUser.email)
+        .doc(auth.oauthUser.email)
         .get()
         .then((doc) => {
           if (!doc.exists) {
@@ -48,7 +52,7 @@ export default function Login(props) {
           console.error("failed to read userToOrg mapping", e);
         });
     }
-  }, [navigate, props.oauthUser, props.oauthLoading]);
+  }, [navigate, auth]);
 
   let loginFailedMessage =
     loginSuccess === false ? (
@@ -58,8 +62,8 @@ export default function Login(props) {
     );
 
   return loginSuccess === undefined &&
-    props.oauthUser == null &&
-    props.oauthLoading == false ? (
+    auth.oauthUser == null &&
+    auth.oauthLoading == false ? (
     <Container>
       <Row className="align-items-center">
         <Col md={6}>

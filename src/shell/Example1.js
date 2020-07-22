@@ -94,7 +94,6 @@ export default function ExampleApp(props) {
 
       <Page>
         <List>
-          <List.Search placeholder="Search in documents..." />
           <List.Title>
             <List.Name>Messages</List.Name>
             <List.Add />

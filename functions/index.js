@@ -53,6 +53,97 @@ exports.getSearchKey = functions.https.onCall((data, context) => {
   .then(() => {return {key: key}})
 })
 
+// Authentication trigger adds custom claims to the user's auth token
+// when members are written
+exports.onMemberWritten = functions.firestore
+  .document("organizations/{orgID}/members/{email}")
+  .onWrite((change, context) => {
+    console.log("handling update (params):", context.params);
+
+    let before = change.before.data();
+    let after = change.after.data();
+
+    let uid = before.uid || after.uid;
+
+    if (!uid) {
+      console.log("no uid -- terminating");
+      return;
+    }
+
+    // Remove custom claims if necessary.
+    // TODO(CD): only delete claims for this orgID.
+
+    let memberRecordDeleted = !change.after.exists;
+    if (memberRecordDeleted) {
+      console.log(`member record deleted -- deleting custom claims`);
+      return admin.auth().setCustomUserClaims(uid, null);
+    }
+
+    let memberInactive = !after.active;
+    if (memberInactive) {
+      console.log(`member is inactive -- deleting custom claims`);
+      return admin.auth().setCustomUserClaims(uid, null);
+    }
+
+    // Add custom claims if necessary.
+    // TODO(CD): Make this work for multiple orgs
+
+    let newCustomClaims = {
+      orgID: context.params.orgID,
+      admin: after.admin,
+    };
+
+    console.log(`getting user record ${uid} to read custom claims`);
+    return admin
+      .auth()
+      .getUser(uid)
+      .then((userRecord) => {
+        let oldClaims = userRecord.customClaims;
+
+        console.log(`found existing custom claims for ${uid}`, oldClaims);
+
+        let missingClaims =
+          !oldClaims || !("orgID" in oldClaims) || !("admin" in oldClaims);
+
+        // True if the user is an active org member (should have claims)
+        // but does not have claims for any reason.
+        let needsClaims = after.active && missingClaims;
+
+        // True if a user is writing their own member uid (join org operation)
+        let memberJoined = !before.uid && before.uid !== after.uid;
+
+        // True if the member admin bit changed
+        let adminChanged = before.admin !== after.admin;
+
+        if (needsClaims || memberJoined || adminChanged) {
+          console.log("writing new custom claims", newCustomClaims);
+
+          // Set custom claims for the user.
+          return admin
+            .auth()
+            .setCustomUserClaims(uid, newCustomClaims)
+            .then(() => {
+              console.log(`triggering token refresh for /uids/${uid}`);
+              // Touch the uid record (`/uids/{uid}`) to trigger id
+              // token refresh in the client.
+              //
+              // NOTE: The client refresh trigger subscription is
+              //       set up and handled in the WithOauthUser component.
+              return admin
+                .firestore()
+                .collection("uids")
+                .doc(uid)
+                .set({
+                  refreshTime: admin.firestore.FieldValue.serverTimestamp(),
+                })
+                .then(() => {
+                  console.log("done triggering token refresh");
+                });
+            });
+        }
+      });
+  });
+
 exports.emailInviteJob = functions.pubsub
   .schedule("every 5 minutes")
   .onRun((context) => {

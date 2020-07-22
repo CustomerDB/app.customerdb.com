@@ -1,10 +1,17 @@
-import React from "react";
+import React, { useState, useEffect, useContext } from "react";
+
+import UserAuthContext from "../auth/UserAuthContext.js";
+
 import Container from "react-bootstrap/Container";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
 
 import { useNavigate } from "react-router-dom";
+
+import { getSearchClient } from "../search/client.js";
+
+import { Loading } from "../Utils.js";
 
 import {
   InstantSearch,
@@ -13,16 +20,48 @@ import {
   Configure,
 } from "react-instantsearch-dom";
 
+import "../search/style.css";
+
 export default class List extends React.Component {
   constructor(props) {
     super(props);
   }
 
   static Search(props) {
+    const auth = useContext(UserAuthContext);
+
     // props.path = (ID) => {}
     // props.options = (ID) => {}
-    // return <SearchBox />;
-    return <></>;
+
+    const [searchClient, setSearchClient] = useState();
+
+    useEffect(() => {
+      getSearchClient(auth.oauthClaims.orgID, auth.oauthUser.uid).then(
+        (client) => {
+          setSearchClient(client);
+        }
+      );
+    }, []);
+
+    if (!searchClient) {
+      return <Loading />;
+    }
+
+    return (
+      <InstantSearch indexName={props.index} searchClient={searchClient}>
+        {props.children}
+      </InstantSearch>
+    );
+  }
+
+  static SearchBox(props) {
+    return (
+      <Row className="pb-3">
+        <Col>
+          <SearchBox />
+        </Col>
+      </Row>
+    );
   }
 
   static Title(props) {
@@ -77,7 +116,9 @@ export default class List extends React.Component {
             if (buttonElements.includes(e.target.nodeName)) {
               return;
             }
-            navigate(props.path);
+            if (props.path) {
+              navigate(props.path);
+            }
           }}
         >
           <Row noGutters={true} className="h-100 p-3">
