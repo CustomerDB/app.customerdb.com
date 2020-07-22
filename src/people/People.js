@@ -130,30 +130,35 @@ export default function People(props) {
   return (
     <Page>
       <List>
-        <List.Search placeholder="Search in documents..." />
-        <List.Title>
-          <List.Name>People</List.Name>
-          <List.Add
-            onClick={() => {
-              props.peopleRef
-                .add({
-                  name: "Unnamed person",
-                  createdBy: auth.oauthClaims.email,
-                  creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
-                  deletionTimestamp: "",
-                })
-                .then((doc) => {
-                  setNewPersonRef(doc);
-                  setAddModalShow(true);
-                  console.log("Should show modal");
-                });
-            }}
-          />
-          {addModal}
-        </List.Title>
-        <List.Items>
-          <Scrollable>{peopleComponents}</Scrollable>
-        </List.Items>
+        <List.Search
+          index="prod_PEOPLE"
+          path={(ID) => `/org/${orgID}/people/${ID}`}
+          options={(ID) => options(ID)}
+        >
+          <List.SearchBox placeholder="Search in documents..." />
+          <List.Title>
+            <List.Name>People</List.Name>
+            <List.Add
+              onClick={() => {
+                props.peopleRef
+                  .add({
+                    name: "Unnamed person",
+                    createdBy: auth.oauthClaims.email,
+                    creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+                    deletionTimestamp: "",
+                  })
+                  .then((doc) => {
+                    setNewPersonRef(doc);
+                    setAddModalShow(true);
+                  });
+              }}
+            />
+            {addModal}
+          </List.Title>
+          <List.Items>
+            <Scrollable>{peopleComponents}</Scrollable>
+          </List.Items>
+        </List.Search>
       </List>
       <Content>{content}</Content>
     </Page>

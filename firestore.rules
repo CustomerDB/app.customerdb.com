@@ -43,6 +43,13 @@ service cloud.firestore {
                   && request.auth.token.email == email;
     }
 
+    // Allow everyone to read their own org api keys
+    match /organizations/{orgID}/apiKeys/{uid} {
+      allow read: if signedInAndVerified()
+                  && activeOrgMember(orgID)
+                  && request.auth.uid == uid;
+    }
+
     // Active admin users can read and write **MEMBERS** in the org
     match /organizations/{orgID}/members/{document=**} {
       allow read, write: if signedInAndVerified()

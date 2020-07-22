@@ -1,11 +1,57 @@
 const sgMail = require("@sendgrid/mail");
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
-admin.initializeApp();
 const path = require("path");
 const os = require("os");
 const fs = require("fs");
 const csv = require("csv-parser");
+const algoliasearch = require("algoliasearch");
+
+admin.initializeApp();
+
+const ALGOLIA_ID = functions.config().algolia.app_id;
+const ALGOLIA_ADMIN_KEY = functions.config().algolia.api_key;
+const ALGOLIA_SEARCH_KEY = functions.config().algolia.search_key;
+const client = algoliasearch(ALGOLIA_ID, ALGOLIA_ADMIN_KEY);
+
+exports.getSearchKey = functions.https.onCall((data, context) => {
+  // Require authenticated requests
+  if (!context.auth) {
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      "Authentication required."
+    );
+  }
+
+  let orgID = context.auth.token.orgID;
+  if (!orgID) {
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      "user organization not found"
+    );
+  }
+
+  // Create the params object as described in the Algolia documentation:
+  // https://www.algolia.com/doc/guides/security/api-keys/#generating-api-keys
+  const params = {
+    // This filter ensures that only items where orgID == user's org ID are readable
+    filters: `orgID:${orgID}`,
+    // We also proxy the token uid as a unique token for this key.
+    userToken: context.auth.uid,
+  };
+
+  // Call the Algolia API to generate a unique key based on our search key
+  const key = client.generateSecuredApiKey(ALGOLIA_SEARCH_KEY, params);
+
+  // Store it in the user's api key document.
+  let db = admin.firestore();
+  let apiKeyRef = db.collection("organizations").doc(orgID).collection("apiKeys").doc(context.auth.uid);
+  
+  return apiKeyRef.set({
+    'searchKey': key
+  })
+  .then(() => {return {key: key}})
+})
 
 // Authentication trigger adds custom claims to the user's auth token
 // when members are written
