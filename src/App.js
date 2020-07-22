@@ -2,12 +2,11 @@ import React from "react";
 import { useState, useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 
-import Organization from "./Organization.js";
+import { Loading, logout } from "./Utils.js";
+import Error404 from "./404.js";
 import JoinOrg from "./JoinOrg.js";
 import Login from "./Login.js";
-import { logout } from "./Utils.js";
-import Error404 from "./404.js";
-import { Loading } from "./Utils.js";
+import Organization from "./Organization.js";
 
 export default function App() {
   return (
@@ -32,7 +31,6 @@ export default function App() {
       <Route path="logout">
         <Logout />
       </Route>
-
       <Route path="*" element={<Navigate to="/404" />} />
     </Routes>
   );
