@@ -44,7 +44,6 @@ export default function DatasetClusterTab(props) {
       <Row className="fullHeight">
         <Col>
           <DatasetClusterBoard
-            user={props.user}
             documentsRef={documentsRef}
             highlightsRef={highlightsRef}
             cardsRef={cardsRef}

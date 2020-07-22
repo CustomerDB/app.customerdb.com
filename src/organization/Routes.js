@@ -26,23 +26,14 @@ export default function OrganizationRoutes(props) {
   return (
     <>
       <Routes>
-        <Route
-          path="/"
-          element={<OrganizationHome user={props.user} orgRef={orgRef} />}
-        />
+        <Route path="/" element={<OrganizationHome orgRef={orgRef} />} />
 
         <Route path="people/*">
-          <Route
-            path="/"
-            element={<People peopleRef={peopleRef} user={props.user} />}
-          />
-          <Route
-            path=":personID"
-            element={<People peopleRef={peopleRef} user={props.user} />}
-          />
+          <Route path="/" element={<People peopleRef={peopleRef} />} />
+          <Route path=":personID" element={<People peopleRef={peopleRef} />} />
           <Route
             path=":personID/:tabID"
-            element={<People peopleRef={peopleRef} user={props.user} />}
+            element={<People peopleRef={peopleRef} />}
           />
         </Route>
 
@@ -54,7 +45,6 @@ export default function OrganizationRoutes(props) {
                 documentsRef={documentsRef}
                 tagGroupsRef={tagGroupsRef}
                 peopleRef={peopleRef}
-                user={props.user}
               />
             }
           />
@@ -65,7 +55,6 @@ export default function OrganizationRoutes(props) {
                 documentsRef={documentsRef}
                 tagGroupsRef={tagGroupsRef}
                 peopleRef={peopleRef}
-                user={props.user}
               />
             }
           />
@@ -76,7 +65,6 @@ export default function OrganizationRoutes(props) {
                 documentsRef={documentsRef}
                 tagGroupsRef={tagGroupsRef}
                 peopleRef={peopleRef}
-                user={props.user}
               />
             }
           />
@@ -88,7 +76,6 @@ export default function OrganizationRoutes(props) {
             element={
               <Explore
                 orgID={orgID}
-                user={props.user}
                 documentsRef={documentsRef}
                 datasetsRef={datasetsRef}
                 allHighlightsRef={allHighlightsRef}
@@ -99,7 +86,6 @@ export default function OrganizationRoutes(props) {
             path=":datasetID"
             element={
               <Explore
-                user={props.user}
                 documentsRef={documentsRef}
                 datasetsRef={datasetsRef}
                 allHighlightsRef={allHighlightsRef}
@@ -110,7 +96,6 @@ export default function OrganizationRoutes(props) {
             path=":datasetID/:tabID"
             element={
               <Explore
-                user={props.user}
                 documentsRef={documentsRef}
                 datasetsRef={datasetsRef}
                 allHighlightsRef={allHighlightsRef}
@@ -122,42 +107,21 @@ export default function OrganizationRoutes(props) {
         <Route path="settings/*">
           <Route
             path="/"
-            element={
-              <Settings
-                selected="profile"
-                user={props.user}
-                membersRef={membersRef}
-              />
-            }
+            element={<Settings selected="profile" membersRef={membersRef} />}
           />
           <Route
             path="profile"
-            element={
-              <Settings
-                selected="profile"
-                user={props.user}
-                membersRef={membersRef}
-              />
-            }
+            element={<Settings selected="profile" membersRef={membersRef} />}
           />
           <Route
             path="members"
-            element={
-              <Settings
-                selected="members"
-                user={props.user}
-                membersRef={membersRef}
-              />
-            }
+            element={<Settings selected="members" membersRef={membersRef} />}
           />
           <Route
             path="organization"
-            element={<Settings selected="organization" user={props.user} />}
+            element={<Settings selected="organization" />}
           />
-          <Route
-            path="backup"
-            element={<Settings selected="backup" user={props.user} />}
-          />
+          <Route path="backup" element={<Settings selected="backup" />} />
           <Route path="tags">
             <Route
               path="/"
@@ -166,7 +130,6 @@ export default function OrganizationRoutes(props) {
                   selected="tags"
                   orgID={orgID}
                   tagGroupsRef={tagGroupsRef}
-                  user={props.user}
                 />
               }
             />
@@ -177,7 +140,6 @@ export default function OrganizationRoutes(props) {
                   selected="tags"
                   orgID={orgID}
                   tagGroupsRef={tagGroupsRef}
-                  user={props.user}
                 />
               }
             />

@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useContext, useState, useEffect } from "react";
+
+import UserAuthContext from "../auth/UserAuthContext.js";
 
 import { useParams, useNavigate } from "react-router-dom";
 
@@ -23,6 +25,7 @@ function initialDelta() {
 }
 
 export default function Data(props) {
+  let auth = useContext(UserAuthContext);
   let navigate = useNavigate();
   let { documentID, orgID, tabID } = useParams();
   const [documents, setDocuments] = useState();
@@ -65,7 +68,7 @@ export default function Data(props) {
     // onDelete is the delete confirm callback
     let onDelete = () => {
       documentRef.update({
-        deletedBy: props.user.email,
+        deletedBy: auth.oauthClaims.email,
         deletionTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
       });
 
@@ -107,7 +110,7 @@ export default function Data(props) {
     props.documentsRef
       .add({
         name: "Untitled Document",
-        createdBy: props.user.email,
+        createdBy: auth.oauthClaims.email,
         creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
 
         // Deletion is modeled as "soft-delete"; when the deletionTimestamp is set,
@@ -149,7 +152,7 @@ export default function Data(props) {
         documentsRef={props.documentsRef}
         tagGroupsRef={props.tagGroupsRef}
         peopleRef={props.peopleRef}
-        user={props.user}
+        user={auth.oauthClaims}
       />
     );
   }

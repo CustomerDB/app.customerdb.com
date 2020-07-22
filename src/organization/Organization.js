@@ -1,12 +1,14 @@
 import React from "react";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
+
+import UserAuthContext from "../auth/UserAuthContext";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../App.css";
 
 import { useNavigate, useParams } from "react-router-dom";
 
-import { logout, Loading } from "../Utils.js";
+import { Loading } from "../Utils.js";
 
 import {
   DoorOpen,
@@ -22,40 +24,26 @@ import OrganizationRoutes from "./Routes.js";
 import Shell from "../shell/Shell.js";
 import Navigation from "../shell/Navigation.js";
 
-const db = window.firebase.firestore();
-
 export default function Organization(props) {
-  const [user, setUser] = useState(undefined);
-
+  const auth = useContext(UserAuthContext);
+  const { orgID } = useParams();
   const navigate = useNavigate();
 
-  // TODO: Rely on claims in the oauth user instead.
-  const { orgID } = useParams();
-  const orgRef = db.collection("organizations").doc(orgID);
-  const membersRef = orgRef.collection("members");
-  useEffect(() => {
-    if (props.oauthUser === null) {
-      navigate("/login");
-      return;
-    }
-    const userRef = membersRef.doc(props.oauthUser.email);
-    let unsubscribe = userRef.onSnapshot(
-      (doc) => {
-        if (!doc.exists) {
-          logout();
-        }
-        setUser(doc.data());
-      },
-      (error) => {
-        console.error(error);
-        navigate("/404");
-      }
-    );
-    return unsubscribe;
-  }, [orgID, props.oauthUser]);
-
-  if (user === undefined) {
+  if (auth.oauthLoading) {
     return <Loading />;
+  }
+
+  if (auth.user === null) {
+    navigate("/404");
+  }
+
+  if (!auth.oauthClaims) {
+    return <Loading />;
+  }
+
+  if (!auth.oauthClaims.orgID === orgID) {
+    console.debug("user not authorized for this organization");
+    navigate("/404");
   }
 
   return (
@@ -103,7 +91,7 @@ export default function Organization(props) {
         </Navigation.Bottom>
       </Navigation>
 
-      <OrganizationRoutes user={user} />
+      <OrganizationRoutes />
     </Shell>
   );
 }
