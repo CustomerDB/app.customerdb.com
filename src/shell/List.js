@@ -7,7 +7,7 @@ import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
 
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { getSearchClient } from "../search/client.js";
 
@@ -95,15 +95,22 @@ export default class List extends React.Component {
   }
 
   static Item(props) {
+    const location = useLocation();
     const navigate = useNavigate();
+
+    let isActive =
+      props.path === location.pathname ||
+      (!props.end && location.pathname.startsWith(props.path));
 
     let listClass = "ListItem";
     let options = props.options;
-    if (props.active) {
+    if (isActive) {
       listClass += " Active";
-      options = React.cloneElement(options, {
-        active: true,
-      });
+      if (options) {
+        options = React.cloneElement(options, {
+          active: true,
+        });
+      }
     }
 
     return (

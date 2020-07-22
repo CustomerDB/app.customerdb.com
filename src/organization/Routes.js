@@ -2,10 +2,9 @@ import React from "react";
 
 import OrganizationHome from "./OrganizationHome.js";
 import People from "../people/People.js";
-// import Sources from "../Sources.js";
 import Data from "../data/Data.js";
 import Explore from "../Explore.js";
-import Settings from "../Settings.js";
+import Settings from "../settings/Settings.js";
 
 import { Routes, Route, Outlet, Navigate, useParams } from "react-router-dom";
 
@@ -104,47 +103,12 @@ export default function OrganizationRoutes(props) {
           />
         </Route>
 
-        <Route path="settings/*">
-          <Route
-            path="/"
-            element={<Settings selected="profile" membersRef={membersRef} />}
-          />
-          <Route
-            path="profile"
-            element={<Settings selected="profile" membersRef={membersRef} />}
-          />
-          <Route
-            path="members"
-            element={<Settings selected="members" membersRef={membersRef} />}
-          />
-          <Route
-            path="organization"
-            element={<Settings selected="organization" />}
-          />
-          <Route path="backup" element={<Settings selected="backup" />} />
-          <Route path="tags">
-            <Route
-              path="/"
-              element={
-                <Settings
-                  selected="tags"
-                  orgID={orgID}
-                  tagGroupsRef={tagGroupsRef}
-                />
-              }
-            />
-            <Route
-              path=":tgID"
-              element={
-                <Settings
-                  selected="tags"
-                  orgID={orgID}
-                  tagGroupsRef={tagGroupsRef}
-                />
-              }
-            />
-          </Route>
-        </Route>
+        <Route
+          path="settings/*"
+          element={
+            <Settings membersRef={membersRef} tagGroupsRef={tagGroupsRef} />
+          }
+        />
 
         <Route path="*" element={<Navigate to="/404" />} />
       </Routes>

@@ -105,7 +105,6 @@ export default function People(props) {
     <List.Item
       name={person.name}
       path={`/orgs/${orgID}/people/${person.ID}`}
-      active={personID === person.ID}
       options={options(person)}
     />
   ));
