@@ -29,19 +29,21 @@ export default function Organization(props) {
   const { orgID } = useParams();
   const navigate = useNavigate();
 
+  console.log("auth", auth);
+
   if (auth.oauthLoading) {
     return <Loading />;
   }
 
-  if (auth.user === null) {
-    navigate("/404");
+  if (auth.oauthUser === null) {
+    navigate("/logout");
   }
 
   if (!auth.oauthClaims) {
     return <Loading />;
   }
 
-  if (!auth.oauthClaims.orgID === orgID) {
+  if (auth.oauthClaims.orgID !== orgID) {
     console.debug("user not authorized for this organization");
     navigate("/404");
   }

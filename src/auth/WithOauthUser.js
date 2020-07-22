@@ -22,7 +22,10 @@ export default function WithOauthUser(props) {
   }, [props.children]);
 
   useEffect(() => {
-    if (oauthUser === null) return;
+    if (oauthUser === null) {
+      setOauthClaims(undefined);
+      return;
+    }
 
     let refreshTrigger = db.collection("uids").doc(oauthUser.uid);
     return refreshTrigger.onSnapshot(() => {

@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useContext, useState, useEffect, useRef } from "react";
+
+import UserAuthContext from "../auth/UserAuthContext.js";
 
 import Col from "react-bootstrap/Col";
 import Container from "react-bootstrap/Container";
@@ -13,45 +15,39 @@ import { XCircleFill } from "react-bootstrap-icons";
 
 import { useNavigate, useParams } from "react-router-dom";
 
-import colorPair, { getTextColorForBackground } from "./color.js";
+import colorPair, { getTextColorForBackground } from "../color.js";
 
-import List from "./List.js";
-import Options from "./Options.js";
+import List from "../List.js";
+import Options from "../Options.js";
 
 export default function Tags(props) {
-  const [tagGroupID, settagGroupID] = useState(undefined);
+  const auth = useContext(UserAuthContext);
+  const navigate = useNavigate();
+  const { orgID, tagGroupID } = useParams();
   const [tagGroups, setTagGroups] = useState([]);
 
-  let { tgID } = useParams();
-  let navigate = useNavigate();
-
   useEffect(() => {
-    let unsubscribe = props.tagGroupsRef
+    return props.tagGroupsRef
       .where("deletionTimestamp", "==", "")
       .orderBy("creationTimestamp", "desc")
       .onSnapshot((snapshot) => {
-        let newtagGroups = [];
+        let newTagGroups = [];
 
         snapshot.forEach((doc) => {
           let data = doc.data();
 
           data["ID"] = doc.id;
-          newtagGroups.push(data);
+          newTagGroups.push(data);
         });
 
-        setTagGroups(newtagGroups);
+        setTagGroups(newTagGroups);
       });
-    return unsubscribe;
   }, []);
-
-  useEffect(() => {
-    settagGroupID(tgID);
-  }, [tgID]);
 
   const onAdd = () => {
     props.tagGroupsRef.add({
       name: "New tag set",
-      createdBy: props.user.email,
+      createdBy: auth.oauthClaims.email,
       creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
 
       // Deletion is modeled as "soft-delete"; when the deletionTimestamp is set,
@@ -63,7 +59,7 @@ export default function Tags(props) {
   };
 
   const onClick = (ID) => {
-    navigate(`/orgs/${props.orgID}/settings/tags/${ID}`);
+    navigate(`/orgs/${orgID}/settings/tags/${ID}`);
   };
 
   const itemLoad = (index) => {
@@ -81,7 +77,7 @@ export default function Tags(props) {
 
   const onDelete = (ID) => {
     props.tagGroupsRef.doc(ID).update({
-      deletedBy: props.user.email,
+      deletedBy: auth.oauthClaims.email,
       deletionTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
     });
 
@@ -116,12 +112,7 @@ export default function Tags(props) {
   if (tagGroupID !== undefined) {
     let tagGroupRef = props.tagGroupsRef.doc(tagGroupID);
     view = (
-      <TagGroup
-        key={tagGroupID}
-        tagGroupRef={tagGroupRef}
-        options={options}
-        user={props.user}
-      />
+      <TagGroup key={tagGroupID} tagGroupRef={tagGroupRef} options={options} />
     );
   }
 
@@ -160,6 +151,7 @@ export default function Tags(props) {
 }
 
 function TagGroup(props) {
+  const auth = useContext(UserAuthContext);
   const [tagGroup, setTagGroup] = useState();
   const [tags, setTags] = useState([]);
 
@@ -204,7 +196,7 @@ function TagGroup(props) {
       name: "Untitled tag",
       color: color.background,
       textColor: color.foreground,
-      createdBy: props.user.email,
+      createdBy: auth.oauthClaims.email,
       creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
       deletionTimestamp: "",
     });
@@ -270,7 +262,7 @@ function TagGroup(props) {
                       onClick={() => {
                         props.tagGroupRef.collection("tags").doc(tag.ID).set(
                           {
-                            deletedBy: props.user.email,
+                            deletedBy: auth.oauthClaims.email,
                             deletionTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
                           },
                           { merge: true }

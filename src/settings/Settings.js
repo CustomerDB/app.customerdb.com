@@ -1,6 +1,13 @@
 import React, { useContext, useEffect, useState } from "react";
 
-import UserAuthContext from "./auth/UserAuthContext";
+import UserAuthContext from "../auth/UserAuthContext";
+
+import Page from "../shell/Page.js";
+import List from "../shell/List.js";
+import Scrollable from "../shell/Scrollable.js";
+import Content from "../shell/Content.js";
+import Options from "../Options.js";
+import Tags from "./Tags.js";
 
 import Col from "react-bootstrap/Col";
 import Container from "react-bootstrap/Container";
@@ -12,7 +19,14 @@ import Toast from "react-bootstrap/Toast";
 import Table from "react-bootstrap/Table";
 import Modal from "react-bootstrap/Modal";
 
-import { useParams, useNavigate } from "react-router-dom";
+import {
+  Routes,
+  Route,
+  Navigate,
+  useParams,
+  useNavigate,
+} from "react-router-dom";
+
 import {
   Building,
   PersonCircle,
@@ -21,152 +35,127 @@ import {
   Tags as TagsIcon,
 } from "react-bootstrap-icons";
 
-import Options from "./Options.js";
-
-import Tags from "./Tags.js";
-
 import { AutoSizer, List as VirtList } from "react-virtualized";
 
 export default function Settings(props) {
   const auth = useContext(UserAuthContext);
-
   const { orgID } = useParams();
   const navigate = useNavigate();
 
-  let list = [
-    {
-      name: "profile",
-      title: "Profile",
-      icon: <PersonCircle size={30} />,
-      path: `/orgs/${orgID}/settings/`,
-      content: (
-        <Col md={8}>
-          <Profile membersRef={props.membersRef} />
-        </Col>
-      ),
-    },
+  let listItems = [
+    <List.Item
+      key="profile"
+      name="Profile"
+      path={`/orgs/${orgID}/settings/profile`}
+    />,
+    <List.Item
+      key="tags"
+      name="Tag setup"
+      path={`/orgs/${orgID}/settings/tags`}
+    />,
   ];
 
   if (auth.oauthClaims.admin === true) {
-    list.push({
-      name: "members",
-      title: "Members",
-      icon: <Diagram3 size={30} />,
-      path: `/orgs/${orgID}/settings/members`,
-      content: (
-        <Col md={8}>
-          <Members membersRef={props.membersRef} />
-        </Col>
-      ),
-    });
-
-    list.push({
-      name: "organization",
-      title: "Organization",
-      icon: <Building size={30} />,
-      path: `/orgs/${orgID}/settings/organization`,
-      content: (
-        <Col md={8}>
-          <Organization />
-        </Col>
-      ),
-    });
-
-    list.push({
-      name: "backup",
-      title: "Backup and restore",
-      icon: <Hdd size={30} />,
-      path: `/orgs/${orgID}/settings/backup`,
-      content: (
-        <Col md={8}>
-          <Backup />
-        </Col>
-      ),
-    });
+    listItems = listItems.concat([
+      <List.Item
+        key="members"
+        name="Members"
+        path={`/orgs/${orgID}/settings/members`}
+      />,
+      <List.Item
+        key="organization"
+        name="Organization"
+        path={`/orgs/${orgID}/settings/organization`}
+      />,
+      <List.Item
+        key="backup"
+        name="Backup and restore"
+        path={`/orgs/${orgID}/settings/backup`}
+      />,
+    ]);
   }
 
-  list.push({
-    name: "tags",
-    title: "Tag management",
-    icon: <TagsIcon size={30} />,
-    path: `/orgs/${orgID}/settings/tags`,
-    content: <Tags orgID={props.orgID} tagGroupsRef={props.tagGroupsRef} />,
-  });
-
-  const [view, setView] = useState();
-  useEffect(() => {
-    let listItem = list.find((item) => {
-      return props.selected == item.name;
-    });
-    if (listItem !== undefined) {
-      setView(listItem.content);
-    }
-  }, [props.selected]);
-
-  const cardRenderer = ({ key, index, style }) => {
-    let d = list[index];
-
-    const onClick = () => {
-      navigate(d.path);
-    };
-
-    let title = (
-      <p className="listCardTitle" onClick={onClick}>
-        {d.title}
-      </p>
-    );
-    let listCardClass = "listCard";
-    if (props.selected == d.name) {
-      listCardClass = "listCardActive";
-    }
-
-    return (
-      <Row key={key} style={style}>
-        <Col>
-          <Container className={listCardClass}>
-            <Row className="h-100">
-              <Col className="align-self-center" md={2}>
-                {d.icon}
-              </Col>
-              <Col className="listTitleContainer align-self-center" md={8}>
-                {title}
-              </Col>
-            </Row>
-          </Container>
-        </Col>
-      </Row>
-    );
-  };
-
   return (
-    <Container className="noMargin">
-      <Row className="h-100">
-        <Col md={4} className="d-flex flex-column h-100">
-          <Row style={{ paddingBottom: "2rem" }}>
-            <Col md={10} className="my-auto">
-              <h3>Settings</h3>
-            </Col>
-          </Row>
-          <Row className="flex-grow-1">
-            <Col>
-              <AutoSizer>
-                {({ height, width }) => (
-                  <VirtList
-                    height={height}
-                    rowCount={list.length}
-                    rowHeight={window.getEmPixels() * 6}
-                    rowRenderer={cardRenderer}
-                    width={width}
-                  />
-                )}
-              </AutoSizer>
-            </Col>
-          </Row>
-        </Col>
-        {view}
-      </Row>
-    </Container>
+    <Page>
+      <List>
+        <List.Title>
+          <List.Name>Settings</List.Name>
+        </List.Title>
+        <List.Items>
+          <Scrollable>{listItems}</Scrollable>
+        </List.Items>
+      </List>
+
+      <Content>
+        <Routes>
+          <Route
+            path="/"
+            element={<Navigate to={`/orgs/${orgID}/settings/profile`} />}
+          />
+
+          <Route
+            path="profile"
+            element={<Profile membersRef={props.membersRef} />}
+          />
+
+          <Route path="tags">
+            <Route
+              path="/"
+              element={<Tags tagGroupsRef={props.tagGroupsRef} />}
+            />
+            <Route
+              path=":tagGroupID"
+              element={<Tags tagGroupsRef={props.tagGroupsRef} />}
+            />
+          </Route>
+
+          <Route
+            path="members"
+            element={<Members membersRef={props.membersRef} />}
+          />
+
+          <Route
+            path="organization"
+            element={<Organization selected="organization" />}
+          />
+
+          <Route path="backup" element={<Backup selected="backup" />} />
+
+          <Route path="*" element={<Navigate to="/404" />} />
+        </Routes>
+      </Content>
+    </Page>
   );
+
+  //return (
+  //  <Container className="noMargin">
+  //    <Row className="h-100">
+  //      <Col md={4} className="d-flex flex-column h-100">
+  //        <Row style={{ paddingBottom: "2rem" }}>
+  //          <Col md={10} className="my-auto">
+  //            <h3>Settings</h3>
+  //          </Col>
+  //        </Row>
+  //        <Row className="flex-grow-1">
+  //          <Col>
+  //            <AutoSizer>
+  //              {({ height, width }) => (
+  //                <VirtList
+  //                  height={height}
+  //                  rowCount={list.length}
+  //                  rowHeight={window.getEmPixels() * 6}
+  //                  rowRenderer={cardRenderer}
+  //                  width={width}
+  //                />
+  //              )}
+  //            </AutoSizer>
+  //          </Col>
+  //        </Row>
+  //      </Col>
+  //      {view}
+  //    </Row>
+  //  </Container>
+  //);
 }
 
 function Profile(props) {

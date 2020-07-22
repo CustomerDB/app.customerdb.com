@@ -135,7 +135,6 @@ export default function Data(props) {
       key={doc.ID}
       name={doc.name}
       path={`/orgs/${orgID}/data/${doc.ID}`}
-      active={documentID === doc.ID}
       options={options(doc)}
     />
   ));
