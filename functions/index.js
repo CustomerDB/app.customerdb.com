@@ -7,6 +7,40 @@ const os = require("os");
 const fs = require("fs");
 const csv = require("csv-parser");
 
+exports.getSearchKey = functions.https.onCall((data, context) => {
+  // Require authenticated requests
+  if (!context.auth) {
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      "Authentication required."
+    );
+  }
+
+  let orgID = context.auth.token.orgID;
+  if (!orgID) {
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      "user organization not found"
+    );
+  }
+
+  // Create the params object as described in the Algolia documentation:
+  // https://www.algolia.com/doc/guides/security/api-keys/#generating-api-keys
+  const params = {
+    // This filter ensures that only items where orgID == user's org ID are readable
+    filters: `orgID:${orgID}`,
+    // We also proxy the token uid as a unique token for this key.
+    userToken: context.auth.uid,
+  };
+
+  // Call the Algolia API to generate a unique key based on our search key
+  const key = client.generateSecuredApiKey(ALGOLIA_SEARCH_KEY, params);
+
+  // Then return this key as {key: '...key'}
+  return { key: key };
+
+})
+
 exports.emailInviteJob = functions.pubsub
   .schedule("every 5 minutes")
   .onRun((context) => {
