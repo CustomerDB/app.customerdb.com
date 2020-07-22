@@ -237,7 +237,8 @@ exports.onDocumentWritten = functions.firestore
             orgID: context.params.orgID,
             name: data.name,
             createdBy: data.createdBy,
-            creationDate: data.creationDate,
+            creationTimestamp: data.creationTimestamp.seconds,
+            latestSnapshotTimestamp: ts.seconds,
             text: docText,
           };
 
@@ -256,6 +257,18 @@ exports.onDocumentWritten = functions.firestore
           });
         });
     }
+
+    // Otherwise, just proceed with updating the index with the
+    // existing document data.
+    return index.saveObject({
+      objectID: change.after.id,
+      orgID: context.params.orgID,
+      name: data.name,
+      createdBy: data.createdBy,
+      creationTimestamp: data.creationTimestamp,
+      latestSnapshotTimestamp: data.latestSnapshotTimestamp.seconds,
+      text: toPlaintext(data.latestSnapshot),
+    });
   });
 
 // Mark documents with edits more recent than the last indexing operation
