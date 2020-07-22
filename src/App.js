@@ -8,8 +8,6 @@ import JoinOrg from "./JoinOrg.js";
 import Login from "./Login.js";
 import Organization from "./Organization.js";
 
-import Example2 from "./shell/Example2.js";
-
 export default function App() {
   return (
     <Routes caseSensitive>
