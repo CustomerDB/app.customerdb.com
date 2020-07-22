@@ -11,19 +11,45 @@ import Organization from "./organization/Organization.js";
 export default function App() {
   return (
     <Routes caseSensitive>
-      <WithOauthUser>
-        <Route path="/" element={<Login />} />
+      <Route
+        path="/"
+        element={
+          <WithOauthUser>
+            <Login />
+          </WithOauthUser>
+        }
+      />
 
-        <Route path="login" element={<Login />} />
+      <Route
+        path="login"
+        element={
+          <WithOauthUser>
+            <Login />
+          </WithOauthUser>
+        }
+      />
 
-        <Route path="join">
-          <Route path=":id" element={<JoinOrg />} />
-        </Route>
+      <Route path="join">
+        <Route
+          path=":id"
+          element={
+            <WithOauthUser>
+              <JoinOrg />
+            </WithOauthUser>
+          }
+        />
+      </Route>
 
-        <Route path="orgs">
-          <Route path=":orgID/*" element={<Organization />} />
-        </Route>
-      </WithOauthUser>
+      <Route path="orgs">
+        <Route
+          path=":orgID/*"
+          element={
+            <WithOauthUser>
+              <Organization />
+            </WithOauthUser>
+          }
+        />
+      </Route>
 
       <Route path="404" element={<Error404 />} />
 
