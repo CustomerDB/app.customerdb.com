@@ -183,15 +183,20 @@ exports.onPersonWritten = functions.firestore
 
     let person = change.after.data();
 
-    // Get the note document
-    // Add an 'objectID' field which Algolia requires
-    person.objectID = context.params.personID;
-
-    // Insert org ID into indexed object.
-    person.orgID = context.params.orgID;
+    let personToIndex = {
+      // Add an 'objectID' field which Algolia requires
+      objectID: change.after.id,
+      orgID: context.params.orgID,
+      name: person.name,
+      job: person.job,
+      labels: person.labels,
+      customFields: person.customFields,
+      createdBy: person.createdBy,
+      creationTimestamp: person.creationTimestamp.seconds,
+    };
 
     // Write to the algolia index
-    return index.saveObject(person);
+    return index.saveObject(personToIndex);
   });
 
 // Add document records to the search index when created or
@@ -232,6 +237,7 @@ exports.onDocumentWritten = functions.firestore
 
           // Index the new content
           let docToIndex = {
+            // Add an 'objectID' field which Algolia requires
             objectID: change.after.id,
             orgID: context.params.orgID,
             name: data.name,
@@ -260,11 +266,12 @@ exports.onDocumentWritten = functions.firestore
     // Otherwise, just proceed with updating the index with the
     // existing document data.
     return index.saveObject({
+      // Add an 'objectID' field which Algolia requires
       objectID: change.after.id,
       orgID: context.params.orgID,
       name: data.name,
       createdBy: data.createdBy,
-      creationTimestamp: data.creationTimestamp,
+      creationTimestamp: data.creationTimestamp.seconds,
       latestSnapshotTimestamp: data.latestSnapshotTimestamp.seconds,
       text: toPlaintext(latestSnapshot),
     });
