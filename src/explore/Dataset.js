@@ -81,9 +81,7 @@ export default function Dataset(props) {
       <Row style={{ paddingBottom: "2rem" }}>
         <Col className="d-flex align-self-center">
           <h3 className="my-auto">{props.dataset.name}</h3>
-          <Button variant="link">
-            <Options item={props.dataset} options={props.options} />
-          </Button>
+          {props.options}
         </Col>
       </Row>
 

@@ -4,7 +4,6 @@ import UserAuthContext from "../auth/UserAuthContext.js";
 
 import Page from "../shell/Page.js";
 import List from "../shell/List.js";
-
 import Content from "../shell/Content.js";
 import Scrollable from "../shell/Scrollable.js";
 import Options from "../shell/Options.js";
@@ -28,28 +27,6 @@ export default function People(props) {
   const [peopleMap, setPeopleMap] = useState();
   const [addModalShow, setAddModalShow] = useState();
   const [newPersonRef, setNewPersonRef] = useState();
-
-  const options = (personID) => {
-    if (!personID) {
-      return <></>;
-    }
-
-    let personRef = props.peopleRef.doc(personID);
-
-    return (
-      <Options key={personID}>
-        <Options.Item
-          name="Edit"
-          modal={<PersonEditModal personRef={personRef} />}
-        />
-
-        <Options.Item
-          name="Delete"
-          modal={<PersonDeleteModal personRef={personRef} />}
-        />
-      </Options>
-    );
-  };
 
   useEffect(() => {
     let unsubscribe = props.peopleRef
@@ -80,20 +57,33 @@ export default function People(props) {
     navigate("/404");
   }
 
-  let peopleComponents = peopleList.map((person) => (
-    <List.Item
-      key={person.ID}
-      name={person.name}
-      path={`/orgs/${orgID}/people/${person.ID}`}
-      options={options(person.ID)}
-    />
-  ));
+  const options = (personID) => {
+    if (!personID) {
+      return <></>;
+    }
+
+    let personRef = props.peopleRef.doc(personID);
+
+    return (
+      <Options key={personID}>
+        <Options.Item
+          name="Edit"
+          modal={<PersonEditModal personRef={personRef} />}
+        />
+
+        <Options.Item
+          name="Delete"
+          modal={<PersonDeleteModal personRef={personRef} />}
+        />
+      </Options>
+    );
+  };
 
   let content =
     personID && peopleMap[personID] ? (
       <Person key={personID} person={peopleMap[personID]} options={options} />
     ) : (
-      <p></p>
+      <></>
     );
 
   let addModal = (
@@ -134,7 +124,16 @@ export default function People(props) {
             {addModal}
           </List.Title>
           <List.Items>
-            <Scrollable>{peopleComponents}</Scrollable>
+            <Scrollable>
+              {peopleList.map((person) => (
+                <List.Item
+                  key={person.ID}
+                  name={person.name}
+                  path={`/orgs/${orgID}/people/${person.ID}`}
+                  options={options(person.ID)}
+                />
+              ))}
+            </Scrollable>
           </List.Items>
         </List.Search>
       </List>
