@@ -42,7 +42,7 @@ export default function Person(props) {
   if (person.customFields !== undefined) {
     Object.values(person.customFields).forEach((field) => {
       contactFields.push(
-        <Row className="mb-3" noGutters={true}>
+        <Row className="mb-3" noGutters={true} noGutters={true}>
           <Col>
             <p style={{ margin: 0 }}>
               <small>{field.kind}</small>
@@ -99,11 +99,14 @@ export default function Person(props) {
         <Content.Name>{props.person.name}</Content.Name>
         <Content.Options>{props.options(props.person)}</Content.Options>
       </Content.Title>
-      <Tabs>
+      <Tabs default="Contact">
         <Tabs.Pane key="contact" name="Contact">
           <Tabs.Content>
             <Scrollable>{contactFields}</Scrollable>
           </Tabs.Content>
+        </Tabs.Pane>
+        <Tabs.Pane key="details" name="Details">
+          <Tabs.Content></Tabs.Content>
         </Tabs.Pane>
       </Tabs>
     </>

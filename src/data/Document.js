@@ -734,12 +734,12 @@ export default class Document extends React.Component {
 
       return (
         <Container>
-          <Row>
+          <Row noGutters={true}>
             <Col>
               <h3>{this.state.document.name}</h3>
             </Col>
           </Row>
-          <Row>
+          <Row noGutters={true}>
             <Col>
               <p>
                 This document was deleted at {date.toString()} by{" "}
@@ -754,7 +754,7 @@ export default class Document extends React.Component {
     let contentTabPane = (
       <Tab.Pane key="content" eventKey="content" className="h-100">
         <Container className="p-3 h-100">
-          <Row className="h-100 w-100">
+          <Row className="h-100 w-100" noGutters={true}>
             <Col>
               <Scrollable>
                 <ReactQuill
@@ -784,7 +784,7 @@ export default class Document extends React.Component {
     let detailsTabPane = (
       <Tab.Pane key="details" eventKey="details">
         <Container className="p-3">
-          <Row className="mb-3">
+          <Row className="mb-3" noGutters={true}>
             <Col>
               <p>
                 <small>Created by</small>
@@ -792,7 +792,7 @@ export default class Document extends React.Component {
               <p>{this.state.document.createdBy}</p>
             </Col>
           </Row>
-          <Row className="mb-3">
+          <Row className="mb-3" noGutters={true}>
             <Col>
               <Form>
                 <Form.Group>
@@ -817,7 +817,7 @@ export default class Document extends React.Component {
               </Form>
             </Col>
           </Row>
-          <Row className="mb-3">
+          <Row className="mb-3" noGutters={true}>
             <Col>
               <Form>
                 <Form.Group>
@@ -865,7 +865,7 @@ export default class Document extends React.Component {
 
     return (
       <>
-        <Row style={{ paddingBottom: "2rem" }}>
+        <Row style={{ paddingBottom: "2rem" }} noGutters={true}>
           <Col>
             <ContentEditable
               innerRef={this.nameRef}
@@ -883,7 +883,7 @@ export default class Document extends React.Component {
           activeKey={activeTab}
           onSelect={onTabClick}
         >
-          <Row className="mb-3">
+          <Row className="mb-3" noGutters={true}>
             <Col>
               <Nav variant="pills">
                 <Nav.Item>
@@ -896,7 +896,7 @@ export default class Document extends React.Component {
             </Col>
           </Row>
 
-          <Row className="flex-grow-1">
+          <Row className="flex-grow-1" noGutters={true}>
             <Tab.Content className="w-100">
               {Object.values(tabPanes)}
             </Tab.Content>

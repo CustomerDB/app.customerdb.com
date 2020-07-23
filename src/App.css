@@ -202,3 +202,7 @@ span.inline-highlight {
   font-size: 1rem !important;
   font-family: HKGroteskPro !important;
 }
+
+.tab-pane {
+  flex-grow: 1 !important;
+}

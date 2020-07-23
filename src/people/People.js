@@ -91,7 +91,7 @@ export default function People(props) {
         setPeopleMap(newPeopleMap);
       });
     return unsubscribe;
-  }, []);
+  }, [props.peopleRef]);
 
   if (!peopleList || !peopleMap) {
     return <Loading />;
@@ -114,7 +114,7 @@ export default function People(props) {
     personID && peopleMap[personID] ? (
       <Person key={personID} person={peopleMap[personID]} options={options} />
     ) : (
-      <></>
+      <p></p>
     );
 
   let addModal = (
