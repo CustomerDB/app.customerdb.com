@@ -87,14 +87,20 @@ export default function Settings(props) {
   if (auth.oauthClaims.admin === true) {
     adminRoutes = [
       <Route
+        key="members"
         path="members"
         element={<Members membersRef={props.membersRef} />}
       />,
       <Route
+        key="organization"
         path="organization"
         element={<Organization selected="organization" />}
       />,
-      <Route path="backup" element={<Backup selected="backup" />} />,
+      <Route
+        key="backup"
+        path="backup"
+        element={<Backup selected="backup" />}
+      />,
     ];
   }
 
@@ -112,31 +118,35 @@ export default function Settings(props) {
       <Content>
         <Routes>
           <Route
+            key="/"
             path="/"
             element={<Navigate to={`/orgs/${orgID}/settings/profile`} />}
           />
 
           <Route
+            key="profile"
             path="profile"
             element={<Profile membersRef={props.membersRef} />}
           />
 
-          <Route path="tags">
+          <Route key="tags" path="tags">
             <Route
+              key="tags"
               path="/"
               element={<Tags tagGroupsRef={props.tagGroupsRef} />}
             />
             <Route
+              key=":tagGroupID"
               path=":tagGroupID"
               element={<Tags tagGroupsRef={props.tagGroupsRef} />}
             />
           </Route>
 
-          <Route path="import" element={<BulkImport />} />
+          <Route key="import" path="import" element={<BulkImport />} />
 
           {adminRoutes}
 
-          <Route path="*" element={<Navigate to="/404" />} />
+          <Route key="*" path="*" element={<Navigate to="/404" />} />
         </Routes>
       </Content>
     </Page>
