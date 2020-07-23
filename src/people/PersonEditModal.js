@@ -26,8 +26,6 @@ export default function PersonEditModal(props) {
   const [labels, setLabels] = useState({});
 
   useEffect(() => {
-    console.log("props", props, "props.personRef", props.personRef);
-
     if (!props.personRef) {
       return;
     }
@@ -49,6 +47,8 @@ export default function PersonEditModal(props) {
       setLabels(person.labels || {});
 
       setPerson(person);
+
+      console.log("PersonEditModal :: useEffect");
     });
   }, [props.show]);
 
@@ -138,6 +138,7 @@ export default function PersonEditModal(props) {
       name="Edit person"
       footer={[
         <Button
+          key={person.ID}
           onClick={() => {
             if (name) person.name = name;
             if (email) person.email = email;
@@ -159,7 +160,7 @@ export default function PersonEditModal(props) {
       ]}
     >
       {fields.map((field) => (
-        <Row className="mb-3">
+        <Row className="mb-3" key={field.label}>
           <Col>
             <Form.Label>{field.label}</Form.Label>
             <Form.Control

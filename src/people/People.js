@@ -31,10 +31,16 @@ export default function People(props) {
   const [addModalShow, setAddModalShow] = useState();
   const [newPersonRef, setNewPersonRef] = useState();
 
-  const options = (person) => {
-    let personRef = props.peopleRef.doc(person.ID);
+  const options = (personID) => {
+    if (!personID || !peopleMap) {
+      return <></>;
+    }
+
+    let personRef = props.peopleRef.doc(personID);
+    let person = peopleMap[personID];
+
     return (
-      <Options>
+      <Options key={person.ID}>
         <Options.Item
           name="Edit"
           modal={<PersonEditModal personRef={personRef} />}
@@ -44,11 +50,12 @@ export default function People(props) {
           name="Delete"
           modal={
             <Modal
+              key={personID}
               name="Delete message"
               footer={[
                 <Button
+                  key={personID}
                   onClick={() => {
-                    console.log(`Delete ${person.name} with ${person.ID}!`);
                     personRef.set(
                       {
                         deletedBy: auth.oauthClaims.email,
@@ -106,7 +113,7 @@ export default function People(props) {
       key={person.ID}
       name={person.name}
       path={`/orgs/${orgID}/people/${person.ID}`}
-      options={options(person)}
+      options={options(person.ID)}
     />
   ));
 
@@ -132,7 +139,7 @@ export default function People(props) {
       <List>
         <List.Search
           index="prod_PEOPLE"
-          path={(ID) => `/org/${orgID}/people/${ID}`}
+          path={(ID) => `/orgs/${orgID}/people/${ID}`}
           options={(ID) => options(ID)}
         >
           <List.SearchBox placeholder="Search in documents..." />

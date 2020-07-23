@@ -91,13 +91,11 @@ export default function Person(props) {
     );
   }
 
-  console.log("Person :: contactFields", contactFields);
-
   return (
     <>
       <Content.Title>
         <Content.Name>{props.person.name}</Content.Name>
-        <Content.Options>{props.options(props.person)}</Content.Options>
+        <Content.Options>{props.options(props.person.ID)}</Content.Options>
       </Content.Title>
       <Tabs default="Contact">
         <Tabs.Pane key="contact" name="Contact">

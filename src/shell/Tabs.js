@@ -53,6 +53,7 @@ export default class Tabs extends React.Component {
 
     let buttons = children.map((child) => (
       <Button
+        key={child.props.name}
         variant={child.props.name == this.state.key ? "primary" : "link"}
         onClick={() => {
           this.setState({ key: child.props.name });
@@ -63,8 +64,6 @@ export default class Tabs extends React.Component {
     ));
 
     let page = children.filter((child) => child.props.name == this.state.key);
-
-    console.log(page[0].props.children);
 
     return (
       <>

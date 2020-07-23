@@ -17,7 +17,7 @@ import {
   InstantSearch,
   SearchBox,
   connectStateResults,
-  Configure,
+  connectHits,
 } from "react-instantsearch-dom";
 
 import "../search/style.css";
@@ -29,6 +29,8 @@ export default class List extends React.Component {
 
   static Search(props) {
     const auth = useContext(UserAuthContext);
+
+    const [searchState, setSearchState] = useState({});
 
     // props.path = (ID) => {}
     // props.options = (ID) => {}
@@ -47,9 +49,45 @@ export default class List extends React.Component {
       return <Loading />;
     }
 
+    const CustomHits = connectHits((result) =>
+      result.hits.map((hit) => (
+        <List.Item
+          key={hit.objectID}
+          name={hit.name}
+          path={props.path(hit.objectID)}
+        />
+      ))
+    );
+
+    if (!props.children) {
+      return <></>;
+    }
+
+    let children = props.children;
+
+    // Replace "List.Items" child with search results.
+    if (searchState.query && searchState.query !== "") {
+      console.log("searchState", searchState);
+      children = props.children.slice();
+      for (let i = 0; i < children.length; i++) {
+        let child = children[i];
+
+        if (child.type.name == "Items") {
+          console.log("Rerender custom hits");
+          children[i] = <CustomHits />;
+          break;
+        }
+      }
+    }
+
     return (
-      <InstantSearch indexName={props.index} searchClient={searchClient}>
-        {props.children}
+      <InstantSearch
+        indexName={props.index}
+        searchClient={searchClient}
+        searchState={searchState}
+        onSearchStateChange={(st) => setSearchState(st)}
+      >
+        {children}
       </InstantSearch>
     );
   }
