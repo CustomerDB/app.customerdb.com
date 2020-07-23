@@ -16,7 +16,6 @@ import List from "../shell/List.js";
 import Modal from "../shell/Modal.js";
 import Options from "../shell/Options.js";
 import Page from "../shell/Page.js";
-import Scrollable from "../shell/Scrollable.js";
 
 import { Loading } from "../util/Utils.js";
 
@@ -177,9 +176,7 @@ export default function Data(props) {
           <List.Add onClick={onAdd} />
           {addModal}
         </List.Title>
-        <List.Items>
-          <Scrollable>{documentItems}</Scrollable>
-        </List.Items>
+        <List.Items>{documentItems}</List.Items>
       </List>
       <Content>{content}</Content>
     </Page>

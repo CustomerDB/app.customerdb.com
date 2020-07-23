@@ -33,9 +33,7 @@ export default function Person(props) {
           <p style={{ margin: 0 }}>
             <small>{e.title}</small>
           </p>
-          <p>
-            {e.value}
-          </p>
+          <p>{e.value}</p>
         </Col>
       </Row>,
     ];
@@ -49,9 +47,7 @@ export default function Person(props) {
             <p style={{ margin: 0 }}>
               <small>{field.kind}</small>
             </p>
-            <p>
-              {field.value}
-            </p>
+            <p>{field.value}</p>
           </Col>
         </Row>
       );
@@ -61,7 +57,12 @@ export default function Person(props) {
   if (person.labels !== undefined) {
     let labels = Object.values(person.labels).map((label) => {
       return (
-        <Badge key={label.name} pill variant="secondary" style={{ marginRight: "0.5rem" }}>
+        <Badge
+          key={label.name}
+          pill
+          variant="secondary"
+          style={{ marginRight: "0.5rem" }}
+        >
           {label.name}
         </Badge>
       );
@@ -74,9 +75,7 @@ export default function Person(props) {
             <p style={{ margin: 0 }}>
               <small>Labels</small>
             </p>
-            <p>
-              {labels}
-            </p>
+            <p>{labels}</p>
           </Col>
         </Row>
       );

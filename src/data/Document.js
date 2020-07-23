@@ -18,6 +18,7 @@ import Tab from "react-bootstrap/Tab";
 import Nav from "react-bootstrap/Nav";
 
 import { Loading } from "../util/Utils.js";
+import Scrollable from "../shell/Scrollable.js";
 
 import Tags, { addTagStyles, removeTagStyles } from "./Tags.js";
 import HighlightBlot from "./HighlightBlot.js";
@@ -755,20 +756,18 @@ export default class Document extends React.Component {
         <Container className="p-3 h-100">
           <Row className="h-100 w-100">
             <Col>
-              <div className="scrollBoxContainer">
-                <div className="scrollBox">
-                  <ReactQuill
-                    ref={(el) => {
-                      this.reactQuillRef = el;
-                    }}
-                    defaultValue={this.state.initialDelta}
-                    theme="bubble"
-                    placeholder="Start typing here and select to mark highlights"
-                    onChange={this.onEdit}
-                    onChangeSelection={this.onSelect}
-                  />
-                </div>
-              </div>
+              <Scrollable>
+                <ReactQuill
+                  ref={(el) => {
+                    this.reactQuillRef = el;
+                  }}
+                  defaultValue={this.state.initialDelta}
+                  theme="bubble"
+                  placeholder="Start typing here and select to mark highlights"
+                  onChange={this.onEdit}
+                  onChangeSelection={this.onSelect}
+                />
+              </Scrollable>
             </Col>
             <Col md={2}>
               <Tags

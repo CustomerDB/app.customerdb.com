@@ -28,8 +28,6 @@ export default function Organization(props) {
   const { orgID } = useParams();
   const navigate = useNavigate();
 
-  console.log("auth", auth);
-
   if (auth.oauthLoading) {
     return <Loading />;
   }
