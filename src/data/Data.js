@@ -113,6 +113,10 @@ export default function Data(props) {
         createdBy: auth.oauthClaims.email,
         creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
 
+        latestSnapshot: { ops: initialDelta().ops },
+
+        latestSnapshotTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+
         // Deletion is modeled as "soft-delete"; when the deletionTimestamp is set,
         // we don't show the document anymore in the list. However, it should be
         // possible to recover the document by unsetting this field before
@@ -121,8 +125,6 @@ export default function Data(props) {
       })
       .then((newDocRef) => {
         setNewDocumentRef(newDocRef);
-
-        let delta = initialDelta();
 
         navigate(`/orgs/${orgID}/data/${newDocRef.id}`);
 
