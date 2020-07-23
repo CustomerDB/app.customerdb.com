@@ -96,7 +96,13 @@ export default class List extends React.Component {
     return (
       <Row className="pb-3">
         <Col>
-          <SearchBox />
+          <SearchBox
+            translations={{
+              submitTitle: "Submit your search query.",
+              resetTitle: "Clear your search query.",
+              placeholder: props.placeholder,
+            }}
+          />
         </Col>
       </Row>
     );
