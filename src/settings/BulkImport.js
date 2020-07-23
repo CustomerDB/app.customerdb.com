@@ -144,7 +144,21 @@ export default function BulkImport(props) {
 }
 
 function ContactPreview(props) {
+  let filtered = {};
+  if (props.record) {
+    filtered = {
+      name: props.record.name || null,
+      email: props.record.email || null,
+      phone: props.record.phone || null,
+      company: props.record.company || null,
+      job: props.record.job || null,
+      city: props.record.city || null,
+      state: props.record.state || null,
+      country: props.record.country || null,
+    };
+  }
+
   return (
-    <pre style={{ width: "100%" }}>{JSON.stringify(props.record, null, 2)}</pre>
+    <pre style={{ width: "100%" }}>{JSON.stringify(filtered, null, 2)}</pre>
   );
 }
