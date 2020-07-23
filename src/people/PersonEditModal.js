@@ -30,8 +30,6 @@ export default function PersonEditModal(props) {
       return;
     }
 
-    console.log("props", props, "props.personRef", props.personRef);
-
     props.personRef.get().then((doc) => {
       let person = doc.data();
       person.ID = doc.id;
@@ -57,8 +55,6 @@ export default function PersonEditModal(props) {
   if (!person) {
     return <></>;
   }
-
-  console.log("PersonEditModal :: render ", props);
 
   const addCustomField = () => {
     let ID = nanoid();
@@ -142,6 +138,7 @@ export default function PersonEditModal(props) {
       name="Edit person"
       footer={[
         <Button
+          key={person.ID}
           onClick={() => {
             if (name) person.name = name;
             if (email) person.email = email;
@@ -163,7 +160,7 @@ export default function PersonEditModal(props) {
       ]}
     >
       {fields.map((field) => (
-        <Row className="mb-3">
+        <Row className="mb-3" key={field.label}>
           <Col>
             <Form.Label>{field.label}</Form.Label>
             <Form.Control

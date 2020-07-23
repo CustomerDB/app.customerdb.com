@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import Dropdown from "react-bootstrap/Dropdown";
 
@@ -10,23 +10,21 @@ export default class Option extends React.Component {
   }
 
   static Item(props) {
-    const [showModal, setShowModal] = useState(false);
+    const [show, setShow] = useState(false);
 
     let modal = React.cloneElement(props.modal, {
-      show: showModal,
+      show: show,
       onHide: () => {
-        setShowModal(false);
+        setShow(false);
       },
     });
-
-    console.log("showModal ", showModal);
 
     return (
       <>
         <Dropdown.Item
           onClick={() => {
-            console.log("Set modal");
-            setShowModal(true);
+            console.log("Dropdown item clicked");
+            setShow(true);
           }}
         >
           {props.name}

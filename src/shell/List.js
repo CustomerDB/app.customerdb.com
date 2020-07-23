@@ -30,6 +30,8 @@ export default class List extends React.Component {
   static Search(props) {
     const auth = useContext(UserAuthContext);
 
+    const [searchState, setSearchState] = useState({});
+
     // props.path = (ID) => {}
     // props.options = (ID) => {}
 
@@ -48,27 +50,43 @@ export default class List extends React.Component {
     }
 
     const CustomHits = connectHits((result) =>
-      result.hits.map((hit) => <List.Item name={hit.name} />)
+      result.hits.map((hit) => (
+        <List.Item
+          key={hit.objectID}
+          name={hit.name}
+          path={props.path(hit.objectID)}
+        />
+      ))
     );
 
-    // options={props.options(hit.objectID)} path={props.path(hit.objectID)}
+    if (!props.children) {
+      return <></>;
+    }
 
-    let children = props.children.slice();
-    let list;
-    for (let i = 0; i < children.length; i++) {
-      let child = React.cloneElement(children[i], {});
+    let children = props.children;
 
-      if (child.type.name == "Items") {
-        const Results = connectStateResults(({ searchState }) =>
-          searchState && searchState.query ? <CustomHits /> : child
-        );
-        children[i] = <Results />;
-        break;
+    // Replace "List.Items" child with search results.
+    if (searchState.query && searchState.query !== "") {
+      console.log("searchState", searchState);
+      children = props.children.slice();
+      for (let i = 0; i < children.length; i++) {
+        let child = children[i];
+
+        if (child.type.name == "Items") {
+          console.log("Rerender custom hits");
+          children[i] = <CustomHits />;
+          break;
+        }
       }
     }
 
     return (
-      <InstantSearch indexName={props.index} searchClient={searchClient}>
+      <InstantSearch
+        indexName={props.index}
+        searchClient={searchClient}
+        searchState={searchState}
+        onSearchStateChange={(st) => setSearchState(st)}
+      >
         {children}
       </InstantSearch>
     );
