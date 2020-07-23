@@ -92,7 +92,7 @@ export default function Person(props) {
   }
 
   return (
-    <>
+    <Content>
       <Content.Title>
         <Content.Name>{props.person.name}</Content.Name>
         <Content.Options>{props.options(props.person.ID)}</Content.Options>
@@ -107,6 +107,6 @@ export default function Person(props) {
           <Tabs.Content></Tabs.Content>
         </Tabs.Pane>
       </Tabs>
-    </>
+    </Content>
   );
 }

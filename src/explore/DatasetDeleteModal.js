@@ -8,41 +8,41 @@ import Button from "react-bootstrap/Button";
 
 import Modal from "../shell/Modal.js";
 
-export default function PersonDeleteModal(props) {
+export default function DatasetDeleteModal(props) {
   const auth = useContext(UserAuthContext);
   const navigate = useNavigate();
 
   const { orgID } = useParams();
 
-  const [person, setPerson] = useState();
+  const [dataset, setDataset] = useState();
 
   useEffect(() => {
-    if (!props.personRef) {
+    if (!props.datasetRef) {
       return;
     }
 
-    props.personRef.get().then((doc) => {
-      let person = doc.data();
-      person.ID = doc.id;
-      setPerson(person);
+    props.datasetRef.get().then((doc) => {
+      let dataset = doc.data();
+      dataset.ID = doc.id;
+      setDataset(dataset);
     });
   }, [props.show]);
 
-  if (!person) {
+  if (!dataset) {
     return <></>;
   }
 
   return (
     <Modal
-      key={person.ID}
-      name="Delete person"
+      key={dataset.ID}
+      name="Delete dataset"
       show={props.show}
       onHide={props.onHide}
       footer={[
         <Button
-          key={person.ID}
+          key={dataset.ID}
           onClick={() => {
-            props.personRef.set(
+            props.datasetRef.set(
               {
                 deletedBy: auth.oauthClaims.email,
                 deletionTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
@@ -50,14 +50,14 @@ export default function PersonDeleteModal(props) {
               { merge: true }
             );
 
-            navigate(`/orgs/${orgID}/people`);
+            navigate(`/orgs/${orgID}/explore`);
           }}
         >
           Delete
         </Button>,
       ]}
     >
-      <p>Do you want to delete {person.name}</p>
+      <p>Do you want to delete {dataset.name}</p>
     </Modal>
   );
 }
