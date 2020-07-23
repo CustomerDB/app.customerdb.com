@@ -170,13 +170,18 @@ export default function Data(props) {
   return (
     <Page>
       <List>
-        <List.Search placeholder="Search in data..." />
-        <List.Title>
-          <List.Name>Customer Data</List.Name>
-          <List.Add onClick={onAdd} />
-          {addModal}
-        </List.Title>
-        <List.Items>{documentItems}</List.Items>
+        <List.Search
+          index="prod_DOCUMENTS"
+          path={(ID) => `/orgs/${orgID}/data/${ID}`}
+        >
+          <List.SearchBox placeholder="Search in data..." />
+          <List.Title>
+            <List.Name>Customer Data</List.Name>
+            <List.Add onClick={onAdd} />
+            {addModal}
+          </List.Title>
+          <List.Items>{documentItems}</List.Items>
+        </List.Search>
       </List>
       <Content>{content}</Content>
     </Page>

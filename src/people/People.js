@@ -140,9 +140,8 @@ export default function People(props) {
         <List.Search
           index="prod_PEOPLE"
           path={(ID) => `/orgs/${orgID}/people/${ID}`}
-          options={(ID) => options(ID)}
         >
-          <List.SearchBox placeholder="Search in documents..." />
+          <List.SearchBox placeholder="Search in people..." />
           <List.Title>
             <List.Name>People</List.Name>
             <List.Add
