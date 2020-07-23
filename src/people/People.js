@@ -137,7 +137,7 @@ export default function People(props) {
           </List.Items>
         </List.Search>
       </List>
-      <Content>{content}</Content>
+      {content}
     </Page>
   );
 }

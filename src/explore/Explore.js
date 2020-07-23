@@ -134,7 +134,7 @@ export default function Explore(props) {
           </Scrollable>
         </List.Items>
       </List>
-      <Content>{content}</Content>
+      {content}
     </Page>
   );
 }
