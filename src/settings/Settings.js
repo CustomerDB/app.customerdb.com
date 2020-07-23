@@ -7,6 +7,8 @@ import List from "../shell/List.js";
 import Scrollable from "../shell/Scrollable.js";
 import Content from "../shell/Content.js";
 import Options from "../Options.js";
+
+import BulkImport from "./BulkImport.js";
 import Tags from "./Tags.js";
 
 import Col from "react-bootstrap/Col";
@@ -53,6 +55,11 @@ export default function Settings(props) {
       name="Tag setup"
       path={`/orgs/${orgID}/settings/tags`}
     />,
+    <List.Item
+      key="import"
+      name="Bulk data import"
+      path={`/orgs/${orgID}/settings/import`}
+    />,
   ];
 
   if (auth.oauthClaims.admin === true) {
@@ -73,6 +80,22 @@ export default function Settings(props) {
         path={`/orgs/${orgID}/settings/backup`}
       />,
     ]);
+  }
+
+  let adminRoutes = undefined;
+
+  if (auth.oauthClaims.admin === true) {
+    adminRoutes = [
+      <Route
+        path="members"
+        element={<Members membersRef={props.membersRef} />}
+      />,
+      <Route
+        path="organization"
+        element={<Organization selected="organization" />}
+      />,
+      <Route path="backup" element={<Backup selected="backup" />} />,
+    ];
   }
 
   return (
@@ -109,53 +132,15 @@ export default function Settings(props) {
             />
           </Route>
 
-          <Route
-            path="members"
-            element={<Members membersRef={props.membersRef} />}
-          />
+          <Route path="import" element={<BulkImport />} />
 
-          <Route
-            path="organization"
-            element={<Organization selected="organization" />}
-          />
-
-          <Route path="backup" element={<Backup selected="backup" />} />
+          {adminRoutes}
 
           <Route path="*" element={<Navigate to="/404" />} />
         </Routes>
       </Content>
     </Page>
   );
-
-  //return (
-  //  <Container className="noMargin">
-  //    <Row className="h-100">
-  //      <Col md={4} className="d-flex flex-column h-100">
-  //        <Row style={{ paddingBottom: "2rem" }}>
-  //          <Col md={10} className="my-auto">
-  //            <h3>Settings</h3>
-  //          </Col>
-  //        </Row>
-  //        <Row className="flex-grow-1">
-  //          <Col>
-  //            <AutoSizer>
-  //              {({ height, width }) => (
-  //                <VirtList
-  //                  height={height}
-  //                  rowCount={list.length}
-  //                  rowHeight={window.getEmPixels() * 6}
-  //                  rowRenderer={cardRenderer}
-  //                  width={width}
-  //                />
-  //              )}
-  //            </AutoSizer>
-  //          </Col>
-  //        </Row>
-  //      </Col>
-  //      {view}
-  //    </Row>
-  //  </Container>
-  //);
 }
 
 function Profile(props) {
