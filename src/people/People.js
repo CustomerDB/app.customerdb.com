@@ -8,12 +8,10 @@ import List from "../shell/List.js";
 import Content from "../shell/Content.js";
 import Scrollable from "../shell/Scrollable.js";
 import Options from "../shell/Options.js";
-import Modal from "../shell/Modal.js";
 
 import PersonEditModal from "./PersonEditModal.js";
+import PersonDeleteModal from "./PersonDeleteModal.js";
 import Person from "./Person.js";
-
-import Button from "react-bootstrap/Button";
 
 import { useParams, useNavigate } from "react-router-dom";
 
@@ -32,15 +30,14 @@ export default function People(props) {
   const [newPersonRef, setNewPersonRef] = useState();
 
   const options = (personID) => {
-    if (!personID || !peopleMap) {
+    if (!personID) {
       return <></>;
     }
 
     let personRef = props.peopleRef.doc(personID);
-    let person = peopleMap[personID];
 
     return (
-      <Options key={person.ID}>
+      <Options key={personID}>
         <Options.Item
           name="Edit"
           modal={<PersonEditModal personRef={personRef} />}
@@ -48,32 +45,7 @@ export default function People(props) {
 
         <Options.Item
           name="Delete"
-          modal={
-            <Modal
-              key={personID}
-              name="Delete message"
-              footer={[
-                <Button
-                  key={personID}
-                  onClick={() => {
-                    personRef.set(
-                      {
-                        deletedBy: auth.oauthClaims.email,
-                        deletionTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
-                      },
-                      { merge: true }
-                    );
-
-                    navigate(`/orgs/${orgID}/people`);
-                  }}
-                >
-                  Delete
-                </Button>,
-              ]}
-            >
-              <p>Do you want to delete {person.name}</p>
-            </Modal>
-          }
+          modal={<PersonDeleteModal personRef={personRef} />}
         />
       </Options>
     );
