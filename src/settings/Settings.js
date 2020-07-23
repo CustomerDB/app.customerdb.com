@@ -142,7 +142,11 @@ export default function Settings(props) {
             />
           </Route>
 
-          <Route key="import" path="import" element={<BulkImport />} />
+          <Route
+            key="import"
+            path="import"
+            element={<BulkImport peopleRef={props.peopleRef} />}
+          />
 
           {adminRoutes}
 

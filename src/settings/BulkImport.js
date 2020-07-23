@@ -1,5 +1,6 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useContext, useCallback, useEffect, useState } from "react";
 
+import UserAuthContext from "../auth/UserAuthContext.js";
 import Scrollable from "../shell/Scrollable.js";
 
 import { useDropzone } from "react-dropzone";
@@ -10,10 +11,14 @@ import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
+import ProgressBar from "react-bootstrap/ProgressBar";
 
 export default function BulkImport(props) {
+  const auth = useContext(UserAuthContext);
+
   const [records, setRecords] = useState();
   const [randomRecord, setRandomRecord] = useState();
+  const [importProgress, setImportProgress] = useState();
 
   const chooseRandomRecord = () => {
     if (!records || records.length === 0) {
@@ -27,6 +32,43 @@ export default function BulkImport(props) {
 
   useEffect(chooseRandomRecord, [records]);
 
+  const createPerson = (record) => {
+    let filtered = {};
+    if (record) {
+      filtered = {
+        name: record.name || null,
+        email: record.email || null,
+        phone: record.phone || null,
+        company: record.company || null,
+        job: record.job || null,
+        city: record.city || null,
+        state: record.state || null,
+        country: record.country || null,
+
+        createdBy: auth.oauthClaims.email,
+        creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+        deletionTimestamp: "",
+      };
+    }
+
+    if (!filtered.name) {
+      console.debug("skipping record (name missing)", record);
+      setImportProgress(importProgress + 1);
+      return;
+    }
+
+    console.log("importing record", record, filtered);
+    return props.peopleRef.add(filtered).then(() => {
+      setImportProgress(importProgress + 1);
+    });
+  };
+
+  useEffect(() => {
+    if (importProgress !== undefined && importProgress < records.length) {
+      createPerson(records[importProgress]);
+    }
+  }, [importProgress]);
+
   const onParse = (results) => {
     console.log("finished", results.data);
     setRecords(results.data);
@@ -38,6 +80,8 @@ export default function BulkImport(props) {
     acceptedFiles.forEach((file) => {
       papa.parse(file, {
         header: true,
+        skipEmptyLines: true,
+        dynamicTyping: true,
         complete: onParse,
       });
     });
@@ -72,7 +116,9 @@ export default function BulkImport(props) {
       </Col>
       <Col md={8}>
         <ul>
-          <li>name</li>
+          <li>
+            name <span class="text-primary">(required)</span>
+          </li>
           <li>email</li>
           <li>phone</li>
           <li>company</li>
@@ -97,6 +143,46 @@ export default function BulkImport(props) {
 
   if (!records) {
     return filePrompt;
+  }
+
+  if (importProgress !== undefined) {
+    let importProgressPercent = importProgress / records.length;
+    let okButton = <></>;
+
+    if (importProgress === records.length) {
+      importProgressPercent = 100;
+
+      okButton = (
+        <Button
+          style={{ minWidth: "18rem" }}
+          key="ok"
+          variant="primary"
+          onClick={() => {
+            setImportProgress(undefined);
+            setRecords(undefined);
+          }}
+        >
+          OK
+        </Button>
+      );
+    }
+
+    return (
+      <Scrollable>
+        <Container fluid>
+          <Row className="mt-4 mb-4">
+            <h3>Import progress</h3>
+          </Row>
+          <Row>
+            <p>
+              {importProgress} of {records.length}
+            </p>
+          </Row>
+
+          <Row className="pt-3">{okButton}</Row>
+        </Container>
+      </Scrollable>
+    );
   }
 
   return (
@@ -133,7 +219,9 @@ export default function BulkImport(props) {
             style={{ minWidth: "18rem" }}
             key="import"
             variant="success"
-            onClick={() => console.log("TODO! Make records")}
+            onClick={() => {
+              setImportProgress(0);
+            }}
           >
             Import {records.length} records
           </Button>

@@ -106,7 +106,11 @@ export default function OrganizationRoutes(props) {
         <Route
           path="settings/*"
           element={
-            <Settings membersRef={membersRef} tagGroupsRef={tagGroupsRef} />
+            <Settings
+              membersRef={membersRef}
+              tagGroupsRef={tagGroupsRef}
+              peopleRef={peopleRef}
+            />
           }
         />
 
