@@ -26,11 +26,11 @@ export default function PersonEditModal(props) {
   const [labels, setLabels] = useState({});
 
   useEffect(() => {
-    console.log("props", props, "props.personRef", props.personRef);
-
     if (!props.personRef) {
       return;
     }
+
+    console.log("props", props, "props.personRef", props.personRef);
 
     props.personRef.get().then((doc) => {
       let person = doc.data();
@@ -49,12 +49,16 @@ export default function PersonEditModal(props) {
       setLabels(person.labels || {});
 
       setPerson(person);
+
+      console.log("PersonEditModal :: useEffect");
     });
   }, [props.show]);
 
   if (!person) {
     return <></>;
   }
+
+  console.log("PersonEditModal :: render ", props);
 
   const addCustomField = () => {
     let ID = nanoid();

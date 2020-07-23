@@ -17,7 +17,7 @@ import {
   InstantSearch,
   SearchBox,
   connectStateResults,
-  Configure,
+  connectHits,
 } from "react-instantsearch-dom";
 
 import "../search/style.css";
@@ -47,9 +47,29 @@ export default class List extends React.Component {
       return <Loading />;
     }
 
+    const CustomHits = connectHits((result) =>
+      result.hits.map((hit) => <List.Item name={hit.name} />)
+    );
+
+    // options={props.options(hit.objectID)} path={props.path(hit.objectID)}
+
+    let children = props.children.slice();
+    let list;
+    for (let i = 0; i < children.length; i++) {
+      let child = React.cloneElement(children[i], {});
+
+      if (child.type.name == "Items") {
+        const Results = connectStateResults(({ searchState }) =>
+          searchState && searchState.query ? <CustomHits /> : child
+        );
+        children[i] = <Results />;
+        break;
+      }
+    }
+
     return (
       <InstantSearch indexName={props.index} searchClient={searchClient}>
-        {props.children}
+        {children}
       </InstantSearch>
     );
   }

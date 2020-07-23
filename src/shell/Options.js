@@ -19,10 +19,13 @@ export default class Option extends React.Component {
       },
     });
 
+    console.log("showModal ", showModal);
+
     return (
       <>
         <Dropdown.Item
           onClick={() => {
+            console.log("Set modal");
             setShowModal(true);
           }}
         >
