@@ -103,6 +103,7 @@ export default function People(props) {
 
   let peopleComponents = peopleList.map((person) => (
     <List.Item
+      key={person.ID}
       name={person.name}
       path={`/orgs/${orgID}/people/${person.ID}`}
       options={options(person)}
@@ -111,7 +112,7 @@ export default function People(props) {
 
   let content =
     personID && peopleMap[personID] ? (
-      <Person person={peopleMap[personID]} options={options} />
+      <Person key={personID} person={peopleMap[personID]} options={options} />
     ) : (
       <></>
     );

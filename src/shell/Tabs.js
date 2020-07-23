@@ -56,7 +56,7 @@ export default class Tabs extends React.Component {
         variant="pills"
       >
         {children.map((pane) => (
-          <BootstrapTab eventKey={pane.props.name} title={pane.props.name}>
+          <BootstrapTab key={pane.props.name} eventKey={pane.props.name} title={pane.props.name}>
             {pane}
           </BootstrapTab>
         ))}
