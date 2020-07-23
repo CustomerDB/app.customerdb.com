@@ -5,12 +5,13 @@ import Row from "react-bootstrap/Row";
 
 import BootstrapTab from "react-bootstrap/Tab";
 import BootstrapTabs from "react-bootstrap/Tabs";
+import Button from "react-bootstrap/Button";
 
 export default class Tabs extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      key: undefined,
+      key: this.props.default,
     };
   }
 
@@ -49,18 +50,31 @@ export default class Tabs extends React.Component {
     if (!Array.isArray(children)) {
       children = [children];
     }
-    return (
-      <BootstrapTabs
-        activeKey={this.state.key}
-        onSelect={(k) => this.setState({ key: k })}
-        variant="pills"
+
+    let buttons = children.map((child) => (
+      <Button
+        variant={child.props.name == this.state.key ? "primary" : "link"}
+        onClick={() => {
+          this.setState({ key: child.props.name });
+        }}
       >
-        {children.map((pane) => (
-          <BootstrapTab eventKey={pane.props.name} title={pane.props.name}>
-            {pane}
-          </BootstrapTab>
-        ))}
-      </BootstrapTabs>
+        {child.props.name}
+      </Button>
+    ));
+
+    let page = children.filter((child) => child.props.name == this.state.key);
+
+    console.log(page[0].props.children);
+
+    return (
+      <>
+        <Row noGutters={true}>
+          <Col>{buttons}</Col>
+        </Row>
+        <Row className="h-100 p-3" noGutters={true}>
+          {page[0].props.children}
+        </Row>
+      </>
     );
   }
 }

@@ -11,7 +11,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import { getSearchClient } from "../search/client.js";
 
-import { Loading } from "../Utils.js";
+import { Loading } from "../util/Utils.js";
 
 import {
   InstantSearch,

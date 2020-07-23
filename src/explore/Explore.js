@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect } from "react";
 
-import UserAuthContext from "./auth/UserAuthContext.js";
+import UserAuthContext from "../auth/UserAuthContext.js";
 
 import Col from "react-bootstrap/Col";
 import Container from "react-bootstrap/Container";
@@ -10,7 +10,7 @@ import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
 
 import Dataset from "./Dataset.js";
-import List from "./List.js";
+import List from "../List.js";
 
 import { useNavigate, useParams } from "react-router-dom";
 

@@ -24,9 +24,11 @@ local:
 
 apply-format:
 	yarn prettier --write src/
+	yarn prettier --write functions/
 
 check-format:
 	yarn prettier --check src/
+	yarn prettier --check functions/
 
 install-git-hooks:
 	cp scripts/pre-commit .git/hooks/pre-commit

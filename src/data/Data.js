@@ -16,9 +16,8 @@ import List from "../shell/List.js";
 import Modal from "../shell/Modal.js";
 import Options from "../shell/Options.js";
 import Page from "../shell/Page.js";
-import Scrollable from "../shell/Scrollable.js";
 
-import { Loading } from "../Utils.js";
+import { Loading } from "../util/Utils.js";
 
 function initialDelta() {
   return new Delta([{ insert: "\n" }]);
@@ -113,6 +112,10 @@ export default function Data(props) {
         createdBy: auth.oauthClaims.email,
         creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
 
+        latestSnapshot: { ops: initialDelta().ops },
+
+        latestSnapshotTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+
         // Deletion is modeled as "soft-delete"; when the deletionTimestamp is set,
         // we don't show the document anymore in the list. However, it should be
         // possible to recover the document by unsetting this field before
@@ -121,8 +124,6 @@ export default function Data(props) {
       })
       .then((newDocRef) => {
         setNewDocumentRef(newDocRef);
-
-        let delta = initialDelta();
 
         navigate(`/orgs/${orgID}/data/${newDocRef.id}`);
 
@@ -175,9 +176,7 @@ export default function Data(props) {
           <List.Add onClick={onAdd} />
           {addModal}
         </List.Title>
-        <List.Items>
-          <Scrollable>{documentItems}</Scrollable>
-        </List.Items>
+        <List.Items>{documentItems}</List.Items>
       </List>
       <Content>{content}</Content>
     </Page>

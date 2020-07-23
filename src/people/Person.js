@@ -28,14 +28,12 @@ export default function Person(props) {
     }
 
     return [
-      <Row className="mb-3" noGutters={true}>
+      <Row key={e.title} className="mb-3" noGutters={true}>
         <Col>
           <p style={{ margin: 0 }}>
             <small>{e.title}</small>
           </p>
-          <p>
-            <large>{e.value}</large>
-          </p>
+          <p>{e.value}</p>
         </Col>
       </Row>,
     ];
@@ -44,14 +42,12 @@ export default function Person(props) {
   if (person.customFields !== undefined) {
     Object.values(person.customFields).forEach((field) => {
       contactFields.push(
-        <Row className="mb-3" noGutters={true}>
+        <Row className="mb-3" noGutters={true} noGutters={true}>
           <Col>
             <p style={{ margin: 0 }}>
               <small>{field.kind}</small>
             </p>
-            <p>
-              <large>{field.value}</large>
-            </p>
+            <p>{field.value}</p>
           </Col>
         </Row>
       );
@@ -61,7 +57,12 @@ export default function Person(props) {
   if (person.labels !== undefined) {
     let labels = Object.values(person.labels).map((label) => {
       return (
-        <Badge pill variant="secondary" style={{ marginRight: "0.5rem" }}>
+        <Badge
+          key={label.name}
+          pill
+          variant="secondary"
+          style={{ marginRight: "0.5rem" }}
+        >
           {label.name}
         </Badge>
       );
@@ -69,14 +70,12 @@ export default function Person(props) {
 
     if (labels.length > 0) {
       contactFields.push(
-        <Row className="mb-3" noGutters={true}>
+        <Row key="labels" className="mb-3" noGutters={true}>
           <Col>
             <p style={{ margin: 0 }}>
               <small>Labels</small>
             </p>
-            <p>
-              <large>{labels}</large>
-            </p>
+            <p>{labels}</p>
           </Col>
         </Row>
       );
@@ -92,17 +91,22 @@ export default function Person(props) {
     );
   }
 
+  console.log("Person :: contactFields", contactFields);
+
   return (
     <>
       <Content.Title>
         <Content.Name>{props.person.name}</Content.Name>
         <Content.Options>{props.options(props.person)}</Content.Options>
       </Content.Title>
-      <Tabs>
-        <Tabs.Pane name="Contact">
+      <Tabs default="Contact">
+        <Tabs.Pane key="contact" name="Contact">
           <Tabs.Content>
             <Scrollable>{contactFields}</Scrollable>
           </Tabs.Content>
+        </Tabs.Pane>
+        <Tabs.Pane key="details" name="Details">
+          <Tabs.Content></Tabs.Content>
         </Tabs.Pane>
       </Tabs>
     </>

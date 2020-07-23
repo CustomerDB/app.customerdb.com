@@ -17,7 +17,7 @@ import Button from "react-bootstrap/Button";
 
 import { useParams, useNavigate } from "react-router-dom";
 
-import { Loading } from "../Utils.js";
+import { Loading } from "../util/Utils.js";
 
 export default function People(props) {
   const auth = useContext(UserAuthContext);
@@ -91,7 +91,7 @@ export default function People(props) {
         setPeopleMap(newPeopleMap);
       });
     return unsubscribe;
-  }, []);
+  }, [props.peopleRef]);
 
   if (!peopleList || !peopleMap) {
     return <Loading />;
@@ -103,6 +103,7 @@ export default function People(props) {
 
   let peopleComponents = peopleList.map((person) => (
     <List.Item
+      key={person.ID}
       name={person.name}
       path={`/orgs/${orgID}/people/${person.ID}`}
       options={options(person)}
@@ -111,9 +112,9 @@ export default function People(props) {
 
   let content =
     personID && peopleMap[personID] ? (
-      <Person person={peopleMap[personID]} options={options} />
+      <Person key={personID} person={peopleMap[personID]} options={options} />
     ) : (
-      <></>
+      <p></p>
     );
 
   let addModal = (

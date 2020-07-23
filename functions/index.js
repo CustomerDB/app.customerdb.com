@@ -1,57 +1,18 @@
 const sgMail = require("@sendgrid/mail");
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
-const path = require("path");
-const os = require("os");
 const fs = require("fs");
-const csv = require("csv-parser");
 const algoliasearch = require("algoliasearch");
+const Delta = require("quill-delta");
+const toPlaintext = require("quill-delta-to-plaintext");
 
 admin.initializeApp();
 
-const ALGOLIA_ID = functions.config().algolia.app_id;
-const ALGOLIA_ADMIN_KEY = functions.config().algolia.api_key;
-const ALGOLIA_SEARCH_KEY = functions.config().algolia.search_key;
-const client = algoliasearch(ALGOLIA_ID, ALGOLIA_ADMIN_KEY);
-
-exports.getSearchKey = functions.https.onCall((data, context) => {
-  // Require authenticated requests
-  if (!context.auth) {
-    throw new functions.https.HttpsError(
-      "permission-denied",
-      "Authentication required."
-    );
-  }
-
-  let orgID = context.auth.token.orgID;
-  if (!orgID) {
-    throw new functions.https.HttpsError(
-      "permission-denied",
-      "user organization not found"
-    );
-  }
-
-  // Create the params object as described in the Algolia documentation:
-  // https://www.algolia.com/doc/guides/security/api-keys/#generating-api-keys
-  const params = {
-    // This filter ensures that only items where orgID == user's org ID are readable
-    filters: `orgID:${orgID}`,
-    // We also proxy the token uid as a unique token for this key.
-    userToken: context.auth.uid,
-  };
-
-  // Call the Algolia API to generate a unique key based on our search key
-  const key = client.generateSecuredApiKey(ALGOLIA_SEARCH_KEY, params);
-
-  // Store it in the user's api key document.
-  let db = admin.firestore();
-  let apiKeyRef = db.collection("organizations").doc(orgID).collection("apiKeys").doc(context.auth.uid);
-  
-  return apiKeyRef.set({
-    'searchKey': key
-  })
-  .then(() => {return {key: key}})
-})
+//////////////////////////////////////////////////////////////////////////////
+//
+//   Authentication
+//
+//////////////////////////////////////////////////////////////////////////////
 
 // Authentication trigger adds custom claims to the user's auth token
 // when members are written
@@ -143,6 +104,235 @@ exports.onMemberWritten = functions.firestore
         }
       });
   });
+
+//////////////////////////////////////////////////////////////////////////////
+//
+//   Search
+//
+//////////////////////////////////////////////////////////////////////////////
+
+const ALGOLIA_ID = functions.config().algolia.app_id;
+const ALGOLIA_ADMIN_KEY = functions.config().algolia.api_key;
+const ALGOLIA_SEARCH_KEY = functions.config().algolia.search_key;
+
+const ALGOLIA_PEOPLE_INDEX_NAME = "prod_PEOPLE";
+const ALGOLIA_DOCUMENTS_INDEX_NAME = "prod_DOCUMENTS";
+
+const client = algoliasearch(ALGOLIA_ID, ALGOLIA_ADMIN_KEY);
+
+// Provision a new API key for the client to use when making
+// search index queries.
+exports.getSearchKey = functions.https.onCall((data, context) => {
+  // Require authenticated requests
+  if (!context.auth) {
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      "Authentication required."
+    );
+  }
+
+  let orgID = context.auth.token.orgID;
+  if (!orgID) {
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      "user organization not found"
+    );
+  }
+
+  // Create the params object as described in the Algolia documentation:
+  // https://www.algolia.com/doc/guides/security/api-keys/#generating-api-keys
+  const params = {
+    // This filter ensures that only items where orgID == user's
+    // org ID are readable.
+    filters: `orgID:${orgID}`,
+    // We also proxy the token uid as a unique token for this key.
+    userToken: context.auth.uid,
+  };
+
+  // Call the Algolia API to generate a unique key based on our search key
+  const key = client.generateSecuredApiKey(ALGOLIA_SEARCH_KEY, params);
+
+  // Store it in the user's api key document.
+  let db = admin.firestore();
+  let apiKeyRef = db
+    .collection("organizations")
+    .doc(orgID)
+    .collection("apiKeys")
+    .doc(context.auth.uid);
+
+  return apiKeyRef
+    .set({
+      searchKey: key,
+    })
+    .then(() => {
+      return { key: key };
+    });
+});
+
+// Add people records to the search index when created or updated.
+exports.onPersonWritten = functions.firestore
+  .document("organizations/{orgID}/people/{personID}")
+  .onWrite((change, context) => {
+    const index = client.initIndex(ALGOLIA_PEOPLE_INDEX_NAME);
+
+    if (!change.after.exists || change.after.data().deletionTimestamp != "") {
+      // Delete person from index;
+      index.deleteObject(context.params.personID);
+      return;
+    }
+
+    let person = change.after.data();
+
+    let personToIndex = {
+      // Add an 'objectID' field which Algolia requires
+      objectID: change.after.id,
+      orgID: context.params.orgID,
+      name: person.name,
+      job: person.job,
+      labels: person.labels,
+      customFields: person.customFields,
+      createdBy: person.createdBy,
+      creationTimestamp: person.creationTimestamp.seconds,
+    };
+
+    // Write to the algolia index
+    return index.saveObject(personToIndex);
+  });
+
+// Add document records to the search index when created or
+// when marked for re-index.
+exports.onDocumentWritten = functions.firestore
+  .document("organizations/{orgID}/documents/{documentID}")
+  .onWrite((change, context) => {
+    const index = client.initIndex(ALGOLIA_DOCUMENTS_INDEX_NAME);
+
+    let data = change.after.data();
+
+    if (!change.after.exists || data.deletionTimestamp != "") {
+      // Delete document from index;
+      return index.deleteObject(context.params.documentID);
+    }
+
+    let latestSnapshot = new Delta(data.latestSnapshot.ops);
+
+    if (data.needsIndex === true) {
+      let ts = data.latestSnapshotTimestamp;
+      if (ts === "") {
+        ts = new admin.firestore.Timestamp(0, 0);
+      }
+      return change.after.ref
+        .collection("deltas")
+        .where("timestamp", ">", ts)
+        .get()
+        .then((deltasSnapshot) => {
+          deltasSnapshot.forEach((deltaDoc) => {
+            let delta = deltaDoc.data();
+            let ops = delta.ops;
+            latestSnapshot = latestSnapshot.compose(new Delta(ops));
+            ts = delta.timestamp;
+          });
+
+          // Convert the consolidated document delta snapshot to text.
+          let docText = toPlaintext(latestSnapshot);
+
+          // Index the new content
+          let docToIndex = {
+            // Add an 'objectID' field which Algolia requires
+            objectID: change.after.id,
+            orgID: context.params.orgID,
+            name: data.name,
+            createdBy: data.createdBy,
+            creationTimestamp: data.creationTimestamp.seconds,
+            latestSnapshotTimestamp: ts.seconds,
+            text: docText,
+          };
+
+          return index.saveObject(docToIndex).then(() => {
+            // Write the snapshot, timestamp and index state back to document
+            return change.after.ref.set(
+              {
+                latestSnapshot: {
+                  ops: latestSnapshot.ops,
+                },
+                latestSnapshotTimestamp: ts,
+                needsIndex: false,
+              },
+              { merge: true }
+            );
+          });
+        });
+    }
+
+    // Otherwise, just proceed with updating the index with the
+    // existing document data.
+    return index.saveObject({
+      // Add an 'objectID' field which Algolia requires
+      objectID: change.after.id,
+      orgID: context.params.orgID,
+      name: data.name,
+      createdBy: data.createdBy,
+      creationTimestamp: data.creationTimestamp.seconds,
+      latestSnapshotTimestamp: data.latestSnapshotTimestamp.seconds,
+      text: toPlaintext(latestSnapshot),
+    });
+  });
+
+// Mark documents with edits more recent than the last indexing operation
+// for re-indexing.
+exports.markDocumentsForIndexing = functions.pubsub
+  .schedule("every 5 minutes")
+  .onRun((context) => {
+    let db = admin.firestore();
+
+    return db
+      .collection("organizations")
+      .get()
+      .then((orgsSnapshot) => {
+        // Iterate all organizations
+        return Promise.all(
+          orgsSnapshot.docs.map((orgsSnapshot) => {
+            // Look at documents not currently marked for indexing
+            // that have not been marked for deletion.
+            return orgsSnapshot.ref
+              .collection("documents")
+              .where("needsIndex", "==", false)
+              .where("deletionTimestamp", "==", "")
+              .get()
+              .then((docsSnapshot) => {
+                return Promise.all(
+                  docsSnapshot.docs.map((doc) => {
+                    // Look for any deltas that were written after the
+                    // last indexed timestamp.
+                    return doc.ref
+                      .collection("deltas")
+                      .where(
+                        "timestamp",
+                        ">",
+                        doc.data().latestSnapshotTimestamp
+                      )
+                      .get()
+                      .then((deltas) => {
+                        if (deltas.size > 0) {
+                          // Mark this document for indexing
+                          return doc.ref.set(
+                            { needsIndex: true },
+                            { merge: true }
+                          );
+                        }
+                      });
+                  })
+                );
+              });
+          })
+        );
+      });
+  });
+
+//////////////////////////////////////////////////////////////////////////////
+//
+//   New user invitations
+//
+//////////////////////////////////////////////////////////////////////////////
 
 exports.emailInviteJob = functions.pubsub
   .schedule("every 5 minutes")
@@ -262,118 +452,4 @@ exports.emailInviteJob = functions.pubsub
       .catch((e) => {
         console.log(e);
       });
-  });
-
-exports.parseCSV = function (db, dataset, tempFilePath) {
-  let highlights = dataset.collection("highlights");
-
-  // Read the CSV.
-  let batch = db.batch();
-  let batchSize = 250; // batched writes can contain up to 500 operations
-  let batchPromises = [];
-  let count = 0;
-  let batchNum = 1;
-  let tags = {};
-
-  return new Promise(function (resolve, reject) {
-    console.log("Read csv ", tempFilePath);
-
-    fs.createReadStream(tempFilePath)
-      .pipe(csv())
-      .on("data", function (row) {
-        // Build a list of tags.
-        // TODO: Make a required list of properties.
-        if (!row.hasOwnProperty("Tag")) {
-          console.error(new Error("Row missing 'Tag' field"));
-          return;
-        }
-
-        // Empthy columns are not allowed in firestore.
-        if (row.hasOwnProperty("")) {
-          delete row[""];
-        }
-
-        let highlightRef = highlights.doc();
-        batch.set(highlightRef, row);
-        count++;
-
-        let tag = row["Tag"];
-        if (!tags.hasOwnProperty(tag)) {
-          tags[tag] = 0;
-        }
-        tags[tag]++;
-
-        if (count == batchSize) {
-          console.log(`Batch commit ${batchNum}`);
-          batchPromises.push(batch.commit());
-          batch = db.batch();
-          count = 0;
-          batchNum++;
-        }
-      })
-      .on("end", () => {
-        batchPromises.push(batch.commit());
-        resolve(Promise.all(batchPromises));
-      });
-  }).then(function () {
-    console.log("Recording processed timestamp");
-    let now = new Date();
-    return dataset.set(
-      {
-        tags: Object.keys(tags),
-        processedAt: now.toISOString(),
-      },
-      { merge: true }
-    );
-  });
-};
-
-exports.processCSVUpload = functions.storage.object().onFinalize((object) => {
-  let db = admin.firestore();
-
-  const fileBucket = object.bucket; // The Storage bucket that contains the file.
-  const filePath = object.name; // File path in the bucket.
-
-  console.log("fileBucket: " + fileBucket);
-
-  // Get the file name.
-  const datasetID = path.basename(filePath);
-
-  console.log(`Processing dataset ${datasetID}`);
-
-  const bucket = admin.storage().bucket(fileBucket);
-  const tempFilePath = path.join(os.tmpdir(), datasetID);
-
-  let dataset = db.collection("datasets").doc(datasetID);
-
-  let download = bucket.file(filePath).download({ destination: tempFilePath });
-  return download
-    .then(() => {
-      return exports.parseCSV(db, dataset, tempFilePath);
-    })
-    .then(function () {
-      console.log("Deleting temporary file");
-      return fs.unlinkSync(tempFilePath);
-    });
-});
-
-exports.deleteDataset = functions.firestore
-  .document("datasets/{datasetID}")
-  .onUpdate((snap, context) => {
-    let storage = admin.storage();
-    let bucket = storage.bucket();
-    let data = snap.after.data();
-
-    if (
-      data.hasOwnProperty("deletedAt") &&
-      data.hasOwnProperty("googleStoragePath")
-    ) {
-      console.log("Deleting: " + data);
-      return bucket
-        .file(data.googleStoragePath)
-        .delete()
-        .then(function () {
-          return snap.after.ref.delete();
-        });
-    }
   });

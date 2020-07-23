@@ -1,7 +1,7 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
 
-import { logout } from "../Utils.js";
+import { logout } from "../util/Utils.js";
 
 export default function Logout(props) {
   logout();
