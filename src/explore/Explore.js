@@ -18,7 +18,6 @@ export default function Explore(props) {
   const auth = useContext(UserAuthContext);
 
   let { orgID, datasetID } = useParams();
-  let navigate = useNavigate();
 
   const [datasetList, setDatasetList] = useState(undefined);
   const [datasetMap, setDatasetMap] = useState(undefined);
@@ -45,55 +44,6 @@ export default function Explore(props) {
       });
     return unsubscribe;
   }, []);
-
-  // useEffect(() => {
-  //   if (!datasetID || datasetID === "" || !datasets) {
-  //     setDataset(undefined);
-  //     setDatasetRef(undefined);
-  //     return;
-  //   }
-
-  //   let newDataset = datasets.find((ds) => ds.ID === datasetID);
-  //   if (newDataset === undefined) {
-  //     navigate("/404");
-  //     return;
-  //   }
-
-  //   setDataset(newDataset);
-  //   setDatasetRef(props.datasetsRef.doc(newDataset.ID));
-  // }, [datasetID, datasets]);
-
-  // const onAdd = () => {
-  //   props.datasetsRef.add({
-  //     name: "New dataset",
-  //     createdBy: auth.oauthClaims.email,
-  //     creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
-  //     documentIDs: [],
-
-  //     // Deletion is modeled as "soft-delete"; when the deletionTimestamp is set,
-  //     // we don't show the document anymore in the list. However, it should be
-  //     // possible to recover the document by unsetting this field before
-  //     // the deletion grace period expires and the GC sweep does a permanent delete.
-  //     deletionTimestamp: "",
-  //   });
-  // };
-
-  // const onClick = (ID) => {
-  //   navigate(`/orgs/${orgID}/explore/${ID}`);
-  // };
-
-  // const itemLoad = (index) => {
-  //   return datasets[index];
-  // };
-
-  // const onRename = (ID, newName) => {
-  //   props.datasetsRef.doc(ID).set(
-  //     {
-  //       name: newName,
-  //     },
-  //     { merge: true }
-  //   );
-  // };
 
   if (datasetList === undefined) {
     return <></>;
@@ -187,116 +137,4 @@ export default function Explore(props) {
       <Content>{content}</Content>
     </Page>
   );
-
-  // return (
-  //   <>
-  //     <Container className="noMargin">
-  //       <Row className="h-100">
-  //         <Col md={4} className="d-flex flex-column h-100">
-  //           <List
-  //             name="Customer Datasets"
-  //             currentID={datasetID}
-  //             itemLoad={itemLoad}
-  //             itemCount={datasets.length}
-  //             onAdd={onAdd}
-  //             options={options}
-  //             onClick={onClick}
-  //           />
-  //         </Col>
-  //         <Col md={8} className="d-flex flex-column h-100">
-  //           {view}
-  //         </Col>
-  //       </Row>
-  //     </Container>
-
-  //     <RenameModal
-  //       show={showRenameModal}
-  //       dataset={modalDataset}
-  //       onRename={onRename}
-  //       onHide={() => {
-  //         setShowRenameModal(false);
-  //       }}
-  //     />
-  //     <DeleteModal
-  //       show={showDeleteModal}
-  //       dataset={modalDataset}
-  //       onDelete={onDelete}
-  //       onHide={() => {
-  //         setShowDeleteModal(false);
-  //       }}
-  //     />
-  //   </>
-  // );
 }
-
-// function RenameModal(props) {
-//   const [name, setName] = useState();
-
-//   useEffect(() => {
-//     if (props.dataset !== undefined) {
-//       setName(props.dataset.name);
-//     }
-//   }, [props.dataset]);
-
-//   const onSubmit = () => {
-//     props.onRename(props.dataset.ID, name);
-//     props.onHide();
-//   };
-
-//   return (
-//     <Modal show={props.show} onHide={props.onHide} centered>
-//       <Modal.Header closeButton>
-//         <Modal.Title>Rename dataset</Modal.Title>
-//       </Modal.Header>
-//       <Modal.Body>
-//         <Form.Control
-//           type="text"
-//           value={name}
-//           onChange={(e) => {
-//             setName(e.target.value);
-//           }}
-//           onKeyDown={(e) => {
-//             if (e.key === "Enter") {
-//               onSubmit();
-//             }
-//           }}
-//         />
-//       </Modal.Body>
-//       <Modal.Footer>
-//         <Button variant="primary" onClick={onSubmit}>
-//           Rename
-//         </Button>
-//       </Modal.Footer>
-//     </Modal>
-//   );
-// }
-
-// function DeleteModal(props) {
-//   const [name, setName] = useState();
-
-//   useEffect(() => {
-//     if (props.dataset !== undefined) {
-//       setName(props.dataset.name);
-//     }
-//   }, [props.dataset]);
-
-//   return (
-//     <Modal show={props.show} onHide={props.onHide} centered>
-//       <Modal.Header closeButton>
-//         <Modal.Title>Delete dataset</Modal.Title>
-//       </Modal.Header>
-//       <Modal.Body>Are you sure you want to delete {name}?</Modal.Body>
-//       <Modal.Footer>
-//         <Button
-//           variant="danger"
-//           onClick={() => {
-//             props.onDelete(props.dataset.ID);
-//             props.onHide();
-//           }}
-//         >
-//           Delete
-//         </Button>
-//       </Modal.Footer>
-//     </Modal>
-//   );
-// }
