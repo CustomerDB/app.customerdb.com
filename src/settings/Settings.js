@@ -7,6 +7,8 @@ import List from "../shell/List.js";
 import Scrollable from "../shell/Scrollable.js";
 import Content from "../shell/Content.js";
 import Options from "../Options.js";
+
+import BulkImport from "./BulkImport.js";
 import Tags from "./Tags.js";
 
 import Col from "react-bootstrap/Col";
@@ -53,6 +55,11 @@ export default function Settings(props) {
       name="Tag setup"
       path={`/orgs/${orgID}/settings/tags`}
     />,
+    <List.Item
+      key="import"
+      name="Bulk data import"
+      path={`/orgs/${orgID}/settings/import`}
+    />,
   ];
 
   if (auth.oauthClaims.admin === true) {
@@ -75,6 +82,28 @@ export default function Settings(props) {
     ]);
   }
 
+  let adminRoutes = undefined;
+
+  if (auth.oauthClaims.admin === true) {
+    adminRoutes = [
+      <Route
+        key="members"
+        path="members"
+        element={<Members membersRef={props.membersRef} />}
+      />,
+      <Route
+        key="organization"
+        path="organization"
+        element={<Organization selected="organization" />}
+      />,
+      <Route
+        key="backup"
+        path="backup"
+        element={<Backup selected="backup" />}
+      />,
+    ];
+  }
+
   return (
     <Page>
       <List>
@@ -89,73 +118,43 @@ export default function Settings(props) {
       <Content>
         <Routes>
           <Route
+            key="/"
             path="/"
             element={<Navigate to={`/orgs/${orgID}/settings/profile`} />}
           />
 
           <Route
+            key="profile"
             path="profile"
             element={<Profile membersRef={props.membersRef} />}
           />
 
-          <Route path="tags">
+          <Route key="tags" path="tags">
             <Route
+              key="tags"
               path="/"
               element={<Tags tagGroupsRef={props.tagGroupsRef} />}
             />
             <Route
+              key=":tagGroupID"
               path=":tagGroupID"
               element={<Tags tagGroupsRef={props.tagGroupsRef} />}
             />
           </Route>
 
           <Route
-            path="members"
-            element={<Members membersRef={props.membersRef} />}
+            key="import"
+            path="import"
+            element={<BulkImport peopleRef={props.peopleRef} />}
           />
 
-          <Route
-            path="organization"
-            element={<Organization selected="organization" />}
-          />
+          {adminRoutes}
 
-          <Route path="backup" element={<Backup selected="backup" />} />
-
-          <Route path="*" element={<Navigate to="/404" />} />
+          <Route key="*" path="*" element={<Navigate to="/404" />} />
         </Routes>
       </Content>
     </Page>
   );
-
-  //return (
-  //  <Container className="noMargin">
-  //    <Row className="h-100">
-  //      <Col md={4} className="d-flex flex-column h-100">
-  //        <Row style={{ paddingBottom: "2rem" }}>
-  //          <Col md={10} className="my-auto">
-  //            <h3>Settings</h3>
-  //          </Col>
-  //        </Row>
-  //        <Row className="flex-grow-1">
-  //          <Col>
-  //            <AutoSizer>
-  //              {({ height, width }) => (
-  //                <VirtList
-  //                  height={height}
-  //                  rowCount={list.length}
-  //                  rowHeight={window.getEmPixels() * 6}
-  //                  rowRenderer={cardRenderer}
-  //                  width={width}
-  //                />
-  //              )}
-  //            </AutoSizer>
-  //          </Col>
-  //        </Row>
-  //      </Col>
-  //      {view}
-  //    </Row>
-  //  </Container>
-  //);
 }
 
 function Profile(props) {
