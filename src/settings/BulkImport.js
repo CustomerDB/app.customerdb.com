@@ -51,7 +51,7 @@ function recordToPerson(record, creatorEmail) {
       filtered.customFields[fieldID] = {
         ID: fieldID,
         kind: "Twitter",
-        value: record.LinkedIn,
+        value: record.Twitter,
       };
     }
   }
