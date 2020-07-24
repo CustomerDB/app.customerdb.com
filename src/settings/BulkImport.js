@@ -7,11 +7,57 @@ import { useDropzone } from "react-dropzone";
 
 import papa from "papaparse";
 
+import { nanoid } from "nanoid";
+
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
 import ProgressBar from "react-bootstrap/ProgressBar";
+
+function recordToPerson(record, creatorEmail) {
+  let filtered = {};
+
+  if (record) {
+    filtered = {
+      name: record.name || null,
+      email: record.email || null,
+      phone: record.phone || null,
+      company: record.company || null,
+      job: record.job || null,
+      city: record.city || null,
+      state: record.state || null,
+      country: record.country || null,
+
+      customFields: {},
+      labels: [],
+
+      createdBy: creatorEmail,
+      creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+      deletionTimestamp: "",
+    };
+
+    if (record.LinkedIn) {
+      let fieldID = nanoid();
+      filtered.customFields[fieldID] = {
+        ID: fieldID,
+        kind: "LinkedIn",
+        value: record.LinkedIn,
+      };
+    }
+
+    if (record.Twitter) {
+      let fieldID = nanoid();
+      filtered.customFields[fieldID] = {
+        ID: fieldID,
+        kind: "Twitter",
+        value: record.LinkedIn,
+      };
+    }
+  }
+
+  return filtered;
+}
 
 export default function BulkImport(props) {
   const auth = useContext(UserAuthContext);
@@ -33,32 +79,16 @@ export default function BulkImport(props) {
   useEffect(chooseRandomRecord, [records]);
 
   const createPerson = (record) => {
-    let filtered = {};
-    if (record) {
-      filtered = {
-        name: record.name || null,
-        email: record.email || null,
-        phone: record.phone || null,
-        company: record.company || null,
-        job: record.job || null,
-        city: record.city || null,
-        state: record.state || null,
-        country: record.country || null,
+    let personDocument = recordToPerson(record, auth.oauthClaims.email);
 
-        createdBy: auth.oauthClaims.email,
-        creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
-        deletionTimestamp: "",
-      };
-    }
-
-    if (!filtered.name) {
+    if (!personDocument.name) {
       console.debug("skipping record (name missing)", record);
       setImportProgress(importProgress + 1);
       return;
     }
 
-    console.log("importing record", record, filtered);
-    return props.peopleRef.add(filtered).then(() => {
+    console.log("importing record", record, personDocument);
+    return props.peopleRef.add(personDocument).then(() => {
       setImportProgress(importProgress + 1);
     });
   };
@@ -126,6 +156,8 @@ export default function BulkImport(props) {
           <li>city</li>
           <li>state</li>
           <li>country</li>
+          <li>LinkedIn</li>
+          <li>Twitter</li>
         </ul>
       </Col>
     </>
@@ -232,21 +264,13 @@ export default function BulkImport(props) {
 }
 
 function ContactPreview(props) {
-  let filtered = {};
-  if (props.record) {
-    filtered = {
-      name: props.record.name || null,
-      email: props.record.email || null,
-      phone: props.record.phone || null,
-      company: props.record.company || null,
-      job: props.record.job || null,
-      city: props.record.city || null,
-      state: props.record.state || null,
-      country: props.record.country || null,
-    };
-  }
+  const auth = useContext(UserAuthContext);
+
+  let personDocument = recordToPerson(props.record, auth.oauthClaims.email);
 
   return (
-    <pre style={{ width: "100%" }}>{JSON.stringify(filtered, null, 2)}</pre>
+    <pre style={{ width: "100%" }}>
+      {JSON.stringify(personDocument, null, 2)}
+    </pre>
   );
 }
