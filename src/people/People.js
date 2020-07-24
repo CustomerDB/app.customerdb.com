@@ -4,7 +4,7 @@ import UserAuthContext from "../auth/UserAuthContext.js";
 
 import Page from "../shell/Page.js";
 import List from "../shell/List.js";
-import Content from "../shell/Content.js";
+import Infinite from "../shell/Infinite.js";
 import Scrollable from "../shell/Scrollable.js";
 import Options from "../shell/Options.js";
 
@@ -15,6 +15,8 @@ import Person from "./Person.js";
 import { useParams, useNavigate } from "react-router-dom";
 
 import { Loading } from "../util/Utils.js";
+
+const batchSize = 25;
 
 export default function People(props) {
   const auth = useContext(UserAuthContext);
@@ -27,6 +29,8 @@ export default function People(props) {
   const [peopleMap, setPeopleMap] = useState();
   const [addModalShow, setAddModalShow] = useState();
   const [newPersonRef, setNewPersonRef] = useState();
+  const [listLimit, setListLimit] = useState(batchSize);
+  const [listTotal, setListTotal] = useState();
 
   useEffect(() => {
     let unsubscribe = props.peopleRef
@@ -45,6 +49,7 @@ export default function People(props) {
 
         setPeopleList(newPeopleList);
         setPeopleMap(newPeopleMap);
+        setListTotal(snapshot.size);
       });
     return unsubscribe;
   }, [props.peopleRef]);
@@ -125,14 +130,25 @@ export default function People(props) {
           </List.Title>
           <List.Items>
             <Scrollable>
-              {peopleList.map((person) => (
-                <List.Item
-                  key={person.ID}
-                  name={person.name}
-                  path={`/orgs/${orgID}/people/${person.ID}`}
-                  options={options(person.ID)}
-                />
-              ))}
+              <Infinite
+                hasMore={() => {
+                  if (!listTotal) {
+                    return true;
+                  }
+
+                  return listTotal < listLimit;
+                }}
+                onLoad={() => setListLimit(listLimit + batchSize)}
+              >
+                {peopleList.slice(0, listLimit).map((person) => (
+                  <List.Item
+                    key={person.ID}
+                    name={person.name}
+                    path={`/orgs/${orgID}/people/${person.ID}`}
+                    options={options(person.ID)}
+                  />
+                ))}
+              </Infinite>
             </Scrollable>
           </List.Items>
         </List.Search>
