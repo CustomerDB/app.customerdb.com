@@ -4,23 +4,19 @@ import Row from "react-bootstrap/Row";
 
 export default class Content extends React.Component {
   static Title(props) {
-    return (
-      <Row className="pb-3" noGutters={true}>
-        {props.children}
-      </Row>
-    );
+    return <div className="pb-3 d-flex">{props.children}</div>;
   }
 
   static Name(props) {
     return (
-      <Col>
+      <div>
         <h3>{props.children}</h3>
-      </Col>
+      </div>
     );
   }
 
   static Options(props) {
-    return <Col>{props.children}</Col>;
+    return <div>{props.children}</div>;
   }
 
   render() {
