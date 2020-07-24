@@ -8,8 +8,7 @@ import Col from "react-bootstrap/Col";
 
 export default function DatasetDataTab(props) {
   const { datasetRef, documentsRef } = useFirestore();
-
-  const [documents, setDocuments] = useState([]);
+  const [documents, setDocuments] = useState({});
 
   const onClick = (documentID) => {
     let newDocumentIDs = props.dataset.documentIDs.slice();
@@ -22,9 +21,17 @@ export default function DatasetDataTab(props) {
       newDocumentIDs.push(documentID);
     }
 
+    let newTagGroupIDs = new Set();
+    newDocumentIDs.forEach((id) => {
+      if (documents[id].tagGroupID) {
+        newTagGroupIDs.add(documents[id].tagGroupID);
+      }
+    });
+
     datasetRef.set(
       {
         documentIDs: newDocumentIDs,
+        tagGroupIDs: Array.from(newTagGroupIDs),
       },
       { merge: true }
     );

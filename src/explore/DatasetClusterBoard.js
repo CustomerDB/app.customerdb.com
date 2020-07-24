@@ -418,6 +418,9 @@ export default class DatasetClusterBoard extends React.Component {
       }
 
       let highlight = this.state.highlights[card.ID];
+
+      if (!highlight) continue;
+
       cardTitles.add(highlight.documentID);
 
       cardComponents.push(

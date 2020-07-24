@@ -15,12 +15,48 @@ import DatasetClusterTab from "./DatasetClusterTab.js";
 
 export default function Dataset(props) {
   const { orgID, datasetID, tabID, tagID } = useParams();
-  const [tags, setTags] = useState();
+  const [tags, setTags] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
-    // TODO: build set of tags based on documentIDs
-    setTags({ V7a9sjPoXaib1iS2qXkF: { name: "Problem" } });
+    if (props.dataset.documentIDs.length === 0) {
+      return;
+    }
+
+    let tagGroupSubs = [];
+
+    props.dataset.tagGroupIDs.forEach((tagGroupID) => {
+      let unsubscribe = props.tagGroupsRef
+        .doc(tagGroupID)
+        .collection("tags")
+        .where("deletionTimestamp", "==", "")
+        .onSnapshot((snapshot) => {
+          let newTags = Object.assign({}, tags);
+
+          // Remove old tags for this tag group
+          Object.keys(tags).forEach((key) => {
+            if (newTags[key].tagGroupID === tagGroupID) delete newTags[key];
+          });
+
+          snapshot.forEach((tagDoc) => {
+            let tagData = tagDoc.data();
+            newTags[tagDoc.id] = {
+              ID: tagDoc.id,
+              name: tagData.name,
+              tagGroupID: tagGroupID,
+            };
+          });
+
+          setTags(newTags);
+        });
+      tagGroupSubs.push(unsubscribe);
+    });
+
+    // Return a function from useEffect that unsubscribes from
+    // all of the tag groups.
+    return () => {
+      tagGroupSubs.forEach((f) => f());
+    };
   }, [props.dataset]);
 
   // Give a hint if this dataset was deleted while in view.
@@ -67,15 +103,15 @@ export default function Dataset(props) {
         variant={tabID === "cluster" ? "primary" : "link"}
         drop="down"
       >
-        <Dropdown.Item
-          onClick={() => {
-            navigate(
-              `/orgs/${orgID}/explore/${datasetID}/cluster/V7a9sjPoXaib1iS2qXkF`
-            );
-          }}
-        >
-          Problem
-        </Dropdown.Item>
+        {Object.values(tags).map((tag) => (
+          <Dropdown.Item
+            onClick={() => {
+              navigate(`/orgs/${orgID}/explore/${datasetID}/cluster/${tag.ID}`);
+            }}
+          >
+            {tag.name}
+          </Dropdown.Item>
+        ))}
       </DropdownButton>
     </Row>
   );
@@ -95,6 +131,7 @@ export default function Dataset(props) {
   if (tabID === "cluster") {
     view = (
       <DatasetClusterTab
+        key={tagID || "cluster"}
         orgID={orgID}
         dataset={props.dataset}
         datasetRef={props.datasetRef}
