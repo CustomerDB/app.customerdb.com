@@ -13,14 +13,6 @@ const db = window.firebase.firestore();
 export default function OrganizationRoutes(props) {
   const { orgID } = useParams();
 
-  const orgRef = db.collection("organizations").doc(orgID);
-
-  const membersRef = orgRef.collection("members");
-  const peopleRef = orgRef.collection("people");
-  const documentsRef = orgRef.collection("documents");
-  const tagGroupsRef = orgRef.collection("tagGroups");
-  const datasetsRef = orgRef.collection("datasets");
-
   return (
     <>
       <Routes>
@@ -42,18 +34,10 @@ export default function OrganizationRoutes(props) {
           <Route path="/" element={<Explore />} />
           <Route path=":datasetID" element={<Explore />} />
           <Route path=":datasetID/:tabID" element={<Explore />} />
+          <Route path=":datasetID/:tabID/:tagID" element={<Explore />} />
         </Route>
 
-        <Route
-          path="settings/*"
-          element={
-            <Settings
-              membersRef={membersRef}
-              tagGroupsRef={tagGroupsRef}
-              peopleRef={peopleRef}
-            />
-          }
-        />
+        <Route path="settings/*" element={<Settings />} />
 
         <Route path="*" element={<Navigate to="/404" />} />
       </Routes>

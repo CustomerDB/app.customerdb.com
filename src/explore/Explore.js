@@ -101,7 +101,7 @@ export default function Explore(props) {
             <List.Name>Customer datasets</List.Name>
             <List.Add
               onClick={() => {
-                props.datasetsRef
+                datasetsRef
                   .add({
                     name: "Unnamed dataset",
                     documentIDs: [],
