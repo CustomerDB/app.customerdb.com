@@ -3,8 +3,6 @@ import React from "react";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 
-import BootstrapTab from "react-bootstrap/Tab";
-import BootstrapTabs from "react-bootstrap/Tabs";
 import Button from "react-bootstrap/Button";
 
 export default class Tabs extends React.Component {
@@ -71,7 +69,7 @@ export default class Tabs extends React.Component {
           <Col>{buttons}</Col>
         </Row>
         <Row className="h-100 p-3" noGutters={true}>
-          {page[0].props.children}
+          {page[0] && page[0].props.children}
         </Row>
       </>
     );
