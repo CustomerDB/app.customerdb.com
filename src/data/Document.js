@@ -61,6 +61,7 @@ export default function Document(props) {
       }
 
       let data = doc.data();
+      data.ID = doc.id;
       setDocument(data);
     });
   }, [props.documentID]);
@@ -80,7 +81,11 @@ export default function Document(props) {
       </Content.Title>
       <Tabs default="Content">
         <Tabs.Pane name="Content">
-          <ContentsPane />
+          <ContentsPane
+            document={document}
+            documentRef={documentRef}
+            tagGroupsRef={props.tagGroupsRef}
+          />
         </Tabs.Pane>
         <Tabs.Pane name="Details">
           <DetailsPane
