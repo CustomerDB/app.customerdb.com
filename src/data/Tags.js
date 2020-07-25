@@ -53,8 +53,10 @@ export default class Tags extends React.Component {
 
     return (
       <div>
-        Tags
-        <br />
+        <p>
+          <small>Tags</small>
+        </p>
+
         {tagControls.length > 0 ? tagControls : <small>None</small>}
       </div>
     );

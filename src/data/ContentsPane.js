@@ -68,7 +68,7 @@ export default function ContentsPane(props) {
   const [editorID, setEditorID] = useState(nanoid());
 
   const [initialDelta, setInitialDelta] = useState(emptyDelta());
-
+  const [tagIDsInSelection, setTagIDsInSelection] = useState(new Set());
   const [tags, setTags] = useState();
 
   let localDelta = useRef(new Delta([]));
@@ -77,7 +77,6 @@ export default function ContentsPane(props) {
   );
 
   let currentSelection = useRef();
-  let tagIDsInSelection = useRef(new Set());
 
   let highlights = useRef();
 
@@ -226,6 +225,7 @@ export default function ContentsPane(props) {
     let syncHighlightsInterval = setInterval(syncHighlights, syncPeriod);
     return () => {
       clearInterval(syncDeltaInterval);
+      clearInterval(syncHighlightsInterval);
     };
   }, []);
 
@@ -341,9 +341,7 @@ export default function ContentsPane(props) {
 
     console.log("Set current selection", range);
     currentSelection.current = range;
-    tagIDsInSelection.current = computeTagIDsInSelection(range);
-
-    console.log("tagIDsInSelection", tagIDsInSelection);
+    setTagIDsInSelection(computeTagIDsInSelection(range));
   };
 
   // uploadDeltas is invoked periodically by a timer.
@@ -471,7 +469,7 @@ export default function ContentsPane(props) {
     }
 
     if (!checked) {
-      let intersectingHighlights = this.computeHighlightsInSelection(selection);
+      let intersectingHighlights = computeHighlightsInSelection(selection);
 
       intersectingHighlights.forEach((h) => {
         if (h.tagID === tag.ID) {
@@ -488,13 +486,13 @@ export default function ContentsPane(props) {
             "user"
           );
 
-          localDelta = localDelta.compose(delta);
+          localDelta.current = localDelta.current.compose(delta);
         }
       });
     }
 
     let tagIDs = computeTagIDsInSelection(selection);
-    tagIDsInSelection.current = tagIDs;
+    setTagIDsInSelection(tagIDs);
   };
 
   return (
@@ -512,11 +510,13 @@ export default function ContentsPane(props) {
         </Scrollable>
       </Tabs.Content>
       <Tabs.SidePane>
-        <Tags
-          tags={tags}
-          tagIDsInSelection={tagIDsInSelection.current}
-          onChange={onTagControlChange}
-        />
+        <Tabs.SidePaneCard>
+          <Tags
+            tags={tags}
+            tagIDsInSelection={tagIDsInSelection}
+            onChange={onTagControlChange}
+          />
+        </Tabs.SidePaneCard>
       </Tabs.SidePane>
     </>
   );
