@@ -7,57 +7,14 @@ import { useParams, useNavigate, Navigate } from "react-router-dom";
 
 import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
-import Dropdown from "react-bootstrap/Dropdown";
-import DropdownButton from "react-bootstrap/DropdownButton";
 
+import ClusterDropdown from "./ClusterDropdown.js";
 import DatasetDataTab from "./DatasetDataTab.js";
 import DatasetClusterTab from "./DatasetClusterTab.js";
 
 export default function Dataset(props) {
   const { orgID, datasetID, tabID, tagID } = useParams();
-  const [tags, setTags] = useState({});
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (props.dataset.documentIDs.length === 0) {
-      return;
-    }
-
-    let tagGroupSubs = [];
-
-    props.dataset.tagGroupIDs.forEach((tagGroupID) => {
-      let unsubscribe = props.tagGroupsRef
-        .doc(tagGroupID)
-        .collection("tags")
-        .where("deletionTimestamp", "==", "")
-        .onSnapshot((snapshot) => {
-          let newTags = Object.assign({}, tags);
-
-          // Remove old tags for this tag group
-          Object.keys(tags).forEach((key) => {
-            if (newTags[key].tagGroupID === tagGroupID) delete newTags[key];
-          });
-
-          snapshot.forEach((tagDoc) => {
-            let tagData = tagDoc.data();
-            newTags[tagDoc.id] = {
-              ID: tagDoc.id,
-              name: tagData.name,
-              tagGroupID: tagGroupID,
-            };
-          });
-
-          setTags(newTags);
-        });
-      tagGroupSubs.push(unsubscribe);
-    });
-
-    // Return a function from useEffect that unsubscribes from
-    // all of the tag groups.
-    return () => {
-      tagGroupSubs.forEach((f) => f());
-    };
-  }, [props.dataset]);
 
   // Give a hint if this dataset was deleted while in view.
   if (props.dataset.deletionTimestamp !== "") {
@@ -77,13 +34,6 @@ export default function Dataset(props) {
     return <Navigate to="/404" />;
   }
 
-  // Redirect if tag does not exist
-  if (tagID && (!tags || !tags[tagID])) {
-    return <Navigate to="/404" />;
-  }
-
-  let dropdownTitle = tagID ? tags[tagID].name : "Cluster";
-
   let controls = (
     <Row>
       <Button
@@ -97,22 +47,10 @@ export default function Dataset(props) {
         Data
       </Button>
 
-      <DropdownButton
-        style={{ minWidth: "8rem" }}
-        title={dropdownTitle}
-        variant={tabID === "cluster" ? "primary" : "link"}
-        drop="down"
-      >
-        {Object.values(tags).map((tag) => (
-          <Dropdown.Item
-            onClick={() => {
-              navigate(`/orgs/${orgID}/explore/${datasetID}/cluster/${tag.ID}`);
-            }}
-          >
-            {tag.name}
-          </Dropdown.Item>
-        ))}
-      </DropdownButton>
+      <ClusterDropdown
+        tagGroupsRef={props.tagGroupsRef}
+        tagGroupIDs={props.dataset.tagGroupIDs}
+      />
     </Row>
   );
 
