@@ -97,14 +97,17 @@ export default function ContentsPane(props) {
       return;
     }
 
-    console.log("latestDeltaTimestamp.current: ", latestDeltaTimestamp.current);
+    console.debug(
+      "latestDeltaTimestamp.current: ",
+      latestDeltaTimestamp.current
+    );
 
     return props.documentRef
       .collection("deltas")
       .orderBy("timestamp", "asc")
       .where("timestamp", ">", latestDeltaTimestamp.current)
       .onSnapshot((snapshot) => {
-        console.log("Delta snapshot received");
+        console.debug("Delta snapshot received");
 
         let newDeltas = [];
         snapshot.forEach((delta) => {
@@ -158,34 +161,34 @@ export default function ContentsPane(props) {
 
         // Compute inverse of local delta.
         let editorContents = editor.getContents();
-        console.log("editorContents", editorContents);
+        console.debug("editorContents", editorContents);
 
-        console.log("localDelta (before)", localDelta.current);
+        console.debug("localDelta (before)", localDelta.current);
         let inverseLocalDelta = localDelta.current.invert(editorContents);
-        console.log("inverseLocalDelta", inverseLocalDelta);
+        console.debug("inverseLocalDelta", inverseLocalDelta);
 
         // Undo local edits
-        console.log("unapplying local delta");
+        console.debug("unapplying local delta");
         editor.updateContents(inverseLocalDelta);
         selectionIndex = inverseLocalDelta.transformPosition(selectionIndex);
 
         newDeltas.forEach((delta) => {
-          console.log("editor.updateContents", delta);
+          console.debug("editor.updateContents", delta);
           editor.updateContents(delta);
           selectionIndex = delta.transformPosition(selectionIndex);
 
-          console.log("transform local delta");
+          console.debug("transform local delta");
           const serverFirst = true;
           localDelta.current = delta.transform(localDelta.current, serverFirst);
         });
 
         // Reapply local edits
-        console.log("applying transformed local delta", localDelta.current);
+        console.debug("applying transformed local delta", localDelta.current);
         editor.updateContents(localDelta.current);
         selectionIndex = localDelta.current.transformPosition(selectionIndex);
 
         if (selection) {
-          console.log("updating selection index");
+          console.debug("updating selection index");
           editor.setSelection(selectionIndex, selection.length);
         }
       });
@@ -238,7 +241,7 @@ export default function ContentsPane(props) {
         newHighlights[data.ID] = data;
       });
 
-      console.log("Received newHighlights ", newHighlights);
+      console.debug("Received newHighlights ", newHighlights);
 
       highlights.current = newHighlights;
     });
@@ -337,7 +340,7 @@ export default function ContentsPane(props) {
       return;
     }
 
-    console.log("Set current selection", range);
+    console.debug("current selection range", range);
     currentSelection.current = range;
     setTagIDsInSelection(computeTagIDsInSelection(range));
   };

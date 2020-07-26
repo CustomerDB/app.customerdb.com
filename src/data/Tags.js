@@ -13,8 +13,6 @@ export default class Tags extends React.Component {
     }
 
     let tagControls = Object.values(this.props.tags).map((t) => {
-      console.log("this.props.tagIDsInSelection", this.props.tagIDsInSelection);
-
       let checked = this.props.tagIDsInSelection.has(t.ID);
 
       let label = (
