@@ -1,6 +1,7 @@
 import React, { useContext, useState, useEffect, useRef } from "react";
 
 import UserAuthContext from "../auth/UserAuthContext.js";
+import useFirestore from "../db/Firestore.js";
 
 import ReactQuill from "react-quill";
 import Delta from "quill-delta";
@@ -10,12 +11,6 @@ import { nanoid } from "nanoid";
 import { useParams } from "react-router-dom";
 
 import "react-quill/dist/quill.bubble.css";
-
-import Container from "react-bootstrap/Container";
-import Row from "react-bootstrap/Row";
-import Col from "react-bootstrap/Col";
-import Form from "react-bootstrap/Form";
-import Nav from "react-bootstrap/Nav";
 
 import Tabs from "../shell/Tabs.js";
 
@@ -65,7 +60,14 @@ export default function ContentsPane(props) {
   const auth = useContext(UserAuthContext);
   const { orgID } = useParams();
 
-  const [editorID, setEditorID] = useState(nanoid());
+  const {
+    tagGroupsRef,
+    documentRef,
+    highlightsRef,
+    deltasRef,
+  } = useFirestore();
+
+  const [editorID] = useState(nanoid());
 
   const reactQuillRef = useRef(null);
 
@@ -93,7 +95,7 @@ export default function ContentsPane(props) {
 
   // Subscribe to deltas from other remote clients.
   useEffect(() => {
-    if (!reactQuillRef.current || !props.documentRef) {
+    if (!reactQuillRef.current || !documentRef) {
       return;
     }
 
@@ -102,8 +104,7 @@ export default function ContentsPane(props) {
       latestDeltaTimestamp.current
     );
 
-    return props.documentRef
-      .collection("deltas")
+    return deltasRef
       .orderBy("timestamp", "asc")
       .where("timestamp", ">", latestDeltaTimestamp.current)
       .onSnapshot((snapshot) => {
@@ -192,7 +193,7 @@ export default function ContentsPane(props) {
           editor.setSelection(selectionIndex, selection.length);
         }
       });
-  }, [reactQuillRef, props.documentRef]);
+  }, [reactQuillRef, props.document, editorID]);
 
   // Subscribe to tags for the document's tag group.
   useEffect(() => {
@@ -200,7 +201,7 @@ export default function ContentsPane(props) {
       return;
     }
 
-    let unsubscribe = props.tagGroupsRef
+    let unsubscribe = tagGroupsRef
       .doc(props.document.tagGroupID)
       .collection("tags")
       .where("deletionTimestamp", "==", "")
@@ -232,7 +233,7 @@ export default function ContentsPane(props) {
 
   // Subscribe to highlight changes
   useEffect(() => {
-    return props.documentRef.collection("highlights").onSnapshot((snapshot) => {
+    return highlightsRef.onSnapshot((snapshot) => {
       let newHighlights = {};
 
       snapshot.forEach((highlightDoc) => {
@@ -366,7 +367,7 @@ export default function ContentsPane(props) {
     };
 
     console.debug("uploading delta", deltaDoc);
-    props.documentRef.collection("deltas").doc().set(deltaDoc);
+    deltasRef.doc().set(deltaDoc);
   };
 
   // This function sends any local updates to highlight content relative
@@ -375,8 +376,6 @@ export default function ContentsPane(props) {
     if (!reactQuillRef.current) {
       return;
     }
-
-    const highlightsRef = props.documentRef.collection("highlights");
 
     // Update or delete highlights based on local edits.
     Object.values(highlights.current).forEach((h) => {
@@ -456,11 +455,10 @@ export default function ContentsPane(props) {
 
     if (checked) {
       console.debug("formatting highlight with tag ", tag);
-      let selectionText = editor.getText(selection.index, selection.length);
 
       let highlightID = nanoid();
 
-      let delta = editor.formatText(
+      editor.formatText(
         selection.index,
         selection.length,
         "highlight",
@@ -479,15 +477,13 @@ export default function ContentsPane(props) {
             tag
           );
 
-          let delta = editor.removeFormat(
+          editor.formatText(
             h.selection.index,
             h.selection.length,
             "highlight",
             false, // unsets the target format
             "user"
           );
-
-          localDelta.current = localDelta.current.compose(delta);
         }
       });
     }

@@ -1,6 +1,7 @@
 import React, { useContext, useState, useEffect } from "react";
 
 import UserAuthContext from "../auth/UserAuthContext.js";
+import useFirestore from "../db/Firestore.js";
 
 import Page from "../shell/Page.js";
 import List from "../shell/List.js";
@@ -21,6 +22,8 @@ const batchSize = 25;
 export default function People(props) {
   const auth = useContext(UserAuthContext);
 
+  const { peopleRef } = useFirestore();
+
   const navigate = useNavigate();
 
   const { personID, orgID } = useParams();
@@ -33,7 +36,7 @@ export default function People(props) {
   const [listTotal, setListTotal] = useState();
 
   useEffect(() => {
-    let unsubscribe = props.peopleRef
+    let unsubscribe = peopleRef
       .where("deletionTimestamp", "==", "")
       .orderBy("creationTimestamp", "desc")
       .onSnapshot((snapshot) => {
@@ -52,7 +55,7 @@ export default function People(props) {
         setListTotal(snapshot.size);
       });
     return unsubscribe;
-  }, [props.peopleRef]);
+  }, [peopleRef]);
 
   if (!peopleList || !peopleMap) {
     return <Loading />;
@@ -67,7 +70,7 @@ export default function People(props) {
       return <></>;
     }
 
-    let personRef = props.peopleRef.doc(personID);
+    let personRef = peopleRef.doc(personID);
 
     return (
       <Options key={personID}>
@@ -113,7 +116,7 @@ export default function People(props) {
             <List.Name>People</List.Name>
             <List.Add
               onClick={() => {
-                props.peopleRef
+                peopleRef
                   .add({
                     name: "Unnamed person",
                     createdBy: auth.oauthClaims.email,

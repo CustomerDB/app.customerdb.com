@@ -1,6 +1,5 @@
 import React from "react";
 import Col from "react-bootstrap/Col";
-import Row from "react-bootstrap/Row";
 
 export default class Content extends React.Component {
   static Title(props) {

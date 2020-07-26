@@ -1,17 +1,16 @@
 import React, { useContext, useState, useEffect } from "react";
 
 import UserAuthContext from "../auth/UserAuthContext.js";
+import useFirestore from "../db/Firestore.js";
 
 import { useParams, useNavigate } from "react-router-dom";
 
-import Delta from "quill-delta";
-
 import Button from "react-bootstrap/Button";
 
+import { initialDelta } from "./delta.js";
 import Document from "./Document.js";
 import DocumentRenameModal from "./DocumentRenameModal.js";
 
-import Content from "../shell/Content.js";
 import List from "../shell/List.js";
 import Modal from "../shell/Modal.js";
 import Options from "../shell/Options.js";
@@ -19,20 +18,17 @@ import Page from "../shell/Page.js";
 
 import { Loading } from "../util/Utils.js";
 
-function initialDelta() {
-  return new Delta([{ insert: "\n" }]);
-}
-
 export default function Data(props) {
   let auth = useContext(UserAuthContext);
+  let { documentsRef } = useFirestore();
   let navigate = useNavigate();
-  let { documentID, orgID, tabID } = useParams();
+  let { documentID, orgID } = useParams();
   const [documents, setDocuments] = useState();
   const [addModalShow, setAddModalShow] = useState();
   const [newDocumentRef, setNewDocumentRef] = useState();
 
   useEffect(() => {
-    return props.documentsRef
+    return documentsRef
       .where("deletionTimestamp", "==", "")
       .orderBy("creationTimestamp", "desc")
       .onSnapshot((snapshot) => {
@@ -55,7 +51,7 @@ export default function Data(props) {
   }
 
   const options = (doc) => {
-    let documentRef = props.documentsRef.doc(doc.ID);
+    let documentRef = documentsRef.doc(doc.ID);
 
     let renameOption = (
       <Options.Item
@@ -106,7 +102,7 @@ export default function Data(props) {
   };
 
   const onAdd = () => {
-    props.documentsRef
+    documentsRef
       .add({
         name: "Untitled Document",
         createdBy: auth.oauthClaims.email,
@@ -143,17 +139,7 @@ export default function Data(props) {
   let content = undefined;
   if (documentID) {
     content = (
-      <Document
-        key={documentID}
-        orgID={orgID}
-        documentID={documentID}
-        tabID={tabID}
-        navigate={navigate}
-        documentsRef={props.documentsRef}
-        tagGroupsRef={props.tagGroupsRef}
-        peopleRef={props.peopleRef}
-        user={auth.oauthClaims}
-      />
+      <Document key={documentID} navigate={navigate} user={auth.oauthClaims} />
     );
   }
 

@@ -3,8 +3,6 @@ import React from "react";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 
-import BootstrapTab from "react-bootstrap/Tab";
-import BootstrapTabs from "react-bootstrap/Tabs";
 import Button from "react-bootstrap/Button";
 
 export default class Tabs extends React.Component {
@@ -54,7 +52,7 @@ export default class Tabs extends React.Component {
     let buttons = children.map((child) => (
       <Button
         key={child.props.name}
-        variant={child.props.name == this.state.key ? "primary" : "link"}
+        variant={child.props.name === this.state.key ? "primary" : "link"}
         onClick={() => {
           this.setState({ key: child.props.name });
         }}
@@ -63,7 +61,7 @@ export default class Tabs extends React.Component {
       </Button>
     ));
 
-    let page = children.filter((child) => child.props.name == this.state.key);
+    let page = children.filter((child) => child.props.name === this.state.key);
 
     return (
       <>

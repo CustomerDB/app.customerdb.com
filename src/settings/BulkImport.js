@@ -1,6 +1,8 @@
 import React, { useContext, useCallback, useEffect, useState } from "react";
 
 import UserAuthContext from "../auth/UserAuthContext.js";
+import useFirestore from "../db/Firestore.js";
+
 import Scrollable from "../shell/Scrollable.js";
 
 import { useDropzone } from "react-dropzone";
@@ -13,7 +15,6 @@ import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
-import ProgressBar from "react-bootstrap/ProgressBar";
 
 function recordToPerson(record, creatorEmail) {
   let filtered = {};
@@ -62,6 +63,8 @@ function recordToPerson(record, creatorEmail) {
 export default function BulkImport(props) {
   const auth = useContext(UserAuthContext);
 
+  const { peopleRef } = useFirestore();
+
   const [records, setRecords] = useState();
   const [randomRecord, setRandomRecord] = useState();
   const [importProgress, setImportProgress] = useState();
@@ -88,7 +91,7 @@ export default function BulkImport(props) {
     }
 
     console.log("importing record", record, personDocument);
-    return props.peopleRef.add(personDocument).then(() => {
+    return peopleRef.add(personDocument).then(() => {
       setImportProgress(importProgress + 1);
     });
   };
@@ -178,12 +181,9 @@ export default function BulkImport(props) {
   }
 
   if (importProgress !== undefined) {
-    let importProgressPercent = importProgress / records.length;
     let okButton = <></>;
 
     if (importProgress === records.length) {
-      importProgressPercent = 100;
-
       okButton = (
         <Button
           style={{ minWidth: "18rem" }}

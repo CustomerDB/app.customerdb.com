@@ -1,5 +1,7 @@
 import React from "react";
 
+import useFirestore from "../db/Firestore.js";
+
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
@@ -7,7 +9,16 @@ import Col from "react-bootstrap/Col";
 import DatasetClusterBoard from "./DatasetClusterBoard.js";
 
 export default function DatasetClusterTab(props) {
-  if (!props.dataset.documentIDs || props.dataset.documentIDs.length == 0) {
+  const {
+    datasetRef,
+    documentsRef,
+    allHighlightsRef,
+    cardsRef,
+    groupsRef,
+    activeUsersRef,
+  } = useFirestore();
+
+  if (!props.dataset.documentIDs || props.dataset.documentIDs.length === 0) {
     return (
       <Container className="p-3">
         <Row>
@@ -19,21 +30,17 @@ export default function DatasetClusterTab(props) {
     );
   }
 
-  let cardsRef = props.datasetRef.collection("cards");
-  let groupsRef = props.datasetRef.collection("groups");
-  let activeUsersRef = props.datasetRef.collection("activeUsers");
-
   // TODO: allow user to select what tag to cluster
   let tagID = "V7a9sjPoXaib1iS2qXkF"; // (problem)
 
   // NB: the `in` clause is limited to ten values for filtering.
   //     For now, we support clustering highlights from up to ten documents.
-  let highlightsRef = props.allHighlightsRef
+  let highlightsRef = allHighlightsRef
     .where("organizationID", "==", props.orgID)
     .where("documentID", "in", props.dataset.documentIDs)
     .where("tagID", "==", tagID);
 
-  let documentsRef = props.documentsRef.where(
+  let datasetDocumentsRef = documentsRef.where(
     window.firebase.firestore.FieldPath.documentId(),
     "in",
     props.dataset.documentIDs
@@ -44,7 +51,7 @@ export default function DatasetClusterTab(props) {
       <Row className="fullHeight">
         <Col>
           <DatasetClusterBoard
-            documentsRef={documentsRef}
+            documentsRef={datasetDocumentsRef}
             highlightsRef={highlightsRef}
             cardsRef={cardsRef}
             groupsRef={groupsRef}

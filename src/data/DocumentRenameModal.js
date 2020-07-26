@@ -20,7 +20,7 @@ export default function DocumentRenameModal(props) {
       setName(data.name);
       setDoc(data);
     });
-  }, [props.show]);
+  }, [props.show, props.documentRef]);
 
   if (!doc) {
     return <></>;

@@ -13,27 +13,15 @@ import { getSearchClient } from "../search/client.js";
 
 import { Loading } from "../util/Utils.js";
 
-import {
-  InstantSearch,
-  SearchBox,
-  connectStateResults,
-  connectHits,
-} from "react-instantsearch-dom";
+import { InstantSearch, SearchBox, connectHits } from "react-instantsearch-dom";
 
 import "../search/style.css";
 
 export default class List extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
   static Search(props) {
     const auth = useContext(UserAuthContext);
 
     const [searchState, setSearchState] = useState({});
-
-    // props.path = (ID) => {}
-    // props.options = (ID) => {}
 
     const [searchClient, setSearchClient] = useState();
 
@@ -43,7 +31,7 @@ export default class List extends React.Component {
           setSearchClient(client);
         }
       );
-    }, []);
+    }, [auth.oauthClaims.orgID, auth.oauthUser.uid]);
 
     if (!searchClient) {
       return <Loading />;
@@ -72,7 +60,7 @@ export default class List extends React.Component {
       for (let i = 0; i < children.length; i++) {
         let child = children[i];
 
-        if (child.type.name == "Items") {
+        if (child.type.name === "Items") {
           console.log("Rerender custom hits");
           children[i] = <CustomHits />;
           break;

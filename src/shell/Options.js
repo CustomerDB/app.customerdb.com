@@ -1,14 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 
 import Dropdown from "react-bootstrap/Dropdown";
 
 import { ThreeDotsVertical } from "react-bootstrap-icons";
 
 export default class Option extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
   static Item(props) {
     const [show, setShow] = useState(false);
 

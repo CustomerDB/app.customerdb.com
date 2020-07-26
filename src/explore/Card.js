@@ -32,8 +32,6 @@ export default class Card extends React.Component {
 
     boundingBox.x = x;
     boundingBox.y = y;
-
-    let rect = bboxToRect(boundingBox);
     return bboxToRect(boundingBox);
   }
 

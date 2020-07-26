@@ -62,8 +62,8 @@ export default function Login(props) {
     );
 
   return loginSuccess === undefined &&
-    auth.oauthUser == null &&
-    auth.oauthLoading == false ? (
+    auth.oauthUser === null &&
+    auth.oauthLoading === false ? (
     <Container>
       <Row className="align-items-center">
         <Col md={6}>

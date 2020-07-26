@@ -1,6 +1,4 @@
-import React, { useContext, useState, useEffect } from "react";
-
-import UserAuthContext from "../auth/UserAuthContext.js";
+import React, { useState, useEffect } from "react";
 
 import { useParams, useNavigate } from "react-router-dom";
 
@@ -27,11 +25,8 @@ export default function DatasetEditModal(props) {
       dataset.ID = doc.id;
       setName(dataset.name);
       setDataset(dataset);
-      console.log("Dataset loaded in modal");
     });
-  }, [props.show]);
-
-  console.log("DatasetEditModal", props);
+  }, [props.show, props.datasetRef]);
 
   if (!dataset) {
     return <></>;

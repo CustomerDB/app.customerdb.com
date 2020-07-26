@@ -26,7 +26,7 @@ export default function DatasetDeleteModal(props) {
       dataset.ID = doc.id;
       setDataset(dataset);
     });
-  }, [props.show]);
+  }, [props.show, props.datasetRef]);
 
   if (!dataset) {
     return <></>;

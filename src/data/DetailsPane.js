@@ -1,6 +1,7 @@
 import React, { useContext, useState, useEffect } from "react";
 
 import UserAuthContext from "../auth/UserAuthContext.js";
+import useFirestore from "../db/Firestore.js";
 
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
@@ -25,12 +26,20 @@ function Field(props) {
 
 export default function DetailsPane(props) {
   const { oauthClaims } = useContext(UserAuthContext);
+  const {
+    peopleRef,
+    tagGroupsRef,
+    documentRef,
+    deltasRef,
+    highlightsRef,
+  } = useFirestore();
+
   const [people, setPeople] = useState();
   const [tagGroups, setTagGroups] = useState();
 
   // TODO: Replace with search dropdown.
   useEffect(() => {
-    return props.peopleRef
+    return peopleRef
       .where("deletionTimestamp", "==", "")
       .orderBy("name")
       .onSnapshot((snapshot) => {
@@ -47,7 +56,7 @@ export default function DetailsPane(props) {
   }, []);
 
   useEffect(() => {
-    return props.tagGroupsRef.onSnapshot((snapshot) => {
+    return tagGroupsRef.onSnapshot((snapshot) => {
       console.debug("received tag groups snapshot");
 
       let tagGroups = [];
@@ -65,7 +74,7 @@ export default function DetailsPane(props) {
   const onPersonChange = (e) => {
     let newPersonID = e.target.value;
 
-    props.documentRef.set(
+    documentRef.set(
       {
         personID: newPersonID,
       },
@@ -74,13 +83,13 @@ export default function DetailsPane(props) {
   };
 
   const onTagGroupChange = (e) => {
+    // Preserve synthetic event reference for use in async code below
+    e.persist();
+
     let newTagGroupID = e.target.value;
 
     if (newTagGroupID !== props.document.tagGroupID) {
       // Confirm this change if the the set of highlights is not empty.
-
-      let highlightsRef = props.documentRef.collection("highlights");
-      let deltasRef = props.documentRef.collection("deltas");
 
       return highlightsRef.get().then((highlightsSnap) => {
         let numHighlights = highlightsSnap.size;
@@ -136,7 +145,7 @@ export default function DetailsPane(props) {
             });
         }
 
-        return props.documentRef.set(
+        return documentRef.set(
           {
             tagGroupID: newTagGroupID,
           },
