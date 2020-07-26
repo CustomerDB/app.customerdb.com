@@ -2,18 +2,17 @@ import React from "react";
 import Form from "react-bootstrap/Form";
 
 export default class Tags extends React.Component {
-  constructor(props) {
-    super(props);
-    this.onChange = props.onChange;
-  }
-
   onTagControlChange(e, tag) {
     let target = e.target;
-    this.onChange(tag, target.checked);
+    this.props.onChange(tag, target.checked);
   }
 
   render() {
-    let tagControls = this.props.tags.map((t) => {
+    if (!this.props.tags) {
+      return <></>;
+    }
+
+    let tagControls = Object.values(this.props.tags).map((t) => {
       let checked = this.props.tagIDsInSelection.has(t.ID);
 
       let label = (
@@ -47,8 +46,10 @@ export default class Tags extends React.Component {
 
     return (
       <div>
-        Tags
-        <br />
+        <p>
+          <small>Tags</small>
+        </p>
+
         {tagControls.length > 0 ? tagControls : <small>None</small>}
       </div>
     );
