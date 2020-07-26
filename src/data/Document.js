@@ -18,34 +18,6 @@ export default function Document(props) {
   const navigate = useNavigate();
   const [document, setDocument] = useState();
 
-  //   this.documentRef = props.documentsRef.doc(this.props.documentID);
-
-  //   this.tagsRef = undefined;
-
-  //   this.reactQuillRef = undefined;
-
-  //   // This is a range object with fields 'index' and 'length'
-  //   this.currentSelection = undefined;
-
-  //   this.latestDeltaTimestamp = new window.firebase.firestore.Timestamp(0, 0);
-
-  //   // Buffer of local editor changes, to be uploaded to the
-  //   // database and distributed to peer clients on periodic sync.
-  //   this.localDelta = new Delta([]);
-  //   this.highlights = {};
-
-  //   this.state = {
-  //     exists: true,
-  //     document: undefined,
-
-  //     initialDelta: emptyDelta(),
-  //     tagIDsInSelection: new Set(),
-
-  //     tagGroups: [],
-  //     tags: {},
-  //   };
-  // }
-
   let documentRef = props.documentsRef.doc(props.documentID);
 
   // Subscribe to document name changes

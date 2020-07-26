@@ -2,14 +2,9 @@ import React from "react";
 import Form from "react-bootstrap/Form";
 
 export default class Tags extends React.Component {
-  constructor(props) {
-    super(props);
-    this.onChange = props.onChange;
-  }
-
   onTagControlChange(e, tag) {
     let target = e.target;
-    this.onChange(tag, target.checked);
+    this.props.onChange(tag, target.checked);
   }
 
   render() {

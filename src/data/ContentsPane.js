@@ -67,6 +67,8 @@ export default function ContentsPane(props) {
 
   const [editorID, setEditorID] = useState(nanoid());
 
+  const reactQuillRef = useRef(null);
+
   const [initialDelta, setInitialDelta] = useState(emptyDelta());
   const [tagIDsInSelection, setTagIDsInSelection] = useState(new Set());
   const [tags, setTags] = useState();
@@ -79,8 +81,6 @@ export default function ContentsPane(props) {
   let currentSelection = useRef();
 
   let highlights = useRef();
-
-  const reactQuillRef = useRef(null);
 
   // Document will contain the latest cached and compressed version of the delta document.
   useEffect(() => {
@@ -96,8 +96,6 @@ export default function ContentsPane(props) {
     if (!reactQuillRef.current || !props.documentRef) {
       return;
     }
-
-    let quillRef = reactQuillRef.current;
 
     console.log("latestDeltaTimestamp.current: ", latestDeltaTimestamp.current);
 
@@ -149,7 +147,7 @@ export default function ContentsPane(props) {
 
         console.debug("applying deltas to editor", newDeltas);
 
-        let editor = quillRef.getEditor();
+        let editor = reactQuillRef.current.getEditor();
 
         // What we have:
         // - localDelta: the buffered local edits that haven't been uploaded yet

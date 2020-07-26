@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useContext, useState, useEffect } from "react";
+
+import UserAuthContext from "../auth/UserAuthContext.js";
 
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
@@ -22,6 +24,7 @@ function Field(props) {
 }
 
 export default function DetailsPane(props) {
+  const { oauthClaims } = useContext(UserAuthContext);
   const [people, setPeople] = useState();
   const [tagGroups, setTagGroups] = useState();
 
@@ -73,44 +76,74 @@ export default function DetailsPane(props) {
   const onTagGroupChange = (e) => {
     let newTagGroupID = e.target.value;
 
-    // TODO: Reintroduce tag cleanup for the document.
-    //       OR move to the contentsPane.
+    if (newTagGroupID !== props.document.tagGroupID) {
+      // Confirm this change if the the set of highlights is not empty.
 
-    // if (newTagGroupID !== props.document.tagGroupID) {
-    //   // Confirm this change if the the set of highlights is not empty.
-    //   let numHighlights = Object.keys(this.highlights).length;
-    //   if (numHighlights > 0) {
-    //     console.debug("TODO: use a modal for this instead");
-    //     let proceed = window.confirm(
-    //       `This operation will delete ${numHighlights} highlights.\nAre you sure you want to change tag groups?`
-    //     );
+      let highlightsRef = props.documentRef.collection("highlights");
+      let deltasRef = props.documentRef.collection("deltas");
 
-    //     if (!proceed) {
-    //       console.debug("user declined to proceeed changing tag group");
-    //       e.target.value = props.document.tagGroupID;
-    //       return;
-    //     }
+      return highlightsRef.get().then((highlightsSnap) => {
+        let numHighlights = highlightsSnap.size;
 
-    //     // Remove the highlight format from the existing text.
-    //     let editor = this.reactQuillRef.getEditor();
+        // TODO: use a modal for this instead
+        if (numHighlights > 0) {
+          console.debug("TODO: use a modal for this instead");
+          let proceed = window.confirm(
+            `This operation will delete ${numHighlights} highlights.\nAre you sure you want to change tag groups?`
+          );
 
-    //     let delta = editor.removeFormat(
-    //       0,
-    //       editor.getLength(),
-    //       "highlight",
-    //       false, // unsets the target format
-    //       "user"
-    //     );
+          if (!proceed) {
+            console.debug("user declined to proceeed changing tag group");
+            e.target.value = props.document.tagGroupID;
+            return;
+          }
 
-    //     this.localDelta = this.localDelta.compose(delta);
-    //   }
+          // Remove the highlight formats from the existing text.
+          let maxHighlightIndex = 0;
+          highlightsSnap.forEach((doc) => {
+            let hData = doc.data();
+            let endIndex = hData.selection.index + hData.selection.length;
+            maxHighlightIndex = Math.max(maxHighlightIndex, endIndex);
+          });
 
-    props.documentRef.set(
-      {
-        tagGroupID: newTagGroupID,
-      },
-      { merge: true }
-    );
+          let deltaDoc = {
+            editorID: "",
+            timestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+            userEmail: oauthClaims.email,
+            ops: [
+              {
+                retain: maxHighlightIndex,
+                attributes: {
+                  highlight: null,
+                },
+              },
+            ],
+          };
+
+          console.debug(
+            "uploading delta to remove all highlight formats",
+            deltaDoc
+          );
+
+          deltasRef
+            .doc()
+            .set(deltaDoc)
+            .then(() => {
+              highlightsSnap.forEach((doc) => {
+                console.debug("deleting highlight", doc.id);
+                highlightsRef.doc(doc.id).delete();
+              });
+            });
+        }
+
+        return props.documentRef.set(
+          {
+            tagGroupID: newTagGroupID,
+          },
+          { merge: true }
+        );
+      });
+    }
   };
 
   if (!people || !tagGroups) {
@@ -144,7 +177,7 @@ export default function DetailsPane(props) {
           onChange={onTagGroupChange}
           value={props.document.tagGroupID}
         >
-          <option value="" style={{ fontStyle: "italic" }}>
+          <option key="" value="" style={{ fontStyle: "italic" }}>
             Choose a tag group...
           </option>
           {tagGroups.map((group) => {
