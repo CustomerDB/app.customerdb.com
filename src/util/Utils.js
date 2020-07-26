@@ -20,9 +20,3 @@ export function Loading() {
 export function logout() {
   return window.firebase.auth().signOut();
 }
-
-export function checkReturn(e) {
-  if (e.key === "Enter") {
-    e.target.blur();
-  }
-}

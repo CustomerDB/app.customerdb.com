@@ -183,7 +183,7 @@ export default function Data(props) {
           <List.Items>{documentItems}</List.Items>
         </List.Search>
       </List>
-      {content}
+      <Content>{content}</Content>
     </Page>
   );
 }
