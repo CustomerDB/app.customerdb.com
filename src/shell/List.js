@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 
 import UserAuthContext from "../auth/UserAuthContext.js";
+import FocusContext from "../util/FocusContext.js";
 
 import Container from "react-bootstrap/Container";
 import Col from "react-bootstrap/Col";
@@ -18,6 +19,8 @@ import { InstantSearch, SearchBox, connectHits } from "react-instantsearch-dom";
 import "../search/style.css";
 
 export default class List extends React.Component {
+  static contextType = FocusContext;
+  
   static Search(props) {
     const auth = useContext(UserAuthContext);
 
@@ -174,14 +177,15 @@ export default class List extends React.Component {
   }
 
   render() {
-    // Check whether a search component is
-
+    const shouldShow = !this.context.focus;
     return (
-      <Col md={3} className="pt-4">
-        <Container className="d-flex flex-column h-100">
-          {this.props.children}
-        </Container>
-      </Col>
+      shouldShow && (
+        <Col md={3} className="pt-4">
+          <Container className="d-flex flex-column h-100">
+            {this.props.children}
+          </Container>
+        </Col>
+      )
     );
   }
 }

@@ -1,7 +1,12 @@
-import React from "react";
+import React, { useContext } from "react";
+
+import FocusContext from "../util/FocusContext.js";
+
 import Col from "react-bootstrap/Col";
 
 export default class Content extends React.Component {
+  static contextType = FocusContext;
+
   static Title(props) {
     return <div className="pb-3 d-flex">{props.children}</div>;
   }
@@ -19,8 +24,9 @@ export default class Content extends React.Component {
   }
 
   render() {
+    const shouldExpand = this.context.focus;
     return (
-      <Col md={9} className="pt-4 pl-4 d-flex flex-column">
+      <Col md={shouldExpand ? 12 : 9} className="pt-4 pl-4 d-flex flex-column">
         {this.props.children}
       </Col>
     );

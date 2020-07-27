@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 
 import Shell from "./Shell.js";
 import List from "./List.js";
@@ -12,7 +12,14 @@ import Modal from "./Modal.js";
 
 import Button from "react-bootstrap/Button";
 
-import { DoorOpen, GearWide, House, Mailbox } from "react-bootstrap-icons";
+import {
+  DoorOpen,
+  GearWide,
+  House,
+  Mailbox,
+  ArrowsAngleExpand,
+  ArrowsAngleContract,
+} from "react-bootstrap-icons";
 
 export default function ExampleApp(props) {
   let options = (ID) => (
@@ -59,6 +66,8 @@ export default function ExampleApp(props) {
     </Options>
   );
 
+  const [focus, setFocus] = useState(false);
+
   return (
     <Shell>
       <Navigation>
@@ -93,7 +102,7 @@ export default function ExampleApp(props) {
       </Navigation>
 
       <Page>
-        <List>
+        <List focus={focus}>
           <List.Title>
             <List.Name>Messages</List.Name>
             <List.Add />
@@ -313,18 +322,27 @@ export default function ExampleApp(props) {
             </Scrollable>
           </List.Items>
         </List>
-        <Content>
+        <Content focus={focus}>
           <Content.Title>
             <Content.Name>Messages</Content.Name>
           </Content.Title>
-          <Tabs>
+          <Tabs default="thread">
             <Tabs.Pane name="thread">
-              <Tabs.Content>
+              <Tabs.Content focus={focus}>
                 <Scrollable>
                   <div style={{ height: "1000rem" }}>{}</div>
                 </Scrollable>
+                <Button
+                  variant="link"
+                  style={{ position: "absolute", right: 0 }}
+                  onClick={() => {
+                    setFocus(!focus);
+                  }}
+                >
+                  {focus ? <ArrowsAngleContract /> : <ArrowsAngleExpand />}
+                </Button>
               </Tabs.Content>
-              <Tabs.SidePane>
+              <Tabs.SidePane focus={focus}>
                 <Tabs.SidePaneCard>
                   <small>Tags</small>
                   <p>Some tag</p>
