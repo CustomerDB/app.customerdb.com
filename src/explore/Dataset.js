@@ -47,10 +47,7 @@ export default function Dataset(props) {
         Data
       </Button>
 
-      <ClusterDropdown
-        tagGroupsRef={props.tagGroupsRef}
-        tagGroupIDs={props.dataset.tagGroupIDs}
-      />
+      <ClusterDropdown dataset={props.dataset} />
     </Row>
   );
 

@@ -76,9 +76,10 @@ export default function Explore(props) {
 
   let content;
   if (datasetID && datasetMap && datasetsRef) {
-    let datasetRef = datasetsRef.doc(datasetID);
     let dataset = datasetMap[datasetID];
-    content = <Dataset key={datasetID} dataset={dataset} options={options(datasetID)} />;
+    content = (
+      <Dataset key={datasetID} dataset={dataset} options={options(datasetID)} />
+    );
   }
 
   let addModal = (

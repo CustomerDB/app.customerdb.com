@@ -1,82 +1,95 @@
 import React, { useEffect, useState } from "react";
 
+import useFirestore from "../db/Firestore.js";
+
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 
 import DropdownButton from "react-bootstrap/DropdownButton";
 import Dropdown from "react-bootstrap/Dropdown";
 
 export default function ClusterDropdown(props) {
-  const { orgID, datasetID, tabID, tagID } = useParams();
-  const [tags, setTags] = useState({});
-  const navigate = useNavigate();
-
-  console.log("ClusterDropdown tags", tags);
+  const { orgID, tabID, tagID } = useParams();
+  const { allTagsRef } = useFirestore();
+  const defaultButtonTitle = "Cluster";
+  const [buttonTitle, setButtonTitle] = useState(defaultButtonTitle);
 
   useEffect(() => {
-    console.log("useEffect running", props.datasetIDs);
-    if (!props.datasetIDs) {
+    if (!tagID) {
+      setButtonTitle(defaultButtonTitle);
       return;
     }
 
-    let tgSubs = [];
-    props.tagGroupIDs.forEach((tagGroupID) => {
-      props.tagGroupsRef
-        .doc(tagGroupID)
-        .collection("tags")
-        .where("deletionTimestamp", "==", "")
-        .get()
-        .then((snapshot) => {
-          let newTags = Object.assign({}, tags);
-
-          Object.keys(newTags).forEach((key) => {
-            if (newTags[key].tagGroupID === tagGroupID) {
-              delete newTags[key];
-            }
-          });
-
-          snapshot.forEach((tagDoc) => {
-            let tagData = tagDoc.data();
-            tags[tagDoc.id] = {
-              ID: tagDoc.id,
-              name: tagData.name,
-              tagGroupID: tagGroupID,
-            };
-          });
-
-          setTags(newTags);
+    return allTagsRef
+      .where("organizationID", "==", orgID)
+      .where("ID", "==", tagID)
+      .onSnapshot((snap) => {
+        snap.forEach((doc) => {
+          let tagData = doc.data();
+          setButtonTitle(tagData.name);
         });
-    });
-
-    return () => {
-      tgSubs.forEach((unsub) => {
-        unsub();
       });
-    };
-  }, [props.datasetIDs]);
+  }, [tagID]);
 
-  // Redirect if tag does not exist
-  if (tagID && (!tags || !tags[tagID])) {
-    return <Navigate to="/404" />;
+  if (props.dataset.documentIDs.length === 0) {
+    return <></>;
   }
-
-  let dropdownTitle = tagID ? tags[tagID].name : "Cluster";
 
   return (
     <DropdownButton
       style={{ minWidth: "8rem" }}
-      title={dropdownTitle}
+      title={buttonTitle}
       variant={tabID === "cluster" ? "primary" : "link"}
       drop="down"
     >
-      {Object.values(tags).map((tag) => (
-        <Dropdown.Item
-          onClick={() => {
-            navigate(`/orgs/${orgID}/explore/${datasetID}/cluster/${tag.ID}`);
-          }}
-        >
-          {tag.name}
-        </Dropdown.Item>
+      {props.dataset.tagGroupIDs.map((tagGroupID) => (
+        <ItemsForTagGroup key={tagGroupID} tagGroupID={tagGroupID} />
       ))}
     </DropdownButton>
   );
+}
+
+function ItemsForTagGroup(props) {
+  const { orgID, datasetID } = useParams();
+  const navigate = useNavigate();
+
+  let tags = useTagGroup(props.tagGroupID);
+
+  return Object.values(tags).map((tag) => (
+    <Dropdown.Item
+      key={tag.ID}
+      onClick={() => {
+        navigate(`/orgs/${orgID}/explore/${datasetID}/cluster/${tag.ID}`);
+      }}
+    >
+      {tag.name}
+    </Dropdown.Item>
+  ));
+}
+
+function useTagGroup(tagGroupID) {
+  const [tags, setTags] = useState({});
+  const { tagGroupsRef } = useFirestore();
+
+  useEffect(() => {
+    console.log("useEffect running", tagGroupID);
+    setTags({});
+
+    return tagGroupsRef
+      .doc(tagGroupID)
+      .collection("tags")
+      .where("deletionTimestamp", "==", "")
+      .onSnapshot((snapshot) => {
+        let newTags = {};
+        snapshot.forEach((tagDoc) => {
+          let tagData = tagDoc.data();
+          newTags[tagDoc.id] = {
+            ID: tagDoc.id,
+            name: tagData.name,
+          };
+        });
+        setTags(newTags);
+      });
+  }, [tagGroupID]);
+
+  return tags;
 }
