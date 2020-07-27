@@ -22,8 +22,8 @@ export default function ClusterDropdown(props) {
     return allTagsRef
       .where("organizationID", "==", orgID)
       .where("ID", "==", tagID)
-      .onSnapshot((snap) => {
-        snap.forEach((doc) => {
+      .onSnapshot((snapshot) => {
+        snapshot.forEach((doc) => {
           let tagData = doc.data();
           setButtonTitle(tagData.name);
         });
