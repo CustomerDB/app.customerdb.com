@@ -54,6 +54,9 @@ export default function Settings(props) {
         name="Members"
         path={`/orgs/${orgID}/settings/members`}
       />,
+
+      // TODO: reintroduce these unimplemented admin pages
+      /*
       <List.Item
         key="organization"
         name="Organization"
@@ -64,11 +67,14 @@ export default function Settings(props) {
         name="Backup and restore"
         path={`/orgs/${orgID}/settings/backup`}
       />,
+      */
     ]);
   }
 
   let adminRoutes = undefined;
 
+  // TODO: Implement these settings pages... currently unused
+  /*
   if (auth.oauthClaims.admin === true) {
     adminRoutes = [
       <Route key="members" path="members" element={<Members />} />,
@@ -84,6 +90,7 @@ export default function Settings(props) {
       />,
     ];
   }
+  */
 
   return (
     <Page>
