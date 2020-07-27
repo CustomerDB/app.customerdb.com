@@ -112,6 +112,13 @@ export default function Data(props) {
 
         latestSnapshotTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
 
+        // This initial value is required.
+        // Search indexing and compression are done as a pair of operations:
+        // 1) Mark documents with needsIndex == false and
+        //    deltas newer than latestSnapshotTimestamp
+        // 2) Index documents with needsIndex == true.
+        needsIndex: false,
+
         // Deletion is modeled as "soft-delete"; when the deletionTimestamp is set,
         // we don't show the document anymore in the list. However, it should be
         // possible to recover the document by unsetting this field before
