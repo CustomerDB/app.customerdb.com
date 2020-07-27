@@ -55,7 +55,7 @@ export default function People(props) {
         setListTotal(snapshot.size);
       });
     return unsubscribe;
-  }, [peopleRef]);
+  }, []);
 
   if (!peopleList || !peopleMap) {
     return <Loading />;
