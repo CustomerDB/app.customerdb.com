@@ -1,5 +1,10 @@
-import React from "react";
-import ContentEditable from "react-contenteditable";
+import React, { useEffect, useState } from "react";
+
+import Form from "react-bootstrap/Form";
+import Button from "react-bootstrap/Button";
+
+import Options from "../shell/Options.js";
+import Modal from "../shell/Modal.js";
 
 import { circumscribingCircle } from "./geom.js";
 
@@ -23,6 +28,68 @@ function computeGroupBounds(cards) {
   return rect;
 }
 
+// export default function Group(props) {
+//   useEffect(() => {
+//     return () => {
+//       props.removeGroupLocationCallback(props.group);
+//     };
+//   });
+
+//   const rect = computeGroupBounds(props.cards);
+//   props.group.minX = rect.minX;
+//   props.group.minY = rect.minY;
+//   props.group.maxX = rect.maxX;
+//   props.group.maxY = rect.maxY;
+
+//   props.addGroupLocationCallback(props.group);
+
+//   let documentIDs = new Set();
+//   props.cards.forEach((card) => {
+//     documentIDs.add(card.documentID);
+//   });
+//   const representation = documentIDs.size;
+
+//   let circle = circumscribingCircle(rect);
+//   return (
+//     <>
+//       <div
+//         className="group"
+//         style={{
+//           position: "absolute",
+//           left: circle.minX,
+//           top: circle.minY,
+//           width: circle.diameter,
+//           height: circle.diameter,
+//           borderRadius: "50%",
+//           border: `2px ${props.group.color} solid`,
+//         }}
+//       >
+//         {}
+//       </div>
+
+//       <div
+//         className="groupLabel"
+//         style={{
+//           position: "absolute",
+//           left: circle.minX,
+//           top: circle.maxY + 10,
+//           width: circle.diameter,
+//           textAlign: "center",
+//         }}
+//       >
+//         <div className="d-flex justify-content-center">
+//           <div className="d-flex justify-content-center">
+//             <div className="align-self-center">{props.name}</div> {options}
+//           </div>
+//         </div>
+//         <p>
+//           {representation} out of {props.totalCardCount}
+//         </p>
+//       </div>
+//     </>
+//   );
+// }
+
 export default class Group extends React.Component {
   constructor(props) {
     super(props);
@@ -44,6 +111,17 @@ export default class Group extends React.Component {
     if (this.props.cards === undefined || this.props.cards.length === 0) {
       return <></>;
     }
+
+    let options = (
+      <Options>
+        <Options.Item
+          name="Rename"
+          onClick={() =>
+            this.props.renameGroupModalCallback(this.props.group.ID)
+          }
+        />
+      </Options>
+    );
 
     this.props.removeGroupLocationCallback(this.props.group);
 
@@ -93,13 +171,12 @@ export default class Group extends React.Component {
             textAlign: "center",
           }}
         >
-          <ContentEditable
-            innerRef={this.nameRef}
-            tagName="div"
-            html={this.props.name}
-            disabled={false}
-            onBlur={this.updateName}
-          />
+          <div className="d-flex justify-content-center">
+            <div className="d-flex justify-content-center">
+              <div className="align-self-center">{this.props.name}</div>{" "}
+              {options}
+            </div>
+          </div>
           <p>
             {representation} out of {this.props.totalCardCount}
           </p>

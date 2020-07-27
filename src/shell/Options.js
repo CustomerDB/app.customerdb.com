@@ -8,23 +8,32 @@ export default class Option extends React.Component {
   static Item(props) {
     const [show, setShow] = useState(false);
 
-    let modal = React.cloneElement(props.modal, {
-      show: show,
-      onHide: () => {
-        setShow(false);
-      },
-    });
+    let modal;
+    let onClick;
+    if (props.modal) {
+      modal = React.cloneElement(props.modal, {
+        show: show,
+        onHide: () => {
+          setShow(false);
+        },
+      });
+
+      onClick = () => {
+        console.log("Dropdown item clicked");
+        setShow(true);
+      };
+    }
+
+    console.log("Props for options item", props);
+
+    if (props.onClick) {
+      console.log("Setting onclick handler for item");
+      onClick = props.onClick;
+    }
 
     return (
       <>
-        <Dropdown.Item
-          onClick={() => {
-            console.log("Dropdown item clicked");
-            setShow(true);
-          }}
-        >
-          {props.name}
-        </Dropdown.Item>
+        <Dropdown.Item onClick={onClick}>{props.name}</Dropdown.Item>
         {modal}
       </>
     );
