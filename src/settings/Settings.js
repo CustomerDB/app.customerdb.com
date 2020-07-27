@@ -73,11 +73,12 @@ export default function Settings(props) {
 
   let adminRoutes = undefined;
 
-  // TODO: Implement these settings pages... currently unused
-  /*
   if (auth.oauthClaims.admin === true) {
     adminRoutes = [
       <Route key="members" path="members" element={<Members />} />,
+
+      // TODO: Implement these settings pages... currently unused
+      /*
       <Route
         key="organization"
         path="organization"
@@ -88,9 +89,9 @@ export default function Settings(props) {
         path="backup"
         element={<Backup selected="backup" />}
       />,
+      */
     ];
   }
-  */
 
   return (
     <Page>
