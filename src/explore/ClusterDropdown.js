@@ -30,7 +30,11 @@ export default function ClusterDropdown(props) {
       });
   }, [tagID]);
 
-  if (props.dataset.documentIDs.length === 0) {
+  if (
+    !props.dataset ||
+    !props.dataset.tagGroupIDs ||
+    props.dataset.tagGroupIDs.length === 0
+  ) {
     return <></>;
   }
 
