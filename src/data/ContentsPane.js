@@ -71,7 +71,6 @@ export default function ContentsPane(props) {
 
   const reactQuillRef = useRef(null);
 
-  const [initialDelta, setInitialDelta] = useState(emptyDelta());
   const [tagIDsInSelection, setTagIDsInSelection] = useState(new Set());
   const [tags, setTags] = useState();
 
@@ -85,18 +84,14 @@ export default function ContentsPane(props) {
   let highlights = useRef();
 
   // Document will contain the latest cached and compressed version of the delta document.
-  useEffect(() => {
-    if (!props.document) {
-      return;
-    }
-    setInitialDelta(new Delta(props.document.latestSnapshot.ops));
-    latestDeltaTimestamp.current = props.document.latestSnapshotTimestamp;
-  }, [props.document]);
-
   // Subscribe to deltas from other remote clients.
   useEffect(() => {
     if (!reactQuillRef.current || !documentRef) {
       return;
+    }
+
+    if (!latestDeltaTimestamp.current) {
+      latestDeltaTimestamp.current = props.document.latestSnapshotTimestamp;
     }
 
     console.debug(
@@ -106,7 +101,7 @@ export default function ContentsPane(props) {
 
     return deltasRef
       .orderBy("timestamp", "asc")
-      .where("timestamp", ">", latestDeltaTimestamp.current)
+      .where("timestamp", ">", props.document.latestSnapshotTimestamp)
       .onSnapshot((snapshot) => {
         console.debug("Delta snapshot received");
 
@@ -193,7 +188,7 @@ export default function ContentsPane(props) {
           editor.setSelection(selectionIndex, selection.length);
         }
       });
-  }, [reactQuillRef, props.document, editorID]);
+  }, [reactQuillRef, props.document]);
 
   // Subscribe to tags for the document's tag group.
   useEffect(() => {
@@ -498,7 +493,7 @@ export default function ContentsPane(props) {
         <Scrollable>
           <ReactQuill
             ref={reactQuillRef}
-            defaultValue={initialDelta}
+            defaultValue={new Delta(props.document.latestSnapshot.ops)}
             theme="bubble"
             placeholder="Start typing here and select to mark highlights"
             onChange={onEdit}
