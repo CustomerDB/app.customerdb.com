@@ -3,10 +3,6 @@ import React from "react";
 import { NavLink } from "react-router-dom";
 
 export default class Navigation extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
   static Item(props) {
     return (
       <div>

@@ -1,12 +1,11 @@
 import React, { useContext, useState, useEffect, useRef } from "react";
 
 import UserAuthContext from "../auth/UserAuthContext.js";
+import useFirestore from "../db/Firestore.js";
 
 import Col from "react-bootstrap/Col";
-import Container from "react-bootstrap/Container";
 import Form from "react-bootstrap/Form";
 import Modal from "react-bootstrap/Modal";
-import InputGroup from "react-bootstrap/InputGroup";
 import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
 import { GithubPicker } from "react-color";
@@ -22,12 +21,13 @@ import Options from "../Options.js";
 
 export default function Tags(props) {
   const auth = useContext(UserAuthContext);
+  const { tagGroupsRef } = useFirestore();
   const navigate = useNavigate();
   const { orgID, tagGroupID } = useParams();
   const [tagGroups, setTagGroups] = useState([]);
 
   useEffect(() => {
-    return props.tagGroupsRef
+    return tagGroupsRef
       .where("deletionTimestamp", "==", "")
       .orderBy("creationTimestamp", "desc")
       .onSnapshot((snapshot) => {
@@ -45,7 +45,7 @@ export default function Tags(props) {
   }, []);
 
   const onAdd = () => {
-    props.tagGroupsRef.add({
+    tagGroupsRef.add({
       name: "New tag set",
       createdBy: auth.oauthClaims.email,
       creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
@@ -67,7 +67,7 @@ export default function Tags(props) {
   };
 
   const onRename = (ID, newName) => {
-    props.tagGroupsRef.doc(ID).set(
+    tagGroupsRef.doc(ID).set(
       {
         name: newName,
       },
@@ -76,7 +76,7 @@ export default function Tags(props) {
   };
 
   const onDelete = (ID) => {
-    props.tagGroupsRef.doc(ID).update({
+    tagGroupsRef.doc(ID).update({
       deletedBy: auth.oauthClaims.email,
       deletionTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
     });
@@ -110,7 +110,7 @@ export default function Tags(props) {
 
   let view;
   if (tagGroupID !== undefined) {
-    let tagGroupRef = props.tagGroupsRef.doc(tagGroupID);
+    let tagGroupRef = tagGroupsRef.doc(tagGroupID);
     view = (
       <TagGroup key={tagGroupID} tagGroupRef={tagGroupRef} options={options} />
     );

@@ -1,15 +1,18 @@
 import React, { useEffect, useState } from "react";
 
+import useFirestore from "../db/Firestore.js";
+
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 
 export default function DatasetDataTab(props) {
+  const { datasetRef, documentsRef } = useFirestore();
+
   const [documents, setDocuments] = useState([]);
 
   const onClick = (documentID) => {
     let newDocumentIDs = props.dataset.documentIDs.slice();
-    console.log("DatasetData select (before)", newDocumentIDs);
 
     if (props.dataset.documentIDs.includes(documentID)) {
       // Remove it.
@@ -19,9 +22,7 @@ export default function DatasetDataTab(props) {
       newDocumentIDs.push(documentID);
     }
 
-    console.log("DatasetData select (after)", newDocumentIDs);
-
-    props.datasetRef.set(
+    datasetRef.set(
       {
         documentIDs: newDocumentIDs,
       },
@@ -30,11 +31,7 @@ export default function DatasetDataTab(props) {
   };
 
   useEffect(() => {
-    if (props.documentsRef === undefined) {
-      return;
-    }
-
-    let unsubscribe = props.documentsRef
+    let unsubscribe = documentsRef
       .where("deletionTimestamp", "==", "")
       .orderBy("creationTimestamp", "desc")
       .onSnapshot((snapshot) => {
@@ -45,14 +42,11 @@ export default function DatasetDataTab(props) {
           newDocuments[doc.id] = data;
         });
 
-        console.log("Set new documents: ", newDocuments);
         setDocuments(newDocuments);
       });
 
     return unsubscribe;
-  }, [props.documentsRef]);
-
-  console.log("props.dataset", props.dataset);
+  }, []);
 
   return (
     <>
@@ -77,7 +71,7 @@ export default function DatasetDataTab(props) {
                   }
 
                   return (
-                    <Col md={4} className="p-1">
+                    <Col key={document.ID} md={4} className="p-1">
                       <Container className={listCardClass}>
                         <Row className="h-100">
                           <Col

@@ -4,7 +4,6 @@ import { nanoid } from "nanoid";
 
 import Card from "./Card.js";
 import Group from "./Group.js";
-import Pointers from "./Pointers.js";
 import HighlightModal from "./HighlightModal.js";
 import colorPair from "../util/color.js";
 import { Loading } from "../util/Utils.js";

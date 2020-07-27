@@ -1,4 +1,3 @@
-import React from "react";
 import Quill from "quill";
 
 // Declare a custom blot subclass to represent highlighted text.

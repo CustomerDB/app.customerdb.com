@@ -9,8 +9,6 @@ export default function WithOauthUser(props) {
   const [oauthClaims, setOauthClaims] = useState();
   const [oauthLoading, setOauthLoading] = useState(true);
 
-  const db = window.firebase.firestore();
-
   useEffect(() => {
     const loginCallback = (user) => {
       console.debug("loginCallback user", user);
@@ -27,10 +25,14 @@ export default function WithOauthUser(props) {
       return;
     }
 
-    let refreshTrigger = db.collection("uids").doc(oauthUser.uid);
+    let refreshTrigger = window.firebase
+      .firestore()
+      .collection("uids")
+      .doc(oauthUser.uid);
     return refreshTrigger.onSnapshot(() => {
       console.debug("received refresh trigger -- refreshing id token");
-      let idToken = oauthUser.getIdToken(true);
+
+      oauthUser.getIdToken(true);
 
       return window.firebase
         .auth()

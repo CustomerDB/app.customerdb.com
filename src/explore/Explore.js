@@ -1,6 +1,7 @@
 import React, { useContext, useState, useEffect } from "react";
 
 import UserAuthContext from "../auth/UserAuthContext.js";
+import useFirestore from "../db/Firestore.js";
 
 import Page from "../shell/Page.js";
 import List from "../shell/List.js";
@@ -11,12 +12,13 @@ import Dataset from "./Dataset.js";
 import DatasetDeleteModal from "./DatasetDeleteModal.js";
 import DatasetEditModal from "./DatasetEditModal.js";
 
+import { useParams } from "react-router-dom";
 import WithFocus from "../util/WithFocus.js";
-
-import { useNavigate, useParams } from "react-router-dom";
 
 export default function Explore(props) {
   const auth = useContext(UserAuthContext);
+
+  let { datasetsRef } = useFirestore();
 
   let { orgID, datasetID } = useParams();
 
@@ -26,7 +28,7 @@ export default function Explore(props) {
   const [newDatasetRef, setNewDatasetRef] = useState();
 
   useEffect(() => {
-    let unsubscribe = props.datasetsRef
+    let unsubscribe = datasetsRef
       .where("deletionTimestamp", "==", "")
       .orderBy("creationTimestamp", "desc")
       .onSnapshot((snapshot) => {
@@ -55,7 +57,7 @@ export default function Explore(props) {
       return <></>;
     }
 
-    let datasetRef = props.datasetsRef.doc(datasetID);
+    let datasetRef = datasetsRef.doc(datasetID);
 
     return (
       <Options key={datasetID}>
@@ -73,18 +75,11 @@ export default function Explore(props) {
   };
 
   let content;
-  if (datasetID && datasetMap && props.datasetsRef) {
-    let datasetRef = props.datasetsRef.doc(datasetID);
+  if (datasetID && datasetMap && datasetsRef) {
+    let datasetRef = datasetsRef.doc(datasetID);
     let dataset = datasetMap[datasetID];
     content = (
-      <Dataset
-        key={datasetID}
-        dataset={dataset}
-        datasetRef={datasetRef}
-        documentsRef={props.documentsRef}
-        allHighlightsRef={props.allHighlightsRef}
-        options={options}
-      />
+      <Dataset key={datasetID} dataset={dataset} options={options(datasetID)} />
     );
   }
 

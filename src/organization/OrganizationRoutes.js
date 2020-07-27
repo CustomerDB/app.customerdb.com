@@ -20,87 +20,28 @@ export default function OrganizationRoutes(props) {
   const documentsRef = orgRef.collection("documents");
   const tagGroupsRef = orgRef.collection("tagGroups");
   const datasetsRef = orgRef.collection("datasets");
-  const allHighlightsRef = db.collectionGroup("highlights");
 
   return (
     <>
       <Routes>
-        <Route path="/" element={<OrganizationHome orgRef={orgRef} />} />
+        <Route path="/" element={<OrganizationHome />} />
 
         <Route path="people/*">
-          <Route path="/" element={<People peopleRef={peopleRef} />} />
-          <Route path=":personID" element={<People peopleRef={peopleRef} />} />
-          <Route
-            path=":personID/:tabID"
-            element={<People peopleRef={peopleRef} />}
-          />
+          <Route path="/" element={<People />} />
+          <Route path=":personID" element={<People />} />
+          <Route path=":personID/:tabID" element={<People />} />
         </Route>
 
         <Route path="data/*">
-          <Route
-            path="/"
-            element={
-              <Data
-                documentsRef={documentsRef}
-                tagGroupsRef={tagGroupsRef}
-                peopleRef={peopleRef}
-              />
-            }
-          />
-          <Route
-            path=":documentID"
-            element={
-              <Data
-                documentsRef={documentsRef}
-                tagGroupsRef={tagGroupsRef}
-                peopleRef={peopleRef}
-              />
-            }
-          />
-          <Route
-            path=":documentID/:tabID"
-            element={
-              <Data
-                documentsRef={documentsRef}
-                tagGroupsRef={tagGroupsRef}
-                peopleRef={peopleRef}
-              />
-            }
-          />
+          <Route path="/" element={<Data />} />
+          <Route path=":documentID" element={<Data />} />
+          <Route path=":documentID/:tabID" element={<Data />} />
         </Route>
 
         <Route path="explore/*">
-          <Route
-            path="/"
-            element={
-              <Explore
-                orgID={orgID}
-                documentsRef={documentsRef}
-                datasetsRef={datasetsRef}
-                allHighlightsRef={allHighlightsRef}
-              />
-            }
-          />
-          <Route
-            path=":datasetID"
-            element={
-              <Explore
-                documentsRef={documentsRef}
-                datasetsRef={datasetsRef}
-                allHighlightsRef={allHighlightsRef}
-              />
-            }
-          />
-          <Route
-            path=":datasetID/:tabID"
-            element={
-              <Explore
-                documentsRef={documentsRef}
-                datasetsRef={datasetsRef}
-                allHighlightsRef={allHighlightsRef}
-              />
-            }
-          />
+          <Route path="/" element={<Explore />} />
+          <Route path=":datasetID" element={<Explore />} />
+          <Route path=":datasetID/:tabID" element={<Explore />} />
         </Route>
 
         <Route

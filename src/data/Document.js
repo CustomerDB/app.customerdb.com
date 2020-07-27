@@ -1,32 +1,33 @@
-import ContentEditable from "react-contenteditable";
 import React, { useEffect, useState } from "react";
 
-import { Navigate, useNavigate } from "react-router-dom";
+import useFirestore from "../db/Firestore.js";
 
-import { Loading } from "../util/Utils.js";
-
-import Content from "../shell/Content.js";
-import Tabs from "../shell/Tabs.js";
+import { useNavigate, useParams } from "react-router-dom";
 
 import DocumentDeleted from "./DocumentDeleted.js";
 import DetailsPane from "./DetailsPane.js";
 import ContentsPane from "./ContentsPane.js";
 
-// TODO: Wrap editor in it's own class.
+import { Loading } from "../util/Utils.js";
+import Content from "../shell/Content.js";
+import Tabs from "../shell/Tabs.js";
 
 export default function Document(props) {
-  const navigate = useNavigate();
-  const [document, setDocument] = useState();
+  const { documentRef } = useFirestore();
 
-  let documentRef = props.documentsRef.doc(props.documentID);
+  const navigate = useNavigate();
+  const { documentID } = useParams();
+  const [document, setDocument] = useState();
 
   // Subscribe to document name changes
   useEffect(() => {
-    if (!props.documentID) {
+    console.warn("document useEffect");
+    if (!documentRef) {
       return;
     }
 
     return documentRef.onSnapshot((doc) => {
+      console.debug("received document snapshot");
       if (!doc.exists) {
         navigate("/404");
         return;
@@ -36,7 +37,7 @@ export default function Document(props) {
       data.ID = doc.id;
       setDocument(data);
     });
-  }, [props.documentID]);
+  }, [documentID]);
 
   if (!document) {
     return <Loading />;
@@ -53,19 +54,10 @@ export default function Document(props) {
       </Content.Title>
       <Tabs default="Content">
         <Tabs.Pane name="Content">
-          <ContentsPane
-            document={document}
-            documentRef={documentRef}
-            tagGroupsRef={props.tagGroupsRef}
-          />
+          <ContentsPane document={document} />
         </Tabs.Pane>
         <Tabs.Pane name="Details">
-          <DetailsPane
-            document={document}
-            documentRef={documentRef}
-            tagGroupsRef={props.tagGroupsRef}
-            peopleRef={props.peopleRef}
-          />
+          <DetailsPane document={document} />
         </Tabs.Pane>
       </Tabs>
     </Content>

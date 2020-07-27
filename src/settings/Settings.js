@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 
 import UserAuthContext from "../auth/UserAuthContext";
+import useFirestore from "../db/Firestore.js";
 
 import Page from "../shell/Page.js";
 import List from "../shell/List.js";
@@ -21,28 +22,12 @@ import Toast from "react-bootstrap/Toast";
 import Table from "react-bootstrap/Table";
 import Modal from "react-bootstrap/Modal";
 
-import {
-  Routes,
-  Route,
-  Navigate,
-  useParams,
-  useNavigate,
-} from "react-router-dom";
-
-import {
-  Building,
-  PersonCircle,
-  Hdd,
-  Diagram3,
-  Tags as TagsIcon,
-} from "react-bootstrap-icons";
-
-import { AutoSizer, List as VirtList } from "react-virtualized";
+import { Routes, Route, Navigate, useParams } from "react-router-dom";
 
 export default function Settings(props) {
   const auth = useContext(UserAuthContext);
+  const { peopleRef, membersRef, tagGroupsRef } = useFirestore();
   const { orgID } = useParams();
-  const navigate = useNavigate();
 
   let listItems = [
     <List.Item
@@ -86,11 +71,7 @@ export default function Settings(props) {
 
   if (auth.oauthClaims.admin === true) {
     adminRoutes = [
-      <Route
-        key="members"
-        path="members"
-        element={<Members membersRef={props.membersRef} />}
-      />,
+      <Route key="members" path="members" element={<Members />} />,
       <Route
         key="organization"
         path="organization"
@@ -123,30 +104,14 @@ export default function Settings(props) {
             element={<Navigate to={`/orgs/${orgID}/settings/profile`} />}
           />
 
-          <Route
-            key="profile"
-            path="profile"
-            element={<Profile membersRef={props.membersRef} />}
-          />
+          <Route key="profile" path="profile" element={<Profile />} />
 
           <Route key="tags" path="tags">
-            <Route
-              key="tags"
-              path="/"
-              element={<Tags tagGroupsRef={props.tagGroupsRef} />}
-            />
-            <Route
-              key=":tagGroupID"
-              path=":tagGroupID"
-              element={<Tags tagGroupsRef={props.tagGroupsRef} />}
-            />
+            <Route key="tags" path="/" element={<Tags />} />
+            <Route key=":tagGroupID" path=":tagGroupID" element={<Tags />} />
           </Route>
 
-          <Route
-            key="import"
-            path="import"
-            element={<BulkImport peopleRef={props.peopleRef} />}
-          />
+          <Route key="import" path="import" element={<BulkImport />} />
 
           {adminRoutes}
 
@@ -159,28 +124,26 @@ export default function Settings(props) {
 
 function Profile(props) {
   const auth = useContext(UserAuthContext);
+  const { membersRef } = useFirestore();
   const [displayName, setDisplayName] = useState();
   const [profile, setProfile] = useState();
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    let unsubscribe;
-    if (props.membersRef !== undefined) {
-      unsubscribe = props.membersRef
-        .doc(auth.oauthClaims.email)
-        .onSnapshot((doc) => {
-          let data = doc.data();
-          console.log("data", data);
-          setDisplayName(data.displayName);
-          setProfile(data);
-        });
-    }
+    let unsubscribe = membersRef
+      .doc(auth.oauthClaims.email)
+      .onSnapshot((doc) => {
+        let data = doc.data();
+        console.log("data", data);
+        setDisplayName(data.displayName);
+        setProfile(data);
+      });
     return unsubscribe;
-  }, [props.membersRef]);
+  }, [auth.oauthClaims.email]);
 
   const onSave = () => {
     profile.displayName = displayName;
-    props.membersRef.doc(auth.oauthClaims.email).set(profile);
+    membersRef.doc(auth.oauthClaims.email).set(profile);
     setShow(true);
   };
 
@@ -253,32 +216,29 @@ function Profile(props) {
 }
 
 function Members(props) {
+  const { membersRef } = useFirestore();
   const [members, setMembers] = useState();
   const [member, setMember] = useState();
   const [inviteModalShow, setInviteModalShow] = useState();
   const [deleteModalShow, setDeleteModalShow] = useState();
 
   useEffect(() => {
-    let unsubscribe;
-    if (props.membersRef !== undefined) {
-      console.log("Profile :: useEffect");
-
-      unsubscribe = props.membersRef.onSnapshot((query) => {
-        let members = [];
-        query.forEach((doc) => {
-          let data = doc.data();
-          data.ID = doc.id;
-          members.push(data);
-        });
-
-        setMembers(members);
+    console.debug("Profile :: useEffect");
+    let unsubscribe = membersRef.onSnapshot((query) => {
+      let members = [];
+      query.forEach((doc) => {
+        let data = doc.data();
+        data.ID = doc.id;
+        members.push(data);
       });
-    }
+
+      setMembers(members);
+    });
     return unsubscribe;
-  }, [props.membersRef]);
+  }, []);
 
   const onInvite = (email) => {
-    props.membersRef.doc(email).set({
+    membersRef.doc(email).set({
       invited: true,
       active: false,
       email: email,
@@ -287,11 +247,11 @@ function Members(props) {
   };
 
   const onDelete = (email) => {
-    props.membersRef.doc(email).delete();
+    membersRef.doc(email).delete();
   };
 
   const onRedact = (email) => {
-    props.membersRef.doc(email).set(
+    membersRef.doc(email).set(
       {
         invited: false,
       },
@@ -299,7 +259,7 @@ function Members(props) {
     );
   };
   const onActivate = (email) => {
-    props.membersRef.doc(email).set(
+    membersRef.doc(email).set(
       {
         active: true,
       },
@@ -307,7 +267,7 @@ function Members(props) {
     );
   };
   const onDisable = (email) => {
-    props.membersRef.doc(email).set(
+    membersRef.doc(email).set(
       {
         active: false,
       },
@@ -315,7 +275,7 @@ function Members(props) {
     );
   };
   const onUserToAdmin = (email) => {
-    props.membersRef.doc(email).set(
+    membersRef.doc(email).set(
       {
         admin: true,
       },
@@ -323,7 +283,7 @@ function Members(props) {
     );
   };
   const onAdminToUser = (email) => {
-    props.membersRef.doc(email).set(
+    membersRef.doc(email).set(
       {
         admin: false,
       },
@@ -415,7 +375,7 @@ function Members(props) {
                     });
 
                     return (
-                      <tr>
+                      <tr key={member.uid}>
                         <td>
                           {member.photoURL !== undefined ? (
                             <Image

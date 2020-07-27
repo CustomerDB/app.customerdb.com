@@ -1,5 +1,9 @@
 import Delta from "quill-delta";
 
+export function initialDelta() {
+  return new Delta([{ insert: "\n" }]);
+}
+
 // Returns a new delta object representing an empty document.
 export function emptyDelta() {
   return new Delta([{ insert: "\n" }]);

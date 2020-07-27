@@ -26,7 +26,7 @@ export default function PersonDeleteModal(props) {
       person.ID = doc.id;
       setPerson(person);
     });
-  }, [props.show]);
+  }, [props.show, props.personRef]);
 
   if (!person) {
     return <></>;

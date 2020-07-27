@@ -3,14 +3,13 @@ import React from "react";
 import Tabs from "../shell/Tabs.js";
 import Content from "../shell/Content.js";
 
-import { useParams, useNavigate, Navigate } from "react-router-dom";
+import { useParams, Navigate } from "react-router-dom";
 
 import DatasetDataTab from "./DatasetDataTab.js";
 import DatasetClusterTab from "./DatasetClusterTab.js";
 
 export default function Dataset(props) {
-  let { orgID, datasetID, tabID } = useParams();
-  let navigate = useNavigate();
+  let { orgID, tabID } = useParams();
 
   // Give a hint if this dataset was deleted while in view.
   if (props.dataset.deletionTimestamp !== "") {
@@ -18,11 +17,9 @@ export default function Dataset(props) {
 
     return (
       <Content>
-        <Content.Title>{props.dataset.name}</Content.Title>
-        <p>
-          This dataset was deleted at {date.toString()} by{" "}
-          {props.dataset.deletedBy}
-        </p>
+        <Content.Title>
+          {props.dataset.name} was deleted on {date}
+        </Content.Title>
       </Content>
     );
   }
@@ -30,8 +27,6 @@ export default function Dataset(props) {
   if (tabID) {
     return <Navigate to="/404" />;
   }
-
-  let activeTab = tabID || "data";
 
   return (
     <>

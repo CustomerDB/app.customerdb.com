@@ -3,7 +3,6 @@ import React, { useContext } from "react";
 import FocusContext from "../util/FocusContext.js";
 
 import Col from "react-bootstrap/Col";
-import Row from "react-bootstrap/Row";
 
 export default class Content extends React.Component {
   static contextType = FocusContext;
