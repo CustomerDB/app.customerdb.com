@@ -214,7 +214,7 @@ export default function ContentsPane(props) {
       removeTagStyles();
       unsubscribe();
     };
-  }, [props.document]);
+  }, [props.document.tagGroupID]);
 
   // Register timers to periodically sync local changes with firestore.
   useEffect(() => {
