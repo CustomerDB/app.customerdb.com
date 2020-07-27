@@ -65,17 +65,41 @@ service cloud.firestore {
     // Active users can read highlights from their org via the
     // highlights collectionGroup index.
     match /{path=**}/highlights/{document} {
-      allow read, update, delete: if signedInAndVerified()
-                                  && activeOrgMember(resource.data.organizationID);
+      allow read, delete: if signedInAndVerified()
+                          && activeOrgMember(resource.data.organizationID);
+
+      allow update: if signedInAndVerified()
+                    && activeOrgMember(resource.data.organizationID)
+                    && !('organizationID' in request.resource.data) || request.resource.data.organizationID == resource.data.organizationID;
 
       allow create: if signedInAndVerified()
                     && activeOrgMember(request.resource.data.organizationID);
     }
 
+    // Active users can read tags from their org via the
+    // tags collectionGroup index.
+    match /{path=**}/tags/{document} {
+      allow read: if signedInAndVerified()
+                  && activeOrgMember(resource.data.organizationID);
+    }
+
     // Active non-admin users can write **TAG GROUPS** in the org.
-    match /organizations/{orgID}/tagGroups/{document=**} {
+    match /organizations/{orgID}/tagGroups/{tagGroupID} {
       allow write: if signedInAndVerified()
                    && activeOrgMember(orgID);
+    }
+
+    // Active non-admin users can write **TAGS** in the org.
+    match /organizations/{orgID}/tagGroups/{tagGroupID}/tags/{tagID} {
+      allow create: if signedInAndVerified()
+                    && activeOrgMember(request.resource.data.organizationID);
+
+      allow update: if signedInAndVerified()
+                    && activeOrgMember(orgID)
+                    && !('organizationID' in request.resource.data) || request.resource.data.organizationID == resource.data.organizationID;
+
+      allow delete: if signedInAndVerified()
+                       && activeOrgMember(orgID);
     }
 
     // Active non-admin users can write **DOCUMENTS** in the org.

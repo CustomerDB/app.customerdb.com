@@ -1,15 +1,20 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 import Tabs from "../shell/Tabs.js";
 import Content from "../shell/Content.js";
 
-import { useParams, Navigate } from "react-router-dom";
+import { useParams, useNavigate, Navigate } from "react-router-dom";
 
+import Row from "react-bootstrap/Row";
+import Button from "react-bootstrap/Button";
+
+import ClusterDropdown from "./ClusterDropdown.js";
 import DatasetDataTab from "./DatasetDataTab.js";
 import DatasetClusterTab from "./DatasetClusterTab.js";
 
 export default function Dataset(props) {
-  let { orgID, tabID } = useParams();
+  const { orgID, datasetID, tabID, tagID } = useParams();
+  const navigate = useNavigate();
 
   // Give a hint if this dataset was deleted while in view.
   if (props.dataset.deletionTimestamp !== "") {
@@ -24,8 +29,51 @@ export default function Dataset(props) {
     );
   }
 
-  if (tabID) {
+  // Redirect if tab does not exist
+  if (tabID && !["data", "cluster"].includes(tabID)) {
     return <Navigate to="/404" />;
+  }
+
+  let controls = (
+    <Row>
+      <Button
+        style={{ marginRight: "1em" }}
+        key="data"
+        variant={tabID === "data" ? "primary" : "link"}
+        onClick={() => {
+          navigate(`/orgs/${orgID}/explore/${datasetID}/data`);
+        }}
+      >
+        Data
+      </Button>
+
+      <ClusterDropdown dataset={props.dataset} />
+    </Row>
+  );
+
+  let view = <></>;
+
+  if (!tabID || tabID === "data") {
+    view = (
+      <DatasetDataTab
+        dataset={props.dataset}
+        datasetRef={props.datasetRef}
+        documentsRef={props.documentsRef}
+      />
+    );
+  }
+
+  if (tabID === "cluster") {
+    view = (
+      <DatasetClusterTab
+        key={tagID || "cluster"}
+        orgID={orgID}
+        dataset={props.dataset}
+        datasetRef={props.datasetRef}
+        documentsRef={props.documentsRef}
+        allHighlightsRef={props.allHighlightsRef}
+      />
+    );
   }
 
   return (
@@ -35,24 +83,8 @@ export default function Dataset(props) {
           <Content.Name>{props.dataset.name}</Content.Name>
           <Content.Options>{props.options}</Content.Options>
         </Content.Title>
-        <Tabs default="Data">
-          <Tabs.Pane name="Data">
-            <DatasetDataTab
-              dataset={props.dataset}
-              datasetRef={props.datasetRef}
-              documentsRef={props.documentsRef}
-            />
-          </Tabs.Pane>
-          <Tabs.Pane name="Cluster">
-            <DatasetClusterTab
-              orgID={orgID}
-              dataset={props.dataset}
-              datasetRef={props.datasetRef}
-              documentsRef={props.documentsRef}
-              allHighlightsRef={props.allHighlightsRef}
-            />
-          </Tabs.Pane>
-        </Tabs>
+        {controls}
+        {view}
       </Content>
     </>
   );

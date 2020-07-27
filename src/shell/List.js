@@ -20,7 +20,7 @@ import "../search/style.css";
 
 export default class List extends React.Component {
   static contextType = FocusContext;
-  
+
   static Search(props) {
     const auth = useContext(UserAuthContext);
 

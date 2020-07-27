@@ -9,6 +9,8 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Button from "react-bootstrap/Button";
 
+import { useParams } from "react-router-dom";
+
 import DatasetClusterBoard from "./DatasetClusterBoard.js";
 
 import { ArrowsAngleExpand, ArrowsAngleContract } from "react-bootstrap-icons";
@@ -25,7 +27,9 @@ export default function DatasetClusterTab(props) {
     activeUsersRef,
   } = useFirestore();
 
-  if (!props.dataset.documentIDs || props.dataset.documentIDs.length === 0) {
+  const { orgID, tagID } = useParams();
+
+  if (!props.dataset.documentIDs || props.dataset.documentIDs.length == 0) {
     return (
       <Container className="p-3">
         <Row>
@@ -37,13 +41,22 @@ export default function DatasetClusterTab(props) {
     );
   }
 
-  // TODO: allow user to select what tag to cluster
-  let tagID = "V7a9sjPoXaib1iS2qXkF"; // (problem)
+  if (!tagID) {
+    return (
+      <Container className="p-3">
+        <Row>
+          <Col>
+            <p>Select tag to cluster using the cluster dropdown.</p>
+          </Col>
+        </Row>
+      </Container>
+    );
+  }
 
   // NB: the `in` clause is limited to ten values for filtering.
   //     For now, we support clustering highlights from up to ten documents.
   let highlightsRef = allHighlightsRef
-    .where("organizationID", "==", props.orgID)
+    .where("organizationID", "==", orgID)
     .where("documentID", "in", props.dataset.documentIDs)
     .where("tagID", "==", tagID);
 

@@ -14,6 +14,8 @@ import { XCircleFill } from "react-bootstrap-icons";
 
 import { useNavigate, useParams } from "react-router-dom";
 
+import { nanoid } from "nanoid";
+
 import colorPair, { getTextColorForBackground } from "../util/color.js";
 
 import List from "../List.js";
@@ -152,6 +154,7 @@ export default function Tags(props) {
 
 function TagGroup(props) {
   const auth = useContext(UserAuthContext);
+  const { orgID } = useParams();
   const [tagGroup, setTagGroup] = useState();
   const [tags, setTags] = useState([]);
 
@@ -192,8 +195,12 @@ function TagGroup(props) {
 
   const onAdd = () => {
     let color = colorPair();
+    let newTagID = nanoid();
+
     props.tagGroupRef.collection("tags").doc().set({
+      ID: newTagID,
       name: "Untitled tag",
+      organizationID: orgID,
       color: color.background,
       textColor: color.foreground,
       createdBy: auth.oauthClaims.email,
