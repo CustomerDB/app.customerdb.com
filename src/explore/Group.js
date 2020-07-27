@@ -28,109 +28,160 @@ function computeGroupBounds(cards) {
   return rect;
 }
 
-export default function Group(props) {
-  useEffect(() => {
-    return () => {
-      props.removeGroupLocationCallback(props.group);
-    };
-  });
+// export default function Group(props) {
+//   useEffect(() => {
+//     return () => {
+//       props.removeGroupLocationCallback(props.group);
+//     };
+//   });
 
-  const RenameModal = (props) => {
-    const [name, setName] = useState(props.name);
+//   const rect = computeGroupBounds(props.cards);
+//   props.group.minX = rect.minX;
+//   props.group.minY = rect.minY;
+//   props.group.maxX = rect.maxX;
+//   props.group.maxY = rect.maxY;
+
+//   props.addGroupLocationCallback(props.group);
+
+//   let documentIDs = new Set();
+//   props.cards.forEach((card) => {
+//     documentIDs.add(card.documentID);
+//   });
+//   const representation = documentIDs.size;
+
+//   let circle = circumscribingCircle(rect);
+//   return (
+//     <>
+//       <div
+//         className="group"
+//         style={{
+//           position: "absolute",
+//           left: circle.minX,
+//           top: circle.minY,
+//           width: circle.diameter,
+//           height: circle.diameter,
+//           borderRadius: "50%",
+//           border: `2px ${props.group.color} solid`,
+//         }}
+//       >
+//         {}
+//       </div>
+
+//       <div
+//         className="groupLabel"
+//         style={{
+//           position: "absolute",
+//           left: circle.minX,
+//           top: circle.maxY + 10,
+//           width: circle.diameter,
+//           textAlign: "center",
+//         }}
+//       >
+//         <div className="d-flex justify-content-center">
+//           <div className="d-flex justify-content-center">
+//             <div className="align-self-center">{props.name}</div> {options}
+//           </div>
+//         </div>
+//         <p>
+//           {representation} out of {props.totalCardCount}
+//         </p>
+//       </div>
+//     </>
+//   );
+// }
+
+export default class Group extends React.Component {
+  constructor(props) {
+    super(props);
+    this.nameRef = React.createRef();
+
+    this.updateName = this.updateName.bind(this);
+  }
+
+  updateName(e) {
+    this.props.group.name = e.target.innerText;
+    this.props.groupRef.update(this.props.group);
+  }
+
+  componentWillUnmount() {
+    this.props.removeGroupLocationCallback(this.props.group);
+  }
+
+  render() {
+    if (this.props.cards === undefined || this.props.cards.length === 0) {
+      return <></>;
+    }
+
+    let options = (
+      <Options>
+        <Options.Item
+          name="Rename"
+          onClick={() =>
+            this.props.renameGroupModalCallback(this.props.group.ID)
+          }
+        />
+      </Options>
+    );
+
+    this.props.removeGroupLocationCallback(this.props.group);
+
+    let rect = computeGroupBounds(this.props.cards);
+    this.props.group.minX = rect.minX;
+    this.props.group.minY = rect.minY;
+    this.props.group.maxX = rect.maxX;
+    this.props.group.maxY = rect.maxY;
+
+    this.props.addGroupLocationCallback(this.props.group);
+
+    let documentIDs = new Set();
+    this.props.cards.forEach((card) => {
+      documentIDs.add(card.documentID);
+    });
+    let representation = documentIDs.size;
+
+    let circle = circumscribingCircle(rect);
+    let color = this.props.group.color;
+
+    let border = `2px ${color} solid`;
 
     return (
-      <Modal
-        name="Rename group"
-        show={props.show}
-        onHide={props.onHide}
-        footer={[
-          <Button
-            onClick={() => {
-              props.group.name = name;
-              props.groupRef.update(props.group);
-            }}
-          >
-            Save
-          </Button>,
-        ]}
-      >
-        <Form.Control
-          type="text"
-          value={name}
-          onChange={(e) => {
-            setName(e.target.value);
+      <>
+        <div
+          className="group"
+          style={{
+            position: "absolute",
+            left: circle.minX,
+            top: circle.minY,
+            width: circle.diameter,
+            height: circle.diameter,
+            borderRadius: "50%",
+            border: border,
           }}
-        />
-      </Modal>
-    );
-  };
-
-  let options = (
-    <Options>
-      <Options.Item
-        name="Rename"
-        modal={
-          <RenameModal
-            name={props.name}
-            group={props.group}
-            groupRef={props.groupRef}
-          />
-        }
-      />
-    </Options>
-  );
-
-  const rect = computeGroupBounds(props.cards);
-  props.group.minX = rect.minX;
-  props.group.minY = rect.minY;
-  props.group.maxX = rect.maxX;
-  props.group.maxY = rect.maxY;
-
-  props.addGroupLocationCallback(props.group);
-
-  let documentIDs = new Set();
-  props.cards.forEach((card) => {
-    documentIDs.add(card.documentID);
-  });
-  const representation = documentIDs.size;
-
-  let circle = circumscribingCircle(rect);
-  return (
-    <>
-      <div
-        className="group"
-        style={{
-          position: "absolute",
-          left: circle.minX,
-          top: circle.minY,
-          width: circle.diameter,
-          height: circle.diameter,
-          borderRadius: "50%",
-          border: `2px ${props.group.color} solid`,
-        }}
-      >
-        {}
-      </div>
-
-      <div
-        className="groupLabel"
-        style={{
-          position: "absolute",
-          left: circle.minX,
-          top: circle.maxY + 10,
-          width: circle.diameter,
-          textAlign: "center",
-        }}
-      >
-        <div className="d-flex justify-content-center">
-          <div className="d-flex justify-content-center">
-            <div className="align-self-center">{props.name}</div> {options}
-          </div>
+        >
+          {}
         </div>
-        <p>
-          {representation} out of {props.totalCardCount}
-        </p>
-      </div>
-    </>
-  );
+
+        <div
+          className="groupLabel"
+          style={{
+            position: "absolute",
+            left: circle.minX,
+            top: circle.maxY + 10,
+            width: circle.diameter,
+            textAlign: "center",
+          }}
+        >
+          <div className="d-flex justify-content-center">
+            <div className="d-flex justify-content-center">
+              <div className="align-self-center">{this.props.name}</div>{" "}
+              {options}
+            </div>
+          </div>
+          <p>
+            {representation} out of {this.props.totalCardCount}
+          </p>
+        </div>
+      </>
+    );
+  }
 }
