@@ -1,5 +1,5 @@
 import React from "react";
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 
 import UserAuthContext from "../auth/UserAuthContext";
 
@@ -24,26 +24,33 @@ import Shell from "../shell/Shell.js";
 import Navigation from "../shell/Navigation.js";
 
 export default function Organization(props) {
-  const auth = useContext(UserAuthContext);
+  const { oauthUser, oauthClaims } = useContext(UserAuthContext);
   const { orgID } = useParams();
   const navigate = useNavigate();
+  const [authorized, setAuthorized] = useState(false);
 
-  if (auth.oauthLoading) {
-    return <Loading />;
-  }
+  useEffect(() => {
+    if (!oauthUser) {
+      navigate("/logout");
+      setAuthorized(false);
+      return;
+    }
 
-  if (auth.oauthUser === null) {
-    navigate("/logout");
-  }
+    if (oauthClaims) {
+      if (!oauthClaims.orgID || oauthClaims.orgID !== orgID) {
+        console.debug("user not authorized");
+        navigate("/logout");
+        setAuthorized(false);
+        return;
+      }
 
-  if (!auth.oauthClaims) {
-    return <Loading />;
-  }
+      if (oauthClaims.orgID === orgID) {
+        setAuthorized(true);
+      }
+    }
+  }, [navigate, orgID, oauthUser, oauthClaims]);
 
-  if (auth.oauthClaims.orgID !== orgID) {
-    console.debug("user not authorized for this organization");
-    navigate("/404");
-  }
+  if (!authorized) return <Loading />;
 
   return (
     <Shell>
