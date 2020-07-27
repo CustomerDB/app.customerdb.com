@@ -4,13 +4,14 @@ import UserAuthContext from "../auth/UserAuthContext.js";
 
 import Page from "../shell/Page.js";
 import List from "../shell/List.js";
-import Content from "../shell/Content.js";
 import Scrollable from "../shell/Scrollable.js";
 import Options from "../shell/Options.js";
 
 import Dataset from "./Dataset.js";
 import DatasetDeleteModal from "./DatasetDeleteModal.js";
 import DatasetEditModal from "./DatasetEditModal.js";
+
+import WithFocus from "../util/WithFocus.js";
 
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -99,42 +100,44 @@ export default function Explore(props) {
 
   return (
     <Page>
-      <List>
-        <List.Title>
-          <List.Name>Customer datasets</List.Name>
-          <List.Add
-            onClick={() => {
-              props.datasetsRef
-                .add({
-                  name: "Unnamed dataset",
-                  documentIDs: [],
-                  createdBy: auth.oauthClaims.email,
-                  creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
-                  deletionTimestamp: "",
-                })
-                .then((doc) => {
-                  console.log("Should show modal");
-                  setNewDatasetRef(doc);
-                  setAddModalShow(true);
-                });
-            }}
-          />
-          {addModal}
-        </List.Title>
-        <List.Items>
-          <Scrollable>
-            {datasetList.map((dataset) => (
-              <List.Item
-                key={dataset.ID}
-                name={dataset.name}
-                path={`/orgs/${orgID}/explore/${dataset.ID}`}
-                options={options(dataset.ID)}
-              />
-            ))}
-          </Scrollable>
-        </List.Items>
-      </List>
-      {content}
+      <WithFocus>
+        <List>
+          <List.Title>
+            <List.Name>Customer datasets</List.Name>
+            <List.Add
+              onClick={() => {
+                props.datasetsRef
+                  .add({
+                    name: "Unnamed dataset",
+                    documentIDs: [],
+                    createdBy: auth.oauthClaims.email,
+                    creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+                    deletionTimestamp: "",
+                  })
+                  .then((doc) => {
+                    console.log("Should show modal");
+                    setNewDatasetRef(doc);
+                    setAddModalShow(true);
+                  });
+              }}
+            />
+            {addModal}
+          </List.Title>
+          <List.Items>
+            <Scrollable>
+              {datasetList.map((dataset) => (
+                <List.Item
+                  key={dataset.ID}
+                  name={dataset.name}
+                  path={`/orgs/${orgID}/explore/${dataset.ID}`}
+                  options={options(dataset.ID)}
+                />
+              ))}
+            </Scrollable>
+          </List.Items>
+        </List>
+        {content}
+      </WithFocus>
     </Page>
   );
 }

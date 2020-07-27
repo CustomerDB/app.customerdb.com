@@ -8,6 +8,8 @@ import JoinOrg from "./auth/JoinOrg.js";
 import Error404 from "./404.js";
 import Organization from "./organization/Organization.js";
 
+import ExampleApp from "./shell/Example1.js";
+
 export default function App() {
   return (
     <Routes caseSensitive>
@@ -50,6 +52,8 @@ export default function App() {
           }
         />
       </Route>
+
+      <Route path="debug" element={<ExampleApp />} />
 
       <Route path="404" element={<Error404 />} />
 

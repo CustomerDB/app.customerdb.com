@@ -3,8 +3,6 @@ import React from "react";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 
-import BootstrapTab from "react-bootstrap/Tab";
-import BootstrapTabs from "react-bootstrap/Tabs";
 import Button from "react-bootstrap/Button";
 
 export default class Tabs extends React.Component {
