@@ -41,6 +41,14 @@
       ]
     },
     {
+      "collectionGroup": "people",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "deletionTimestamp", "order": "ASCENDING" },
+        { "fieldPath": "name", "order": "ASCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "highlights",
       "queryScope": "COLLECTION_GROUP",
       "fields": [
@@ -50,11 +58,11 @@
       ]
     },
     {
-      "collectionGroup": "people",
-      "queryScope": "COLLECTION",
+      "collectionGroup": "tags",
+      "queryScope": "COLLECTION_GROUP",
       "fields": [
-        { "fieldPath": "deletionTimestamp", "order": "ASCENDING" },
-        { "fieldPath": "name", "order": "ASCENDING" }
+        { "fieldPath": "organizationID", "order": "ASCENDING" },
+        { "fieldPath": "ID", "order": "ASCENDING" }
       ]
     }
   ],

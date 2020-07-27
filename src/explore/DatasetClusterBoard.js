@@ -118,14 +118,14 @@ export default class DatasetClusterBoard extends React.Component {
   subscribeToDocuments() {
     this.unsubscribeFromDocuments = this.props.documentsRef.onSnapshot(
       (snapshot) => {
-        console.log("received documents snapshot");
+        console.debug("received documents snapshot");
 
         let newDocuments = {};
 
         snapshot.forEach((doc) => {
           let data = doc.data();
 
-          console.log("document", data);
+          console.debug("document", data);
 
           newDocuments[doc.id] = data;
         });
@@ -178,7 +178,7 @@ export default class DatasetClusterBoard extends React.Component {
         // Delete cards without a matching highlight
         Object.keys(this.state.cards).forEach((cardID) => {
           if (!(cardID in this.state.highlights)) {
-            console.log(
+            console.debug(
               "deleting card for nonexisting highlight with ID",
               cardID
             );
@@ -190,11 +190,11 @@ export default class DatasetClusterBoard extends React.Component {
   }
 
   componentDidUpdate(oldProps) {
-    console.log("componentDidUpdate", oldProps, this.props);
+    console.debug("componentDidUpdate", oldProps, this.props);
 
     let hasNewHighlightsRef =
       oldProps.highlightsRef !== this.props.highlightsRef;
-    console.log("highlightsRef is new?", hasNewHighlightsRef);
+    console.debug("highlightsRef is new?", hasNewHighlightsRef);
 
     if (hasNewHighlightsRef) {
       this.unsubscribeFromHighlights();
@@ -202,7 +202,7 @@ export default class DatasetClusterBoard extends React.Component {
     }
 
     let hasNewDocumentsRef = oldProps.documentsRef !== this.props.documentsRef;
-    console.log("documentsRef is new?", hasNewDocumentsRef);
+    console.debug("documentsRef is new?", hasNewDocumentsRef);
 
     if (hasNewDocumentsRef) {
       this.unsubscribeFromDocuments();
@@ -229,15 +229,15 @@ export default class DatasetClusterBoard extends React.Component {
   }
 
   removeCardLocation(card) {
-    console.log(
+    console.debug(
       `removeCardLocation (size@pre: ${this.rtree.all().length})`,
       card
     );
     this.rtree.remove(card, (a, b) => {
-      console.debug(`comparing\n${a.ID}\n${b.ID}`);
+      // console.debug(`comparing\n${a.ID}\n${b.ID}`);
       return a.kind === "card" && b.kind === "card" && a.ID === b.ID;
     });
-    console.log(`removeCardLocation (size@post: ${this.rtree.all().length})`);
+    console.debug(`removeCardLocation (size@post: ${this.rtree.all().length})`);
   }
 
   addGroupLocation(group) {
@@ -257,7 +257,7 @@ export default class DatasetClusterBoard extends React.Component {
       group
     );
     this.rtree.remove(group, (a, b) => {
-      console.debug(`comparing\n${a.ID}\n${b.ID}`);
+      // console.debug(`comparing\n${a.ID}\n${b.ID}`);
       return a.kind === "group" && b.kind === "group" && a.ID === b.ID;
     });
     console.debug(
@@ -266,11 +266,11 @@ export default class DatasetClusterBoard extends React.Component {
   }
 
   printRTree(rect) {
-    console.log("RTree\n", this.rtree.toJSON());
+    console.debug("RTree\n", this.rtree.toJSON());
   }
 
   printRTreeItems(rect) {
-    console.log("RTree items\n", this.rtree.all());
+    console.debug("RTree items\n", this.rtree.all());
   }
 
   getIntersecting(rect) {
@@ -297,7 +297,7 @@ export default class DatasetClusterBoard extends React.Component {
       return c.ID !== card.ID;
     });
 
-    console.log("groupDataForCard (intersections):\n", intersections);
+    console.debug("groupDataForCard (intersections):\n", intersections);
 
     // Case 1: The new card location does not intersect with any other card
     if (intersections.length === 0) {
@@ -313,7 +313,7 @@ export default class DatasetClusterBoard extends React.Component {
           // Delete the group.
           this.props.groupsRef.doc(card.groupID).delete();
 
-          console.log("remainingCards to clean up\n", remainingCards);
+          console.debug("remainingCards to clean up\n", remainingCards);
 
           remainingCards.forEach((cardToCleanUP) => {
             cardToCleanUP.groupColor = "#000";
@@ -353,7 +353,7 @@ export default class DatasetClusterBoard extends React.Component {
     // and join all the cards to it.
     if (cardGroupIDs.size === 0) {
       // Create a group.
-      console.log("Creating a group");
+      console.debug("Creating a group");
       let groupID = nanoid();
       let colors = colorPair();
       this.props.groupsRef.doc(groupID).set({
@@ -403,7 +403,7 @@ export default class DatasetClusterBoard extends React.Component {
       Object.keys(this.state.highlights).length !==
         Object.keys(this.state.cards).length
     ) {
-      console.log("board state", this.state);
+      console.debug("board state", this.state);
       return Loading();
     }
 
@@ -418,6 +418,9 @@ export default class DatasetClusterBoard extends React.Component {
       }
 
       let highlight = this.state.highlights[card.ID];
+
+      if (!highlight) continue;
+
       cardTitles.add(highlight.documentID);
 
       cardComponents.push(

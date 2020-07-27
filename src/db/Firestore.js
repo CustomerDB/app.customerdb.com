@@ -9,6 +9,7 @@ export default function useFirestore() {
   if (orgID) {
     r.orgRef = db.collection("organizations").doc(orgID);
 
+    r.allTagsRef = db.collectionGroup("tags");
     r.allHighlightsRef = db.collectionGroup("highlights");
 
     r.apiKeysRef = r.orgRef.collection("apiKeys");

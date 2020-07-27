@@ -38,7 +38,7 @@ export default function WithOauthUser(props) {
         .auth()
         .currentUser.getIdTokenResult()
         .then((idTokenResult) => {
-          console.log("current token claims", idTokenResult.claims);
+          console.debug("current token claims", idTokenResult.claims);
           setOauthClaims(idTokenResult.claims);
         });
     });
