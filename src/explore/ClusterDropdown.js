@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 
 import useFirestore from "../db/Firestore.js";
 
-import { Navigate, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 import DropdownButton from "react-bootstrap/DropdownButton";
 import Dropdown from "react-bootstrap/Dropdown";
@@ -19,6 +19,10 @@ export default function ClusterDropdown(props) {
       return;
     }
 
+    if (!allTagsRef) {
+      return;
+    }
+
     return allTagsRef
       .where("organizationID", "==", orgID)
       .where("ID", "==", tagID)
@@ -28,7 +32,7 @@ export default function ClusterDropdown(props) {
           setButtonTitle(tagData.name);
         });
       });
-  }, [tagID]);
+  }, [orgID, tagID, allTagsRef]);
 
   if (
     !props.dataset ||
@@ -75,7 +79,10 @@ function useTagGroup(tagGroupID) {
   const { tagGroupsRef } = useFirestore();
 
   useEffect(() => {
-    console.log("useEffect running", tagGroupID);
+    if (!tagGroupsRef) {
+      return;
+    }
+
     setTags({});
 
     return tagGroupsRef
@@ -93,7 +100,7 @@ function useTagGroup(tagGroupID) {
         });
         setTags(newTags);
       });
-  }, [tagGroupID]);
+  }, [tagGroupID, tagGroupsRef]);
 
   return tags;
 }

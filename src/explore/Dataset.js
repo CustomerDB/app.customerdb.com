@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 
-import Tabs from "../shell/Tabs.js";
 import Content from "../shell/Content.js";
 
 import { useParams, useNavigate, Navigate } from "react-router-dom";

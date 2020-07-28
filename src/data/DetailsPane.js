@@ -39,6 +39,10 @@ export default function DetailsPane(props) {
 
   // TODO: Replace with search dropdown.
   useEffect(() => {
+    if (!peopleRef) {
+      return;
+    }
+
     return peopleRef
       .where("deletionTimestamp", "==", "")
       .orderBy("name")
@@ -53,9 +57,12 @@ export default function DetailsPane(props) {
 
         setPeople(newPeople);
       });
-  }, []);
+  }, [peopleRef]);
 
   useEffect(() => {
+    if (!tagGroupsRef) {
+      return;
+    }
     return tagGroupsRef.onSnapshot((snapshot) => {
       console.debug("received tag groups snapshot");
 
@@ -69,7 +76,7 @@ export default function DetailsPane(props) {
 
       setTagGroups(tagGroups);
     });
-  }, []);
+  }, [tagGroupsRef]);
 
   const onPersonChange = (e) => {
     let newPersonID = e.target.value;

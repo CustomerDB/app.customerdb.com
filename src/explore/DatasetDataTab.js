@@ -10,6 +10,27 @@ export default function DatasetDataTab(props) {
   const { datasetRef, documentsRef } = useFirestore();
   const [documents, setDocuments] = useState({});
 
+  useEffect(() => {
+    if (!documentsRef) {
+      return;
+    }
+    let unsubscribe = documentsRef
+      .where("deletionTimestamp", "==", "")
+      .orderBy("creationTimestamp", "desc")
+      .onSnapshot((snapshot) => {
+        let newDocuments = {};
+        snapshot.forEach((doc) => {
+          let data = doc.data();
+          data["ID"] = doc.id;
+          newDocuments[doc.id] = data;
+        });
+
+        setDocuments(newDocuments);
+      });
+
+    return unsubscribe;
+  }, [documentsRef]);
+
   const onClick = (documentID) => {
     let newDocumentIDs = props.dataset.documentIDs.slice();
 
@@ -36,24 +57,6 @@ export default function DatasetDataTab(props) {
       { merge: true }
     );
   };
-
-  useEffect(() => {
-    let unsubscribe = documentsRef
-      .where("deletionTimestamp", "==", "")
-      .orderBy("creationTimestamp", "desc")
-      .onSnapshot((snapshot) => {
-        let newDocuments = {};
-        snapshot.forEach((doc) => {
-          let data = doc.data();
-          data["ID"] = doc.id;
-          newDocuments[doc.id] = data;
-        });
-
-        setDocuments(newDocuments);
-      });
-
-    return unsubscribe;
-  }, []);
 
   return (
     <>

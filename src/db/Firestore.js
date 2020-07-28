@@ -1,12 +1,16 @@
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 export default function useFirestore() {
   const db = window.firebase.firestore();
   const { orgID, personID, documentID, datasetID } = useParams();
+  const [refs, setRefs] = useState({});
 
-  let r = {};
+  useEffect(() => {
+    if (!orgID) return;
 
-  if (orgID) {
+    let r = {};
+
     r.orgRef = db.collection("organizations").doc(orgID);
 
     r.allTagsRef = db.collectionGroup("tags");
@@ -35,7 +39,9 @@ export default function useFirestore() {
     if (personID) {
       r.personRef = r.peopleRef.doc(personID);
     }
-  }
 
-  return r;
+    setRefs(r);
+  }, [db, orgID, personID, documentID, datasetID]);
+
+  return refs;
 }
