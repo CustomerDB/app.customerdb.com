@@ -2,6 +2,7 @@ import React, { useContext, useState, useEffect } from "react";
 
 import UserAuthContext from "../auth/UserAuthContext.js";
 import useFirestore from "../db/Firestore.js";
+import useDefaultTagGroupID from "../organization/defaultTagGroup.js";
 
 import { useParams, useNavigate } from "react-router-dom";
 
@@ -26,6 +27,8 @@ export default function Data(props) {
   const [documents, setDocuments] = useState();
   const [addModalShow, setAddModalShow] = useState();
   const [newDocumentRef, setNewDocumentRef] = useState();
+
+  const defaultTagGroupID = useDefaultTagGroupID();
 
   useEffect(() => {
     return documentsRef
@@ -111,6 +114,8 @@ export default function Data(props) {
         latestSnapshot: { ops: initialDelta().ops },
 
         latestSnapshotTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+
+        tagGroupID: defaultTagGroupID || "",
 
         // This initial value is required.
         // Search indexing and compression are done as a pair of operations:

@@ -83,6 +83,12 @@ service cloud.firestore {
                   && activeOrgMember(resource.data.organizationID);
     }
 
+    // Active non-admin users can write **ORGANIZATION METADATA** in the org.
+    match /organizations/{orgID} {
+      allow write: if signedInAndVerified()
+                   && activeOrgMember(orgID);
+    }
+
     // Active non-admin users can write **TAG GROUPS** in the org.
     match /organizations/{orgID}/tagGroups/{tagGroupID} {
       allow write: if signedInAndVerified()
