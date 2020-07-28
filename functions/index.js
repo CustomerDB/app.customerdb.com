@@ -417,7 +417,7 @@ exports.onDocumentWritten = functions.firestore
 // Mark documents with edits more recent than the last indexing operation
 // for re-indexing.
 exports.markDocumentsForIndexing = functions.pubsub
-  .schedule("every 5 minutes")
+  .schedule("every 2 minutes")
   .onRun((context) => {
     let db = admin.firestore();
 
