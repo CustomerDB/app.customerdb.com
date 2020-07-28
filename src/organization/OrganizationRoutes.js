@@ -6,13 +6,9 @@ import Data from "../data/Data.js";
 import Explore from "../explore/Explore.js";
 import Settings from "../settings/Settings.js";
 
-import { Routes, Route, Outlet, Navigate, useParams } from "react-router-dom";
-
-const db = window.firebase.firestore();
+import { Routes, Route, Outlet, Navigate } from "react-router-dom";
 
 export default function OrganizationRoutes(props) {
-  const { orgID } = useParams();
-
   return (
     <>
       <Routes>

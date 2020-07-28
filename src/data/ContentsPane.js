@@ -18,8 +18,6 @@ import Scrollable from "../shell/Scrollable.js";
 import Tags, { addTagStyles, removeTagStyles } from "./Tags.js";
 import HighlightBlot from "./HighlightBlot.js";
 
-import { emptyDelta } from "./delta.js";
-
 Quill.register("formats/highlight", HighlightBlot);
 
 // Synchronize every second (1000ms).
@@ -83,10 +81,160 @@ export default function ContentsPane(props) {
 
   let highlights = useRef();
 
+  // Returns the index and length of the highlight with the supplied ID
+  // in the current editor.
+  const getHighlightIDsFromEditor = () => {
+    let result = new Set();
+    let domNodes = document.getElementsByClassName("inline-highlight");
+    for (let i = 0; i < domNodes.length; i++) {
+      let highlightID = domNodes[i].dataset.highlightID;
+      if (highlightID) {
+        result.add(highlightID);
+      }
+    }
+    return result;
+  };
+
+  // selection: a range object with fields 'index' and 'length'
+  const computeTagIDsInSelection = (selection) => {
+    let intersectingHighlights = computeHighlightsInSelection(selection);
+
+    let result = new Set();
+    intersectingHighlights.forEach((h) => result.add(h.tagID));
+    return result;
+  };
+
+  // selection: a range object with fields 'index' and 'length'
+  const computeHighlightsInSelection = (selection) => {
+    let result = [];
+
+    if (selection === undefined) {
+      return result;
+    }
+
+    let length = selection.length > 0 ? selection.length : 1;
+    let editor = reactQuillRef.current.getEditor();
+    let selectionDelta = editor.getContents(selection.index, length);
+    let selectedHighlightIDs = [];
+
+    selectionDelta.ops.forEach((op) => {
+      if (op.attributes && op.attributes.highlight) {
+        selectedHighlightIDs.push(op.attributes.highlight.highlightID);
+      }
+    });
+
+    return selectedHighlightIDs.flatMap((id) => {
+      let highlight = getHighlightFromEditor(id);
+      if (highlight) return [highlight];
+      return [];
+    });
+  };
+
+  const getHighlightFromEditor = (highlightID) => {
+    let domNode = document.getElementById(`highlight-${highlightID}`);
+
+    if (!domNode) return undefined;
+
+    let tagID = domNode.dataset.tagID;
+    let blot = Quill.find(domNode, false);
+
+    if (!blot) return undefined;
+
+    let editor = reactQuillRef.current.getEditor();
+    let index = editor.getIndex(blot);
+    let length = blot.length();
+    let text = editor.getText(index, length);
+
+    return {
+      tagID: tagID,
+      selection: {
+        index: index,
+        length: length,
+      },
+      text: text,
+    };
+  };
+
+  // onEdit builds a batch of local edits in `localDelta`
+  // which are sent to the server and reset to [] periodically
+  // in `syncDeltas()`.
+  const onEdit = (content, delta, source, editor) => {
+    if (source !== "user") {
+      console.debug("onEdit: skipping non-user change", delta, source);
+      return;
+    }
+
+    localDelta.current = localDelta.current.compose(delta);
+  };
+
+  // onSelect is invoked when the content selection changes, including
+  // whenever the cursor changes position.
+  const onSelect = (range, source, editor) => {
+    if (source !== "user" || range === null) {
+      return;
+    }
+
+    console.debug("current selection range", range);
+    currentSelection.current = range;
+    setTagIDsInSelection(computeTagIDsInSelection(range));
+  };
+
+  // onTagControlChange is invoked when the user checks or unchecks one of the
+  // tag input elements.
+  const onTagControlChange = (tag, checked) => {
+    console.debug("onTagControlChange", tag, checked, currentSelection);
+
+    if (currentSelection.current === undefined) {
+      return;
+    }
+
+    let selection = currentSelection.current;
+
+    let editor = reactQuillRef.current.getEditor();
+
+    if (checked) {
+      console.debug("formatting highlight with tag ", tag);
+
+      let highlightID = nanoid();
+
+      editor.formatText(
+        selection.index,
+        selection.length,
+        "highlight",
+        { highlightID: highlightID, tagID: tag.ID },
+        "user"
+      );
+    }
+
+    if (!checked) {
+      let intersectingHighlights = computeHighlightsInSelection(selection);
+
+      intersectingHighlights.forEach((h) => {
+        if (h.tagID === tag.ID) {
+          console.debug(
+            "deleting highlight format in current selection with tag ",
+            tag
+          );
+
+          editor.formatText(
+            h.selection.index,
+            h.selection.length,
+            "highlight",
+            false, // unsets the target format
+            "user"
+          );
+        }
+      });
+    }
+
+    let tagIDs = computeTagIDsInSelection(selection);
+    setTagIDsInSelection(tagIDs);
+  };
+
   // Document will contain the latest cached and compressed version of the delta document.
   // Subscribe to deltas from other remote clients.
   useEffect(() => {
-    if (!reactQuillRef.current || !documentRef) {
+    if (!reactQuillRef.current || !documentRef || !deltasRef) {
       return;
     }
 
@@ -188,11 +336,11 @@ export default function ContentsPane(props) {
           editor.setSelection(selectionIndex, selection.length);
         }
       });
-  }, [reactQuillRef, props.document]);
+  }, [editorID, reactQuillRef, props.document, documentRef, deltasRef]);
 
   // Subscribe to tags for the document's tag group.
   useEffect(() => {
-    if (!props.document || !props.document.tagGroupID) {
+    if (!props.document.tagGroupID || !tagGroupsRef) {
       return;
     }
 
@@ -214,20 +362,135 @@ export default function ContentsPane(props) {
       removeTagStyles();
       unsubscribe();
     };
-  }, [props.document.tagGroupID]);
+  }, [props.document.tagGroupID, tagGroupsRef]);
 
   // Register timers to periodically sync local changes with firestore.
   useEffect(() => {
+    if (
+      !highlightsRef ||
+      !deltasRef ||
+      !props.document.ID ||
+      !auth.oauthUser.email
+    ) {
+      return;
+    }
+
+    // This function sends the contents of `localDelta` to the database
+    // and resets the local cache.
+    const syncDeltas = () => {
+      let opsIndex = localDelta.current.ops.length;
+      if (opsIndex === 0) {
+        return;
+      }
+
+      let ops = localDelta.current.ops.slice(0, opsIndex);
+      localDelta.current = new Delta(localDelta.current.ops.slice(opsIndex));
+
+      let deltaDoc = {
+        editorID: editorID,
+        userEmail: auth.oauthUser.email,
+        timestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+        ops: ops,
+      };
+
+      console.debug("uploading delta", deltaDoc);
+      deltasRef.doc().set(deltaDoc);
+    };
+
+    // This function sends any local updates to highlight content relative
+    // to the local editor to the database.
+    const syncHighlights = () => {
+      if (!reactQuillRef.current) {
+        return;
+      }
+
+      // Update or delete highlights based on local edits.
+      Object.values(highlights.current).forEach((h) => {
+        let current = getHighlightFromEditor(h.ID);
+
+        if (current === undefined) {
+          // highlight is not present; delete it in the database.
+          console.debug("syncHighlights: deleting highlight", h);
+          highlightsRef.doc(h.ID).delete();
+          return;
+        }
+
+        if (
+          current.tagID !== h.tagID ||
+          current.selection.index !== h.selection.index ||
+          current.selection.length !== h.selection.length ||
+          current.text !== h.text
+        ) {
+          console.debug("syncHighlights: updating highlight", h, current);
+
+          // upload diff
+          highlightsRef.doc(h.ID).set(
+            {
+              tagID: current.tagID,
+              selection: {
+                index: current.selection.index,
+                length: current.selection.length,
+              },
+              text: current.text,
+              lastUpdateTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+            },
+            { merge: true }
+          );
+        }
+      });
+
+      let editorHighlightIDs = getHighlightIDsFromEditor();
+      editorHighlightIDs.forEach((highlightID) => {
+        let current = getHighlightFromEditor(highlightID);
+        if (
+          current !== undefined &&
+          !highlights.current.hasOwnProperty(highlightID)
+        ) {
+          let newHighlight = {
+            ID: highlightID,
+            organizationID: orgID,
+            documentID: props.document.ID,
+            tagID: current.tagID,
+            selection: {
+              index: current.selection.index,
+              length: current.selection.length,
+            },
+            text: current.text,
+            createdBy: auth.oauthUser.email,
+            creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+            lastUpdateTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+          };
+
+          console.debug("syncHighlights: creating highlight", newHighlight);
+          highlightsRef.doc(highlightID).set(newHighlight);
+        }
+      });
+    };
+
+    console.debug(`starting periodic syncDeltas every ${syncPeriod}ms`);
     let syncDeltaInterval = setInterval(syncDeltas, syncPeriod);
+
+    console.debug(`starting periodic syncHighlights every ${syncPeriod}ms`);
     let syncHighlightsInterval = setInterval(syncHighlights, syncPeriod);
     return () => {
       clearInterval(syncDeltaInterval);
       clearInterval(syncHighlightsInterval);
     };
-  }, []);
+  }, [
+    auth.oauthUser.email,
+    deltasRef,
+    editorID,
+    highlightsRef,
+    orgID,
+    props.document.ID,
+  ]);
 
   // Subscribe to highlight changes
   useEffect(() => {
+    if (!highlightsRef) {
+      return;
+    }
+
     return highlightsRef.onSnapshot((snapshot) => {
       let newHighlights = {};
 
@@ -241,251 +504,7 @@ export default function ContentsPane(props) {
 
       highlights.current = newHighlights;
     });
-  }, []);
-
-  // Returns the index and length of the highlight with the supplied ID
-  // in the current editor.
-  const getHighlightIDsFromEditor = () => {
-    let result = new Set();
-    let domNodes = document.getElementsByClassName("inline-highlight");
-    for (let i = 0; i < domNodes.length; i++) {
-      let highlightID = domNodes[i].dataset.highlightID;
-      if (highlightID) {
-        result.add(highlightID);
-      }
-    }
-    return result;
-  };
-
-  // selection: a range object with fields 'index' and 'length'
-  const computeTagIDsInSelection = (selection) => {
-    let intersectingHighlights = computeHighlightsInSelection(selection);
-
-    let result = new Set();
-    intersectingHighlights.forEach((h) => result.add(h.tagID));
-    return result;
-  };
-
-  // selection: a range object with fields 'index' and 'length'
-  const computeHighlightsInSelection = (selection) => {
-    let result = [];
-
-    if (selection === undefined) {
-      return result;
-    }
-
-    let length = selection.length > 0 ? selection.length : 1;
-    let editor = reactQuillRef.current.getEditor();
-    let selectionDelta = editor.getContents(selection.index, length);
-    let selectedHighlightIDs = [];
-
-    selectionDelta.ops.forEach((op) => {
-      if (op.attributes && op.attributes.highlight) {
-        selectedHighlightIDs.push(op.attributes.highlight.highlightID);
-      }
-    });
-
-    return selectedHighlightIDs.flatMap((id) => {
-      let highlight = getHighlightFromEditor(id);
-      if (highlight) return [highlight];
-      return [];
-    });
-  };
-
-  const getHighlightFromEditor = (highlightID) => {
-    let domNode = document.getElementById(`highlight-${highlightID}`);
-
-    if (!domNode) return undefined;
-
-    let tagID = domNode.dataset.tagID;
-    let blot = Quill.find(domNode, false);
-
-    if (!blot) return undefined;
-
-    let editor = reactQuillRef.current.getEditor();
-    let index = editor.getIndex(blot);
-    let length = blot.length();
-    let text = editor.getText(index, length);
-
-    return {
-      tagID: tagID,
-      selection: {
-        index: index,
-        length: length,
-      },
-      text: text,
-    };
-  };
-
-  // onEdit builds a batch of local edits in `localDelta`
-  // which are sent to the server and reset to [] periodically
-  // in `syncDeltas()`.
-  const onEdit = (content, delta, source, editor) => {
-    if (source !== "user") {
-      console.debug("onEdit: skipping non-user change", delta, source);
-      return;
-    }
-
-    localDelta.current = localDelta.current.compose(delta);
-  };
-
-  // onSelect is invoked when the content selection changes, including
-  // whenever the cursor changes position.
-  const onSelect = (range, source, editor) => {
-    if (source !== "user" || range === null) {
-      return;
-    }
-
-    console.debug("current selection range", range);
-    currentSelection.current = range;
-    setTagIDsInSelection(computeTagIDsInSelection(range));
-  };
-
-  // uploadDeltas is invoked periodically by a timer.
-  //
-  // This function sends the contents of `localDelta` to the database
-  // and resets the local cache.
-  const syncDeltas = () => {
-    let opsIndex = localDelta.current.ops.length;
-    if (opsIndex === 0) {
-      return;
-    }
-
-    let ops = localDelta.current.ops.slice(0, opsIndex);
-    localDelta.current = new Delta(localDelta.current.ops.slice(opsIndex));
-
-    let deltaDoc = {
-      editorID: editorID,
-      userEmail: auth.oauthUser.email,
-      timestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
-      ops: ops,
-    };
-
-    console.debug("uploading delta", deltaDoc);
-    deltasRef.doc().set(deltaDoc);
-  };
-
-  // This function sends any local updates to highlight content relative
-  // to the local editor to the database.
-  const syncHighlights = () => {
-    if (!reactQuillRef.current) {
-      return;
-    }
-
-    // Update or delete highlights based on local edits.
-    Object.values(highlights.current).forEach((h) => {
-      let current = getHighlightFromEditor(h.ID);
-
-      if (current === undefined) {
-        // highlight is not present; delete it in the database.
-        console.debug("syncHighlights: deleting highlight", h);
-        highlightsRef.doc(h.ID).delete();
-        return;
-      }
-
-      if (
-        current.tagID !== h.tagID ||
-        current.selection.index !== h.selection.index ||
-        current.selection.length !== h.selection.length ||
-        current.text !== h.text
-      ) {
-        console.debug("syncHighlights: updating highlight", h, current);
-
-        // upload diff
-        highlightsRef.doc(h.ID).set(
-          {
-            tagID: current.tagID,
-            selection: {
-              index: current.selection.index,
-              length: current.selection.length,
-            },
-            text: current.text,
-            lastUpdateTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
-          },
-          { merge: true }
-        );
-      }
-    });
-
-    let editorHighlightIDs = getHighlightIDsFromEditor();
-    editorHighlightIDs.forEach((highlightID) => {
-      let current = getHighlightFromEditor(highlightID);
-      if (
-        current !== undefined &&
-        !highlights.current.hasOwnProperty(highlightID)
-      ) {
-        let newHighlight = {
-          ID: highlightID,
-          organizationID: orgID,
-          documentID: props.document.ID,
-          tagID: current.tagID,
-          selection: {
-            index: current.selection.index,
-            length: current.selection.length,
-          },
-          text: current.text,
-          createdBy: auth.oauthUser.email,
-          creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
-          lastUpdateTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
-        };
-
-        console.debug("syncHighlights: creating highlight", newHighlight);
-        highlightsRef.doc(highlightID).set(newHighlight);
-      }
-    });
-  };
-
-  // onTagControlChange is invoked when the user checks or unchecks one of the
-  // tag input elements.
-  const onTagControlChange = (tag, checked) => {
-    console.debug("onTagControlChange", tag, checked, currentSelection);
-
-    if (currentSelection.current === undefined) {
-      return;
-    }
-
-    let selection = currentSelection.current;
-
-    let editor = reactQuillRef.current.getEditor();
-
-    if (checked) {
-      console.debug("formatting highlight with tag ", tag);
-
-      let highlightID = nanoid();
-
-      editor.formatText(
-        selection.index,
-        selection.length,
-        "highlight",
-        { highlightID: highlightID, tagID: tag.ID },
-        "user"
-      );
-    }
-
-    if (!checked) {
-      let intersectingHighlights = computeHighlightsInSelection(selection);
-
-      intersectingHighlights.forEach((h) => {
-        if (h.tagID === tag.ID) {
-          console.debug(
-            "deleting highlight format in current selection with tag ",
-            tag
-          );
-
-          editor.formatText(
-            h.selection.index,
-            h.selection.length,
-            "highlight",
-            false, // unsets the target format
-            "user"
-          );
-        }
-      });
-    }
-
-    let tagIDs = computeTagIDsInSelection(selection);
-    setTagIDsInSelection(tagIDs);
-  };
+  }, [highlightsRef]);
 
   return (
     <>

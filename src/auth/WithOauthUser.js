@@ -32,15 +32,10 @@ export default function WithOauthUser(props) {
     return refreshTrigger.onSnapshot(() => {
       console.debug("received refresh trigger -- refreshing id token");
 
-      oauthUser.getIdToken(true);
-
-      return window.firebase
-        .auth()
-        .currentUser.getIdTokenResult()
-        .then((idTokenResult) => {
-          console.debug("current token claims", idTokenResult.claims);
-          setOauthClaims(idTokenResult.claims);
-        });
+      return oauthUser.getIdTokenResult(true).then((idTokenResult) => {
+        console.debug("current token claims", idTokenResult.claims);
+        setOauthClaims(idTokenResult.claims);
+      });
     });
   }, [oauthUser]);
 

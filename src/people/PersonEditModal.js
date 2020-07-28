@@ -50,7 +50,7 @@ export default function PersonEditModal(props) {
 
       console.log("PersonEditModal :: useEffect");
     });
-  }, [props.show]);
+  }, [props.show, props.personRef]);
 
   if (!person) {
     return <></>;

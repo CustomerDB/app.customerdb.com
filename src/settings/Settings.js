@@ -26,7 +26,6 @@ import { Routes, Route, Navigate, useParams } from "react-router-dom";
 
 export default function Settings(props) {
   const auth = useContext(UserAuthContext);
-  const { peopleRef, membersRef, tagGroupsRef } = useFirestore();
   const { orgID } = useParams();
 
   let listItems = [
@@ -138,6 +137,10 @@ function Profile(props) {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
+    if (!membersRef) {
+      return;
+    }
+
     let unsubscribe = membersRef
       .doc(auth.oauthClaims.email)
       .onSnapshot((doc) => {
@@ -147,7 +150,7 @@ function Profile(props) {
         setProfile(data);
       });
     return unsubscribe;
-  }, [auth.oauthClaims.email]);
+  }, [auth.oauthClaims.email, membersRef]);
 
   const onSave = () => {
     profile.displayName = displayName;
@@ -231,7 +234,10 @@ function Members(props) {
   const [deleteModalShow, setDeleteModalShow] = useState();
 
   useEffect(() => {
-    console.debug("Profile :: useEffect");
+    if (!membersRef) {
+      return;
+    }
+
     let unsubscribe = membersRef.onSnapshot((query) => {
       let members = [];
       query.forEach((doc) => {
@@ -243,7 +249,7 @@ function Members(props) {
       setMembers(members);
     });
     return unsubscribe;
-  }, []);
+  }, [membersRef]);
 
   const onInvite = (email) => {
     membersRef.doc(email).set({
@@ -512,29 +518,5 @@ function DeleteModal(props) {
         </Button>
       </Modal.Footer>
     </Modal>
-  );
-}
-
-function Organization(props) {
-  return (
-    <Container>
-      <Row style={{ paddingBottom: "2rem" }}>
-        <Col>
-          <h3>Organization</h3>
-        </Col>
-      </Row>
-    </Container>
-  );
-}
-
-function Backup(props) {
-  return (
-    <Container>
-      <Row style={{ paddingBottom: "2rem" }}>
-        <Col>
-          <h3>Backup and restore</h3>
-        </Col>
-      </Row>
-    </Container>
   );
 }
