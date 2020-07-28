@@ -132,5 +132,10 @@ service cloud.firestore {
                    && activeOrgMember(orgID);
     }
 
+    // Admin privileges to organizations.
+    match /organizations/{orgID} {
+      allow read: if signedInAndVerified()
+                  && request.auth.token.email.matches('.*@quantap.com');
+    }
   }
 }
