@@ -15,7 +15,10 @@ export default class Tabs extends React.Component {
 
   static Pane(props) {
     return (
-      <Row className="h-100 pt-3" noGutters={true}>
+      <Row
+        className={`h-100 pt-3 ${props.className ? props.className : ""}`}
+        noGutters={true}
+      >
         {props.children}
       </Row>
     );
@@ -23,7 +26,7 @@ export default class Tabs extends React.Component {
 
   static Content(props) {
     return (
-      <Col className="h-100" md={9}>
+      <Col className={`h-100 ${props.className ? props.className : ""}`} md={9}>
         {props.children}
       </Col>
     );
@@ -31,7 +34,7 @@ export default class Tabs extends React.Component {
 
   static SidePane(props) {
     return (
-      <Col className="h-100" md={3}>
+      <Col className={`h-100 ${props.className ? props.className : ""}`} md={3}>
         {props.children}
       </Col>
     );
