@@ -32,7 +32,9 @@ export default function Admin(props) {
       .onSnapshot((snapshot) => {
         let newOrganizations = [];
         snapshot.forEach((organization) => {
-          newOrganizations.push(organization.data());
+          let orgData = organization.data();
+          orgData.ID = organization.id;
+          newOrganizations.push(orgData);
         });
         newOrganizations.sort();
         setOrganizations(newOrganizations);
@@ -74,14 +76,29 @@ export default function Admin(props) {
           </List.Title>
           <List.Items>
             {organizations.map((item) => (
-              <List.Item name={item.name} />
+              <List.Item
+                key={item.ID}
+                name={
+                  <span>
+                    {item.name}
+                    <br />
+                    <a href={`https://app.customerdb.com/join/${item.ID}`}>
+                      Join Link
+                    </a>
+                  </span>
+                }
+              />
             ))}
           </List.Items>
           <Modal
             name="New organization"
             show={show}
             onHide={() => setShow(false)}
-            footer={[<Button onClick={createOrg}>Create</Button>]}
+            footer={[
+              <Button key="createOrg" onClick={createOrg}>
+                Create
+              </Button>,
+            ]}
           >
             <Row className="mb-3">
               <Col>
