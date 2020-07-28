@@ -1,13 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 
 import Button from "react-bootstrap/Button";
 import Alert from "react-bootstrap/Alert";
 import { useParams, useNavigate } from "react-router-dom";
 
+import UserAuthContext from "./UserAuthContext.js";
+
 var provider = new window.firebase.auth.GoogleAuthProvider();
 var db = window.firebase.firestore();
 
 export default function JoinOrg(props) {
+  const auth = useContext(UserAuthContext);
+
   const [inviteFailed, setInviteFailed] = useState(false);
   const [reason, setReason] = useState(undefined);
 
@@ -42,7 +46,7 @@ export default function JoinOrg(props) {
     setInviteFailed(false);
     setReason(undefined);
 
-    let user = props.oauthUser;
+    let user = auth.oauthUser;
 
     // Get invite object.
     db.collection("organizations")
@@ -85,7 +89,7 @@ export default function JoinOrg(props) {
       });
   };
 
-  if (props.oauthUser === null) {
+  if (auth.oauthUser === null) {
     return (
       <div className="outerContainer">
         <div className="loginContainer">
@@ -111,7 +115,7 @@ export default function JoinOrg(props) {
         ) : (
           <>
             <p>
-              Join organization with email {props.oauthUser.email}{" "}
+              Join organization with email {auth.oauthUser.email}{" "}
               <Button onClick={logout} variant="link">
                 Logout
               </Button>
