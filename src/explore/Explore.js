@@ -28,6 +28,10 @@ export default function Explore(props) {
   const [newDatasetRef, setNewDatasetRef] = useState();
 
   useEffect(() => {
+    if (!datasetsRef) {
+      return;
+    }
+
     let unsubscribe = datasetsRef
       .where("deletionTimestamp", "==", "")
       .orderBy("creationTimestamp", "desc")
@@ -46,7 +50,7 @@ export default function Explore(props) {
         setDatasetMap(newDatasetMap);
       });
     return unsubscribe;
-  }, []);
+  }, [datasetsRef]);
 
   if (datasetList === undefined) {
     return <></>;
@@ -75,7 +79,7 @@ export default function Explore(props) {
   };
 
   let content;
-  if (datasetID && datasetMap && datasetsRef) {
+  if (datasetID && datasetMap) {
     let dataset = datasetMap[datasetID];
     content = (
       <Dataset key={datasetID} dataset={dataset} options={options(datasetID)} />

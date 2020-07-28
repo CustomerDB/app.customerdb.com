@@ -2,7 +2,7 @@ import React, { useContext, useState, useEffect, useRef } from "react";
 
 import UserAuthContext from "../auth/UserAuthContext.js";
 import useFirestore from "../db/Firestore.js";
-import useDefaultTagGroupID from "../organization/defaultTagGroup.js";
+import { useOrganization } from "../organization/hooks.js";
 
 import Col from "react-bootstrap/Col";
 import Form from "react-bootstrap/Form";
@@ -18,6 +18,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { nanoid } from "nanoid";
 
 import colorPair, { getTextColorForBackground } from "../util/color.js";
+import { Loading } from "../util/Utils.js";
 
 import List from "../List.js";
 import Options from "../Options.js";
@@ -29,9 +30,13 @@ export default function Tags(props) {
   const { orgID, tagGroupID } = useParams();
   const [tagGroups, setTagGroups] = useState([]);
 
-  const defaultTagGroupID = useDefaultTagGroupID();
+  const { defaultTagGroupID } = useOrganization();
 
   useEffect(() => {
+    if (!tagGroupsRef) {
+      return;
+    }
+
     return tagGroupsRef
       .where("deletionTimestamp", "==", "")
       .orderBy("creationTimestamp", "desc")
@@ -47,7 +52,7 @@ export default function Tags(props) {
 
         setTagGroups(newTagGroups);
       });
-  }, []);
+  }, [tagGroupsRef]);
 
   const onAdd = () => {
     tagGroupsRef.add({
@@ -133,7 +138,9 @@ export default function Tags(props) {
     },
   ];
 
-  console.log("tagGroups in render", tagGroups);
+  if (!tagGroupsRef || !defaultTagGroupID) {
+    return <Loading />;
+  }
 
   let view;
   if (tagGroupID !== undefined) {
@@ -211,12 +218,11 @@ function TagGroup(props) {
           newTagNames[data.ID] = data.name;
         });
 
-        console.log("newTags");
         setTags(newTags);
         setTagNames(newTagNames);
       });
     return unsubscribe;
-  }, []);
+  }, [props.tagGroupRef]);
 
   const onAdd = () => {
     let color = colorPair();
