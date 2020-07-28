@@ -34,7 +34,7 @@ export default function Dataset(props) {
   }
 
   let controls = (
-    <Row>
+    <Row noGutters={true}>
       <Button
         style={{ marginRight: "1em" }}
         key="data"
