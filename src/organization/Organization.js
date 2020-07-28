@@ -6,7 +6,7 @@ import UserAuthContext from "../auth/UserAuthContext";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../App.css";
 
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 
 import { Loading } from "../util/Utils.js";
 
@@ -28,6 +28,9 @@ export default function Organization(props) {
   const { orgID } = useParams();
   const navigate = useNavigate();
   const [authorized, setAuthorized] = useState(false);
+  const [intercomInit, setIntercomInit] = useState(false);
+
+  const location = useLocation();
 
   useEffect(() => {
     if (!oauthUser) {
@@ -49,6 +52,20 @@ export default function Organization(props) {
       }
     }
   }, [navigate, orgID, oauthUser, oauthClaims]);
+
+  // Initialize intercom on load
+  useEffect(() => {
+    if (!authorized || !oauthClaims) return;
+    let intercomConfig = Object.assign({ app_id: "xdjuo7oo" }, oauthClaims);
+    window.Intercom("boot", intercomConfig);
+    setIntercomInit(true);
+  }, [authorized, oauthClaims]);
+
+  // Update intercom whenever the URL changes
+  useEffect(() => {
+    if (!intercomInit) return;
+    window.Intercom("update");
+  }, [intercomInit, location]);
 
   if (!authorized) return <Loading />;
 
