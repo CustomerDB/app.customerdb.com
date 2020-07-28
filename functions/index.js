@@ -24,7 +24,7 @@ exports.onMemberWritten = functions.firestore
     let before = change.before.data();
     let after = change.after.data();
 
-    let uid = before ? before.uid : after.uid;
+    let uid = before && before.uid ? before.uid : after.uid;
 
     if (!uid) {
       console.log("no uid -- terminating");
