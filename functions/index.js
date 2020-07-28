@@ -105,6 +105,140 @@ exports.onMemberWritten = functions.firestore
       });
   });
 
+exports.createOrganization = functions.https.onCall((data, context) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      "Authentication required."
+    );
+  }
+
+  // Only allow quantap accounts to act as super admin.
+  if (!context.auth.token.email.endsWith("@quantap.com")) {
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      "Authentication required."
+    );
+  }
+
+  if (!data.name || !data.email) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "name and email arguments required."
+    );
+  }
+
+  const name = data["name"];
+  const email = data["email"];
+
+  let db = admin.firestore();
+
+  // 1) Create organization.
+  return db
+    .collection("organizations")
+    .add({
+      name: name,
+    })
+    .then((doc) => {
+      console.debug("Creating first member");
+      let orgID = doc.id;
+      let orgRef = db.collection("organizations").doc(orgID);
+
+      // 2) Create first member.
+      return orgRef
+        .collection("members")
+        .doc(email)
+        .set({
+          email: email,
+          invited: true,
+          active: false,
+          admin: true,
+          inviteSentTimestamp: "",
+          orgID: orgID,
+        })
+        .then((doc) => {
+          console.debug("Creating tag group");
+          // 3) Create default tag group
+          return orgRef
+            .collection("tagGroups")
+            .add({
+              createdBy: email,
+              creationTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+              deletionTimestamp: "",
+              name: "Discovery",
+            })
+            .then((doc) => {
+              let tagGroupID = doc.id;
+              let tagGroupRef = orgRef.collection("tagGroups").doc(tagGroupID);
+
+              console.debug("Creating tags");
+
+              // 4) Create default tags.
+              return Promise.all([
+                tagGroupRef.collection("tags").add({
+                  color: "#d4c4fb",
+                  textColor: "#000",
+                  name: "Emotion",
+                  organizationID: orgID,
+                  createdBy: email,
+                  creationTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+                  deletionTimestamp: "",
+                }),
+                tagGroupRef.collection("tags").add({
+                  color: "#bedadc",
+                  textColor: "#000",
+                  name: "Deficiency",
+                  organizationID: orgID,
+                  createdBy: email,
+                  creationTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+                  deletionTimestamp: "",
+                }),
+                tagGroupRef.collection("tags").add({
+                  color: "#fad0c3",
+                  textColor: "#000",
+                  name: "Problem",
+                  organizationID: orgID,
+                  createdBy: email,
+                  creationTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+                  deletionTimestamp: "",
+                }),
+                tagGroupRef.collection("tags").add({
+                  color: "#fef3bd",
+                  textColor: "#000",
+                  name: "Action",
+                  organizationID: orgID,
+                  createdBy: email,
+                  creationTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+                  deletionTimestamp: "",
+                }),
+                tagGroupRef.collection("tags").add({
+                  color: "#c4def6",
+                  textColor: "#000",
+                  name: "Cares about",
+                  organizationID: orgID,
+                  createdBy: email,
+                  creationTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+                  deletionTimestamp: "",
+                }),
+              ]).then((doc) => {
+                console.debug("Set default tag group");
+
+                // 5) After creating tag group. Set the default tag group.
+                return orgRef.set(
+                  {
+                    defaultTagGroupID: tagGroupID,
+                  },
+                  { merge: true }
+                );
+              });
+            });
+        });
+    })
+    .then(() => {
+      return "OK";
+    });
+});
+
 //////////////////////////////////////////////////////////////////////////////
 //
 //   Search
