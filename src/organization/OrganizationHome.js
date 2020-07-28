@@ -2,23 +2,23 @@ import React from "react";
 
 import useFirestore from "../db/Firestore.js";
 
-import { useParams } from "react-router-dom";
-
 import { useEffect, useState } from "react";
 
 export default function OrganizationHome(props) {
-  const [orgName, setOrgName] = useState(undefined);
-  const { orgID } = useParams();
+  const [orgName, setOrgName] = useState();
   const { orgRef } = useFirestore();
 
   useEffect(() => {
-    console.log("OrganizationHome useEffect");
+    if (!orgRef) return;
+
     let unsubscribe = orgRef.onSnapshot((doc) => {
       let org = doc.data();
       setOrgName(org.name);
     });
     return unsubscribe;
-  }, [orgID]);
+  }, [orgRef]);
+
+  if (!orgName) return <></>;
 
   return (
     <div>

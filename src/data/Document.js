@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 
 import useFirestore from "../db/Firestore.js";
 
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import DocumentDeleted from "./DocumentDeleted.js";
 import DetailsPane from "./DetailsPane.js";
@@ -16,12 +16,10 @@ export default function Document(props) {
   const { documentRef } = useFirestore();
 
   const navigate = useNavigate();
-  const { documentID } = useParams();
   const [document, setDocument] = useState();
 
   // Subscribe to document name changes
   useEffect(() => {
-    console.warn("document useEffect");
     if (!documentRef) {
       return;
     }
@@ -37,7 +35,7 @@ export default function Document(props) {
       data.ID = doc.id;
       setDocument(data);
     });
-  }, [documentID]);
+  }, [navigate, documentRef]);
 
   if (!document) {
     return <Loading />;

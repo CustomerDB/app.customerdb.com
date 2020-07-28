@@ -4,6 +4,7 @@ import UserAuthContext from "../auth/UserAuthContext.js";
 import useFirestore from "../db/Firestore.js";
 
 import Scrollable from "../shell/Scrollable.js";
+import { Loading } from "../util/Utils.js";
 
 import { useDropzone } from "react-dropzone";
 
@@ -81,26 +82,30 @@ export default function BulkImport(props) {
 
   useEffect(chooseRandomRecord, [records]);
 
-  const createPerson = (record) => {
-    let personDocument = recordToPerson(record, auth.oauthClaims.email);
-
-    if (!personDocument.name) {
-      console.debug("skipping record (name missing)", record);
-      setImportProgress(importProgress + 1);
+  useEffect(() => {
+    if (!peopleRef || !records || importProgress === undefined) {
       return;
     }
 
-    console.log("importing record", record, personDocument);
-    return peopleRef.add(personDocument).then(() => {
-      setImportProgress(importProgress + 1);
-    });
-  };
+    const createPerson = (record) => {
+      let personDocument = recordToPerson(record, auth.oauthClaims.email);
 
-  useEffect(() => {
-    if (importProgress !== undefined && importProgress < records.length) {
+      if (!personDocument.name) {
+        console.debug("skipping record (name missing)", record);
+        setImportProgress(importProgress + 1);
+        return;
+      }
+
+      console.log("importing record", record, personDocument);
+      return peopleRef.add(personDocument).then(() => {
+        setImportProgress(importProgress + 1);
+      });
+    };
+
+    if (importProgress < records.length) {
       createPerson(records[importProgress]);
     }
-  }, [importProgress]);
+  }, [importProgress, auth.oauthClaims.email, peopleRef, records]);
 
   const onParse = (results) => {
     console.log("finished", results.data);
@@ -118,9 +123,13 @@ export default function BulkImport(props) {
         complete: onParse,
       });
     });
-  });
+  }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
+
+  if (!peopleRef) {
+    return <Loading />;
+  }
 
   let contactZone = (
     <Col
@@ -150,7 +159,7 @@ export default function BulkImport(props) {
       <Col md={8}>
         <ul>
           <li>
-            name <span class="text-primary">(required)</span>
+            name <span className="text-primary">(required)</span>
           </li>
           <li>email</li>
           <li>phone</li>

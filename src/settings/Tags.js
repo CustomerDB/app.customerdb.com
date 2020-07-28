@@ -2,6 +2,7 @@ import React, { useContext, useState, useEffect, useRef } from "react";
 
 import UserAuthContext from "../auth/UserAuthContext.js";
 import useFirestore from "../db/Firestore.js";
+import { useOrganization } from "../organization/hooks.js";
 
 import Col from "react-bootstrap/Col";
 import Form from "react-bootstrap/Form";
@@ -17,18 +18,25 @@ import { useNavigate, useParams } from "react-router-dom";
 import { nanoid } from "nanoid";
 
 import colorPair, { getTextColorForBackground } from "../util/color.js";
+import { Loading } from "../util/Utils.js";
 
 import List from "../List.js";
 import Options from "../Options.js";
 
 export default function Tags(props) {
   const auth = useContext(UserAuthContext);
-  const { tagGroupsRef } = useFirestore();
+  const { orgRef, tagGroupsRef } = useFirestore();
   const navigate = useNavigate();
   const { orgID, tagGroupID } = useParams();
   const [tagGroups, setTagGroups] = useState([]);
 
+  const { defaultTagGroupID } = useOrganization();
+
   useEffect(() => {
+    if (!tagGroupsRef) {
+      return;
+    }
+
     return tagGroupsRef
       .where("deletionTimestamp", "==", "")
       .orderBy("creationTimestamp", "desc")
@@ -44,7 +52,7 @@ export default function Tags(props) {
 
         setTagGroups(newTagGroups);
       });
-  }, []);
+  }, [tagGroupsRef]);
 
   const onAdd = () => {
     tagGroupsRef.add({
@@ -65,7 +73,17 @@ export default function Tags(props) {
   };
 
   const itemLoad = (index) => {
-    return tagGroups[index];
+    let item = Object.assign({}, tagGroups[index]);
+    if (item.ID === defaultTagGroupID) {
+      item.name = (
+        <span>
+          {item.name}
+          <br />
+          <span style={{ fontWeight: "bold" }}>(default)</span>
+        </span>
+      );
+    }
+    return item;
   };
 
   const onRename = (ID, newName) => {
@@ -93,6 +111,18 @@ export default function Tags(props) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   let options = [
     {
+      name: "Set to default",
+      onClick: (item) => {
+        console.debug("set default tag group", item);
+        orgRef.set(
+          {
+            defaultTagGroupID: item.ID,
+          },
+          { merge: true }
+        );
+      },
+    },
+    {
       name: "Rename",
       onClick: (item) => {
         setModalTagGroup(item);
@@ -108,7 +138,9 @@ export default function Tags(props) {
     },
   ];
 
-  console.log("tagGroups in render", tagGroups);
+  if (!tagGroupsRef || !defaultTagGroupID) {
+    return <Loading />;
+  }
 
   let view;
   if (tagGroupID !== undefined) {
@@ -119,7 +151,7 @@ export default function Tags(props) {
   }
 
   return (
-    <>
+    <Row className="h-100 no-gutters">
       <Col md={4} className="d-flex flex-column h-100">
         <List
           name="Tag groups"
@@ -148,7 +180,7 @@ export default function Tags(props) {
           setShowDeleteModal(false);
         }}
       />
-    </>
+    </Row>
   );
 }
 
@@ -186,12 +218,11 @@ function TagGroup(props) {
           newTagNames[data.ID] = data.name;
         });
 
-        console.log("newTags");
         setTags(newTags);
         setTagNames(newTagNames);
       });
     return unsubscribe;
-  }, []);
+  }, [props.tagGroupRef]);
 
   const onAdd = () => {
     let color = colorPair();
@@ -222,7 +253,7 @@ function TagGroup(props) {
 
   return (
     <>
-      <Row style={{ paddingBottom: "2rem" }}>
+      <Row key="header" style={{ paddingBottom: "2rem" }}>
         <Col className="d-flex align-self-center">
           <h3 className="my-auto">{tagGroup.name}</h3>
           <Button variant="link">

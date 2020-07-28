@@ -39,6 +39,10 @@ export default function People(props) {
   const [listTotal, setListTotal] = useState();
 
   useEffect(() => {
+    if (!peopleRef) {
+      return;
+    }
+
     let unsubscribe = peopleRef
       .where("deletionTimestamp", "==", "")
       .orderBy("creationTimestamp", "desc")
@@ -58,7 +62,7 @@ export default function People(props) {
         setListTotal(snapshot.size);
       });
     return unsubscribe;
-  }, []);
+  }, [peopleRef]);
 
   if (!peopleList || !peopleMap) {
     return <Loading />;

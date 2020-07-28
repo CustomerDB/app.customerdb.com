@@ -15,6 +15,7 @@ import Form from "react-bootstrap/Form";
 import { useParams } from "react-router-dom";
 
 import DatasetClusterBoard from "./DatasetClusterBoard.js";
+import { Loading } from "../util/Utils.js";
 
 import { ArrowsAngleExpand, ArrowsAngleContract } from "react-bootstrap-icons";
 
@@ -22,7 +23,6 @@ export default function DatasetClusterTab(props) {
   const focus = useContext(FocusContext);
 
   const {
-    datasetRef,
     documentsRef,
     allHighlightsRef,
     cardsRef,
@@ -35,7 +35,11 @@ export default function DatasetClusterTab(props) {
   const [showRenameGroupModal, setShowRenameGroupModal] = useState(false);
   const [modalGroupID, setModalGroupID] = useState();
 
-  if (!props.dataset.documentIDs || props.dataset.documentIDs.length == 0) {
+  if (!documentsRef) {
+    return <Loading />;
+  }
+
+  if (!props.dataset.documentIDs || props.dataset.documentIDs.length === 0) {
     return (
       <Container className="p-3">
         <Row>
@@ -125,7 +129,7 @@ function RenameGroupModal(props) {
   const { groupsRef } = useFirestore();
 
   useEffect(() => {
-    if (!props.groupID) {
+    if (!props.groupID || !groupsRef) {
       return;
     }
 
@@ -140,7 +144,7 @@ function RenameGroupModal(props) {
           setGroup(data);
         }
       });
-  }, [props.groupID]);
+  }, [props.groupID, groupsRef]);
 
   if (!group) {
     return <></>;

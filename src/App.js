@@ -8,6 +8,7 @@ import JoinOrg from "./auth/JoinOrg.js";
 import Error404 from "./404.js";
 import Organization from "./organization/Organization.js";
 
+import Admin from "./admin/Admin.js";
 import ExampleApp from "./shell/Example1.js";
 
 export default function App() {
@@ -52,6 +53,15 @@ export default function App() {
           }
         />
       </Route>
+
+      <Route
+        path="admin"
+        element={
+          <WithOauthUser>
+            <Admin />
+          </WithOauthUser>
+        }
+      />
 
       <Route path="debug" element={<ExampleApp />} />
 

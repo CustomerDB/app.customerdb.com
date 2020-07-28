@@ -83,6 +83,12 @@ service cloud.firestore {
                   && activeOrgMember(resource.data.organizationID);
     }
 
+    // Active non-admin users can write **ORGANIZATION METADATA** in the org.
+    match /organizations/{orgID} {
+      allow write: if signedInAndVerified()
+                   && activeOrgMember(orgID);
+    }
+
     // Active non-admin users can write **TAG GROUPS** in the org.
     match /organizations/{orgID}/tagGroups/{tagGroupID} {
       allow write: if signedInAndVerified()
@@ -126,5 +132,10 @@ service cloud.firestore {
                    && activeOrgMember(orgID);
     }
 
+    // Admin privileges to organizations.
+    match /organizations/{orgID} {
+      allow read: if signedInAndVerified()
+                  && request.auth.token.email.matches('.*@quantap.com');
+    }
   }
 }

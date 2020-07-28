@@ -2,6 +2,7 @@ import React, { useContext, useState, useEffect } from "react";
 
 import UserAuthContext from "../auth/UserAuthContext.js";
 import useFirestore from "../db/Firestore.js";
+import { useOrganization } from "../organization/hooks.js";
 
 import { useParams, useNavigate } from "react-router-dom";
 
@@ -15,6 +16,7 @@ import List from "../shell/List.js";
 import Modal from "../shell/Modal.js";
 import Options from "../shell/Options.js";
 import Page from "../shell/Page.js";
+import Scrollable from "../shell/Scrollable.js";
 
 import { Loading } from "../util/Utils.js";
 
@@ -27,7 +29,13 @@ export default function Data(props) {
   const [addModalShow, setAddModalShow] = useState();
   const [newDocumentRef, setNewDocumentRef] = useState();
 
+  const { defaultTagGroupID } = useOrganization();
+
   useEffect(() => {
+    if (!documentsRef) {
+      return;
+    }
+
     return documentsRef
       .where("deletionTimestamp", "==", "")
       .orderBy("creationTimestamp", "desc")
@@ -44,7 +52,7 @@ export default function Data(props) {
 
         setDocuments(newDocuments);
       });
-  }, []);
+  }, [documentsRef]);
 
   if (!documents) {
     return <Loading />;
@@ -112,6 +120,8 @@ export default function Data(props) {
 
         latestSnapshotTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
 
+        tagGroupID: defaultTagGroupID || "",
+
         // This initial value is required.
         // Search indexing and compression are done as a pair of operations:
         // 1) Mark documents with needsIndex == false and
@@ -173,7 +183,9 @@ export default function Data(props) {
             <List.Add onClick={onAdd} />
             {addModal}
           </List.Title>
-          <List.Items>{documentItems}</List.Items>
+          <List.Items>
+            <Scrollable>{documentItems}</Scrollable>
+          </List.Items>
         </List.Search>
       </List>
       {content}

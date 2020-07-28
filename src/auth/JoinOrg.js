@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useEffect, useState, useContext } from "react";
 
 import Button from "react-bootstrap/Button";
 import Alert from "react-bootstrap/Alert";
@@ -20,6 +20,14 @@ export default function JoinOrg(props) {
   // Get invite id.
   let { id } = useParams();
   let orgID = id;
+
+  useEffect(() => {
+    console.log("useEffect auth", auth);
+    if (!auth || !auth.oauthClaims || !auth.oauthClaims.orgID) {
+      return;
+    }
+    navigate(`/orgs/${orgID}`);
+  }, [auth, orgID, navigate]);
 
   const login = () => {
     window.firebase
@@ -71,9 +79,6 @@ export default function JoinOrg(props) {
           .doc(user.email)
           .set({
             orgID: orgID,
-          })
-          .then(() => {
-            navigate(`/orgs/${orgID}`);
           })
           .catch(onFail);
       })
