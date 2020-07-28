@@ -40,7 +40,6 @@ export default function Admin(props) {
   });
 
   const createOrg = () => {
-    const db = window.firebase.firestore();
     console.debug(
       "Creating organization",
       createOrganization({ name: name, email: email })

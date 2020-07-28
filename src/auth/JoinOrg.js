@@ -27,7 +27,7 @@ export default function JoinOrg(props) {
       return;
     }
     navigate(`/orgs/${orgID}`);
-  }, [auth]);
+  }, [auth, orgID, navigate]);
 
   const login = () => {
     window.firebase
