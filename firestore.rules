@@ -134,14 +134,8 @@ service cloud.firestore {
 
     // Admin privileges to organizations.
     match /organizations/{orgID} {
-      allow read, write: if signedInAndVerified()
-                         && request.auth.token.email.matches('.*@quantap.com');
-    }
-
-    // Super admin access for @quantap email addresses.
-    match /organizations/{document=**} {
-      allow read, write: if signedInAndVerified()
-                         && request.auth.token.email.matches('.*@quantap.com');
+      allow read: if signedInAndVerified()
+                  && request.auth.token.email.matches('.*@quantap.com');
     }
   }
 }
