@@ -13,6 +13,9 @@ import PersonEditModal from "./PersonEditModal.js";
 import PersonDeleteModal from "./PersonDeleteModal.js";
 import Person from "./Person.js";
 
+import PeopleHelp from "./PeopleHelp.js";
+import PersonHelp from "./PersonHelp.js";
+
 import { useParams, useNavigate } from "react-router-dom";
 
 import { Loading } from "../util/Utils.js";
@@ -91,12 +94,14 @@ export default function People(props) {
     );
   };
 
-  let content =
-    personID && peopleMap[personID] ? (
+  let content;
+  if (personID && peopleMap[personID]) {
+    content = (
       <Person key={personID} person={peopleMap[personID]} options={options} />
-    ) : (
-      <></>
     );
+  } else if (listTotal > 0) {
+    content = <PersonHelp />;
+  }
 
   let addModal = (
     <PersonEditModal
@@ -137,25 +142,29 @@ export default function People(props) {
           </List.Title>
           <List.Items>
             <Scrollable>
-              <Infinite
-                hasMore={() => {
-                  if (!listTotal) {
-                    return true;
-                  }
+              {listTotal > 0 ? (
+                <Infinite
+                  hasMore={() => {
+                    if (!listTotal) {
+                      return true;
+                    }
 
-                  return listTotal < listLimit;
-                }}
-                onLoad={() => setListLimit(listLimit + batchSize)}
-              >
-                {peopleList.slice(0, listLimit).map((person) => (
-                  <List.Item
-                    key={person.ID}
-                    name={person.name}
-                    path={`/orgs/${orgID}/people/${person.ID}`}
-                    options={options(person.ID)}
-                  />
-                ))}
-              </Infinite>
+                    return listTotal < listLimit;
+                  }}
+                  onLoad={() => setListLimit(listLimit + batchSize)}
+                >
+                  {peopleList.slice(0, listLimit).map((person) => (
+                    <List.Item
+                      key={person.ID}
+                      name={person.name}
+                      path={`/orgs/${orgID}/people/${person.ID}`}
+                      options={options(person.ID)}
+                    />
+                  ))}
+                </Infinite>
+              ) : (
+                <PeopleHelp />
+              )}
             </Scrollable>
           </List.Items>
         </List.Search>
