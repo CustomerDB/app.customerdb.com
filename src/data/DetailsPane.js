@@ -66,18 +66,18 @@ export default function DetailsPane(props) {
     return tagGroupsRef
       .where("deletionTimestamp", "==", "")
       .onSnapshot((snapshot) => {
-      console.debug("received tag groups snapshot");
+        console.debug("received tag groups snapshot");
 
-      let tagGroups = [];
+        let tagGroups = [];
 
-      snapshot.forEach((doc) => {
-        let data = doc.data();
-        data.ID = doc.id;
-        tagGroups.push(data);
+        snapshot.forEach((doc) => {
+          let data = doc.data();
+          data.ID = doc.id;
+          tagGroups.push(data);
+        });
+
+        setTagGroups(tagGroups);
       });
-
-      setTagGroups(tagGroups);
-    });
   }, [tagGroupsRef]);
 
   const onPersonChange = (e) => {
