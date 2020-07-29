@@ -10,6 +10,7 @@ import Button from "react-bootstrap/Button";
 import ClusterDropdown from "./ClusterDropdown.js";
 import DatasetDataTab from "./DatasetDataTab.js";
 import DatasetClusterTab from "./DatasetClusterTab.js";
+import DatasetAnalysisTab from "./DatasetAnalysisTab.js";
 
 export default function Dataset(props) {
   const { orgID, datasetID, tabID, tagID } = useParams();
@@ -29,7 +30,7 @@ export default function Dataset(props) {
   }
 
   // Redirect if tab does not exist
-  if (tabID && !["data", "cluster"].includes(tabID)) {
+  if (tabID && !["data", "cluster", "analysis"].includes(tabID)) {
     return <Navigate to="/404" />;
   }
 
@@ -47,6 +48,17 @@ export default function Dataset(props) {
       </Button>
 
       <ClusterDropdown dataset={props.dataset} />
+
+      <Button
+        style={{ marginRight: "1em" }}
+        key="data"
+        variant={tabID === "analysis" ? "primary" : "link"}
+        onClick={() => {
+          navigate(`/orgs/${orgID}/explore/${datasetID}/analysis`);
+        }}
+      >
+        Analysis
+      </Button>
     </Row>
   );
 
@@ -65,6 +77,19 @@ export default function Dataset(props) {
   if (tabID === "cluster") {
     view = (
       <DatasetClusterTab
+        key={`${datasetID}-${tagID}`}
+        orgID={orgID}
+        dataset={props.dataset}
+        datasetRef={props.datasetRef}
+        documentsRef={props.documentsRef}
+        allHighlightsRef={props.allHighlightsRef}
+      />
+    );
+  }
+
+  if (tabID === "analysis") {
+    view = (
+      <DatasetAnalysisTab
         key={`${datasetID}-${tagID}`}
         orgID={orgID}
         dataset={props.dataset}
