@@ -6,9 +6,9 @@ import Container from "react-bootstrap/Container";
 
 import Content from "../shell/Content.js";
 
-import personGraphic from "../assets/images/person.svg";
+import dataGraphic from "../assets/images/data.svg";
 
-export default function PersonHelp(props) {
+export default function ContentsHelp(props) {
   return (
     <Content>
       <div className="d-flex flex-column w-100 h-100 justify-content-center align-self-center">
@@ -23,15 +23,15 @@ export default function PersonHelp(props) {
             >
               <img
                 style={{ width: "100%" }}
-                src={personGraphic}
-                alt="Person illustration"
+                src={dataGraphic}
+                alt="Data illustration"
               />
             </div>
             <div>
-              <h4>Organize your customer contacts</h4>
+              <h4>Manage your customer notes and conversations</h4>
               <h5>
-                The more information you add here, the more insights you can get
-                during your analysis.
+                Tag customer data with themes here and analyze interviews to
+                find the voice of your customer in the explore tab.
               </h5>
             </div>
           </div>
