@@ -71,6 +71,7 @@ export default function ContentsPane(props) {
 
   const [tagIDsInSelection, setTagIDsInSelection] = useState(new Set());
   const [tags, setTags] = useState();
+  const [tagGroupName, setTagGroupName] = useState("Tags");
 
   let localDelta = useRef(new Delta([]));
   let latestDeltaTimestamp = useRef(
@@ -364,6 +365,18 @@ export default function ContentsPane(props) {
     };
   }, [props.document.tagGroupID, tagGroupsRef]);
 
+  // Subscribe to document's tag group name.
+  useEffect(() => {
+    if (!props.document.tagGroupID || !tagGroupsRef) {
+      return;
+    }
+
+    return tagGroupsRef.doc(props.document.tagGroupID).onSnapshot((doc) => {
+      let tagGroupData = doc.data();
+      setTagGroupName(tagGroupData.name);
+    });
+  }, [props.document.tagGroupID, tagGroupsRef]);
+
   // Register timers to periodically sync local changes with firestore.
   useEffect(() => {
     if (
@@ -524,6 +537,7 @@ export default function ContentsPane(props) {
       <Tabs.SidePane>
         <Tabs.SidePaneCard>
           <Tags
+            tagGroupName={tagGroupName}
             tags={tags}
             tagIDsInSelection={tagIDsInSelection}
             onChange={onTagControlChange}

@@ -47,9 +47,8 @@ export default class Tags extends React.Component {
     return (
       <div>
         <p>
-          <small>Tags</small>
+          <b>{this.props.tagGroupName}</b>
         </p>
-
         {tagControls.length > 0 ? tagControls : <small>None</small>}
       </div>
     );

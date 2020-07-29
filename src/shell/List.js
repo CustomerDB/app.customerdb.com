@@ -42,15 +42,16 @@ export default class List extends React.Component {
       return <Loading />;
     }
 
-    const CustomHits = connectHits((result) =>
-      result.hits.map((hit) => (
+    const CustomHits = connectHits((result) => {
+      console.log("Recieved search results ", result.hits.length);
+      return result.hits.map((hit) => (
         <List.Item
           key={hit.objectID}
           name={hit.name}
           path={props.path(hit.objectID)}
         />
-      ))
-    );
+      ));
+    });
 
     if (!props.children) {
       return <></>;
@@ -65,7 +66,7 @@ export default class List extends React.Component {
       for (let i = 0; i < children.length; i++) {
         let child = children[i];
 
-        if (child.type.name === "Items") {
+        if (child.type === List.Items) {
           console.log("Rerender custom hits");
           children[i] = <CustomHits />;
           break;

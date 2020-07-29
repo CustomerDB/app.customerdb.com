@@ -1,7 +1,13 @@
 import React, { useEffect, useState, useContext } from "react";
 
+import loginFigure from "../assets/images/login.svg";
+import logo from "../assets/images/logo.svg";
+
 import Button from "react-bootstrap/Button";
 import Alert from "react-bootstrap/Alert";
+import Container from "react-bootstrap/Container";
+import Row from "react-bootstrap/Row";
+import Col from "react-bootstrap/Col";
 import { useParams, useNavigate } from "react-router-dom";
 
 import UserAuthContext from "./UserAuthContext.js";
@@ -96,14 +102,10 @@ export default function JoinOrg(props) {
 
   if (auth.oauthUser === null) {
     return (
-      <div className="outerContainer">
-        <div className="loginContainer">
-          <h2>CustomerDB</h2>
-          <p>Log in to join organization</p>
-          <br />
-          <Button onClick={login}>Login with Google</Button>
-        </div>
-      </div>
+      <LoginForm
+        cta={<p>Log in to join organization</p>}
+        action={<Button onClick={login}>Login with Google</Button>}
+      />
     );
   }
   let inviteFailedMessage;
@@ -112,24 +114,46 @@ export default function JoinOrg(props) {
   }
 
   return (
-    <div className="outerContainer">
-      <div className="loginContainer">
-        <h2>CustomerDB</h2>
-        {inviteFailed ? (
-          inviteFailedMessage
-        ) : (
-          <>
-            <p>
-              Join organization with email {auth.oauthUser.email}{" "}
-              <Button onClick={logout} variant="link">
-                Logout
-              </Button>
-            </p>
-            <br />
-            <Button onClick={join}>Join</Button>
-          </>
-        )}
-      </div>
-    </div>
+    <LoginForm
+      status={inviteFailedMessage}
+      cta={
+        <p>
+          Join organization with email {auth.oauthUser.email} (
+          <Button onClick={logout} variant="link">
+            Logout
+          </Button>
+          )
+        </p>
+      }
+      action={<Button onClick={join}>Join</Button>}
+    />
+  );
+}
+
+function LoginForm(props) {
+  return (
+    <Container>
+      <Row className="align-items-center">
+        <Col md={6}>
+          <Row className="align-items-center">
+            <Col className="pb-5">
+              <img style={{ width: "50%" }} src={logo} alt="CustomerDB logo" />
+            </Col>
+          </Row>
+          <Row>
+            <Col>{props.cta}</Col>
+          </Row>
+          <Row>
+            <Col>{props.status}</Col>
+          </Row>
+          <Row className="pt-5">
+            <Col>{props.action}</Col>
+          </Row>
+        </Col>
+        <Col md={6}>
+          <img style={{ width: "100%" }} src={loginFigure} alt="..." />
+        </Col>
+      </Row>
+    </Container>
   );
 }
