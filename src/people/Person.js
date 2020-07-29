@@ -84,9 +84,6 @@ export default function Person(props) {
             </Scrollable>
           </Tabs.Content>
         </Tabs.Pane>
-        <Tabs.Pane key="details" name="Details">
-          <Tabs.Content></Tabs.Content>
-        </Tabs.Pane>
       </Tabs>
     </Content>
   );
