@@ -63,7 +63,9 @@ export default function DetailsPane(props) {
     if (!tagGroupsRef) {
       return;
     }
-    return tagGroupsRef.onSnapshot((snapshot) => {
+    return tagGroupsRef
+      .where("deletionTimestamp", "==", "")
+      .onSnapshot((snapshot) => {
       console.debug("received tag groups snapshot");
 
       let tagGroups = [];
