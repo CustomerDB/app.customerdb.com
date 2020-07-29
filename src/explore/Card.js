@@ -44,10 +44,8 @@ export default class Card extends React.Component {
   }
 
   handleStart(e) {
+    this.props.setCardDragging(true);
     this.setState({ zIndex: 100 });
-
-    console.log("handleStart rect", this.rect);
-
     this.props.removeLocationCallBack(this.props.card);
   }
 
@@ -117,6 +115,8 @@ export default class Card extends React.Component {
   }
 
   handleStop(e) {
+    this.props.setCardDragging(false);
+
     this.rect = this.getRect();
 
     Object.assign(this.props.card, this.rect);

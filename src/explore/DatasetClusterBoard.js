@@ -2,6 +2,8 @@ import React from "react";
 import RBush from "rbush";
 import { nanoid } from "nanoid";
 
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
+
 import Card from "./Card.js";
 import Group from "./Group.js";
 import HighlightModal from "./HighlightModal.js";
@@ -17,6 +19,8 @@ export default class DatasetClusterBoard extends React.Component {
       loadedHighlights: false,
       loadedCards: false,
       loadedGroups: false,
+
+      cardDragging: false,
 
       modalShow: false,
       modalData: undefined,
@@ -36,6 +40,8 @@ export default class DatasetClusterBoard extends React.Component {
     this.subscribeToDocuments = this.subscribeToDocuments.bind(this);
     this.subscribeToHighlights = this.subscribeToHighlights.bind(this);
 
+    this.setCardDragging = this.setCardDragging.bind(this);
+
     this.addCardLocation = this.addCardLocation.bind(this);
     this.removeCardLocation = this.removeCardLocation.bind(this);
     this.addGroupLocation = this.addGroupLocation.bind(this);
@@ -51,6 +57,10 @@ export default class DatasetClusterBoard extends React.Component {
     this.modalCallBack = this.modalCallBack.bind(this);
 
     this.groupDataForCard = this.groupDataForCard.bind(this);
+  }
+
+  setCardDragging(isCardDragging) {
+    this.setState({ cardDragging: isCardDragging });
   }
 
   componentDidMount() {
@@ -420,6 +430,7 @@ export default class DatasetClusterBoard extends React.Component {
           getIntersectingCardsCallBack={this.getIntersectingCards}
           getIntersectingGroupsCallBack={this.getIntersectingGroups}
           groupDataForCardCallback={this.groupDataForCard}
+          setCardDragging={this.setCardDragging}
         />
       );
     }
@@ -448,16 +459,35 @@ export default class DatasetClusterBoard extends React.Component {
     // pointers = <Pointers activeUsersRef={this.props.activeUsersRef} />;
 
     return (
-      <>
-        {groupComponents}
-        {cardComponents}
-        {pointers}
-        <HighlightModal
-          show={this.state.modalShow}
-          data={this.state.modalData}
-          onHide={() => this.setState({ modalShow: false })}
-        />
-      </>
+      <TransformWrapper
+        options={{
+          minScale: 0.75,
+          maxScale: 2,
+          limitToBounds: false,
+          limitToWrapper: false,
+          centerContent: false,
+          disabled: this.state.cardDragging,
+        }}
+      >
+        <TransformComponent>
+          <div
+            style={{
+              overflow: "show",
+              minWidth: "1500px",
+              minHeight: "1500px",
+            }}
+          >
+            {groupComponents}
+            {cardComponents}
+            {pointers}
+            <HighlightModal
+              show={this.state.modalShow}
+              data={this.state.modalData}
+              onHide={() => this.setState({ modalShow: false })}
+            />
+          </div>
+        </TransformComponent>
+      </TransformWrapper>
     );
   }
 }
