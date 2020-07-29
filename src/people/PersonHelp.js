@@ -14,7 +14,7 @@ export default function PersonHelp(props) {
       <div className="d-flex flex-column w-100 h-100 justify-content-center align-self-center">
         <div
           className="d-flex flex-column justify-content-center align-self-center"
-          style={{ padding: "1rem", width: "60rem" }}
+          style={{ padding: "1rem" }}
         >
           <div className="d-flex justify-content-center align-self-center">
             <div
