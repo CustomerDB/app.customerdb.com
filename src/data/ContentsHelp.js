@@ -27,7 +27,10 @@ export default function ContentsHelp(props) {
                 alt="Data illustration"
               />
             </div>
-            <div>
+            <div
+              style={{ maxWidth: "25rem" }}
+              className="justify-content-center align-self-center"
+            >
               <h4>Manage your customer notes and conversations</h4>
               <h5>
                 Tag customer data with themes here and analyze interviews to
