@@ -27,7 +27,10 @@ export default function PersonHelp(props) {
                 alt="Person illustration"
               />
             </div>
-            <div>
+            <div
+              style={{ maxWidth: "25rem" }}
+              className="justify-content-center align-self-center"
+            >
               <h4>Organize your customer contacts</h4>
               <h5>
                 The more information you add here, the more insights you can get
