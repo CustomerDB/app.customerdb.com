@@ -18,6 +18,8 @@ import Options from "../shell/Options.js";
 import Page from "../shell/Page.js";
 import Scrollable from "../shell/Scrollable.js";
 
+import DataHelp from "./DataHelp.js";
+
 import { Loading } from "../util/Utils.js";
 
 export default function Data(props) {
@@ -184,7 +186,9 @@ export default function Data(props) {
             {addModal}
           </List.Title>
           <List.Items>
-            <Scrollable>{documentItems}</Scrollable>
+            <Scrollable>
+              {documentItems.length > 0 ? documentItems : <DataHelp />}
+            </Scrollable>
           </List.Items>
         </List.Search>
       </List>
