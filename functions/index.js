@@ -5,6 +5,7 @@ const fs = require("fs");
 const algoliasearch = require("algoliasearch");
 const Delta = require("quill-delta");
 const toPlaintext = require("quill-delta-to-plaintext");
+const { nanoid } = require("nanoid");
 
 const firestore = require("@google-cloud/firestore");
 const adminClient = new firestore.v1.FirestoreAdminClient();
@@ -176,9 +177,9 @@ exports.createOrganization = functions.https.onCall((data, context) => {
 
               console.debug("Creating tags");
 
-              // 4) Create default tags.
-              return Promise.all([
-                tagGroupRef.collection("tags").add({
+              let tags = [
+                {
+                  ID: nanoid(),
                   color: "#d4c4fb",
                   textColor: "#000",
                   name: "Emotion",
@@ -186,8 +187,9 @@ exports.createOrganization = functions.https.onCall((data, context) => {
                   createdBy: email,
                   creationTimestamp: admin.firestore.FieldValue.serverTimestamp(),
                   deletionTimestamp: "",
-                }),
-                tagGroupRef.collection("tags").add({
+                },
+                {
+                  ID: nanoid(),
                   color: "#bedadc",
                   textColor: "#000",
                   name: "Deficiency",
@@ -195,8 +197,9 @@ exports.createOrganization = functions.https.onCall((data, context) => {
                   createdBy: email,
                   creationTimestamp: admin.firestore.FieldValue.serverTimestamp(),
                   deletionTimestamp: "",
-                }),
-                tagGroupRef.collection("tags").add({
+                },
+                {
+                  ID: nanoid(),
                   color: "#fad0c3",
                   textColor: "#000",
                   name: "Problem",
@@ -204,8 +207,9 @@ exports.createOrganization = functions.https.onCall((data, context) => {
                   createdBy: email,
                   creationTimestamp: admin.firestore.FieldValue.serverTimestamp(),
                   deletionTimestamp: "",
-                }),
-                tagGroupRef.collection("tags").add({
+                },
+                {
+                  ID: nanoid(),
                   color: "#fef3bd",
                   textColor: "#000",
                   name: "Action",
@@ -213,8 +217,9 @@ exports.createOrganization = functions.https.onCall((data, context) => {
                   createdBy: email,
                   creationTimestamp: admin.firestore.FieldValue.serverTimestamp(),
                   deletionTimestamp: "",
-                }),
-                tagGroupRef.collection("tags").add({
+                },
+                {
+                  ID: nanoid(),
                   color: "#c4def6",
                   textColor: "#000",
                   name: "Cares about",
@@ -222,8 +227,15 @@ exports.createOrganization = functions.https.onCall((data, context) => {
                   createdBy: email,
                   creationTimestamp: admin.firestore.FieldValue.serverTimestamp(),
                   deletionTimestamp: "",
-                }),
-              ]).then((doc) => {
+                },
+              ];
+
+              // 4) Create default tags.
+              let tagPromises = tags.map((tag) =>
+                tagGroupRef.collection("tags").doc(tag.ID).set(tag)
+              );
+
+              return Promise.all(tagPromises).then((doc) => {
                 console.debug("Set default tag group");
 
                 // 5) After creating tag group. Set the default tag group.
