@@ -66,7 +66,7 @@ export default class List extends React.Component {
       for (let i = 0; i < children.length; i++) {
         let child = children[i];
 
-        if (child.type.name === "Items") {
+        if (child.type === List.Items) {
           console.log("Rerender custom hits");
           children[i] = <CustomHits />;
           break;
