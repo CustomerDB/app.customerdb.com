@@ -71,12 +71,28 @@ export default function DatasetDataTab(props) {
             <Container className="roundedBorders p-3 ">
               <Row>
                 {Object.values(documents).map((document) => {
-                  let listCardClass = "listCard";
-
+                  let active = false;
+                  let enabled = true;
                   if (
                     props.dataset.documentIDs !== undefined &&
                     props.dataset.documentIDs.includes(document.ID)
                   ) {
+                    // listCardClass = "listCardActive";
+                    active = true;
+                  } else if (
+                    props.dataset.documentIDs &&
+                    props.dataset.documentIDs.length >= 10
+                  ) {
+                    // listCardClass = "listCardInactive";
+                    enabled = false;
+                  }
+
+                  let listCardClass = "listCard";
+                  if (!enabled) {
+                    listCardClass = "listCardInactive";
+                  }
+
+                  if (active) {
                     listCardClass = "listCardActive";
                   }
 
@@ -90,9 +106,13 @@ export default function DatasetDataTab(props) {
                           >
                             <p
                               className="listCardTitle"
-                              onClick={() => {
-                                onClick(document.ID);
-                              }}
+                              onClick={
+                                enabled
+                                  ? () => {
+                                      onClick(document.ID);
+                                    }
+                                  : () => {}
+                              }
                             >
                               {document.name}
                             </p>
@@ -105,7 +125,7 @@ export default function DatasetDataTab(props) {
               </Row>
             </Container>
             <p>
-              <i>Click to select customer data</i>
+              <i>Click to select customer data (up to 10 documents)</i>
             </p>
           </Col>
         </Row>
