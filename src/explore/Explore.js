@@ -11,6 +11,8 @@ import Options from "../shell/Options.js";
 import Dataset from "./Dataset.js";
 import DatasetDeleteModal from "./DatasetDeleteModal.js";
 import DatasetEditModal from "./DatasetEditModal.js";
+import ExploreHelp from "./ExploreHelp.js";
+import DatasetHelp from "./DatasetHelp.js";
 
 import { useParams } from "react-router-dom";
 import WithFocus from "../util/WithFocus.js";
@@ -26,6 +28,7 @@ export default function Explore(props) {
   const [datasetMap, setDatasetMap] = useState(undefined);
   const [addModalShow, setAddModalShow] = useState();
   const [newDatasetRef, setNewDatasetRef] = useState();
+  const [listTotal, setListTotal] = useState();
 
   useEffect(() => {
     if (!datasetsRef) {
@@ -48,6 +51,7 @@ export default function Explore(props) {
 
         setDatasetList(newDatasetList);
         setDatasetMap(newDatasetMap);
+        setListTotal(snapshot.size);
       });
     return unsubscribe;
   }, [datasetsRef]);
@@ -84,6 +88,8 @@ export default function Explore(props) {
     content = (
       <Dataset key={datasetID} dataset={dataset} options={options(datasetID)} />
     );
+  } else if (listTotal > 0) {
+    content = <DatasetHelp />;
   }
 
   let addModal = (
@@ -95,6 +101,15 @@ export default function Explore(props) {
       datasetRef={newDatasetRef}
     />
   );
+
+  let listItems = datasetList.map((dataset) => (
+    <List.Item
+      key={dataset.ID}
+      name={dataset.name}
+      path={`/orgs/${orgID}/explore/${dataset.ID}`}
+      options={options(dataset.ID)}
+    />
+  ));
 
   return (
     <Page>
@@ -123,14 +138,7 @@ export default function Explore(props) {
           </List.Title>
           <List.Items>
             <Scrollable>
-              {datasetList.map((dataset) => (
-                <List.Item
-                  key={dataset.ID}
-                  name={dataset.name}
-                  path={`/orgs/${orgID}/explore/${dataset.ID}`}
-                  options={options(dataset.ID)}
-                />
-              ))}
+              {listTotal > 0 ? listItems : <ExploreHelp />}
             </Scrollable>
           </List.Items>
         </List>
