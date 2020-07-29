@@ -1,16 +1,7 @@
-@font-face {
-  font-family: HKGroteskPro;
-  font-weight: 400;
-  src: url(./assets/fonts/HK%20Grotesk%20Pro/HKGroteskPro-Regular.woff2)
-      format("woff2"),
-    url(./assets/fonts/HK%20Grotesk%20Pro/HKGroteskPro-Regular.woff)
-      format("woff");
-}
-
 html,
 body {
   height: 100%;
-  font-family: HKGroteskPro;
+  font-family: "Source Sans Pro", sans-serif;
 }
 
 div.fullHeight {
@@ -172,7 +163,7 @@ span.inline-highlight {
 
 .ql-container {
   font-size: 1rem !important;
-  font-family: HKGroteskPro !important;
+  font-family: "Source Sans Pro", sans-serif !important;
 }
 
 .tab-pane {
