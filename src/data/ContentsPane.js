@@ -508,12 +508,13 @@ export default function ContentsPane(props) {
 
   return (
     <>
-      <Tabs.Content>
+      <Tabs.Content className="quillBounds">
         <Scrollable>
           <ReactQuill
             ref={reactQuillRef}
             defaultValue={new Delta(props.document.latestSnapshot.ops)}
             theme="bubble"
+            bounds=".quillBounds"
             placeholder="Start typing here and select to mark highlights"
             onChange={onEdit}
             onChangeSelection={onSelect}
