@@ -6,6 +6,9 @@ const algoliasearch = require("algoliasearch");
 const Delta = require("quill-delta");
 const toPlaintext = require("quill-delta-to-plaintext");
 
+const firestore = require("@google-cloud/firestore");
+const adminClient = new firestore.v1.FirestoreAdminClient();
+
 admin.initializeApp();
 
 //////////////////////////////////////////////////////////////////////////////
@@ -414,7 +417,7 @@ exports.onDocumentWritten = functions.firestore
 // Mark documents with edits more recent than the last indexing operation
 // for re-indexing.
 exports.markDocumentsForIndexing = functions.pubsub
-  .schedule("every 5 minutes")
+  .schedule("every 2 minutes")
   .onRun((context) => {
     let db = admin.firestore();
 
@@ -469,7 +472,7 @@ exports.markDocumentsForIndexing = functions.pubsub
 //////////////////////////////////////////////////////////////////////////////
 
 exports.emailInviteJob = functions.pubsub
-  .schedule("every 2 minutes")
+  .schedule("every 5 minutes")
   .onRun((context) => {
     let db = admin.firestore();
 
@@ -585,5 +588,39 @@ exports.emailInviteJob = functions.pubsub
       })
       .catch((e) => {
         console.log(e);
+      });
+  });
+
+//////////////////////////////////////////////////////////////////////////////
+//
+//   Backup
+//
+//////////////////////////////////////////////////////////////////////////////
+const bucket = "gs://customerdb-prod-backup";
+
+exports.scheduledFirestoreExport = functions.pubsub
+  .schedule("every 4 hours")
+  .onRun((context) => {
+    const projectId = process.env.GCP_PROJECT || process.env.GCLOUD_PROJECT;
+    const databaseName = adminClient.databasePath(projectId, "(default)");
+
+    console.log("databaseName", databaseName);
+
+    return adminClient
+      .exportDocuments({
+        name: databaseName,
+        outputUriPrefix: bucket,
+        // Leave collectionIds empty to export all collections
+        // or set to a list of collection IDs to export,
+        // collectionIds: ['users', 'posts']
+        collectionIds: [],
+      })
+      .then((responses) => {
+        const response = responses[0];
+        console.log(`Operation Name: ${response["name"]}`);
+      })
+      .catch((err) => {
+        console.error(err);
+        throw new Error("Export operation failed");
       });
   });
