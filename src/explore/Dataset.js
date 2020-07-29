@@ -65,7 +65,7 @@ export default function Dataset(props) {
   if (tabID === "cluster") {
     view = (
       <DatasetClusterTab
-        key={tagID || "cluster"}
+        key={`${datasetID}-${tagID}`}
         orgID={orgID}
         dataset={props.dataset}
         datasetRef={props.datasetRef}

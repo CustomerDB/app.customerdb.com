@@ -21,6 +21,7 @@ import { ArrowsAngleExpand, ArrowsAngleContract } from "react-bootstrap-icons";
 
 export default function DatasetClusterTab(props) {
   const focus = useContext(FocusContext);
+  const [boardKey, setBoardKey] = useState();
 
   const {
     documentsRef,
@@ -30,12 +31,25 @@ export default function DatasetClusterTab(props) {
     activeUsersRef,
   } = useFirestore();
 
-  const { orgID, tagID } = useParams();
+  const { orgID, datasetID, tagID } = useParams();
 
   const [showRenameGroupModal, setShowRenameGroupModal] = useState(false);
   const [modalGroupID, setModalGroupID] = useState();
 
-  if (!documentsRef) {
+  useEffect(() => {
+    if (!datasetID || !tagID) {
+      return;
+    }
+    setBoardKey(`${datasetID}-${tagID}`);
+  }, [datasetID, tagID]);
+
+  if (
+    !documentsRef ||
+    !cardsRef ||
+    !allHighlightsRef ||
+    !groupsRef ||
+    !activeUsersRef
+  ) {
     return <Loading />;
   }
 
@@ -87,6 +101,8 @@ export default function DatasetClusterTab(props) {
         <Row className="fullHeight">
           <Col>
             <DatasetClusterBoard
+              key={boardKey}
+              tagID={tagID}
               documentsRef={datasetDocumentsRef}
               highlightsRef={highlightsRef}
               cardsRef={cardsRef}
