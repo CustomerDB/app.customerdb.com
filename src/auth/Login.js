@@ -12,7 +12,7 @@ import Alert from "react-bootstrap/Alert";
 
 import UserAuthContext from "./UserAuthContext.js";
 
-import topFigure from "../assets/images/top-figure.svg";
+import loginFigure from "../assets/images/login.svg";
 import logo from "../assets/images/logo.svg";
 
 var provider = new window.firebase.auth.GoogleAuthProvider();
@@ -92,7 +92,7 @@ export default function Login(props) {
           </Row>
         </Col>
         <Col md={6}>
-          <img style={{ width: "100%" }} src={topFigure} alt="..." />
+          <img style={{ width: "100%" }} src={loginFigure} alt="..." />
         </Col>
       </Row>
     </Container>
