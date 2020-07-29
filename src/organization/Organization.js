@@ -74,12 +74,6 @@ export default function Organization(props) {
       <Navigation>
         <Navigation.Top>
           <Navigation.Item
-            name="Home"
-            icon={<House />}
-            path={`/orgs/${orgID}`}
-            end={true}
-          />
-          <Navigation.Item
             name="People"
             icon={<People />}
             path={`/orgs/${orgID}/people`}

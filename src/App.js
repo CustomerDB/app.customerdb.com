@@ -63,8 +63,6 @@ export default function App() {
         }
       />
 
-      <Route path="debug" element={<ExampleApp />} />
-
       <Route path="404" element={<Error404 />} />
 
       <Route path="logout">

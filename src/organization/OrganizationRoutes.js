@@ -12,7 +12,7 @@ export default function OrganizationRoutes(props) {
   return (
     <>
       <Routes>
-        <Route path="/" element={<OrganizationHome />} />
+        <Route path="/" element={<Navigate to="data" />} />
 
         <Route path="people/*">
           <Route path="/" element={<People />} />
