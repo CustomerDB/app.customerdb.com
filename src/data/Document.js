@@ -49,6 +49,7 @@ export default function Document(props) {
     <Content>
       <Content.Title>
         <Content.Name>{document.name}</Content.Name>
+        <Content.Options>{props.options(document)}</Content.Options>
       </Content.Title>
       <Tabs default="Content">
         <Tabs.Pane name="Content">

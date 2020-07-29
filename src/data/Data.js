@@ -152,14 +152,18 @@ export default function Data(props) {
       key={doc.ID}
       name={doc.name}
       path={`/orgs/${orgID}/data/${doc.ID}`}
-      options={options(doc)}
     />
   ));
 
   let content = undefined;
   if (documentID) {
     content = (
-      <Document key={documentID} navigate={navigate} user={auth.oauthClaims} />
+      <Document
+        key={documentID}
+        navigate={navigate}
+        user={auth.oauthClaims}
+        options={options}
+      />
     );
   } else if (documentItems.length > 0) {
     content = <ContentsHelp />;

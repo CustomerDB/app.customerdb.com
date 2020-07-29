@@ -10,8 +10,7 @@ export default function ExploreHelp(props) {
       <div style={{ display: "flex" }}>
         <div>
           <b>
-            This is the fun part! Create a dataset to start exploring patterns
-            in your customer data.
+            Create a dataset to start exploring patterns in your customer data.
           </b>
         </div>
         <div>

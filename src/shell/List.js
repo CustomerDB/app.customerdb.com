@@ -8,6 +8,8 @@ import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
 
+import { PlusCircleFill } from "react-bootstrap-icons";
+
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { getSearchClient } from "../search/client.js";
@@ -106,7 +108,7 @@ export default class List extends React.Component {
   static Name(props) {
     return (
       <Col md={10}>
-        <h3>{props.children}</h3>
+        <h3 style={{ margin: 0 }}>{props.children}</h3>
       </Col>
     );
   }
@@ -114,8 +116,8 @@ export default class List extends React.Component {
   static Add(props) {
     return (
       <Col md={2}>
-        <Button className="Add" onClick={props.onClick}>
-          +
+        <Button variant="link" onClick={props.onClick}>
+          <PlusCircleFill size={30} color="#487cfb" />
         </Button>
       </Col>
     );

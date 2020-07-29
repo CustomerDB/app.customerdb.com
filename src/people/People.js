@@ -158,7 +158,7 @@ export default function People(props) {
                       key={person.ID}
                       name={person.name}
                       path={`/orgs/${orgID}/people/${person.ID}`}
-                      options={options(person.ID)}
+                      d
                     />
                   ))}
                 </Infinite>

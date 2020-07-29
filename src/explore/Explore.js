@@ -107,7 +107,6 @@ export default function Explore(props) {
       key={dataset.ID}
       name={dataset.name}
       path={`/orgs/${orgID}/explore/${dataset.ID}`}
-      options={options(dataset.ID)}
     />
   ));
 
