@@ -22,9 +22,9 @@ export default function PeopleHelp(props) {
       <div>
         <p>
           CustomerDB makes it easy to connect data about your customers
-          (location, industry, company size etc) with what they tell you.
-          Then you can explore user insights by segment to understand
-          shared problems and sentiments.
+          (location, industry, company size etc) with what they tell you. Then
+          you can explore user insights by segment to understand shared problems
+          and sentiments.
         </p>
         <p>
           The more information you add here, the more insights you can get
