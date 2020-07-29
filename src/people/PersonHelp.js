@@ -32,6 +32,7 @@ export default function PersonHelp(props) {
               className="justify-content-center align-self-center"
             >
               <h4>Organize your customer contacts</h4>
+              <br />
               <h5>
                 The more information you add here, the more insights you can get
                 during your analysis.

@@ -31,10 +31,11 @@ export default function ContentsHelp(props) {
               style={{ maxWidth: "25rem" }}
               className="justify-content-center align-self-center"
             >
-              <h4>Manage your customer notes and conversations</h4>
+              <h4>Keep track of your customer notes and conversations</h4>
+              <br />
               <h5>
-                Tag customer data with themes here and analyze interviews to
-                find the voice of your customer in the explore tab.
+                Tag customer data with themes here. Find patterns in the voice
+                of the customer in the explore tab.
               </h5>
             </div>
           </div>

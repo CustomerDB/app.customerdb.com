@@ -9,10 +9,7 @@ export default function PeopleHelp(props) {
     <div className="roundedBorders" style={{ padding: "0.5rem" }}>
       <div style={{ display: "flex" }}>
         <div>
-          <b>
-            Start by adding your customers and people you interact with by
-            clicking the plus button
-          </b>
+          <b>Start by adding a customer or user you interact with.</b>
         </div>
         <div>
           <ArrowUp size={40} />
@@ -21,10 +18,13 @@ export default function PeopleHelp(props) {
       <br />
       <div>
         <p>
-          CustomerDB makes it easy to connect data about your customers
-          (location, industry, company size etc) with what they tell you. Then
-          you can explore user insights by segment to understand shared problems
-          and sentiments.
+          CustomerDB makes it easy to connect data about your customers such as
+          location, industry or company size with direct quotes gathered by your
+          entire team.
+        </p>
+        <p>
+          Then you can explore by segment to understand shared problems and
+          sentiments.
         </p>
         <p>
           The more information you add here, the more insights you can get
