@@ -17,7 +17,6 @@ export default function PeopleHelp(props) {
       </div>
       <br />
       <div>
-        <p>It&apos;s all about people!</p>
         <p>
           CustomerDB makes it easy to connect data about your customers such as
           location, industry or company size with direct quotes gathered by your
