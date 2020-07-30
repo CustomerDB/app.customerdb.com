@@ -1,78 +1,158 @@
 {
   "indexes": [
     {
+      "collectionGroup": "datasets",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "deletionTimestamp",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "creationTimestamp",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "documents",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "deletionTimestamp", "order": "ASCENDING" },
-        { "fieldPath": "creationTimestamp", "order": "DESCENDING" }
+        {
+          "fieldPath": "deletionTimestamp",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "creationTimestamp",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "highlights",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "documentID",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "organizationID",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "highlights",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "documentID",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "organizationID",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "tagID",
+          "order": "ASCENDING"
+        }
       ]
     },
     {
       "collectionGroup": "people",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "deletionTimestamp", "order": "ASCENDING" },
-        { "fieldPath": "creationTimestamp", "order": "DESCENDING" }
+        {
+          "fieldPath": "deletionTimestamp",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "creationTimestamp",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "people",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "deletionTimestamp",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "name",
+          "order": "ASCENDING"
+        }
       ]
     },
     {
       "collectionGroup": "tagGroups",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "deletionTimestamp", "order": "ASCENDING" },
-        { "fieldPath": "creationTimestamp", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "tags",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "deletionTimestamp", "order": "ASCENDING" },
-        { "fieldPath": "creationTimestamp", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "datasets",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "deletionTimestamp", "order": "ASCENDING" },
-        { "fieldPath": "creationTimestamp", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "people",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "deletionTimestamp", "order": "ASCENDING" },
-        { "fieldPath": "name", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "highlights",
-      "queryScope": "COLLECTION_GROUP",
-      "fields": [
-        { "fieldPath": "documentID", "order": "ASCENDING" },
-        { "fieldPath": "organizationID", "order": "ASCENDING" },
-        { "fieldPath": "tagID", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "highlights",
-      "queryScope": "COLLECTION_GROUP",
-      "fields": [
-        { "fieldPath": "documentID", "order": "ASCENDING" },
-        { "fieldPath": "organizationID", "order": "ASCENDING" }
+        {
+          "fieldPath": "deletionTimestamp",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "creationTimestamp",
+          "order": "DESCENDING"
+        }
       ]
     },
     {
       "collectionGroup": "tags",
       "queryScope": "COLLECTION_GROUP",
       "fields": [
-        { "fieldPath": "organizationID", "order": "ASCENDING" },
-        { "fieldPath": "ID", "order": "ASCENDING" }
+        {
+          "fieldPath": "organizationID",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "ID",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "tags",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "deletionTimestamp",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "creationTimestamp",
+          "order": "ASCENDING"
+        }
       ]
     }
   ],
-  "fieldOverrides": []
+  "fieldOverrides": [
+    {
+      "collectionGroup": "tags",
+      "fieldPath": "organizationID",
+      "indexes": [
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "DESCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "arrayConfig": "CONTAINS",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION_GROUP"
+        }
+      ]
+    }
+  ]
 }
