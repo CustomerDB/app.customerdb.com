@@ -16,6 +16,7 @@
     "rbush": "^3.0.1",
     "rcolor": "^2.0.2",
     "react": "^16.13.1",
+    "react-avatar": "^3.9.7",
     "react-bootstrap": "^1.0.1",
     "react-bootstrap-icons": "^1.0.3-alpha5",
     "react-color": "^2.18.1",
