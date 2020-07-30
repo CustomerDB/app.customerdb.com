@@ -102,13 +102,21 @@ export default function DatasetClusterTab(props) {
 
   return (
     <>
-      <Container className="p-3 fullHeight" fluid>
-        <Row className="fullHeight">
+      <Container className="p-3 h-100" fluid>
+        <Row className="h-100">
           <Col>
             <Button
               variant="link"
               title="Toggle expand"
-              style={{ position: "absolute", left: 0 }}
+              style={{
+                position: "absolute",
+                top: "-3rem",
+                right: 0,
+                zIndex: 150,
+                background: "#eee",
+                borderRadius: "0.25rem",
+                opacity: 0.8,
+              }}
               onClick={() => {
                 if (focus.focus === "cluster") {
                   focus.setFocus();

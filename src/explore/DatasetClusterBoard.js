@@ -469,24 +469,27 @@ export default class DatasetClusterBoard extends React.Component {
           disabled: this.state.cardDragging,
         }}
       >
-        <TransformComponent>
-          <div
-            style={{
-              overflow: "show",
-              minWidth: "1500px",
-              minHeight: "1500px",
-            }}
-          >
-            {groupComponents}
-            {cardComponents}
-            {pointers}
-            <HighlightModal
-              show={this.state.modalShow}
-              data={this.state.modalData}
-              onHide={() => this.setState({ modalShow: false })}
-            />
-          </div>
-        </TransformComponent>
+        <div className="scrollContainer">
+          <TransformComponent>
+            <div
+              style={{
+                minWidth: "3000px",
+                minHeight: "3000px",
+                overflow: "hidden",
+                border: "1px dashed blue",
+              }}
+            >
+              {groupComponents}
+              {cardComponents}
+              {pointers}
+              <HighlightModal
+                show={this.state.modalShow}
+                data={this.state.modalData}
+                onHide={() => this.setState({ modalShow: false })}
+              />
+            </div>
+          </TransformComponent>
+        </div>
       </TransformWrapper>
     );
   }
