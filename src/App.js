@@ -9,7 +9,6 @@ import Error404 from "./404.js";
 import Organization from "./organization/Organization.js";
 
 import Admin from "./admin/Admin.js";
-import ExampleApp from "./shell/Example1.js";
 
 export default function App() {
   return (

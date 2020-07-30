@@ -1,6 +1,5 @@
 import React from "react";
 
-import OrganizationHome from "./OrganizationHome.js";
 import People from "../people/People.js";
 import Data from "../data/Data.js";
 import Explore from "../explore/Explore.js";

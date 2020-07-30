@@ -1,7 +1,6 @@
 import React from "react";
 
 import { ArrowUp } from "react-bootstrap-icons";
-
 import exploreGraphic from "../assets/images/explore.svg";
 
 export default function ExploreHelp(props) {

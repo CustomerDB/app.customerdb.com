@@ -16,7 +16,6 @@ import {
   ChatLeftQuote,
   GearWide,
   Intersect,
-  House,
 } from "react-bootstrap-icons";
 
 import OrganizationRoutes from "./OrganizationRoutes.js";
