@@ -9,7 +9,7 @@ import Quill from "quill";
 import { nanoid } from "nanoid";
 import Avatar from "react-avatar";
 
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 
 import "react-quill/dist/quill.bubble.css";
 
@@ -529,7 +529,9 @@ export default function ContentsPane(props) {
     }
 
     peopleRef.doc(props.document.personID).onSnapshot((doc) => {
-      setPerson(doc.data());
+      let person = doc.data();
+      person.ID = doc.id;
+      setPerson(person);
     });
   }, [props.document, peopleRef]);
 
@@ -556,7 +558,11 @@ export default function ContentsPane(props) {
                 <Avatar size={50} name={person.name} round={true} />
               </div>
               <div className="pl-3">
-                <b>{person.name}</b>
+                <b>
+                  <Link to={`/orgs/${orgID}/people/${person.ID}`}>
+                    {person.name}
+                  </Link>
+                </b>
                 <br />
                 {person.company}
                 <br />
