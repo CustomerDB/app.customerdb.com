@@ -7,6 +7,7 @@ import ReactQuill from "react-quill";
 import Delta from "quill-delta";
 import Quill from "quill";
 import { nanoid } from "nanoid";
+import Avatar from "react-avatar";
 
 import { useParams } from "react-router-dom";
 
@@ -63,6 +64,7 @@ export default function ContentsPane(props) {
     documentRef,
     highlightsRef,
     deltasRef,
+    peopleRef,
   } = useFirestore();
 
   const [editorID] = useState(nanoid());
@@ -72,6 +74,8 @@ export default function ContentsPane(props) {
   const [tagIDsInSelection, setTagIDsInSelection] = useState(new Set());
   const [tags, setTags] = useState();
   const [tagGroupName, setTagGroupName] = useState("Tags");
+
+  const [person, setPerson] = useState();
 
   let localDelta = useRef(new Delta([]));
   let latestDeltaTimestamp = useRef(
@@ -519,6 +523,16 @@ export default function ContentsPane(props) {
     });
   }, [highlightsRef]);
 
+  useEffect(() => {
+    if (!peopleRef || !props.document || !props.document.personID) {
+      return;
+    }
+
+    peopleRef.doc(props.document.personID).onSnapshot((doc) => {
+      setPerson(doc.data());
+    });
+  }, [props.document, peopleRef]);
+
   return (
     <>
       <Tabs.Content className="quillBounds">
@@ -535,6 +549,28 @@ export default function ContentsPane(props) {
         </Scrollable>
       </Tabs.Content>
       <Tabs.SidePane>
+        <Tabs.SidePaneCard>
+          {person ? (
+            <div className="d-flex">
+              <div>
+                <Avatar size={50} name={person.name} round={true} />
+              </div>
+              <div className="pl-3">
+                <b>{person.name}</b>
+                <br />
+                {person.company}
+                <br />
+                {person.job}
+              </div>
+            </div>
+          ) : (
+            <div>
+              <p>
+                Get additional context by linking to person in the details pane
+              </p>
+            </div>
+          )}
+        </Tabs.SidePaneCard>
         <Tabs.SidePaneCard>
           <Tags
             tagGroupName={tagGroupName}
