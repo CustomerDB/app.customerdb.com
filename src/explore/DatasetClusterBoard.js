@@ -461,7 +461,7 @@ export default class DatasetClusterBoard extends React.Component {
     return (
       <TransformWrapper
         options={{
-          minScale: 0.75,
+          minScale: 0.3,
           maxScale: 2,
           limitToBounds: false,
           limitToWrapper: false,
@@ -469,14 +469,17 @@ export default class DatasetClusterBoard extends React.Component {
           disabled: this.state.cardDragging,
         }}
       >
-        <div className="scrollContainer">
+        <div
+          className="scrollContainer"
+          style={{ overflow: "hidden", background: "#e9e9e9" }}
+        >
           <TransformComponent>
             <div
               style={{
                 minWidth: "3000px",
                 minHeight: "3000px",
-                overflow: "hidden",
-                border: "1px dashed blue",
+                background: "white",
+                boxShadow: "0 6px 6px rgba(0, 0, 0, 0.2)",
               }}
             >
               {groupComponents}
