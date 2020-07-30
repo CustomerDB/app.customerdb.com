@@ -151,114 +151,16 @@ export default function DatasetAnalysisTab(props) {
       }
 
       let tagAnalysis = analysis[tag.name];
-      if (!(group.name in tagAnalysis)) {
-        tagAnalysis[group.name] = {};
+      if (!(card.groupID in tagAnalysis)) {
+        tagAnalysis[card.groupID] = {};
       }
 
-      let groupAnalysis = tagAnalysis[group.name];
+      let groupAnalysis = tagAnalysis[card.groupID];
       if (!(card.documentID in groupAnalysis)) {
         groupAnalysis[card.documentID] = {};
       }
     });
   }
-
-  // let data = [
-  //   {
-  //     "group": "Unnamed group",
-  //     "hot dog": 128,
-  //     "hot dogColor": "hsl(291, 70%, 50%)",
-  //   },
-  //   {
-  //     "group": "AE",
-  //     "hot dog": 124,
-  //     "hot dogColor": "hsl(219, 70%, 50%)",
-  //     "burger": 57,
-  //     "burgerColor": "hsl(127, 70%, 50%)",
-  //     "sandwich": 4,
-  //     "sandwichColor": "hsl(113, 70%, 50%)",
-  //     "kebab": 21,
-  //     "kebabColor": "hsl(332, 70%, 50%)",
-  //     "fries": 196,
-  //     "friesColor": "hsl(116, 70%, 50%)",
-  //     "donut": 48,
-  //     "donutColor": "hsl(93, 70%, 50%)"
-  //   },
-  //   {
-  //     "group": "AF",
-  //     "hot dog": 176,
-  //     "hot dogColor": "hsl(169, 70%, 50%)",
-  //     "burger": 141,
-  //     "burgerColor": "hsl(117, 70%, 50%)",
-  //     "sandwich": 191,
-  //     "sandwichColor": "hsl(310, 70%, 50%)",
-  //     "kebab": 10,
-  //     "kebabColor": "hsl(46, 70%, 50%)",
-  //     "fries": 77,
-  //     "friesColor": "hsl(85, 70%, 50%)",
-  //     "donut": 137,
-  //     "donutColor": "hsl(360, 70%, 50%)"
-  //   },
-  //   {
-  //     "group": "AG",
-  //     "hot dog": 113,
-  //     "hot dogColor": "hsl(215, 70%, 50%)",
-  //     "burger": 87,
-  //     "burgerColor": "hsl(53, 70%, 50%)",
-  //     "sandwich": 151,
-  //     "sandwichColor": "hsl(233, 70%, 50%)",
-  //     "kebab": 109,
-  //     "kebabColor": "hsl(291, 70%, 50%)",
-  //     "fries": 19,
-  //     "friesColor": "hsl(325, 70%, 50%)",
-  //     "donut": 175,
-  //     "donutColor": "hsl(94, 70%, 50%)"
-  //   },
-  //   {
-  //     "group": "AI",
-  //     "hot dog": 144,
-  //     "hot dogColor": "hsl(289, 70%, 50%)",
-  //     "burger": 133,
-  //     "burgerColor": "hsl(25, 70%, 50%)",
-  //     "sandwich": 73,
-  //     "sandwichColor": "hsl(186, 70%, 50%)",
-  //     "kebab": 52,
-  //     "kebabColor": "hsl(242, 70%, 50%)",
-  //     "fries": 135,
-  //     "friesColor": "hsl(183, 70%, 50%)",
-  //     "donut": 93,
-  //     "donutColor": "hsl(255, 70%, 50%)"
-  //   },
-  //   {
-  //     "group": "AL",
-  //     "hot dog": 180,
-  //     "hot dogColor": "hsl(15, 70%, 50%)",
-  //     "burger": 95,
-  //     "burgerColor": "hsl(44, 70%, 50%)",
-  //     "sandwich": 14,
-  //     "sandwichColor": "hsl(230, 70%, 50%)",
-  //     "kebab": 67,
-  //     "kebabColor": "hsl(191, 70%, 50%)",
-  //     "fries": 38,
-  //     "friesColor": "hsl(55, 70%, 50%)",
-  //     "donut": 134,
-  //     "donutColor": "hsl(218, 70%, 50%)"
-  //   },
-  //   {
-  //     "group": "AM",
-  //     "hot dog": 195,
-  //     "hot dogColor": "hsl(288, 70%, 50%)",
-  //     "burger": 184,
-  //     "burgerColor": "hsl(290, 70%, 50%)",
-  //     "sandwich": 167,
-  //     "sandwichColor": "hsl(102, 70%, 50%)",
-  //     "kebab": 43,
-  //     "kebabColor": "hsl(98, 70%, 50%)",
-  //     "fries": 50,
-  //     "friesColor": "hsl(266, 70%, 50%)",
-  //     "donut": 151,
-  //     "donutColor": "hsl(286, 70%, 50%)"
-  //   }
-  // ];
 
   return (
     <>
@@ -273,13 +175,25 @@ export default function DatasetAnalysisTab(props) {
         </Row>
         {Object.keys(analysis).map((tagName) => {
           let groupNames = [];
+          let groupColors = [];
           let data = [];
-          Object.keys(analysis[tagName]).map((groupName) => {
-            groupNames.push(groupName);
-            data.push({
-              group: groupName,
-              people: Object.values(analysis[tagName][groupName]).length,
-            });
+          Object.keys(analysis[tagName]).map((groupID) => {
+            let group = groups[groupID];
+
+            // TODO: Chart will flicker if the unnamed groups compete for the same bar.
+            if (group.name == "Unnamed group") {
+              return;
+            }
+
+            groupNames.push(group.name);
+            groupColors.push(group.color);
+
+            let dataPoint = {};
+            dataPoint["group"] = group.name;
+            dataPoint[group.name] = Object.values(
+              analysis[tagName][groupID]
+            ).length;
+            data.push(dataPoint);
           });
           return (
             <Row>
@@ -288,11 +202,11 @@ export default function DatasetAnalysisTab(props) {
                 <div style={{ height: "20rem" }}>
                   <ResponsiveBar
                     data={data}
-                    keys={["people"]}
+                    keys={groupNames}
                     indexBy="group"
                     margin={{ top: 50, right: 130, bottom: 50, left: 60 }}
                     padding={0.3}
-                    colors={{ scheme: "nivo" }}
+                    colors={groupColors}
                     borderColor={{
                       from: "color",
                       modifiers: [["darker", 1.6]],
