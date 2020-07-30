@@ -1,11 +1,6 @@
 import React from "react";
 
-import Col from "react-bootstrap/Col";
-import Row from "react-bootstrap/Row";
-import Container from "react-bootstrap/Container";
-
 import Content from "../shell/Content.js";
-
 import personGraphic from "../assets/images/person.svg";
 
 export default function PersonHelp(props) {

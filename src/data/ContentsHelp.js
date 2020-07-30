@@ -1,11 +1,6 @@
 import React from "react";
 
-import Col from "react-bootstrap/Col";
-import Row from "react-bootstrap/Row";
-import Container from "react-bootstrap/Container";
-
 import Content from "../shell/Content.js";
-
 import dataGraphic from "../assets/images/data.svg";
 
 export default function ContentsHelp(props) {
