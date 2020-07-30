@@ -1,6 +1,7 @@
 import React, { useContext, useState, useEffect } from "react";
 
 import UserAuthContext from "../auth/UserAuthContext.js";
+import event from "../analytics/event.js";
 import useFirestore from "../db/Firestore.js";
 
 import Row from "react-bootstrap/Row";
@@ -71,18 +72,12 @@ export default function DetailsPane(props) {
       });
   }, [tagGroupsRef]);
 
-  const onPersonChange = (e) => {
-    let newPersonID = e.target.value;
-
-    documentRef.set(
-      {
-        personID: newPersonID,
-      },
-      { merge: true }
-    );
-  };
-
   const onTagGroupChange = (e) => {
+    event("change_data_tag_group", {
+      orgID: oauthClaims.orgID,
+      userID: oauthClaims.user_id,
+    });
+
     // Preserve synthetic event reference for use in async code below
     e.persist();
 
@@ -163,26 +158,15 @@ export default function DetailsPane(props) {
     <Tabs.Content>
       <Field name="Created by">{props.document.createdBy}</Field>
       <Field name="Link to customer">
-        {/* <Form.Control
-          as="select"
-          onChange={onPersonChange}
-          value={props.document.personID}
-        >
-          <option value="" style={{ fontStyle: "italic" }}>
-            Choose person...
-          </option>
-          {people.map((person) => {
-            return (
-              <option key={person.ID} value={person.ID}>
-                {person.name}
-              </option>
-            );
-          })}
-        </Form.Control> */}
         <SearchDropdown
           index="prod_PEOPLE"
           default={person ? person.name : ""}
           onChange={(ID, name) => {
+            event("link_data_to_person", {
+              orgID: oauthClaims.orgID,
+              userID: oauthClaims.user_id,
+            });
+
             documentRef.set(
               {
                 personID: ID,

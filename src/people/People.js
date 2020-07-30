@@ -2,6 +2,7 @@ import React, { useContext, useState, useEffect } from "react";
 
 import UserAuthContext from "../auth/UserAuthContext.js";
 import useFirestore from "../db/Firestore.js";
+import event from "../analytics/event.js";
 
 import Page from "../shell/Page.js";
 import List from "../shell/List.js";
@@ -23,7 +24,7 @@ import { Loading } from "../util/Utils.js";
 const batchSize = 25;
 
 export default function People(props) {
-  const auth = useContext(UserAuthContext);
+  const { oauthClaims } = useContext(UserAuthContext);
 
   const { peopleRef } = useFirestore();
 
@@ -125,10 +126,14 @@ export default function People(props) {
             <List.Name>People</List.Name>
             <List.Add
               onClick={() => {
+                event("create_person", {
+                  orgID: oauthClaims.orgID,
+                  userID: oauthClaims.user_id,
+                });
                 peopleRef
                   .add({
                     name: "Unnamed person",
-                    createdBy: auth.oauthClaims.email,
+                    createdBy: oauthClaims.email,
                     creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
                     deletionTimestamp: "",
                   })

@@ -65,7 +65,7 @@ export default function Person(props) {
       }
       setPerson(doc.data());
     });
-  }, [personRef]);
+  }, [personRef, navigate]);
 
   useEffect(() => {
     if (!person) {

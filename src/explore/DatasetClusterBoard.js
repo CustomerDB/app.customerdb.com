@@ -1,17 +1,16 @@
 import React from "react";
-import RBush from "rbush";
-import { nanoid } from "nanoid";
-
-import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 
 import Card from "./Card.js";
 import Group from "./Group.js";
 import HighlightModal from "./HighlightModal.js";
 import colorPair from "../util/color.js";
 import { Loading } from "../util/Utils.js";
+import event from "../analytics/event.js";
 
+import RBush from "rbush";
+import { nanoid } from "nanoid";
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import Button from "react-bootstrap/Button";
-
 import { AspectRatio, ZoomIn, ZoomOut } from "react-bootstrap-icons";
 
 export default class DatasetClusterBoard extends React.Component {
@@ -297,6 +296,11 @@ export default class DatasetClusterBoard extends React.Component {
       // If this card was previously part of a group, check whether we need
       // to delete that group (because it became empty or only has one other card)
       if (card.groupID !== undefined) {
+        event("remove_card_from_group", {
+          orgID: this.props.orgID,
+          userID: this.props.userID,
+        });
+
         // Collect the cards (besides this one) that remain in this card's old group.
         let remainingCards = Object.values(this.state.cards).filter((item) => {
           return item.groupID === card.groupID && item.ID !== card.ID;
@@ -305,15 +309,21 @@ export default class DatasetClusterBoard extends React.Component {
         if (remainingCards.length < 2) {
           // Delete the group.
           console.debug("deleting group with ID", card.groupID);
+
+          event("delete_group", {
+            orgID: this.props.orgID,
+            userID: this.props.userID,
+          });
+
           this.props.groupsRef.doc(card.groupID).delete();
 
           console.debug("remainingCards to clean up\n", remainingCards);
 
-          remainingCards.forEach((cardToCleanUP) => {
-            cardToCleanUP.groupColor = "#000";
-            cardToCleanUP.textColor = "#FFF";
-            delete cardToCleanUP["groupID"];
-            this.props.cardsRef.doc(cardToCleanUP.ID).set(cardToCleanUP);
+          remainingCards.forEach((cardToCleanUp) => {
+            cardToCleanUp.groupColor = "#000";
+            cardToCleanUp.textColor = "#FFF";
+            delete cardToCleanUp["groupID"];
+            this.props.cardsRef.doc(cardToCleanUp.ID).set(cardToCleanUp);
           });
         }
       }
@@ -331,6 +341,14 @@ export default class DatasetClusterBoard extends React.Component {
     // all currently in the same existing group. Join this card to that.
     if (cardGroupIDs.size === 1) {
       let groupID = cardGroupIDs.values().next().value;
+
+      if (card.groupID !== groupID) {
+        event("add_card_to_group", {
+          orgID: this.props.orgID,
+          userID: this.props.userID,
+        });
+      }
+
       let group = this.state.groups[groupID];
       if (group === undefined) {
         return undefinedGroupData;
@@ -348,8 +366,15 @@ export default class DatasetClusterBoard extends React.Component {
     if (cardGroupIDs.size === 0) {
       // Create a group.
       console.debug("Creating a group");
+
+      event("create_group", {
+        orgID: this.props.orgID,
+        userID: this.props.userID,
+      });
+
       let groupID = nanoid();
       let colors = colorPair();
+
       this.props.groupsRef.doc(groupID).set({
         kind: "group",
         ID: groupID,

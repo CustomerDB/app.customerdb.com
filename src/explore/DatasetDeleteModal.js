@@ -1,5 +1,6 @@
 import React, { useContext, useState, useEffect } from "react";
 
+import event from "../analytics/event.js";
 import UserAuthContext from "../auth/UserAuthContext.js";
 
 import { useParams, useNavigate } from "react-router-dom";
@@ -9,7 +10,7 @@ import Button from "react-bootstrap/Button";
 import Modal from "../shell/Modal.js";
 
 export default function DatasetDeleteModal(props) {
-  const auth = useContext(UserAuthContext);
+  const { oauthClaims } = useContext(UserAuthContext);
   const navigate = useNavigate();
 
   const { orgID } = useParams();
@@ -42,9 +43,14 @@ export default function DatasetDeleteModal(props) {
         <Button
           key={dataset.ID}
           onClick={() => {
+            event("delete_dataset", {
+              orgID: oauthClaims.orgID,
+              userID: oauthClaims.user_id,
+            });
+
             props.datasetRef.set(
               {
-                deletedBy: auth.oauthClaims.email,
+                deletedBy: oauthClaims.email,
                 deletionTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
               },
               { merge: true }

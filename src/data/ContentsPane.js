@@ -1,6 +1,7 @@
 import React, { useContext, useState, useEffect, useRef } from "react";
 
 import UserAuthContext from "../auth/UserAuthContext.js";
+import event from "../analytics/event.js";
 import useFirestore from "../db/Firestore.js";
 
 import ReactQuill from "react-quill";
@@ -56,7 +57,7 @@ const syncPeriod = 1000;
 // communicate what text segments are associated with tags with background
 // colors.
 export default function ContentsPane(props) {
-  const auth = useContext(UserAuthContext);
+  const { oauthClaims } = useContext(UserAuthContext);
   const { orgID } = useParams();
 
   const {
@@ -387,7 +388,7 @@ export default function ContentsPane(props) {
       !highlightsRef ||
       !deltasRef ||
       !props.document.ID ||
-      !auth.oauthUser.email
+      !oauthClaims.email
     ) {
       return;
     }
@@ -405,7 +406,7 @@ export default function ContentsPane(props) {
 
       let deltaDoc = {
         editorID: editorID,
-        userEmail: auth.oauthUser.email,
+        userEmail: oauthClaims.email,
         timestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
         ops: ops,
       };
@@ -428,6 +429,12 @@ export default function ContentsPane(props) {
         if (current === undefined) {
           // highlight is not present; delete it in the database.
           console.debug("syncHighlights: deleting highlight", h);
+
+          event("delete_highlight", {
+            orgID: oauthClaims.orgID,
+            userID: oauthClaims.user_id,
+          });
+
           highlightsRef.doc(h.ID).delete();
           return;
         }
@@ -473,12 +480,18 @@ export default function ContentsPane(props) {
               length: current.selection.length,
             },
             text: current.text,
-            createdBy: auth.oauthUser.email,
+            createdBy: oauthClaims.email,
             creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
             lastUpdateTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
           };
 
           console.debug("syncHighlights: creating highlight", newHighlight);
+
+          event("create_highlight", {
+            orgID: oauthClaims.orgID,
+            userID: oauthClaims.user_id,
+          });
+
           highlightsRef.doc(highlightID).set(newHighlight);
         }
       });
@@ -494,7 +507,7 @@ export default function ContentsPane(props) {
       clearInterval(syncHighlightsInterval);
     };
   }, [
-    auth.oauthUser.email,
+    oauthClaims,
     deltasRef,
     editorID,
     highlightsRef,
