@@ -26,7 +26,7 @@ export default class Card extends React.Component {
 
   getRect() {
     let translateCSS = this.ref.current.style.transform;
-    const [x, y] = translateCSS.match(/(\d+)/g);
+    const [x, y] = translateCSS.match(/(\d+(\.\d+)?)/g);
 
     let boundingBox = this.ref.current.getBoundingClientRect();
 
@@ -51,6 +51,8 @@ export default class Card extends React.Component {
 
   handleDrag(e) {
     let rect = this.getRect();
+
+    console.log("drag ", rect);
 
     let cardGroupIDs = new Set();
     let cardGroupColor = "#000";
