@@ -22,6 +22,9 @@ div.ListItem.Active {
 
 p.ListItemName {
   margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 div.scrollContainer {
