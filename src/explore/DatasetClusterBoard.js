@@ -450,8 +450,8 @@ export default class DatasetClusterBoard extends React.Component {
             <TransformComponent>
               <div
                 style={{
-                  minWidth: "3000px",
-                  minHeight: "3000px",
+                  minWidth: "6000px",
+                  minHeight: "4000px",
                   background: "white",
                   boxShadow: "0 6px 6px rgba(0, 0, 0, 0.2)",
                 }}
