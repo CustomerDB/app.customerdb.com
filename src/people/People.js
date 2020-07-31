@@ -133,6 +133,7 @@ export default function People(props) {
                     deletionTimestamp: "",
                   })
                   .then((doc) => {
+                    navigate(`/orgs/${orgID}/people/${doc.id}`);
                     setNewPersonRef(doc);
                     setAddModalShow(true);
                   });

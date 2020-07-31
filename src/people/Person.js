@@ -1,7 +1,10 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 
-import Linkify from "react-linkify";
+import { useNavigate, useParams } from "react-router-dom";
 
+import useFirestore from "../db/Firestore.js";
+
+import { Loading } from "../util/Utils.js";
 import Content from "../shell/Content.js";
 import Scrollable from "../shell/Scrollable.js";
 
@@ -9,6 +12,8 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Badge from "react-bootstrap/Badge";
 import Tabs from "../shell/Tabs.js";
+
+import Linkify from "react-linkify";
 
 function Field(props) {
   console.log("Field props", props);
@@ -43,15 +48,41 @@ function Label(props) {
 }
 
 export default function Person(props) {
-  let person = props.person;
+  const { personID } = useParams();
+  const { personRef } = useFirestore();
+  const [person, setPerson] = useState();
+  const [showLabels, setShowLabels] = useState(false);
+  const navigate = useNavigate();
 
-  const showLabels = person.labels && Object.values(person.labels).length > 0;
+  useEffect(() => {
+    if (!personRef) {
+      return;
+    }
+    return personRef.onSnapshot((doc) => {
+      if (!doc.exists) {
+        navigate("/404");
+        return;
+      }
+      setPerson(doc.data());
+    });
+  }, [personRef]);
+
+  useEffect(() => {
+    if (!person) {
+      return;
+    }
+    setShowLabels(person.labels && Object.values(person.labels).length > 0);
+  }, [person]);
+
+  if (!person) {
+    return <Loading />;
+  }
 
   return (
     <Content>
       <Content.Title>
-        <Content.Name>{props.person.name}</Content.Name>
-        <Content.Options>{props.options(props.person.ID)}</Content.Options>
+        <Content.Name>{person.name}</Content.Name>
+        <Content.Options>{props.options(personID)}</Content.Options>
       </Content.Title>
       <Tabs default="Contact">
         <Tabs.Pane key="contact" name="Contact">

@@ -57,7 +57,9 @@ export default function PersonDeleteModal(props) {
         </Button>,
       ]}
     >
-      <p>Do you want to delete {person.name}</p>
+      <p>
+        Do you want to delete <b>{person.name}</b>?
+      </p>
     </Modal>
   );
 }
