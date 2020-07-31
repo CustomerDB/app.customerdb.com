@@ -27,7 +27,7 @@ export default function Login(props) {
   const login = () => {
     window.firebase
       .auth()
-      .setPersistence(window.firebase.auth.Auth.Persistence.SESSION)
+      .setPersistence(window.firebase.auth.Auth.Persistence.LOCAL)
       .then(function () {
         window.firebase.auth().signInWithRedirect(provider);
       });
