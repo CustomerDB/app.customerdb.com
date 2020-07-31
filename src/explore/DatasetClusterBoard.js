@@ -419,7 +419,7 @@ export default class DatasetClusterBoard extends React.Component {
           group={group}
           cards={cards}
           renameGroupModalCallback={this.props.renameGroupModalCallback}
-          totalCardCount={this.state.documents.length}
+          totalCardCount={Object.values(this.state.documents).length}
           groupRef={groupRef}
           addGroupLocationCallback={this.addGroupLocation}
           removeGroupLocationCallback={this.removeGroupLocation}
