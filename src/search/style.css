@@ -286,7 +286,7 @@ a[class^="ais-"] {
   padding: 0.3rem 0.5rem;
   font-size: 0.8rem;
   color: #fff;
-  background-color: #0096db;
+  background-color: #9e9e9e;
   border-radius: 5px;
   -webkit-transition: background-color 0.2s ease-out;
   transition: background-color 0.2s ease-out;
@@ -312,7 +312,7 @@ a[class^="ais-"] {
 .ais-Menu-showMore:focus,
 .ais-RefinementList-showMore:hover,
 .ais-RefinementList-showMore:focus {
-  background-color: #0073a8;
+  background-color: #9e9e9e;
 }
 
 .ais-ClearRefinements-button--disabled,
@@ -342,7 +342,7 @@ a[class^="ais-"] {
 .ais-Menu-showMore--disabled:focus,
 .ais-RefinementList-showMore--disabled:hover,
 .ais-RefinementList-showMore--disabled:focus {
-  background-color: #0096db;
+  background-color: #9e9e9e;
 }
 
 .ais-InfiniteHits-loadPrevious--disabled {
@@ -498,7 +498,7 @@ a[class^="ais-"] {
 .ais-ToggleRefinement-count {
   padding: 0.1rem 0.4rem;
   font-size: 0.8rem;
-  color: #3a4570;
+  color: #9e9e9e;
   background-color: #dfe2ee;
   border-radius: 8px;
 }
@@ -631,7 +631,7 @@ a[class^="ais-"] {
   line-height: 1.5rem;
   font-size: 0.8rem;
   color: #fff;
-  background-color: #0096db;
+  background-color: #9e9e9e;
   border: none;
   border-radius: 5px;
   -webkit-transition: 0.2s ease-out;
@@ -640,7 +640,7 @@ a[class^="ais-"] {
 }
 .ais-RangeInput-submit:hover,
 .ais-RangeInput-submit:focus {
-  background-color: #0073a8;
+  background-color: #9e9e9e;
 }
 
 .ais-RatingMenu-count {
@@ -681,8 +681,8 @@ a[class^="ais-"] {
 }
 .ais-Pagination-item--selected .ais-Pagination-link {
   color: #fff;
-  background-color: #0096db;
-  border-color: #0096db;
+  background-color: #9e9e9e;
+  border-color: #9e9e9e;
 }
 .ais-Pagination-item--selected .ais-Pagination-link:hover,
 .ais-Pagination-item--selected .ais-Pagination-link:focus {
@@ -701,7 +701,7 @@ a[class^="ais-"] {
 }
 
 .ais-RangeSlider .rheostat-progress {
-  background-color: #495588;
+  background-color: #9e9e9e;
 }
 
 .ais-RangeSlider .rheostat-background {
@@ -728,7 +728,7 @@ a[class^="ais-"] {
   position: relative;
   z-index: 1;
   background: #ffffff;
-  border: 1px solid #46aeda;
+  border: 1px solid #9e9e9e;
   border-radius: 50%;
   cursor: pointer;
 }
