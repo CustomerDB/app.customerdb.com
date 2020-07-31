@@ -98,7 +98,7 @@ export default function DatasetAnalysisTab(props) {
       });
     });
     setDocuments(newDocuments);
-  }, [documentsRef]);
+  }, [documentsRef, props.dataset.documentIDs]);
 
   useEffect(() => {
     if (!allTagsRef) {
@@ -114,7 +114,7 @@ export default function DatasetAnalysisTab(props) {
         });
         setTags(newTags);
       });
-  }, [allTagsRef]);
+  }, [allTagsRef, props.orgID]);
 
   console.log("groups", groups);
   console.log("highlights", highlights);
@@ -133,18 +133,15 @@ export default function DatasetAnalysisTab(props) {
   }
 
   let analysis = {};
-  let totalDocuments = props.dataset.documentIDs.length;
 
   if (cards && groups && tags && props.dataset.documentIDs) {
     let cardsInGroups = Object.values(cards).filter(
-      (card) => card.groupID != undefined
+      (card) => card.groupID !== undefined
     );
     console.log("cardsInGroups", cardsInGroups);
 
     cardsInGroups.forEach((card) => {
-      let group = groups[card.groupID];
       let tag = tags[card.tagID];
-      let document = documents[card.documentID];
 
       if (!(tag.name in analysis)) {
         analysis[tag.name] = {};
@@ -166,22 +163,17 @@ export default function DatasetAnalysisTab(props) {
     <>
       <Container className="p-3">
         <Row>
-          <Col>
-            <h3></h3>
-          </Col>
-        </Row>
-        <Row>
           <Col></Col>
         </Row>
         {Object.keys(analysis).map((tagName) => {
           let groupNames = [];
           let groupColors = [];
           let data = [];
-          Object.keys(analysis[tagName]).map((groupID) => {
+          Object.keys(analysis[tagName]).forEach((groupID) => {
             let group = groups[groupID];
 
             // TODO: Chart will flicker if the unnamed groups compete for the same bar.
-            if (group.name == "Unnamed group") {
+            if (group.name === "Unnamed group") {
               return;
             }
 
