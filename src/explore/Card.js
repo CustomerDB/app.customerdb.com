@@ -118,8 +118,6 @@ export default class Card extends React.Component {
   }
 
   handleStop(e) {
-    this.props.setCardDragging(false);
-
     this.rect = this.getRect();
 
     Object.assign(this.props.card, this.rect);
@@ -141,8 +139,8 @@ export default class Card extends React.Component {
       previewCircle: undefined,
       previewColor: undefined,
     });
-
     this.cardRef.set(this.props.card);
+    this.props.setCardDragging(false);
   }
 
   showModal() {
