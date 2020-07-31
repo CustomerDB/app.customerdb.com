@@ -2,6 +2,7 @@ import React, { useContext, useState, useEffect, useRef } from "react";
 
 import UserAuthContext from "../auth/UserAuthContext.js";
 import useFirestore from "../db/Firestore.js";
+import event from "../analytics/event.js";
 import { useOrganization } from "../organization/hooks.js";
 
 import Col from "react-bootstrap/Col";
@@ -24,7 +25,7 @@ import List from "../List.js";
 import Options from "../Options.js";
 
 export default function Tags(props) {
-  const auth = useContext(UserAuthContext);
+  const { oauthClaims } = useContext(UserAuthContext);
   const { orgRef, tagGroupsRef } = useFirestore();
   const navigate = useNavigate();
   const { orgID, tagGroupID } = useParams();
@@ -55,9 +56,14 @@ export default function Tags(props) {
   }, [tagGroupsRef]);
 
   const onAdd = () => {
+    event("create_tag_group", {
+      orgID: orgID,
+      userID: oauthClaims.user_id,
+    });
+
     tagGroupsRef.add({
       name: "New tag set",
-      createdBy: auth.oauthClaims.email,
+      createdBy: oauthClaims.email,
       creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
 
       // Deletion is modeled as "soft-delete"; when the deletionTimestamp is set,
@@ -96,8 +102,13 @@ export default function Tags(props) {
   };
 
   const onDelete = (ID) => {
+    event("delete_tag_group", {
+      orgID: orgID,
+      userID: oauthClaims.user_id,
+    });
+
     tagGroupsRef.doc(ID).update({
-      deletedBy: auth.oauthClaims.email,
+      deletedBy: oauthClaims.email,
       deletionTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
     });
 
@@ -185,7 +196,7 @@ export default function Tags(props) {
 }
 
 function TagGroup(props) {
-  const auth = useContext(UserAuthContext);
+  const { oauthClaims } = useContext(UserAuthContext);
   const { orgID } = useParams();
   const [tagGroup, setTagGroup] = useState();
   const [tags, setTags] = useState([]);
@@ -225,6 +236,11 @@ function TagGroup(props) {
   }, [props.tagGroupRef]);
 
   const onAdd = () => {
+    event("create_tag", {
+      orgID: orgID,
+      userID: oauthClaims.user_id,
+    });
+
     let color = colorPair();
     let newTagID = nanoid();
 
@@ -234,7 +250,7 @@ function TagGroup(props) {
       organizationID: orgID,
       color: color.background,
       textColor: color.foreground,
-      createdBy: auth.oauthClaims.email,
+      createdBy: oauthClaims.email,
       creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
       deletionTimestamp: "",
     });
@@ -298,9 +314,14 @@ function TagGroup(props) {
                     <XCircleFill
                       color="grey"
                       onClick={() => {
+                        event("delete_tag", {
+                          orgID: orgID,
+                          userID: oauthClaims.user_id,
+                        });
+
                         props.tagGroupRef.collection("tags").doc(tag.ID).set(
                           {
-                            deletedBy: auth.oauthClaims.email,
+                            deletedBy: oauthClaims.email,
                             deletionTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
                           },
                           { merge: true }

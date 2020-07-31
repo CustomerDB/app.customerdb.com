@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 
+import event from "../analytics/event.js";
 import UserAuthContext from "../auth/UserAuthContext";
 import useFirestore from "../db/Firestore.js";
 
@@ -227,6 +228,8 @@ function Profile(props) {
 }
 
 function Members(props) {
+  const { oauthClaims } = useContext(UserAuthContext);
+  const { orgID } = useParams();
   const { membersRef } = useFirestore();
   const [members, setMembers] = useState();
   const [member, setMember] = useState();
@@ -252,6 +255,11 @@ function Members(props) {
   }, [membersRef]);
 
   const onInvite = (email) => {
+    event("invite_member", {
+      orgID: orgID,
+      userID: oauthClaims.user_id,
+    });
+
     membersRef.doc(email).set({
       invited: true,
       active: false,

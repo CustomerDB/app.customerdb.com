@@ -6,7 +6,6 @@ import {
   InstantSearch,
   connectHits,
   connectSearchBox,
-  connectCurrentRefinements,
 } from "react-instantsearch-dom";
 
 import { getSearchClient } from "./client.js";

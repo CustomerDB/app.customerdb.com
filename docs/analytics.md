@@ -1,0 +1,44 @@
+# Analytics Events
+
+## People
+
+* create_person
+* edit_person
+* delete_person
+
+## Data
+
+* create_data
+* delete_data
+
+* link_data_to_person
+* change_data_tag_group
+
+* create_highlight
+* delete_highlight
+
+## Datasets
+
+* create_dataset
+* edit_dataset_data
+* delete_dataset
+
+* create_group
+* add_card_to_group
+* remove_card_from_group
+* delete_group
+
+## Tag groups
+
+* create_tag_group
+* delete_tag_group
+
+## Tags
+
+* create_tag
+* delete_tag
+
+## Organization
+
+* invite_member
+* join_org

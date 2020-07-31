@@ -1,5 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 
+import event from "../analytics/event.js";
+import UserAuthContext from "../auth/UserAuthContext.js";
 import useFirestore from "../db/Firestore.js";
 
 import Container from "react-bootstrap/Container";
@@ -7,6 +9,7 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 
 export default function DatasetDataTab(props) {
+  const { oauthClaims } = useContext(UserAuthContext);
   const { datasetRef, documentsRef } = useFirestore();
   const [documents, setDocuments] = useState({});
 
@@ -32,6 +35,11 @@ export default function DatasetDataTab(props) {
   }, [documentsRef]);
 
   const onClick = (documentID) => {
+    event("edit_dataset_data", {
+      orgID: oauthClaims.orgID,
+      userID: oauthClaims.user_id,
+    });
+
     let newDocumentIDs = props.dataset.documentIDs.slice();
 
     if (props.dataset.documentIDs.includes(documentID)) {

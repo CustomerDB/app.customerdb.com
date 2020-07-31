@@ -1,5 +1,7 @@
 import React, { useEffect, useState, useContext } from "react";
 
+import event from "../analytics/event.js";
+
 import loginFigure from "../assets/images/login.svg";
 import logo from "../assets/images/logo.svg";
 
@@ -57,10 +59,15 @@ export default function JoinOrg(props) {
   };
 
   const join = () => {
+    let user = auth.oauthUser;
+
+    event("join_org", {
+      orgID: orgID,
+      userID: user.uid,
+    });
+
     setInviteFailed(false);
     setReason(undefined);
-
-    let user = auth.oauthUser;
 
     // Get invite object.
     db.collection("organizations")

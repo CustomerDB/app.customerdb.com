@@ -1,6 +1,7 @@
 import React, { useContext, useState, useEffect } from "react";
 
 import UserAuthContext from "../auth/UserAuthContext.js";
+import event from "../analytics/event.js";
 import useFirestore from "../db/Firestore.js";
 
 import Page from "../shell/Page.js";
@@ -18,7 +19,7 @@ import { useParams } from "react-router-dom";
 import WithFocus from "../util/WithFocus.js";
 
 export default function Explore(props) {
-  const auth = useContext(UserAuthContext);
+  const { oauthClaims } = useContext(UserAuthContext);
 
   let { datasetsRef } = useFirestore();
 
@@ -118,16 +119,20 @@ export default function Explore(props) {
             <List.Name>Customer datasets</List.Name>
             <List.Add
               onClick={() => {
+                event("create_dataset", {
+                  orgID: oauthClaims.orgID,
+                  userID: oauthClaims.user_id,
+                });
+
                 datasetsRef
                   .add({
                     name: "Unnamed dataset",
                     documentIDs: [],
-                    createdBy: auth.oauthClaims.email,
+                    createdBy: oauthClaims.email,
                     creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
                     deletionTimestamp: "",
                   })
                   .then((doc) => {
-                    console.log("Should show modal");
                     setNewDatasetRef(doc);
                     setAddModalShow(true);
                   });

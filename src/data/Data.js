@@ -1,6 +1,7 @@
 import React, { useContext, useState, useEffect } from "react";
 
 import UserAuthContext from "../auth/UserAuthContext.js";
+import event from "../analytics/event.js";
 import useFirestore from "../db/Firestore.js";
 import { useOrganization } from "../organization/hooks.js";
 
@@ -24,7 +25,7 @@ import ContentsHelp from "./ContentsHelp.js";
 import { Loading } from "../util/Utils.js";
 
 export default function Data(props) {
-  let auth = useContext(UserAuthContext);
+  let { oauthClaims } = useContext(UserAuthContext);
   let { documentsRef } = useFirestore();
   let navigate = useNavigate();
   let { documentID, orgID } = useParams();
@@ -73,8 +74,12 @@ export default function Data(props) {
 
     // onDelete is the delete confirm callback
     let onDelete = () => {
+      event("delete_data", {
+        orgID: oauthClaims.orgID,
+        userID: oauthClaims.user_id,
+      });
       documentRef.update({
-        deletedBy: auth.oauthClaims.email,
+        deletedBy: oauthClaims.email,
         deletionTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
       });
 
@@ -113,10 +118,14 @@ export default function Data(props) {
   };
 
   const onAdd = () => {
+    event("create_data", {
+      orgID: oauthClaims.orgID,
+      userID: oauthClaims.user_id,
+    });
     documentsRef
       .add({
         name: "Untitled Document",
-        createdBy: auth.oauthClaims.email,
+        createdBy: oauthClaims.email,
         creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
 
         latestSnapshot: { ops: initialDelta().ops },
@@ -161,7 +170,7 @@ export default function Data(props) {
       <Document
         key={documentID}
         navigate={navigate}
-        user={auth.oauthClaims}
+        user={oauthClaims}
         options={options}
       />
     );

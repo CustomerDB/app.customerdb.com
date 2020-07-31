@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useContext, useState, useEffect } from "react";
 
+import UserAuthContext from "../auth/UserAuthContext.js";
+import event from "../analytics/event.js";
 import Modal from "../shell/Modal.js";
 
 import Row from "react-bootstrap/Row";
@@ -12,6 +14,7 @@ import { XCircleFill } from "react-bootstrap-icons";
 import { nanoid } from "nanoid";
 
 export default function PersonEditModal(props) {
+  const { oauthClaims } = useContext(UserAuthContext);
   const [person, setPerson] = useState();
   const [name, setName] = useState();
   const [email, setEmail] = useState();
@@ -47,8 +50,6 @@ export default function PersonEditModal(props) {
       setLabels(person.labels || {});
 
       setPerson(person);
-
-      console.log("PersonEditModal :: useEffect");
     });
   }, [props.show, props.personRef]);
 
@@ -140,6 +141,11 @@ export default function PersonEditModal(props) {
         <Button
           key={person.ID}
           onClick={() => {
+            event("edit_person", {
+              orgID: oauthClaims.orgID,
+              userID: oauthClaims.user_id,
+            });
+
             if (name) person.name = name;
             if (email) person.email = email;
             if (company) person.company = company;

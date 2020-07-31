@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect } from "react";
 
+import UserAuthContext from "../auth/UserAuthContext.js";
 import FocusContext from "../util/FocusContext.js";
-
 import useFirestore from "../db/Firestore.js";
 
 import Modal from "../shell/Modal.js";
@@ -20,6 +20,7 @@ import { Loading } from "../util/Utils.js";
 import { ArrowsAngleExpand, ArrowsAngleContract } from "react-bootstrap-icons";
 
 export default function DatasetClusterTab(props) {
+  const { oauthClaims } = useContext(UserAuthContext);
   const focus = useContext(FocusContext);
   const [boardKey, setBoardKey] = useState();
 
@@ -131,6 +132,8 @@ export default function DatasetClusterTab(props) {
             </Button>
             <DatasetClusterBoard
               key={boardKey}
+              orgID={orgID}
+              userID={oauthClaims.user_id}
               tagID={tagID}
               documentsRef={datasetDocumentsRef}
               highlightsRef={highlightsRef}

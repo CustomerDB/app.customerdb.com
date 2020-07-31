@@ -51,7 +51,7 @@ export default function Dataset(props) {
 
       <Button
         style={{ marginRight: "1em" }}
-        key="data"
+        key="analysis"
         variant={tabID === "analysis" ? "primary" : "link"}
         onClick={() => {
           navigate(`/orgs/${orgID}/explore/${datasetID}/analysis`);
