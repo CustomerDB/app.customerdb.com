@@ -397,42 +397,14 @@ export default class DatasetClusterBoard extends React.Component {
       return Loading();
     }
 
-    let cardComponents = [];
-    let cardTitles = new Set();
     let cards = Object.values(this.state.cards);
     for (let i = 0; i < cards.length; i++) {
       let card = cards[i];
+      // TODO: Center in 10,000px x 10,000px virtual canvas.
       if (card.minX === 0 && card.maxX === 0) {
         card.minX = 0 + i * 20;
         card.minY = 50 + i * 20;
       }
-
-      let highlight = this.state.highlights[card.ID];
-
-      if (!highlight) continue;
-
-      cardTitles.add(highlight.documentID);
-
-      cardComponents.push(
-        <Card
-          key={card.ID}
-          card={card}
-          highlight={highlight}
-          document={this.state.documents[highlight.documentID]}
-          minX={card.minX}
-          minY={card.minY}
-          groupColor={card.groupColor}
-          textColor={card.textColor}
-          cardRef={this.props.cardsRef.doc(card.ID)}
-          modalCallBack={this.modalCallBack}
-          addLocationCallBack={this.addCardLocation}
-          removeLocationCallBack={this.removeCardLocation}
-          getIntersectingCardsCallBack={this.getIntersectingCards}
-          getIntersectingGroupsCallBack={this.getIntersectingGroups}
-          groupDataForCardCallback={this.groupDataForCard}
-          setCardDragging={this.setCardDragging}
-        />
-      );
     }
 
     let groupComponents = Object.values(this.state.groups).map((group) => {
@@ -447,7 +419,7 @@ export default class DatasetClusterBoard extends React.Component {
           group={group}
           cards={cards}
           renameGroupModalCallback={this.props.renameGroupModalCallback}
-          totalCardCount={cardTitles.size}
+          totalCardCount={this.state.documents.length}
           groupRef={groupRef}
           addGroupLocationCallback={this.addGroupLocation}
           removeGroupLocationCallback={this.removeGroupLocation}
@@ -469,30 +441,57 @@ export default class DatasetClusterBoard extends React.Component {
           disabled: this.state.cardDragging,
         }}
       >
-        <div
-          className="scrollContainer"
-          style={{ overflow: "hidden", background: "#e9e9e9" }}
-        >
-          <TransformComponent>
-            <div
-              style={{
-                minWidth: "3000px",
-                minHeight: "3000px",
-                background: "white",
-                boxShadow: "0 6px 6px rgba(0, 0, 0, 0.2)",
-              }}
-            >
-              {groupComponents}
-              {cardComponents}
-              {pointers}
-              <HighlightModal
-                show={this.state.modalShow}
-                data={this.state.modalData}
-                onHide={() => this.setState({ modalShow: false })}
-              />
-            </div>
-          </TransformComponent>
-        </div>
+        {({ zoomIn, zoomOut, resetTransform, scale }) => (
+          <div
+            className="scrollContainer"
+            style={{ overflow: "hidden", background: "#e9e9e9" }}
+          >
+            <TransformComponent>
+              <div
+                style={{
+                  minWidth: "3000px",
+                  minHeight: "3000px",
+                  background: "white",
+                  boxShadow: "0 6px 6px rgba(0, 0, 0, 0.2)",
+                }}
+              >
+                {groupComponents}
+                {cards.flatMap((card) => {
+                  let highlight = this.state.highlights[card.ID];
+                  if (!highlight) return [];
+
+                  return [
+                    <Card
+                      key={card.ID}
+                      scale={scale}
+                      card={card}
+                      highlight={highlight}
+                      document={this.state.documents[highlight.documentID]}
+                      minX={card.minX}
+                      minY={card.minY}
+                      groupColor={card.groupColor}
+                      textColor={card.textColor}
+                      cardRef={this.props.cardsRef.doc(card.ID)}
+                      modalCallBack={this.modalCallBack}
+                      addLocationCallBack={this.addCardLocation}
+                      removeLocationCallBack={this.removeCardLocation}
+                      getIntersectingCardsCallBack={this.getIntersectingCards}
+                      getIntersectingGroupsCallBack={this.getIntersectingGroups}
+                      groupDataForCardCallback={this.groupDataForCard}
+                      setCardDragging={this.setCardDragging}
+                    />,
+                  ];
+                })}
+                {pointers}
+                <HighlightModal
+                  show={this.state.modalShow}
+                  data={this.state.modalData}
+                  onHide={() => this.setState({ modalShow: false })}
+                />
+              </div>
+            </TransformComponent>
+          </div>
+        )}
       </TransformWrapper>
     );
   }

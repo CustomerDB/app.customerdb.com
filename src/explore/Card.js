@@ -190,7 +190,7 @@ export default class Card extends React.Component {
           handle=".handle"
           bounds="parent"
           position={position}
-          scale={1}
+          scale={this.props.scale}
           onStart={this.handleStart}
           onDrag={this.handleDrag}
           onStop={this.handleStop}
