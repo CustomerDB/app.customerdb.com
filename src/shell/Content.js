@@ -23,6 +23,14 @@ export default class Content extends React.Component {
     return <div>{props.children}</div>;
   }
 
+  static Content(props) {
+    return (
+      <Col className={`h-100 ${props.className ? props.className : ""}`} md={9}>
+        {props.children}
+      </Col>
+    );
+  }
+
   render() {
     const shouldExpand = this.context.focus;
     return (
