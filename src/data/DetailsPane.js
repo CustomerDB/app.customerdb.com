@@ -10,6 +10,7 @@ import Form from "react-bootstrap/Form";
 import Tabs from "../shell/Tabs.js";
 
 import { Loading } from "../util/Utils.js";
+import SearchDropdown from "../search/Dropdown.js";
 
 function Field(props) {
   return (
@@ -34,30 +35,20 @@ export default function DetailsPane(props) {
     highlightsRef,
   } = useFirestore();
 
-  const [people, setPeople] = useState();
+  const [person, setPerson] = useState();
   const [tagGroups, setTagGroups] = useState();
 
-  // TODO: Replace with search dropdown.
   useEffect(() => {
-    if (!peopleRef) {
+    if (!peopleRef || !props.document.personID) {
       return;
     }
 
-    return peopleRef
-      .where("deletionTimestamp", "==", "")
-      .orderBy("name")
-      .onSnapshot((snapshot) => {
-        let newPeople = [];
-
-        snapshot.forEach((doc) => {
-          let data = doc.data();
-          data.ID = doc.id;
-          newPeople.push(data);
-        });
-
-        setPeople(newPeople);
-      });
-  }, [peopleRef]);
+    return peopleRef.doc(props.document.personID).onSnapshot((doc) => {
+      let data = doc.data();
+      data.ID = doc.id;
+      setPerson(data);
+    });
+  }, [peopleRef, props.document.personID]);
 
   useEffect(() => {
     if (!tagGroupsRef) {
@@ -164,7 +155,7 @@ export default function DetailsPane(props) {
     }
   };
 
-  if (!people || !tagGroups) {
+  if (!tagGroups) {
     return <Loading />;
   }
 
@@ -172,7 +163,7 @@ export default function DetailsPane(props) {
     <Tabs.Content>
       <Field name="Created by">{props.document.createdBy}</Field>
       <Field name="Link to customer">
-        <Form.Control
+        {/* <Form.Control
           as="select"
           onChange={onPersonChange}
           value={props.document.personID}
@@ -187,7 +178,19 @@ export default function DetailsPane(props) {
               </option>
             );
           })}
-        </Form.Control>
+        </Form.Control> */}
+        <SearchDropdown
+          index="prod_PEOPLE"
+          default={person ? person.name : ""}
+          onChange={(ID, name) => {
+            documentRef.set(
+              {
+                personID: ID,
+              },
+              { merge: true }
+            );
+          }}
+        />
       </Field>
       <Field name="Tag group">
         <Form.Control
