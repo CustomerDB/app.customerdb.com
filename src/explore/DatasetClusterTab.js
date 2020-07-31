@@ -109,12 +109,14 @@ export default function DatasetClusterTab(props) {
               variant="link"
               title="Toggle expand"
               style={{
-                position: "absolute",
-                top: "-3rem",
-                right: 0,
-                zIndex: 150,
-                background: "#eee",
+                color: "black",
+                background: "#ddf",
+                border: "0",
                 borderRadius: "0.25rem",
+                position: "absolute",
+                top: "-2rem",
+                right: "0.25rem",
+                zIndex: 200,
                 opacity: 0.8,
               }}
               onClick={() => {
