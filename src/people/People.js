@@ -32,7 +32,6 @@ export default function People(props) {
   const { personID, orgID } = useParams();
 
   const [peopleList, setPeopleList] = useState();
-  const [peopleMap, setPeopleMap] = useState();
   const [addModalShow, setAddModalShow] = useState();
   const [newPersonRef, setNewPersonRef] = useState();
   const [listLimit, setListLimit] = useState(batchSize);
@@ -48,28 +47,21 @@ export default function People(props) {
       .orderBy("creationTimestamp", "desc")
       .onSnapshot((snapshot) => {
         let newPeopleList = [];
-        let newPeopleMap = {};
 
         snapshot.forEach((doc) => {
           let data = doc.data();
           data.ID = doc.id;
           newPeopleList.push(data);
-          newPeopleMap[data.ID] = data;
         });
 
         setPeopleList(newPeopleList);
-        setPeopleMap(newPeopleMap);
         setListTotal(snapshot.size);
       });
     return unsubscribe;
   }, [peopleRef]);
 
-  if (!peopleList || !peopleMap) {
+  if (!peopleList) {
     return <Loading />;
-  }
-
-  if (personID && !(personID in peopleMap)) {
-    navigate("/404");
   }
 
   const options = (personID) => {
@@ -95,10 +87,8 @@ export default function People(props) {
   };
 
   let content;
-  if (personID && peopleMap[personID]) {
-    content = (
-      <Person key={personID} person={peopleMap[personID]} options={options} />
-    );
+  if (personID) {
+    content = <Person key={personID} options={options} />;
   } else if (listTotal > 0) {
     content = <PersonHelp />;
   }
