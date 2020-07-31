@@ -32,6 +32,9 @@ export default class Card extends React.Component {
 
     boundingBox.x = x;
     boundingBox.y = y;
+    boundingBox.width = boundingBox.width / this.props.scale;
+    boundingBox.height = boundingBox.height / this.props.scale;
+
     return bboxToRect(boundingBox);
   }
 
@@ -51,8 +54,6 @@ export default class Card extends React.Component {
 
   handleDrag(e) {
     let rect = this.getRect();
-
-    console.log("drag ", rect);
 
     let cardGroupIDs = new Set();
     let cardGroupColor = "#000";
@@ -164,6 +165,15 @@ export default class Card extends React.Component {
       x: this.props.minX,
       y: this.props.minY,
     };
+
+    // let debug = <div style={{
+    //   position: "absolute",
+    //   left: this.props.card.minX,
+    //   top: this.props.card.minY,
+    //   width: this.props.card.maxX - this.props.card.minX,
+    //   height: this.props.card.maxY - this.props.card.minY,
+    //   border: "1px solid red"
+    // }}>{}</div>;
 
     let groupPreview =
       this.state.previewCircle === undefined ? (

@@ -412,6 +412,7 @@ export default class DatasetClusterBoard extends React.Component {
         return card.groupID === group.ID;
       });
       let groupRef = this.props.groupsRef.doc(group.ID);
+
       return (
         <Group
           key={group.ID}
@@ -459,7 +460,6 @@ export default class DatasetClusterBoard extends React.Component {
                 {cards.flatMap((card) => {
                   let highlight = this.state.highlights[card.ID];
                   if (!highlight) return [];
-
                   return [
                     <Card
                       key={card.ID}
