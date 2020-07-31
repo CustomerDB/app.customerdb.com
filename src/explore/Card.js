@@ -26,12 +26,15 @@ export default class Card extends React.Component {
 
   getRect() {
     let translateCSS = this.ref.current.style.transform;
-    const [x, y] = translateCSS.match(/(\d+)/g);
+    const [x, y] = translateCSS.match(/(\d+(\.\d+)?)/g);
 
     let boundingBox = this.ref.current.getBoundingClientRect();
 
     boundingBox.x = x;
     boundingBox.y = y;
+    boundingBox.width = boundingBox.width / this.props.scale;
+    boundingBox.height = boundingBox.height / this.props.scale;
+
     return bboxToRect(boundingBox);
   }
 
@@ -44,10 +47,8 @@ export default class Card extends React.Component {
   }
 
   handleStart(e) {
+    this.props.setCardDragging(true);
     this.setState({ zIndex: 100 });
-
-    console.log("handleStart rect", this.rect);
-
     this.props.removeLocationCallBack(this.props.card);
   }
 
@@ -138,8 +139,8 @@ export default class Card extends React.Component {
       previewCircle: undefined,
       previewColor: undefined,
     });
-
     this.cardRef.set(this.props.card);
+    this.props.setCardDragging(false);
   }
 
   showModal() {
@@ -162,6 +163,15 @@ export default class Card extends React.Component {
       x: this.props.minX,
       y: this.props.minY,
     };
+
+    // let debug = <div style={{
+    //   position: "absolute",
+    //   left: this.props.card.minX,
+    //   top: this.props.card.minY,
+    //   width: this.props.card.maxX - this.props.card.minX,
+    //   height: this.props.card.maxY - this.props.card.minY,
+    //   border: "1px solid red"
+    // }}>{}</div>;
 
     let groupPreview =
       this.state.previewCircle === undefined ? (
@@ -190,7 +200,7 @@ export default class Card extends React.Component {
           handle=".handle"
           bounds="parent"
           position={position}
-          scale={1}
+          scale={this.props.scale}
           onStart={this.handleStart}
           onDrag={this.handleDrag}
           onStop={this.handleStop}

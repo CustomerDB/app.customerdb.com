@@ -95,11 +95,40 @@ export default function DatasetClusterTab(props) {
     setShowRenameGroupModal(true);
   };
 
+  let arrows = <ArrowsAngleExpand />;
+  if (focus.focus === "cluster") {
+    arrows = <ArrowsAngleContract />;
+  }
+
   return (
     <>
-      <Container className="p-3 fullHeight" fluid>
-        <Row className="fullHeight">
+      <Container className="p-3 h-100" fluid>
+        <Row className="h-100">
           <Col>
+            <Button
+              variant="link"
+              title="Toggle expand"
+              style={{
+                color: "black",
+                background: "#ddf",
+                border: "0",
+                borderRadius: "0.25rem",
+                position: "absolute",
+                top: "-2rem",
+                right: "0.25rem",
+                zIndex: 200,
+                opacity: 0.8,
+              }}
+              onClick={() => {
+                if (focus.focus === "cluster") {
+                  focus.setFocus();
+                  return;
+                }
+                focus.setFocus("cluster");
+              }}
+            >
+              {arrows}
+            </Button>
             <DatasetClusterBoard
               key={boardKey}
               tagID={tagID}
@@ -110,23 +139,6 @@ export default function DatasetClusterTab(props) {
               activeUsersRef={activeUsersRef}
               renameGroupModalCallback={renameGroupModalCallback}
             />
-            <Button
-              variant="link"
-              style={{ position: "absolute", right: 0 }}
-              onClick={() => {
-                if (focus.focus === "cluster") {
-                  focus.setFocus();
-                  return;
-                }
-                focus.setFocus("cluster");
-              }}
-            >
-              {focus.focus === "cluster" ? (
-                <ArrowsAngleContract />
-              ) : (
-                <ArrowsAngleExpand />
-              )}
-            </Button>
           </Col>
         </Row>
       </Container>

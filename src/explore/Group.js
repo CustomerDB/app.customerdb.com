@@ -139,6 +139,14 @@ export default class Group extends React.Component {
 
     let border = `2px ${color} solid`;
 
+    // let debug = <div style={{
+    //   position: "absolute",
+    //   left: rect.minX,
+    //   top: rect.minY,
+    //   width: rect.maxX - rect.minX,
+    //   height: rect.maxY - rect.minY,
+    //   border: "1px solid red"}}>{ }</div>;
+
     return (
       <>
         <div

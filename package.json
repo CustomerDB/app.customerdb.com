@@ -34,6 +34,7 @@
     "react-router-dom": "^6.0.0-beta.0",
     "react-scripts": "3.4.1",
     "react-virtualized": "^9.21.2",
+    "react-zoom-pan-pinch": "^1.6.1",
     "uuid": "^8.1.0",
     "uuidv4": "^6.1.1"
   },

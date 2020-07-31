@@ -2,11 +2,17 @@ import React from "react";
 import RBush from "rbush";
 import { nanoid } from "nanoid";
 
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
+
 import Card from "./Card.js";
 import Group from "./Group.js";
 import HighlightModal from "./HighlightModal.js";
 import colorPair from "../util/color.js";
 import { Loading } from "../util/Utils.js";
+
+import Button from "react-bootstrap/Button";
+
+import { AspectRatio, ZoomIn, ZoomOut } from "react-bootstrap-icons";
 
 export default class DatasetClusterBoard extends React.Component {
   constructor(props) {
@@ -17,6 +23,8 @@ export default class DatasetClusterBoard extends React.Component {
       loadedHighlights: false,
       loadedCards: false,
       loadedGroups: false,
+
+      cardDragging: false,
 
       modalShow: false,
       modalData: undefined,
@@ -36,6 +44,8 @@ export default class DatasetClusterBoard extends React.Component {
     this.subscribeToDocuments = this.subscribeToDocuments.bind(this);
     this.subscribeToHighlights = this.subscribeToHighlights.bind(this);
 
+    this.setCardDragging = this.setCardDragging.bind(this);
+
     this.addCardLocation = this.addCardLocation.bind(this);
     this.removeCardLocation = this.removeCardLocation.bind(this);
     this.addGroupLocation = this.addGroupLocation.bind(this);
@@ -51,6 +61,10 @@ export default class DatasetClusterBoard extends React.Component {
     this.modalCallBack = this.modalCallBack.bind(this);
 
     this.groupDataForCard = this.groupDataForCard.bind(this);
+  }
+
+  setCardDragging(isCardDragging) {
+    this.setState({ cardDragging: isCardDragging });
   }
 
   componentDidMount() {
@@ -375,6 +389,10 @@ export default class DatasetClusterBoard extends React.Component {
   }
 
   render() {
+    // Use 4:3 aspect ratio
+    const CANVAS_WIDTH = 12000;
+    const CANVAS_HEIGHT = 8000;
+
     if (
       !this.state.loadedDocuments ||
       !this.state.loadedHighlights ||
@@ -387,48 +405,58 @@ export default class DatasetClusterBoard extends React.Component {
       return Loading();
     }
 
-    let cardComponents = [];
-    let cardTitles = new Set();
+    const pxPerRem = 16;
+    const cardWidthRems = 16;
+    const cardHeightRems = 9;
+    const cardSpaceRems = 2;
+    const cardWidthPx = cardWidthRems * pxPerRem;
+    const cardHeightPx = cardHeightRems * pxPerRem;
+    const cardSpacePx = cardSpaceRems * pxPerRem;
+    const cardLayoutWidthPx = cardSpacePx + cardWidthPx;
+    const cardLayoutHeightPx = cardSpacePx + cardHeightPx;
+
     let cards = Object.values(this.state.cards);
-    for (let i = 0; i < cards.length; i++) {
-      let card = cards[i];
+
+    // lay out cards in diagonal grid order, like so:
+    //
+    // [0] [1] [3] [6] ...
+    //
+    // [2] [4] [7] ...
+    //
+    // [5] [8] ...
+    //
+    // [9] ...
+    //
+    // ...
+
+    // Coordinates in the layout grid, as shown above
+    let x = 0;
+    let y = 0;
+    let nextRowX = 1;
+
+    cards.forEach((card) => {
       if (card.minX === 0 && card.maxX === 0) {
-        card.minX = 0 + i * 20;
-        card.minY = 50 + i * 20;
+        card.minX = x * cardLayoutWidthPx;
+        card.minY = y * cardLayoutHeightPx;
       }
 
-      let highlight = this.state.highlights[card.ID];
+      if (x === 0) {
+        x = nextRowX;
+        y = 0;
+        nextRowX++;
+        return;
+      }
 
-      if (!highlight) continue;
-
-      cardTitles.add(highlight.documentID);
-
-      cardComponents.push(
-        <Card
-          key={card.ID}
-          card={card}
-          highlight={highlight}
-          document={this.state.documents[highlight.documentID]}
-          minX={card.minX}
-          minY={card.minY}
-          groupColor={card.groupColor}
-          textColor={card.textColor}
-          cardRef={this.props.cardsRef.doc(card.ID)}
-          modalCallBack={this.modalCallBack}
-          addLocationCallBack={this.addCardLocation}
-          removeLocationCallBack={this.removeCardLocation}
-          getIntersectingCardsCallBack={this.getIntersectingCards}
-          getIntersectingGroupsCallBack={this.getIntersectingGroups}
-          groupDataForCardCallback={this.groupDataForCard}
-        />
-      );
-    }
+      x--;
+      y++;
+    });
 
     let groupComponents = Object.values(this.state.groups).map((group) => {
       let cards = Object.values(this.state.cards).filter((card) => {
         return card.groupID === group.ID;
       });
       let groupRef = this.props.groupsRef.doc(group.ID);
+
       return (
         <Group
           key={group.ID}
@@ -436,7 +464,7 @@ export default class DatasetClusterBoard extends React.Component {
           group={group}
           cards={cards}
           renameGroupModalCallback={this.props.renameGroupModalCallback}
-          totalCardCount={cardTitles.size}
+          totalCardCount={Object.values(this.state.documents).length}
           groupRef={groupRef}
           addGroupLocationCallback={this.addGroupLocation}
           removeGroupLocationCallback={this.removeGroupLocation}
@@ -448,16 +476,124 @@ export default class DatasetClusterBoard extends React.Component {
     // pointers = <Pointers activeUsersRef={this.props.activeUsersRef} />;
 
     return (
-      <>
-        {groupComponents}
-        {cardComponents}
-        {pointers}
-        <HighlightModal
-          show={this.state.modalShow}
-          data={this.state.modalData}
-          onHide={() => this.setState({ modalShow: false })}
-        />
-      </>
+      <TransformWrapper
+        options={{
+          minScale: 0.5,
+          maxScale: 2,
+          limitToBounds: false,
+          limitToWrapper: false,
+          centerContent: false,
+          disabled: this.state.cardDragging,
+          zoomIn: {
+            step: 10,
+          },
+          zoomOut: {
+            step: 10,
+          },
+        }}
+      >
+        {({ zoomIn, zoomOut, resetTransform, scale }) => (
+          <>
+            <Button
+              onClick={zoomIn}
+              style={{
+                color: "#000",
+                background: "#ddf",
+                border: "0",
+                borderRadius: "0.25rem",
+                position: "absolute",
+                top: 0,
+                right: "0.25rem",
+                zIndex: 200,
+              }}
+            >
+              <ZoomIn />
+            </Button>
+            <Button
+              onClick={zoomOut}
+              style={{
+                color: "black",
+                background: "#ddf",
+                border: "0",
+                borderRadius: "0.25rem",
+                position: "absolute",
+                top: "2rem",
+                right: "0.25rem",
+                opacity: 0.8,
+                zIndex: 200,
+              }}
+            >
+              <ZoomOut />
+            </Button>
+            <Button
+              onClick={resetTransform}
+              style={{
+                color: "black",
+                background: "#ddf",
+                border: "0",
+                borderRadius: "0.25rem",
+                position: "absolute",
+                top: "4rem",
+                right: "0.25rem",
+                opacity: 0.8,
+                zIndex: 200,
+              }}
+            >
+              <AspectRatio />
+            </Button>
+            <div
+              className="scrollContainer"
+              style={{ overflow: "hidden", background: "#e9e9e9" }}
+            >
+              <TransformComponent>
+                <div
+                  style={{
+                    width: `${CANVAS_WIDTH}px`,
+                    height: `${CANVAS_HEIGHT}px`,
+                    background: "white",
+                    boxShadow: "0 6px 6px rgba(0, 0, 0, 0.2)",
+                  }}
+                >
+                  {groupComponents}
+                  {cards.flatMap((card) => {
+                    let highlight = this.state.highlights[card.ID];
+                    if (!highlight) return [];
+                    return [
+                      <Card
+                        key={card.ID}
+                        scale={scale}
+                        card={card}
+                        highlight={highlight}
+                        document={this.state.documents[highlight.documentID]}
+                        minX={card.minX}
+                        minY={card.minY}
+                        groupColor={card.groupColor}
+                        textColor={card.textColor}
+                        cardRef={this.props.cardsRef.doc(card.ID)}
+                        modalCallBack={this.modalCallBack}
+                        addLocationCallBack={this.addCardLocation}
+                        removeLocationCallBack={this.removeCardLocation}
+                        getIntersectingCardsCallBack={this.getIntersectingCards}
+                        getIntersectingGroupsCallBack={
+                          this.getIntersectingGroups
+                        }
+                        groupDataForCardCallback={this.groupDataForCard}
+                        setCardDragging={this.setCardDragging}
+                      />,
+                    ];
+                  })}
+                  {pointers}
+                  <HighlightModal
+                    show={this.state.modalShow}
+                    data={this.state.modalData}
+                    onHide={() => this.setState({ modalShow: false })}
+                  />
+                </div>
+              </TransformComponent>
+            </div>
+          </>
+        )}
+      </TransformWrapper>
     );
   }
 }
