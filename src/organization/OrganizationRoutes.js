@@ -5,8 +5,6 @@ import Data from "../data/Data.js";
 import Explore from "../explore/Explore.js";
 import Settings from "../settings/Settings.js";
 
-import ExampleGridSelector from "../search/ExampleGridSelector.js";
-
 import { Routes, Route, Outlet, Navigate } from "react-router-dom";
 
 export default function OrganizationRoutes(props) {
@@ -35,8 +33,6 @@ export default function OrganizationRoutes(props) {
         </Route>
 
         <Route path="settings/*" element={<Settings />} />
-
-        <Route path="debug" element={<ExampleGridSelector />} />
 
         <Route path="*" element={<Navigate to="/404" />} />
       </Routes>
