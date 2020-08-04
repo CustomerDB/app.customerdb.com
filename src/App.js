@@ -1,6 +1,8 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 
+import "./util/firebaseConfig.js";
+
 import WithOauthUser from "./auth/WithOauthUser.js";
 import Login from "./auth/Login.js";
 import Logout from "./auth/Logout.js";
