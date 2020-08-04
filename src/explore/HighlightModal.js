@@ -2,7 +2,11 @@ import React from "react";
 import Modal from "react-bootstrap/Modal";
 import Button from "react-bootstrap/Button";
 
+import { Link, useParams } from "react-router-dom";
+
 export default function HighlightModal(props) {
+  const { orgID } = useParams();
+
   if (props.data === undefined) {
     return <></>;
   }
@@ -16,7 +20,9 @@ export default function HighlightModal(props) {
     >
       <Modal.Header closeButton>
         <Modal.Title id="contained-modal-title-vcenter">
-          {props.data.document.name}
+          <Link to={`/orgs/${orgID}/data/${props.data.card.documentID}`}>
+            <small>{props.data.document.name}</small>
+          </Link>
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>

@@ -215,7 +215,7 @@ export default class Card extends React.Component {
                 color: titleBarTextColor,
               }}
             >
-              {this.props.document.name}
+              <small>{this.props.document.name}</small>
             </div>
             <div className="quote" onClick={this.showModal}>
               {this.props.highlight.text}
