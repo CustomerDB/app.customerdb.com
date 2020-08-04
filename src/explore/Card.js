@@ -39,7 +39,9 @@ export default class Card extends React.Component {
   }
 
   componentDidMount() {
-    this.props.addLocationCallBack(this.props.card);
+    this.rect = this.getRect();
+    Object.assign(this.props.card, this.rect);
+    this.cardRef.set(this.props.card);
   }
 
   componentWillUnmount() {
@@ -213,7 +215,7 @@ export default class Card extends React.Component {
                 color: titleBarTextColor,
               }}
             >
-              {this.props.document.name}
+              <small>{this.props.document.name}</small>
             </div>
             <div className="quote" onClick={this.showModal}>
               {this.props.highlight.text}
