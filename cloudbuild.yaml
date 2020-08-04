@@ -1,0 +1,13 @@
+steps:
+- name: 'gcr.io/$PROJECT_ID/firebase'
+  args: ['/usr/local/bin/yarn']
+- name: 'gcr.io/$PROJECT_ID/firebase'
+  args: ['/usr/local/bin/yarn', 'build']
+- name: 'gcr.io/$PROJECT_ID/firebase'
+  args: ['/usr/local/bin/npm', '--prefix=/workspace/functions', 'install']
+- name: 'gcr.io/$PROJECT_ID/firebase'
+  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID']
+  env:
+  - 'BUILD=$BUILD_ID'
+  - 'PROJECT=$PROJECT_ID'
+  - 'REV=$REVISION_ID'
