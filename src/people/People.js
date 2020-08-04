@@ -108,7 +108,7 @@ export default function People(props) {
     <Page>
       <List>
         <List.Search
-          index="prod_PEOPLE"
+          index={process.env.REACT_APP_ALGOLIA_PEOPLE_INDEX}
           path={(ID) => `/orgs/${orgID}/people/${ID}`}
         >
           <List.SearchBox placeholder="Search in people..." />

@@ -264,8 +264,8 @@ const ALGOLIA_ID = functions.config().algolia.app_id;
 const ALGOLIA_ADMIN_KEY = functions.config().algolia.api_key;
 const ALGOLIA_SEARCH_KEY = functions.config().algolia.search_key;
 
-const ALGOLIA_PEOPLE_INDEX_NAME = "prod_PEOPLE";
-const ALGOLIA_DOCUMENTS_INDEX_NAME = "prod_DOCUMENTS";
+const ALGOLIA_PEOPLE_INDEX_NAME = functions.config().algolia.people_index;
+const ALGOLIA_DOCUMENTS_INDEX_NAME = functions.config().algolia.documents_index;
 
 const client = algoliasearch(ALGOLIA_ID, ALGOLIA_ADMIN_KEY);
 
@@ -529,7 +529,16 @@ exports.emailInviteJob = functions.pubsub
                             "utf8"
                           );
 
+                          mailHtml = mailHtml.replace(
+                            "{{baseURL}}",
+                            functions.config().invite_email.base_url
+                          );
                           mailHtml = mailHtml.replace("{{orgID}}", orgID);
+
+                          mailTxt = mailTxt.replace(
+                            "{{baseURL}}",
+                            functions.config().invite_email.base_url
+                          );
                           mailTxt = mailTxt.replace("{{orgID}}", orgID);
 
                           sgMail.setApiKey(functions.config().sendgrid.api_key);

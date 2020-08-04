@@ -192,7 +192,7 @@ export default function Data(props) {
     <Page>
       <List>
         <List.Search
-          index="prod_DOCUMENTS"
+          index={process.env.REACT_APP_ALGOLIA_DOCUMENTS_INDEX}
           path={(ID) => `/orgs/${orgID}/data/${ID}`}
         >
           <List.SearchBox placeholder="Search in data..." />
