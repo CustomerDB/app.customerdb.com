@@ -20,7 +20,4 @@ $ make local
 
 ## Deployment
 
-### Deploy to app.customerdb.com
-```
-$ make deploy
-```
+File a PR against the `production` branch and Google Cloud Build will deploy to the live site.
