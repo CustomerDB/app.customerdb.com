@@ -1,13 +1,13 @@
 .PHONY: deploy
 
-FIREBASE_PROJECT=customerdb-production
-FIREBASE_CREDENTIALS_FILE="$(HOME)/.quantap/customerdb-production-secret.json"
+FIREBASE_PROJECT=customerdb-staging
+FIREBASE_CREDENTIALS_FILE="$(HOME)/.quantap/customerdb-staging-secret.json"
 
-# Requires `gcloud config set project customerdb-production`
+# Requires `gcloud config set project customerdb-staging`
 credentials:
 	gcloud iam service-accounts keys create \
 		$(FIREBASE_CREDENTIALS_FILE) \
-		--iam-account=customerdb-production@appspot.gserviceaccount.com
+		--iam-account=customerdb-staging@appspot.gserviceaccount.com
 
 deploy:
 	yarn build
@@ -20,7 +20,7 @@ deploy-functions:
 
 local:
 	GOOGLE_APPLICATION_CREDENTIALS=$(FIREBASE_CREDENTIALS_FILE) \
-		firebase emulators:exec --only functions,firestore,ui "yarn start"
+		firebase emulators:exec --project=customerdb-staging --only functions,firestore,ui "yarn start"
 
 apply-format:
 	yarn prettier --write src/

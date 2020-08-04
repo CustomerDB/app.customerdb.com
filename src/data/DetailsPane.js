@@ -159,7 +159,7 @@ export default function DetailsPane(props) {
       <Field name="Created by">{props.document.createdBy}</Field>
       <Field name="Link to customer">
         <SearchDropdown
-          index="prod_PEOPLE"
+          index={process.env.REACT_APP_ALGOLIA_PEOPLE_INDEX}
           default={person ? person.name : ""}
           onChange={(ID, name) => {
             event("link_data_to_person", {

@@ -1,0 +1,24 @@
+steps:
+- name: 'gcr.io/$PROJECT_ID/firebase'
+  args: ['/usr/local/bin/yarn']
+- name: 'gcr.io/$PROJECT_ID/firebase'
+  args: ['/usr/local/bin/yarn', 'build']
+  env:
+  - 'REACT_APP_FIREBASE_API_KEY=$_FIREBASE_API_KEY'
+  - 'REACT_APP_FIREBASE_AUTH_DOMAIN=$_FIREBASE_AUTH_DOMAIN'
+  - 'REACT_APP_FIREBASE_DATABASE_URL=$_FIREBASE_DATABASE_URL'
+  - 'REACT_APP_FIREBASE_PROJECT_ID=$_FIREBASE_PROJECT_ID'
+  - 'REACT_APP_FIREBASE_STORAGE_BUCKET=$_FIREBASE_STORAGE_BUCKET'
+  - 'REACT_APP_FIREBASE_MESSAGING_SENDER_ID=$_FIREBASE_MESSAGING_SENDER_ID'
+  - 'REACT_APP_FIREBASE_APP_ID=$_FIREBASE_APP_ID'
+  - 'REACT_APP_FIREBASE_MEASUREMENT_ID=$_FIREBASE_MEASUREMENT_ID'
+  - 'REACT_APP_ALGOLIA_PEOPLE_INDEX=$_ALGOLIA_PEOPLE_INDEX'
+  - 'REACT_APP_ALGOLIA_DOCUMENTS_INDEX=$_ALGOLIA_DOCUMENTS_INDEX'
+- name: 'gcr.io/$PROJECT_ID/firebase'
+  args: ['/usr/local/bin/npm', '--prefix=/workspace/functions', 'install']
+- name: 'gcr.io/$PROJECT_ID/firebase'
+  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID']
+  env:
+  - 'BUILD=$BUILD_ID'
+  - 'PROJECT=$PROJECT_ID'
+  - 'REV=$REVISION_ID'
