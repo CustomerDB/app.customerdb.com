@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext } from "react";
 
 import UserAuthContext from "../auth/UserAuthContext.js";
 
@@ -12,7 +12,6 @@ import {
   InstantSearch,
   connectHits,
   connectSearchBox,
-  RefinementList,
 } from "react-instantsearch-dom";
 
 import { getSearchClient } from "./client.js";
@@ -57,16 +56,16 @@ function Item(props) {
   }
 
   return (
-    <Col md={4}>
+    <Col md={4} key={props.ID}>
       <Row
+        key={props.ID}
         noGutters={true}
-        className="h-100"
         className={classes.join(" ")}
         onClick={() => {
           props.onClick(props.ID, props.name);
         }}
       >
-        <Col className="align-self-center" ms={7} md={7} lg={9}>
+        <Col key={props.ID} className="align-self-center" ms={7} md={7} lg={9}>
           <p className="ListItemName">{props.name}</p>
         </Col>
       </Row>
@@ -98,14 +97,15 @@ export default function GridSelector(props) {
   const CustomHits = connectHits((result) => {
     return result.hits.map((hit) => {
       if (props.selectedIDs && props.selectedIDs.includes(hit.objectID)) {
-        return <></>;
+        return <React.Fragment key={hit.objectID} />;
       }
 
       let inactive =
-        props.selectedIDs && props.selectedIDs.length == props.itemLimit;
+        props.selectedIDs && props.selectedIDs.length === props.itemLimit;
 
       return (
         <Item
+          key={hit.objectID}
           ID={hit.objectID}
           inactive={inactive}
           name={hit.name}
@@ -122,16 +122,17 @@ export default function GridSelector(props) {
       searchState={searchState}
       onSearchStateChange={(st) => setSearchState(st)}
     >
-      <Row>
+      <Row key="searchInput">
         <Col className="mb-3" md={12}>
           <CustomSearchBox placeholder={props.placeholder} />
         </Col>
         <Col></Col>
       </Row>
-      <Row className="d-flex">
+      <Row className="d-flex" key="searchResults">
         {props.documents ? (
           props.documents.map((document) => (
             <Item
+              key={document.ID}
               active={true}
               ID={document.ID}
               name={document.name}

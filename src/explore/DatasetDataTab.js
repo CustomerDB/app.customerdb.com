@@ -20,7 +20,7 @@ export default function DatasetDataTab(props) {
       return;
     }
 
-    if (props.dataset.documentIDs.length == 0) {
+    if (props.dataset.documentIDs.length === 0) {
       return;
     }
 
@@ -61,7 +61,7 @@ export default function DatasetDataTab(props) {
       newDocumentIDs.push(documentID);
     }
 
-    if (newDocumentIDs.length == 0) {
+    if (newDocumentIDs.length === 0) {
       setDocuments([]);
       datasetRef.set(
         {
@@ -116,7 +116,7 @@ export default function DatasetDataTab(props) {
           <Col>
             <Container className="roundedBorders p-3 ">
               <GridSelector
-                index="staging_DOCUMENTS"
+                index={process.env.REACT_APP_ALGOLIA_DOCUMENTS_INDEX}
                 documents={documents}
                 selectedIDs={props.dataset.documentIDs}
                 onItemClick={onClick}
