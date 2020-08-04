@@ -1,5 +1,7 @@
 # CustomerDB
 
+Voice of Customer tool for Product Teams
+
 ## Development
 
 ### install service account keys
