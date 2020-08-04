@@ -39,8 +39,6 @@ export default function DatasetDataTab(props) {
           newDocuments.push(data);
         });
 
-        console.log("newDocuments", newDocuments);
-
         setDocuments(newDocuments);
       });
 
