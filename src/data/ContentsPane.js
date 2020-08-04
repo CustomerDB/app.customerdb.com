@@ -9,7 +9,7 @@ import Delta from "quill-delta";
 import Quill from "quill";
 import { nanoid } from "nanoid";
 
-import { useParams, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 import "react-quill/dist/quill.bubble.css";
 
@@ -59,13 +59,7 @@ export default function ContentsPane(props) {
   const { oauthClaims } = useContext(UserAuthContext);
   const { orgID } = useParams();
 
-  const {
-    tagGroupsRef,
-    documentRef,
-    highlightsRef,
-    deltasRef,
-    peopleRef,
-  } = useFirestore();
+  const { documentRef, highlightsRef, deltasRef } = useFirestore();
 
   const [editorID] = useState(nanoid());
 

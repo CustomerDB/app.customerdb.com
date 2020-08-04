@@ -5,7 +5,6 @@ import useFirestore from "../db/Firestore.js";
 import { useNavigate } from "react-router-dom";
 
 import DocumentDeleted from "./DocumentDeleted.js";
-import DetailsPane from "./DetailsPane.js";
 import ContentsPane from "./ContentsPane.js";
 
 import { Loading } from "../util/Utils.js";
@@ -51,12 +50,9 @@ export default function Document(props) {
         <Content.Name>{document.name}</Content.Name>
         <Content.Options>{props.options(document)}</Content.Options>
       </Content.Title>
-      <Tabs default="Content">
-        <Tabs.Pane name="Content">
+      <Tabs>
+        <Tabs.Pane>
           <ContentsPane document={document} />
-        </Tabs.Pane>
-        <Tabs.Pane name="Details">
-          <DetailsPane document={document} />
         </Tabs.Pane>
       </Tabs>
     </Content>
