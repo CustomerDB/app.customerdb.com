@@ -75,8 +75,25 @@ export default class DatasetClusterBoard extends React.Component {
           let newCards = {};
 
           querySnapshot.forEach((doc) => {
-            let data = doc.data();
-            newCards[doc.id] = data;
+            let newCard = doc.data();
+
+            if (doc.id in this.state.cards) {
+              let oldCard = this.state.cards[doc.id];
+              if (
+                oldCard.minX ||
+                oldCard.minY ||
+                oldCard.maxX ||
+                oldCard.maxY
+              ) {
+                this.removeCardLocation(oldCard);
+              }
+            }
+
+            if (newCard.minX || newCard.minY || newCard.maxX || newCard.maxY) {
+              this.addCardLocation(newCard);
+            }
+
+            newCards[doc.id] = newCard;
           });
 
           this.setState({
