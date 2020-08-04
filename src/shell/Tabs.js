@@ -52,17 +52,21 @@ export default class Tabs extends React.Component {
       children = [children];
     }
 
-    let buttons = children.map((child) => (
-      <Button
-        key={child.props.name}
-        variant={child.props.name === this.state.key ? "primary" : "link"}
-        onClick={() => {
-          this.setState({ key: child.props.name });
-        }}
-      >
-        {child.props.name}
-      </Button>
-    ));
+    let buttons = undefined;
+
+    if (children.length > 1) {
+      buttons = children.map((child) => (
+        <Button
+          key={child.props.name}
+          variant={child.props.name === this.state.key ? "primary" : "link"}
+          onClick={() => {
+            this.setState({ key: child.props.name });
+          }}
+        >
+          {child.props.name}
+        </Button>
+      ));
+    }
 
     let page = children.filter((child) => child.props.name === this.state.key);
 

@@ -75,9 +75,10 @@ export default function SearchDropdown(props) {
   }
 
   const CustomHits = connectHits((result) => {
-    console.log("Recieved search results ", result.hits.length);
+    console.debug("Recieved search results ", result.hits.length);
     return result.hits.map((hit) => (
       <p
+        key={hit.objectID}
         onClick={() => {
           setSearchState({ query: hit.name });
           setShow(false);
