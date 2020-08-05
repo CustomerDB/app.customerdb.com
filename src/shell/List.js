@@ -16,6 +16,8 @@ import { getSearchClient } from "../search/client.js";
 
 import { Loading } from "../util/Utils.js";
 
+import Scrollable from "../shell/Scrollable.js";
+
 import { InstantSearch, SearchBox, connectHits } from "react-instantsearch-dom";
 
 import "../search/style.css";
@@ -68,7 +70,13 @@ export default class List extends React.Component {
 
         if (child.type === List.Items) {
           console.log("Rerender custom hits");
-          children[i] = <CustomHits />;
+          children[i] = (
+            <List.Items>
+              <Scrollable>
+                <CustomHits />
+              </Scrollable>
+            </List.Items>
+          );
           break;
         }
       }
