@@ -1,5 +1,9 @@
 steps:
 - name: 'gcr.io/$PROJECT_ID/firebase'
+  args: ['/bin/sh', './scripts/slack.sh', 'Starting deployment']
+  env:
+  - 'SLACK_WEB_HOOK=$_SLACK_WEB_HOOK'
+- name: 'gcr.io/$PROJECT_ID/firebase'
   args: ['/usr/local/bin/yarn']
 - name: 'gcr.io/$PROJECT_ID/firebase'
   args: ['/usr/local/bin/yarn', 'build']
