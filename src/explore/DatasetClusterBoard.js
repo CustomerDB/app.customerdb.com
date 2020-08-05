@@ -11,7 +11,7 @@ import RBush from "rbush";
 import { nanoid } from "nanoid";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import Button from "react-bootstrap/Button";
-import { AspectRatio, ZoomIn, ZoomOut } from "react-bootstrap-icons";
+import { AspectRatio } from "react-bootstrap-icons";
 
 export default class DatasetClusterBoard extends React.Component {
   constructor(props) {
@@ -75,8 +75,25 @@ export default class DatasetClusterBoard extends React.Component {
           let newCards = {};
 
           querySnapshot.forEach((doc) => {
-            let data = doc.data();
-            newCards[doc.id] = data;
+            let newCard = doc.data();
+
+            if (doc.id in this.state.cards) {
+              let oldCard = this.state.cards[doc.id];
+              if (
+                oldCard.minX ||
+                oldCard.minY ||
+                oldCard.maxX ||
+                oldCard.maxY
+              ) {
+                this.removeCardLocation(oldCard);
+              }
+            }
+
+            if (newCard.minX || newCard.minY || newCard.maxX || newCard.maxY) {
+              this.addCardLocation(newCard);
+            }
+
+            newCards[doc.id] = newCard;
           });
 
           this.setState({
@@ -517,39 +534,8 @@ export default class DatasetClusterBoard extends React.Component {
           },
         }}
       >
-        {({ zoomIn, zoomOut, resetTransform, scale }) => (
+        {({ resetTransform, scale }) => (
           <>
-            <Button
-              onClick={zoomIn}
-              style={{
-                color: "#000",
-                background: "#ddf",
-                border: "0",
-                borderRadius: "0.25rem",
-                position: "absolute",
-                top: 0,
-                right: "0.25rem",
-                zIndex: 200,
-              }}
-            >
-              <ZoomIn />
-            </Button>
-            <Button
-              onClick={zoomOut}
-              style={{
-                color: "black",
-                background: "#ddf",
-                border: "0",
-                borderRadius: "0.25rem",
-                position: "absolute",
-                top: "2rem",
-                right: "0.25rem",
-                opacity: 0.8,
-                zIndex: 200,
-              }}
-            >
-              <ZoomOut />
-            </Button>
             <Button
               onClick={resetTransform}
               style={{
@@ -558,7 +544,7 @@ export default class DatasetClusterBoard extends React.Component {
                 border: "0",
                 borderRadius: "0.25rem",
                 position: "absolute",
-                top: "4rem",
+                top: "0rem",
                 right: "0.25rem",
                 opacity: 0.8,
                 zIndex: 200,

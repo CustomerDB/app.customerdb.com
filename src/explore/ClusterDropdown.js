@@ -10,7 +10,7 @@ import Dropdown from "react-bootstrap/Dropdown";
 export default function ClusterDropdown(props) {
   const { orgID, tabID, tagID } = useParams();
   const { allTagsRef } = useFirestore();
-  const defaultButtonTitle = "Cluster";
+  const defaultButtonTitle = "Tags";
   const [buttonTitle, setButtonTitle] = useState(defaultButtonTitle);
 
   useEffect(() => {
