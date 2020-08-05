@@ -240,7 +240,6 @@ export default function DocumentSidebar(props) {
                 </Button>
               )}
               <TagGroupSelector
-                document={props.document}
                 onChange={() => {
                   setEditTagGroup(false);
                 }}

@@ -66,7 +66,7 @@ export default function DocumentCreateModal(props) {
           <p>
             <b>Tag group</b>
           </p>
-          <TagGroupSelector document={doc} />
+          <TagGroupSelector />
         </Col>
       </Row>
     </Modal>
