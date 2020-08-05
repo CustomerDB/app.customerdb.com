@@ -24,4 +24,4 @@ $ make local
 
 ## Deployment
 
-File a PR against the `production` branch and Google Cloud Build will deploy to the live site.
+[File a PR to promote `staging` to `production`](https://github.com/quantap/app.customerdb.com/compare/production...staging) and Google Cloud Build will deploy to the live site.
