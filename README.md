@@ -4,9 +4,11 @@ Voice of Customer tool for Product Teams
 
 ## Development
 
-### install service account keys
+### Install service account keys for the staging environment
 
-Go to the GCP cloud console and download a new service account key to `~/.quantap/customerdb-production-secret.json`
+```
+$ make credentials
+```
 
 ### Install commit hooks
 

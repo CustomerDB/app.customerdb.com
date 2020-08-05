@@ -8,31 +8,42 @@ import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 
+import GridSelector from "../search/GridSelector.js";
+
 export default function DatasetDataTab(props) {
   const { oauthClaims } = useContext(UserAuthContext);
   const { datasetRef, documentsRef } = useFirestore();
-  const [documents, setDocuments] = useState({});
+  const [documents, setDocuments] = useState([]);
 
   useEffect(() => {
     if (!documentsRef) {
       return;
     }
+
+    if (props.dataset.documentIDs.length === 0) {
+      return;
+    }
+
     let unsubscribe = documentsRef
       .where("deletionTimestamp", "==", "")
-      .orderBy("creationTimestamp", "desc")
+      .where(
+        window.firebase.firestore.FieldPath.documentId(),
+        "in",
+        props.dataset.documentIDs
+      )
       .onSnapshot((snapshot) => {
-        let newDocuments = {};
+        let newDocuments = [];
         snapshot.forEach((doc) => {
           let data = doc.data();
           data["ID"] = doc.id;
-          newDocuments[doc.id] = data;
+          newDocuments.push(data);
         });
 
         setDocuments(newDocuments);
       });
 
     return unsubscribe;
-  }, [documentsRef]);
+  }, [documentsRef, props.dataset.documentIDs]);
 
   const onClick = (documentID) => {
     event("edit_dataset_data", {
@@ -50,20 +61,47 @@ export default function DatasetDataTab(props) {
       newDocumentIDs.push(documentID);
     }
 
-    let newTagGroupIDs = new Set();
-    newDocumentIDs.forEach((id) => {
-      if (documents[id].tagGroupID) {
-        newTagGroupIDs.add(documents[id].tagGroupID);
-      }
-    });
+    if (newDocumentIDs.length === 0) {
+      setDocuments([]);
+      datasetRef.set(
+        {
+          documentIDs: [],
+          tagGroupIDs: [],
+        },
+        { merge: true }
+      );
+      return;
+    }
 
-    datasetRef.set(
-      {
-        documentIDs: newDocumentIDs,
-        tagGroupIDs: Array.from(newTagGroupIDs),
-      },
-      { merge: true }
-    );
+    documentsRef
+      .where(
+        window.firebase.firestore.FieldPath.documentId(),
+        "in",
+        newDocumentIDs
+      )
+      .get()
+      .then((snapshot) => {
+        let newTagGroupIDs = new Set();
+
+        snapshot.forEach((doc) => {
+          if (!doc.exists) {
+            return;
+          }
+
+          let document = doc.data();
+          if (document.tagGroupID) {
+            newTagGroupIDs.add(document.tagGroupID);
+          }
+        });
+
+        return datasetRef.set(
+          {
+            documentIDs: newDocumentIDs,
+            tagGroupIDs: Array.from(newTagGroupIDs),
+          },
+          { merge: true }
+        );
+      });
   };
 
   return (
@@ -77,64 +115,15 @@ export default function DatasetDataTab(props) {
         <Row>
           <Col>
             <Container className="roundedBorders p-3 ">
-              <Row>
-                {Object.values(documents).map((document) => {
-                  let active = false;
-                  let enabled = true;
-                  if (
-                    props.dataset.documentIDs !== undefined &&
-                    props.dataset.documentIDs.includes(document.ID)
-                  ) {
-                    // listCardClass = "listCardActive";
-                    active = true;
-                  } else if (
-                    props.dataset.documentIDs &&
-                    props.dataset.documentIDs.length >= 10
-                  ) {
-                    // listCardClass = "listCardInactive";
-                    enabled = false;
-                  }
-
-                  let listCardClass = "listCard";
-                  if (!enabled) {
-                    listCardClass = "listCardInactive";
-                  }
-
-                  if (active) {
-                    listCardClass = "listCardActive";
-                  }
-
-                  return (
-                    <Col key={document.ID} md={4} className="p-1">
-                      <Container className={listCardClass}>
-                        <Row className="h-100">
-                          <Col
-                            className="listTitleContainer align-self-center"
-                            md={8}
-                          >
-                            <p
-                              className="listCardTitle"
-                              onClick={
-                                enabled
-                                  ? () => {
-                                      onClick(document.ID);
-                                    }
-                                  : () => {}
-                              }
-                            >
-                              {document.name}
-                            </p>
-                          </Col>
-                        </Row>
-                      </Container>
-                    </Col>
-                  );
-                })}
-              </Row>
+              <GridSelector
+                index={process.env.REACT_APP_ALGOLIA_DOCUMENTS_INDEX}
+                documents={documents}
+                selectedIDs={props.dataset.documentIDs}
+                onItemClick={onClick}
+                itemLimit={10}
+                placeholder="Search and select up to 10 documents"
+              />
             </Container>
-            <p>
-              <i>Click to select customer data (up to 10 documents)</i>
-            </p>
           </Col>
         </Row>
       </Container>
