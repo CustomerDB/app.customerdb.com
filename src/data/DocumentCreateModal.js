@@ -15,9 +15,9 @@ export default function DocumentCreateModal(props) {
   useEffect(() => {
     if (!props.documentRef) return;
 
-    props.documentRef.get().then((snap) => {
-      let data = snap.data();
-      data.ID = snap.id;
+    props.documentRef.get().then((snapshot) => {
+      let data = snapshot.data();
+      data.ID = snapshot.id;
       setName(data.name);
       setDoc(data);
     });
