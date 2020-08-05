@@ -38,19 +38,6 @@ export default function Dataset(props) {
     <Row noGutters={true}>
       <Button
         style={{ marginRight: "1em" }}
-        key="data"
-        variant={!tabID || tabID === "data" ? "primary" : "link"}
-        onClick={() => {
-          navigate(`/orgs/${orgID}/explore/${datasetID}/data`);
-        }}
-      >
-        Data
-      </Button>
-
-      <ClusterDropdown dataset={props.dataset} />
-
-      <Button
-        style={{ marginRight: "1em" }}
         key="analysis"
         variant={tabID === "analysis" ? "primary" : "link"}
         onClick={() => {
@@ -58,6 +45,19 @@ export default function Dataset(props) {
         }}
       >
         Analysis
+      </Button>
+
+      <ClusterDropdown dataset={props.dataset} />
+
+      <Button
+        style={{ marginRight: "1em" }}
+        key="data"
+        variant={!tabID || tabID === "data" ? "primary" : "link"}
+        onClick={() => {
+          navigate(`/orgs/${orgID}/explore/${datasetID}/data`);
+        }}
+      >
+        Data
       </Button>
     </Row>
   );

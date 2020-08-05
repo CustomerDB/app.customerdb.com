@@ -17,6 +17,7 @@ export default function DatasetAnalysisTab(props) {
     groupsRef,
     allHighlightsRef,
     allTagsRef,
+    peopleRef,
   } = useFirestore();
 
   const [groups, setGroups] = useState();
@@ -24,6 +25,7 @@ export default function DatasetAnalysisTab(props) {
   const [highlights, setHighlights] = useState();
   const [documents, setDocuments] = useState();
   const [tags, setTags] = useState();
+  const [people, setPeople] = useState();
 
   console.log("Render analysis tab ", props);
 
@@ -69,7 +71,6 @@ export default function DatasetAnalysisTab(props) {
 
     highlightsRef.onSnapshot((snapshot) => {
       let newHighlights = {};
-      console.log("Received highlights");
       snapshot.forEach((doc) => {
         newHighlights[doc.id] = doc.data();
       });
@@ -81,8 +82,6 @@ export default function DatasetAnalysisTab(props) {
     if (!documentsRef) {
       return;
     }
-
-    console.log("Setting up documents snapshot handler");
 
     let datasetDocumentsRef = documentsRef.where(
       window.firebase.firestore.FieldPath.documentId(),
@@ -116,6 +115,26 @@ export default function DatasetAnalysisTab(props) {
       });
   }, [allTagsRef, props.orgID]);
 
+  useEffect(() => {
+    if (!peopleRef || !documents) {
+      return;
+    }
+
+    const peopleIDs = Object.values(documents).flatmap((document) =>
+      document.peopleID ? [document.peopleID] : []
+    );
+
+    peopleRef
+      .where(window.firebase.firestore.FieldPath.documentId(), "==", peopleIDs)
+      .onSnapshot((snapshot) => {
+        let newPeople = {};
+        snapshot.forEach((doc) => {
+          newPeople[doc.id] = doc.data();
+        });
+        setPeople(newPeople);
+      });
+  }, [peopleRef, documents]);
+
   console.log("groups", groups);
   console.log("highlights", highlights);
   console.log("cards", cards);
@@ -127,14 +146,15 @@ export default function DatasetAnalysisTab(props) {
     !cardsRef ||
     !allHighlightsRef ||
     !groupsRef ||
-    !allTagsRef
+    !allTagsRef ||
+    !peopleRef
   ) {
     return <Loading />;
   }
 
   let analysis = {};
 
-  if (cards && groups && tags && props.dataset.documentIDs) {
+  if (cards && groups && tags && documents && people) {
     let cardsInGroups = Object.values(cards).filter(
       (card) => card.groupID !== undefined
     );
@@ -152,9 +172,26 @@ export default function DatasetAnalysisTab(props) {
         tagAnalysis[card.groupID] = {};
       }
 
+      if (groups[card.groupID].name === "Unnamed group") {
+        return;
+      }
+
       let groupAnalysis = tagAnalysis[card.groupID];
       if (!(card.documentID in groupAnalysis)) {
         groupAnalysis[card.documentID] = {};
+      }
+
+      let groupAnalysis = tagAnalysis[card.groupID];
+      if (!(card.documentID in groupAnalysis)) {
+        groupAnalysis[card.documentID] = {};
+      }
+
+      let documentAnalysis = groupAnalysis[card.documentID];
+      if (!(card.documentID in groupAnalysis)) {
+        let personID = document[card.documentID].personID;
+        if (personID) {
+          documentAnalysis[personID] = person[personID];
+        }
       }
     });
   }
@@ -171,11 +208,6 @@ export default function DatasetAnalysisTab(props) {
           let data = [];
           Object.keys(analysis[tagName]).forEach((groupID) => {
             let group = groups[groupID];
-
-            // TODO: Chart will flicker if the unnamed groups compete for the same bar.
-            if (group.name === "Unnamed group") {
-              return;
-            }
 
             groupNames.push(group.name);
             groupColors.push(group.color);
