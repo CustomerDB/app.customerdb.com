@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 
 import useFirestore from "../db/Firestore.js";
 
+import { Link } from "react-router-dom";
+
 import Scrollable from "../shell/Scrollable.js";
 import Tabs from "../shell/Tabs.js";
 
@@ -66,6 +68,10 @@ export default function DatasetSummaryTab(props) {
 
     console.log("Getting highlights for ", props.dataset.documentIDs);
 
+    if (props.dataset.documentIDs.length == 0) {
+      return;
+    }
+
     let highlightsRef = allHighlightsRef
       .where("organizationID", "==", props.orgID)
       .where("documentID", "in", props.dataset.documentIDs);
@@ -81,6 +87,10 @@ export default function DatasetSummaryTab(props) {
 
   useEffect(() => {
     if (!documentsRef) {
+      return;
+    }
+
+    if (props.dataset.documentIDs.length == 0) {
       return;
     }
 
@@ -191,7 +201,36 @@ export default function DatasetSummaryTab(props) {
     });
   }
 
-  console.log("Analysis ", analysis);
+  if (props.dataset.documentIDs.length == 0) {
+    return (
+      <Tabs.Pane>
+        <Tabs.Content>
+          <p>
+            Start analysis by selecting documents in the{" "}
+            <Link to={`/orgs/${props.orgID}/explore/${props.dataset.ID}/data`}>
+              data tab
+            </Link>
+          </p>
+        </Tabs.Content>
+      </Tabs.Pane>
+    );
+  }
+
+  console.log("analysis", analysis);
+
+  if (Object.values(analysis).length == 0) {
+    return (
+      <Tabs.Pane>
+        <Tabs.Content>
+          <p>
+            See a summary of your data by creating clusters per tag, using the
+            tags drop down
+          </p>
+          <p>Note that unnamed clusters won't show up in the statistics</p>
+        </Tabs.Content>
+      </Tabs.Pane>
+    );
+  }
 
   return (
     <Tabs.Pane>
