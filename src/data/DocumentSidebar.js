@@ -99,7 +99,7 @@ export default function DocumentSidebar(props) {
         </p>
       </Tabs.SidePaneCard>
       <Tabs.SidePaneCard>
-        <div style={{ position: "relative" }}>
+        <div style={{ position: "relative", minHeight: "5rem" }}>
           <p>
             <b>Linked Person</b>
           </p>

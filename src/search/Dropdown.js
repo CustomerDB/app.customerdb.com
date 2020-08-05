@@ -31,7 +31,6 @@ const SearchBox = ({ currentRefinement, isSearchStalled, refine, setShow }) => (
         setShow(true);
       }}
     />
-    {isSearchStalled ? "My search is stalled" : ""}
   </form>
 );
 
