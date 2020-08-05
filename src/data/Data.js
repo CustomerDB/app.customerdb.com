@@ -11,6 +11,7 @@ import Button from "react-bootstrap/Button";
 
 import { initialDelta } from "./delta.js";
 import Document from "./Document.js";
+import DocumentCreateModal from "./DocumentCreateModal.js";
 import DocumentRenameModal from "./DocumentRenameModal.js";
 
 import List from "../shell/List.js";
@@ -179,7 +180,7 @@ export default function Data(props) {
   }
 
   let addModal = (
-    <DocumentRenameModal
+    <DocumentCreateModal
       show={addModalShow}
       onHide={() => {
         setAddModalShow(false);

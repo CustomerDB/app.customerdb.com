@@ -19,15 +19,11 @@ export default class Option extends React.Component {
       });
 
       onClick = () => {
-        console.log("Dropdown item clicked");
         setShow(true);
       };
     }
 
-    console.log("Props for options item", props);
-
     if (props.onClick) {
-      console.log("Setting onclick handler for item");
       onClick = props.onClick;
     }
 
