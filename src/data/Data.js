@@ -58,6 +58,7 @@ export default function Data(props) {
 
         snapshot.forEach((doc) => {
           let data = doc.data();
+          data.ID = doc.id;
           newDocuments.push(data);
         });
 
