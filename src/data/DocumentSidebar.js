@@ -34,7 +34,7 @@ export default function DocumentSidebar(props) {
       return;
     }
 
-    peopleRef.doc(props.document.personID).onSnapshot((doc) => {
+    return peopleRef.doc(props.document.personID).onSnapshot((doc) => {
       let person = doc.data();
       person.ID = doc.id;
       setPerson(person);
