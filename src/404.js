@@ -14,7 +14,7 @@ export default function Error404(props) {
           <Container>
             <h1>Whoops! This was not supposed to happen.</h1>
             <h3>
-              Click <a href="/">here</a> to get back to safety
+              <a href="/">Get back to safety</a>
             </h3>
           </Container>
         </Col>
