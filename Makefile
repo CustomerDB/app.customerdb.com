@@ -1,4 +1,4 @@
-.PHONY: deploy
+.PHONY: deploy runtimeconfig credentials
 
 FIREBASE_PROJECT=customerdb-staging
 FIREBASE_CREDENTIALS_FILE="$(HOME)/.quantap/customerdb-staging-secret.json"
@@ -8,6 +8,11 @@ credentials:
 	gcloud iam service-accounts keys create \
 		$(FIREBASE_CREDENTIALS_FILE) \
 		--iam-account=customerdb-staging@appspot.gserviceaccount.com
+
+runtimeconfig:
+	firebase --project=customerdb-staging \
+	functions:config:get \
+	> functions/.runtimeconfig.json
 
 deploy:
 	yarn build
