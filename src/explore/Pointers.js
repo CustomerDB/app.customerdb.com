@@ -38,6 +38,8 @@ class Pointers extends React.Component {
       lastMouseY: undefined,
       positions: {},
     };
+
+    this.subscriptions = [];
   }
   componentDidMount() {
     setInterval((event) => {
@@ -90,12 +92,22 @@ class Pointers extends React.Component {
       });
     };
 
-    this.props.activeUsersRef
-      .where("userId", ">", this.props.user.ID)
-      .onSnapshot(pointerHandler);
-    this.props.activeUsersRef
-      .where("userId", "<", this.props.user.ID)
-      .onSnapshot(pointerHandler);
+    this.subscriptions.push(
+      this.props.activeUsersRef
+        .where("userId", ">", this.props.user.ID)
+        .onSnapshot(pointerHandler)
+    );
+
+    this.subscriptions.push(
+      this.props.activeUsersRef
+        .where("userId", "<", this.props.user.ID)
+        .onSnapshot(pointerHandler)
+    );
+  }
+
+  componentWillUnmount() {
+    this.subscriptions.forEach((subscription) => subscription());
+    this.subscriptions = [];
   }
 
   render() {

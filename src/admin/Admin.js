@@ -26,7 +26,7 @@ export default function Admin(props) {
   const [organizations, setOrganizations] = useState();
 
   useEffect(() => {
-    window.firebase
+    return window.firebase
       .firestore()
       .collection("organizations")
       .onSnapshot((snapshot) => {
