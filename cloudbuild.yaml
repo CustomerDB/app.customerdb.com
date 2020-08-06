@@ -21,6 +21,8 @@ steps:
   - 'REACT_APP_FIREBASE_MEASUREMENT_ID=$_FIREBASE_MEASUREMENT_ID'
   - 'REACT_APP_ALGOLIA_PEOPLE_INDEX=$_ALGOLIA_PEOPLE_INDEX'
   - 'REACT_APP_ALGOLIA_DOCUMENTS_INDEX=$_ALGOLIA_DOCUMENTS_INDEX'
+  - 'REACT_APP_ERROR_API_KEY=$_ERROR_API_KEY'
+  - 'REACT_APP_VERSION=$REVISION_ID'
 - name: 'gcr.io/$PROJECT_ID/firebase'
   args: ['/usr/local/bin/npm', '--prefix=/workspace/functions', 'install']
 - name: 'gcr.io/$PROJECT_ID/firebase'
