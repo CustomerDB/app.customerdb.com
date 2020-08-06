@@ -1,4 +1,10 @@
-import React, { useContext, useState, useEffect, useRef } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useState,
+  useEffect,
+  useRef,
+} from "react";
 
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
@@ -123,30 +129,33 @@ export default function ContentsPane(props) {
     });
   };
 
-  const getHighlightFromEditor = (highlightID) => {
-    let domNode = document.getElementById(`highlight-${highlightID}`);
+  const getHighlightFromEditor = useCallback(
+    (highlightID) => {
+      let domNode = document.getElementById(`highlight-${highlightID}`);
 
-    if (!domNode) return undefined;
+      if (!domNode) return undefined;
 
-    let tagID = domNode.dataset.tagID;
-    let blot = Quill.find(domNode, false);
+      let tagID = domNode.dataset.tagID;
+      let blot = Quill.find(domNode, false);
 
-    if (!blot) return undefined;
+      if (!blot) return undefined;
 
-    let editor = props.reactQuillRef.current.getEditor();
-    let index = editor.getIndex(blot);
-    let length = blot.length();
-    let text = editor.getText(index, length);
+      let editor = props.reactQuillRef.current.getEditor();
+      let index = editor.getIndex(blot);
+      let length = blot.length();
+      let text = editor.getText(index, length);
 
-    return {
-      tagID: tagID,
-      selection: {
-        index: index,
-        length: length,
-      },
-      text: text,
-    };
-  };
+      return {
+        tagID: tagID,
+        selection: {
+          index: index,
+          length: length,
+        },
+        text: text,
+      };
+    },
+    [props.reactQuillRef]
+  );
 
   // onEdit builds a batch of local edits in `localDelta`
   // which are sent to the server and reset to [] periodically
@@ -461,6 +470,7 @@ export default function ContentsPane(props) {
     editorID,
     highlightsRef,
     orgID,
+    getHighlightFromEditor,
     props.document.ID,
     props.reactQuillRef,
   ]);
