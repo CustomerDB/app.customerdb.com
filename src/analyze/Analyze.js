@@ -122,7 +122,7 @@ export default function Analyze(props) {
       <WithFocus>
         <List>
           <List.Title>
-            <List.Name>Customer analysiss</List.Name>
+            <List.Name>Customer Analysis</List.Name>
             <List.Add
               onClick={() => {
                 event("create_analysis", {
