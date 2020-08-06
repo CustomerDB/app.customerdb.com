@@ -85,9 +85,9 @@ export default function Organization(props) {
             end={false}
           />
           <Navigation.Item
-            name="Explore"
+            name="Analyze"
             icon={<Intersect />}
-            path={`/orgs/${orgID}/explore`}
+            path={`/orgs/${orgID}/analyze`}
             end={false}
           />
         </Navigation.Top>

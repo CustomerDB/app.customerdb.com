@@ -30,7 +30,7 @@ export default function ContentsHelp(props) {
               <br />
               <h5>
                 Tag customer data with themes here. Find patterns in the voice
-                of the customer in the explore tab.
+                of the customer in the analysis tab.
               </h5>
             </div>
           </div>
