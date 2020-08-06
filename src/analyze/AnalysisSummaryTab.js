@@ -68,7 +68,7 @@ export default function AnalysisSummaryTab(props) {
 
     console.log("Getting highlights for ", props.analysis.documentIDs);
 
-    if (props.analysis.documentIDs.length == 0) {
+    if (props.analysis.documentIDs.length === 0) {
       return;
     }
 
@@ -90,7 +90,7 @@ export default function AnalysisSummaryTab(props) {
       return;
     }
 
-    if (props.analysis.documentIDs.length == 0) {
+    if (props.analysis.documentIDs.length === 0) {
       return;
     }
 
@@ -134,7 +134,7 @@ export default function AnalysisSummaryTab(props) {
       return document.personID ? [document.personID] : [];
     });
 
-    if (peopleIDs.length == 0) {
+    if (peopleIDs.length === 0) {
       setPeople();
       return;
     }
@@ -201,7 +201,7 @@ export default function AnalysisSummaryTab(props) {
     });
   }
 
-  if (props.analysis.documentIDs.length == 0) {
+  if (props.analysis.documentIDs.length === 0) {
     return (
       <Tabs.Pane>
         <Tabs.Content>
@@ -218,7 +218,7 @@ export default function AnalysisSummaryTab(props) {
 
   console.log("analysis", analysis);
 
-  if (Object.values(analysis).length == 0) {
+  if (Object.values(analysis).length === 0) {
     return (
       <Tabs.Pane>
         <Tabs.Content>
@@ -288,10 +288,14 @@ export default function AnalysisSummaryTab(props) {
 
               return (
                 <>
-                  {groupNames.length > 0 && (
-                    <Row>
+                  <Row>
+                    <Col>
+                      <h4>{tagName}</h4>
+                    </Col>
+                  </Row>
+                  <Row>
+                    {groupNames.length > 0 && (
                       <Col>
-                        <h4>{tagName}</h4>
                         <b>Total</b>
                         <div style={{ height: "20rem" }}>
                           <ResponsiveBar
@@ -340,10 +344,8 @@ export default function AnalysisSummaryTab(props) {
                           />
                         </div>
                       </Col>
-                    </Row>
-                  )}
-                  {labelNames.length > 0 && (
-                    <Row>
+                    )}
+                    {labelNames.length > 0 && (
                       <Col>
                         <b>Label distribution</b>
                         <div style={{ height: "20rem" }}>
@@ -394,8 +396,8 @@ export default function AnalysisSummaryTab(props) {
                           />
                         </div>
                       </Col>
-                    </Row>
-                  )}
+                    )}
+                  </Row>
                 </>
               );
             })}
