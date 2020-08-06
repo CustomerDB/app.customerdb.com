@@ -22,6 +22,7 @@ export default function useFirestore() {
     r.membersRef = r.orgRef.collection("members");
     r.peopleRef = r.orgRef.collection("people");
     r.tagGroupsRef = r.orgRef.collection("tagGroups");
+    r.templatesRef = r.orgRef.collection("templates");
 
     if (analysisID) {
       r.analysisRef = r.analysesRef.doc(analysisID);

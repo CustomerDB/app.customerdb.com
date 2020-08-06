@@ -175,11 +175,8 @@ export default class List extends React.Component {
           }}
         >
           <Row noGutters={true} className="h-100 p-3">
-            <Col className="align-self-center" ms={7} md={7} lg={9}>
+            <Col className="align-self-center">
               <p className="ListItemName">{props.name}</p>
-            </Col>
-            <Col className="align-self-center" md="auto">
-              <div>{options}</div>
             </Col>
           </Row>
         </Col>

@@ -27,7 +27,6 @@ export default function AnalysisSummaryTab(props) {
 
   const [groups, setGroups] = useState();
   const [cards, setCards] = useState();
-  const [highlights, setHighlights] = useState();
   const [documents, setDocuments] = useState();
   const [tags, setTags] = useState();
   const [people, setPeople] = useState();
@@ -60,30 +59,6 @@ export default function AnalysisSummaryTab(props) {
       setCards(newCards);
     });
   }, [cardsRef]);
-
-  useEffect(() => {
-    if (!allHighlightsRef || !props.orgID || !props.analysis.documentIDs) {
-      return;
-    }
-
-    console.log("Getting highlights for ", props.analysis.documentIDs);
-
-    if (props.analysis.documentIDs.length === 0) {
-      return;
-    }
-
-    let highlightsRef = allHighlightsRef
-      .where("organizationID", "==", props.orgID)
-      .where("documentID", "in", props.analysis.documentIDs);
-
-    return highlightsRef.onSnapshot((snapshot) => {
-      let newHighlights = {};
-      snapshot.forEach((doc) => {
-        newHighlights[doc.id] = doc.data();
-      });
-      setHighlights(newHighlights);
-    });
-  }, [allHighlightsRef, props.orgID, props.analysis.documentIDs]);
 
   useEffect(() => {
     if (!documentsRef) {

@@ -52,7 +52,10 @@ export default function Document(props) {
       </Content.Title>
       <Tabs>
         <Tabs.Pane>
-          <ContentsPane document={document} />
+          <ContentsPane
+            document={document}
+            reactQuillRef={props.reactQuillRef}
+          />
         </Tabs.Pane>
       </Tabs>
     </Content>
