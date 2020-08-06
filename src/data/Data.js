@@ -34,7 +34,6 @@ export default function Data(props) {
   let { documentID, orgID } = useParams();
   const [documents, setDocuments] = useState();
   const [addModalShow, setAddModalShow] = useState();
-  const [newDocumentRef, setNewDocumentRef] = useState();
 
   const { defaultTagGroupID } = useOrganization();
 
@@ -133,9 +132,8 @@ export default function Data(props) {
 
     let documentID = nanoid();
 
-    let newDocumentRef = documentsRef.doc(documentID);
-
-    newDocumentRef
+    documentsRef
+      .doc(documentID)
       .set({
         ID: documentID,
         name: "Untitled Document",
@@ -164,10 +162,7 @@ export default function Data(props) {
         deletionTimestamp: "",
       })
       .then((newDocRef) => {
-        setNewDocumentRef(newDocumentRef);
-
         navigate(`/orgs/${orgID}/data/${documentID}`);
-
         setAddModalShow(true);
       });
   };

@@ -27,7 +27,6 @@ export default function AnalysisSummaryTab(props) {
 
   const [groups, setGroups] = useState();
   const [cards, setCards] = useState();
-  const [highlights, setHighlights] = useState();
   const [documents, setDocuments] = useState();
   const [tags, setTags] = useState();
   const [people, setPeople] = useState();
@@ -62,35 +61,11 @@ export default function AnalysisSummaryTab(props) {
   }, [cardsRef]);
 
   useEffect(() => {
-    if (!allHighlightsRef || !props.orgID || !props.analysis.documentIDs) {
-      return;
-    }
-
-    console.log("Getting highlights for ", props.analysis.documentIDs);
-
-    if (props.analysis.documentIDs.length == 0) {
-      return;
-    }
-
-    let highlightsRef = allHighlightsRef
-      .where("organizationID", "==", props.orgID)
-      .where("documentID", "in", props.analysis.documentIDs);
-
-    return highlightsRef.onSnapshot((snapshot) => {
-      let newHighlights = {};
-      snapshot.forEach((doc) => {
-        newHighlights[doc.id] = doc.data();
-      });
-      setHighlights(newHighlights);
-    });
-  }, [allHighlightsRef, props.orgID, props.analysis.documentIDs]);
-
-  useEffect(() => {
     if (!documentsRef) {
       return;
     }
 
-    if (props.analysis.documentIDs.length == 0) {
+    if (props.analysis.documentIDs.length === 0) {
       return;
     }
 
@@ -134,7 +109,7 @@ export default function AnalysisSummaryTab(props) {
       return document.personID ? [document.personID] : [];
     });
 
-    if (peopleIDs.length == 0) {
+    if (peopleIDs.length === 0) {
       setPeople();
       return;
     }
@@ -201,7 +176,7 @@ export default function AnalysisSummaryTab(props) {
     });
   }
 
-  if (props.analysis.documentIDs.length == 0) {
+  if (props.analysis.documentIDs.length === 0) {
     return (
       <Tabs.Pane>
         <Tabs.Content>
@@ -218,7 +193,7 @@ export default function AnalysisSummaryTab(props) {
 
   console.log("analysis", analysis);
 
-  if (Object.values(analysis).length == 0) {
+  if (Object.values(analysis).length === 0) {
     return (
       <Tabs.Pane>
         <Tabs.Content>

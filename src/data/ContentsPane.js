@@ -462,6 +462,7 @@ export default function ContentsPane(props) {
     highlightsRef,
     orgID,
     props.document.ID,
+    props.reactQuillRef,
   ]);
 
   // Subscribe to highlight changes

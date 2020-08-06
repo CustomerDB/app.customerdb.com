@@ -15,9 +15,7 @@ import { initialDelta } from "../data/delta.js";
 import { nanoid } from "nanoid";
 import { useParams, useNavigate } from "react-router-dom";
 import Button from "react-bootstrap/Button";
-import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
-import Col from "react-bootstrap/Row";
 import ReactQuill from "react-quill";
 import Delta from "quill-delta";
 

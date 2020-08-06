@@ -18,16 +18,12 @@ export default function TagGroupSelector(props) {
 
   const { documentRef, templatesRef } = useFirestore();
 
-  const doNothing = () => {};
-
-  const onChange = props.onChange || doNothing;
-
   useEffect(() => {
     if (!props.reactQuillRef.current) {
       return;
     }
     setEditor(props.reactQuillRef.current.getEditor());
-  }, [props.reactQuillRef.current]);
+  }, [props.reactQuillRef]);
 
   useEffect(() => {
     if (!documentRef) {
