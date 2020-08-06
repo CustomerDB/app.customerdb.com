@@ -29,6 +29,7 @@ export default function TagGroupSelector(props) {
       return;
     }
     return documentRef.onSnapshot((snapshot) => {
+      console.log("document snapshot", snapshot.data());
       setDoc(snapshot.data());
     });
   }, [documentRef]);
@@ -142,7 +143,7 @@ export default function TagGroupSelector(props) {
     <Form.Control
       as="select"
       onChange={onTagGroupChange}
-      value={doc.tagGroupID}
+      defaultValue={doc.tagGroupID}
     >
       <option key="none" value="">
         None

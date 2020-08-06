@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 
+import useFirestore from "../db/Firestore.js";
 import TagGroupSelector from "./TagGroupSelector.js";
+import TemplateSelector from "./TemplateSelector.js";
 import Modal from "../shell/Modal.js";
 
 import Row from "react-bootstrap/Row";
@@ -11,24 +13,27 @@ import Form from "react-bootstrap/Form";
 export default function DocumentCreateModal(props) {
   const [doc, setDoc] = useState();
   const [name, setName] = useState();
+  const { documentRef } = useFirestore();
+
+  console.log("document create modal :: render", props);
 
   useEffect(() => {
-    if (!props.documentRef) return;
+    if (!documentRef) return;
 
-    props.documentRef.get().then((snapshot) => {
+    documentRef.get().then((snapshot) => {
       let data = snapshot.data();
       data.ID = snapshot.id;
       setName(data.name);
       setDoc(data);
     });
-  }, [props.show, props.documentRef]);
+  }, [props.show, documentRef]);
 
   if (!doc) {
     return <></>;
   }
 
   const onSave = () => {
-    props.documentRef.set({ name: name }, { merge: true });
+    documentRef.set({ name: name }, { merge: true });
     props.onHide();
   };
 
@@ -67,6 +72,14 @@ export default function DocumentCreateModal(props) {
             <b>Tag group</b>
           </p>
           <TagGroupSelector />
+        </Col>
+      </Row>
+      <Row key="template" className="mb-3">
+        <Col>
+          <p>
+            <b>Template</b>
+          </p>
+          <TemplateSelector reactQuillRef={props.reactQuillRef} />
         </Col>
       </Row>
     </Modal>

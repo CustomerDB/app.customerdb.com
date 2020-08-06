@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState, useEffect, useRef } from "react";
 
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
@@ -6,6 +6,8 @@ import useFirestore from "../db/Firestore.js";
 import { useOrganization } from "../organization/hooks.js";
 
 import { useParams, useNavigate } from "react-router-dom";
+
+import { nanoid } from "nanoid";
 
 import Button from "react-bootstrap/Button";
 
@@ -32,9 +34,14 @@ export default function Data(props) {
   let { documentID, orgID } = useParams();
   const [documents, setDocuments] = useState();
   const [addModalShow, setAddModalShow] = useState();
-  const [newDocumentRef, setNewDocumentRef] = useState();
 
   const { defaultTagGroupID } = useOrganization();
+
+  const reactQuillRef = useRef(null);
+
+  useEffect(() => {
+    console.log("defaultTagGroupID", defaultTagGroupID);
+  }, [defaultTagGroupID]);
 
   useEffect(() => {
     if (!documentsRef) {
@@ -51,7 +58,6 @@ export default function Data(props) {
 
         snapshot.forEach((doc) => {
           let data = doc.data();
-          data.ID = doc.id;
           newDocuments.push(data);
         });
 
@@ -123,8 +129,13 @@ export default function Data(props) {
       orgID: oauthClaims.orgID,
       userID: oauthClaims.user_id,
     });
+
+    let documentID = nanoid();
+
     documentsRef
-      .add({
+      .doc(documentID)
+      .set({
+        ID: documentID,
         name: "Untitled Document",
         createdBy: oauthClaims.email,
         creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
@@ -134,6 +145,8 @@ export default function Data(props) {
         latestSnapshotTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
 
         tagGroupID: defaultTagGroupID || "",
+
+        templateID: "",
 
         // This initial value is required.
         // Search indexing and compression are done as a pair of operations:
@@ -149,10 +162,7 @@ export default function Data(props) {
         deletionTimestamp: "",
       })
       .then((newDocRef) => {
-        setNewDocumentRef(newDocRef);
-
-        navigate(`/orgs/${orgID}/data/${newDocRef.id}`);
-
+        navigate(`/orgs/${orgID}/data/${documentID}`);
         setAddModalShow(true);
       });
   };
@@ -173,6 +183,7 @@ export default function Data(props) {
         navigate={navigate}
         user={oauthClaims}
         options={options}
+        reactQuillRef={reactQuillRef}
       />
     );
   } else if (documentItems.length > 0) {
@@ -185,7 +196,7 @@ export default function Data(props) {
       onHide={() => {
         setAddModalShow(false);
       }}
-      documentRef={newDocumentRef}
+      reactQuillRef={reactQuillRef}
     />
   );
 

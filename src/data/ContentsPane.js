@@ -63,8 +63,6 @@ export default function ContentsPane(props) {
 
   const [editorID] = useState(nanoid());
 
-  const reactQuillRef = useRef(null);
-
   const [tagIDsInSelection, setTagIDsInSelection] = useState(new Set());
 
   let localDelta = useRef(new Delta([]));
@@ -108,7 +106,7 @@ export default function ContentsPane(props) {
     }
 
     let length = selection.length > 0 ? selection.length : 1;
-    let editor = reactQuillRef.current.getEditor();
+    let editor = props.reactQuillRef.current.getEditor();
     let selectionDelta = editor.getContents(selection.index, length);
     let selectedHighlightIDs = [];
 
@@ -135,7 +133,7 @@ export default function ContentsPane(props) {
 
     if (!blot) return undefined;
 
-    let editor = reactQuillRef.current.getEditor();
+    let editor = props.reactQuillRef.current.getEditor();
     let index = editor.getIndex(blot);
     let length = blot.length();
     let text = editor.getText(index, length);
@@ -185,7 +183,7 @@ export default function ContentsPane(props) {
 
     let selection = currentSelection.current;
 
-    let editor = reactQuillRef.current.getEditor();
+    let editor = props.reactQuillRef.current.getEditor();
 
     if (checked) {
       console.debug("formatting highlight with tag ", tag);
@@ -229,7 +227,7 @@ export default function ContentsPane(props) {
   // Document will contain the latest cached and compressed version of the delta document.
   // Subscribe to deltas from other remote clients.
   useEffect(() => {
-    if (!reactQuillRef.current || !documentRef || !deltasRef) {
+    if (!props.reactQuillRef.current || !documentRef || !deltasRef) {
       return;
     }
 
@@ -289,7 +287,7 @@ export default function ContentsPane(props) {
 
         console.debug("applying deltas to editor", newDeltas);
 
-        let editor = reactQuillRef.current.getEditor();
+        let editor = props.reactQuillRef.current.getEditor();
 
         // What we have:
         // - localDelta: the buffered local edits that haven't been uploaded yet
@@ -331,7 +329,7 @@ export default function ContentsPane(props) {
           editor.setSelection(selectionIndex, selection.length);
         }
       });
-  }, [editorID, reactQuillRef, props.document, documentRef, deltasRef]);
+  }, [editorID, props.reactQuillRef, props.document, documentRef, deltasRef]);
 
   // Register timers to periodically sync local changes with firestore.
   useEffect(() => {
@@ -369,7 +367,7 @@ export default function ContentsPane(props) {
     // This function sends any local updates to highlight content relative
     // to the local editor to the database.
     const syncHighlights = () => {
-      if (!reactQuillRef.current) {
+      if (!props.reactQuillRef.current) {
         return;
       }
 
@@ -464,6 +462,7 @@ export default function ContentsPane(props) {
     highlightsRef,
     orgID,
     props.document.ID,
+    props.reactQuillRef,
   ]);
 
   // Subscribe to highlight changes
@@ -492,7 +491,7 @@ export default function ContentsPane(props) {
       <Tabs.Content className="quillBounds">
         <Scrollable>
           <ReactQuill
-            ref={reactQuillRef}
+            ref={props.reactQuillRef}
             defaultValue={new Delta(props.document.latestSnapshot.ops)}
             theme="bubble"
             bounds=".quillBounds"
