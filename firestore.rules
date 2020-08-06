@@ -95,6 +95,12 @@ service cloud.firestore {
                    && activeOrgMember(orgID);
     }
 
+    // Active non-admin users can write **TEMPLATES** in the org.
+    match /organizations/{orgID}/templates/{document=**} {
+      allow write: if signedInAndVerified()
+                   && activeOrgMember(orgID);
+    }
+
     // Active non-admin users can write **TAGS** in the org.
     match /organizations/{orgID}/tagGroups/{tagGroupID}/tags/{tagID} {
       allow create: if signedInAndVerified()
@@ -126,8 +132,8 @@ service cloud.firestore {
                    && activeOrgMember(orgID);
     }
 
-    // Active non-admin users can write **DATASETS** in the org.
-    match /organizations/{orgID}/datasets/{document=**} {
+    // Active non-admin users can write **ANALYSES** in the org.
+    match /organizations/{orgID}/analyses/{document=**} {
       allow write: if signedInAndVerified()
                    && activeOrgMember(orgID);
     }

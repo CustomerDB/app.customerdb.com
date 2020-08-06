@@ -13,7 +13,7 @@ import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import Button from "react-bootstrap/Button";
 import { AspectRatio } from "react-bootstrap-icons";
 
-export default class DatasetClusterBoard extends React.Component {
+export default class AnalysisClusterBoard extends React.Component {
   constructor(props) {
     super(props);
 

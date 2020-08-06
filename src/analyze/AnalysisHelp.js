@@ -2,9 +2,9 @@ import React from "react";
 
 import Content from "../shell/Content.js";
 
-import exploreGraphic from "../assets/images/explore.svg";
+import analyzeGraphic from "../assets/images/analyze.svg";
 
-export default function DatasetHelp(props) {
+export default function AnalysisHelp(props) {
   return (
     <Content>
       <div className="d-flex flex-column w-100 h-100 justify-content-center align-self-center">
@@ -19,7 +19,7 @@ export default function DatasetHelp(props) {
             >
               <img
                 style={{ width: "100%" }}
-                src={exploreGraphic}
+                src={analyzeGraphic}
                 alt="Eplore illustration"
               />
             </div>
@@ -27,7 +27,7 @@ export default function DatasetHelp(props) {
               style={{ maxWidth: "25rem" }}
               className="justify-content-center align-self-center"
             >
-              <h4>Explore your customer data</h4>
+              <h4>Analyze your customer data</h4>
               <br />
               <h5>
                 Collaborate with your team to find patterns in verbatims from

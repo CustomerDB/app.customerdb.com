@@ -1,7 +1,7 @@
 {
   "indexes": [
     {
-      "collectionGroup": "datasets",
+      "collectionGroup": "analyses",
       "queryScope": "COLLECTION",
       "fields": [
         {
@@ -126,6 +126,34 @@
         },
         {
           "fieldPath": "creationTimestamp",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "templates",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "deletionTimestamp",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "creationTimestamp",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "templates",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "deletionTimestamp",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "name",
           "order": "ASCENDING"
         }
       ]

@@ -10,7 +10,7 @@ import { ResponsiveBar } from "@nivo/bar";
 
 import { Loading } from "../util/Utils.js";
 
-export default function DatasetAnalysisTab(props) {
+export default function AnalysisAnalysisTab(props) {
   const {
     documentsRef,
     cardsRef,
@@ -57,15 +57,15 @@ export default function DatasetAnalysisTab(props) {
   }, [cardsRef]);
 
   useEffect(() => {
-    if (!allHighlightsRef || !props.orgID || !props.dataset.documentIDs) {
+    if (!allHighlightsRef || !props.orgID || !props.analysis.documentIDs) {
       return;
     }
 
-    console.log("Getting highlights for ", props.dataset.documentIDs);
+    console.log("Getting highlights for ", props.analysis.documentIDs);
 
     let highlightsRef = allHighlightsRef
       .where("organizationID", "==", props.orgID)
-      .where("documentID", "in", props.dataset.documentIDs);
+      .where("documentID", "in", props.analysis.documentIDs);
 
     highlightsRef.onSnapshot((snapshot) => {
       let newHighlights = {};
@@ -75,7 +75,7 @@ export default function DatasetAnalysisTab(props) {
       });
       setHighlights(newHighlights);
     });
-  }, [allHighlightsRef, props.orgID, props.dataset.documentIDs]);
+  }, [allHighlightsRef, props.orgID, props.analysis.documentIDs]);
 
   useEffect(() => {
     if (!documentsRef) {
@@ -84,21 +84,21 @@ export default function DatasetAnalysisTab(props) {
 
     console.log("Setting up documents snapshot handler");
 
-    let datasetDocumentsRef = documentsRef.where(
+    let analysisDocumentsRef = documentsRef.where(
       window.firebase.firestore.FieldPath.documentId(),
       "in",
-      props.dataset.documentIDs
+      props.analysis.documentIDs
     );
 
     let newDocuments = {};
-    datasetDocumentsRef.onSnapshot((snapshot) => {
+    analysisDocumentsRef.onSnapshot((snapshot) => {
       console.log("Received documents");
       snapshot.forEach((doc) => {
         newDocuments[doc.id] = doc.data();
       });
     });
     setDocuments(newDocuments);
-  }, [documentsRef, props.dataset.documentIDs]);
+  }, [documentsRef, props.analysis.documentIDs]);
 
   useEffect(() => {
     if (!allTagsRef) {
@@ -134,7 +134,7 @@ export default function DatasetAnalysisTab(props) {
 
   let analysis = {};
 
-  if (cards && groups && tags && props.dataset.documentIDs) {
+  if (cards && groups && tags && props.analysis.documentIDs) {
     let cardsInGroups = Object.values(cards).filter(
       (card) => card.groupID !== undefined
     );

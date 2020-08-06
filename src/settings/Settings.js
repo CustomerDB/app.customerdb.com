@@ -12,6 +12,7 @@ import Options from "../Options.js";
 
 import BulkImport from "./BulkImport.js";
 import Tags from "./Tags.js";
+import Templates from "./Templates.js";
 
 import Col from "react-bootstrap/Col";
 import Container from "react-bootstrap/Container";
@@ -39,6 +40,11 @@ export default function Settings(props) {
       key="tags"
       name="Tag setup"
       path={`/orgs/${orgID}/settings/tags`}
+    />,
+    <List.Item
+      key="templates"
+      name="Template setup"
+      path={`/orgs/${orgID}/settings/templates`}
     />,
     <List.Item
       key="import"
@@ -117,6 +123,15 @@ export default function Settings(props) {
           <Route key="tags" path="tags">
             <Route key="tags" path="/" element={<Tags />} />
             <Route key=":tagGroupID" path=":tagGroupID" element={<Tags />} />
+          </Route>
+
+          <Route key="templates" path="templates">
+            <Route key="templates" path="/" element={<Templates />} />
+            <Route
+              key=":templateID"
+              path=":templateID"
+              element={<Templates />}
+            />
           </Route>
 
           <Route key="import" path="import" element={<BulkImport />} />
