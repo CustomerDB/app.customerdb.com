@@ -14,12 +14,12 @@ import Form from "react-bootstrap/Form";
 
 import { useParams } from "react-router-dom";
 
-import DatasetClusterBoard from "./DatasetClusterBoard.js";
+import AnalysisClusterBoard from "./AnalysisClusterBoard.js";
 import { Loading } from "../util/Utils.js";
 
 import { ArrowsAngleExpand, ArrowsAngleContract } from "react-bootstrap-icons";
 
-export default function DatasetClusterTab(props) {
+export default function AnalysisClusterTab(props) {
   const { oauthClaims } = useContext(UserAuthContext);
   const focus = useContext(FocusContext);
   const [boardKey, setBoardKey] = useState();
@@ -32,17 +32,17 @@ export default function DatasetClusterTab(props) {
     activeUsersRef,
   } = useFirestore();
 
-  const { orgID, datasetID, tagID } = useParams();
+  const { orgID, analysisID, tagID } = useParams();
 
   const [showRenameGroupModal, setShowRenameGroupModal] = useState(false);
   const [modalGroupID, setModalGroupID] = useState();
 
   useEffect(() => {
-    if (!datasetID || !tagID) {
+    if (!analysisID || !tagID) {
       return;
     }
-    setBoardKey(`${datasetID}-${tagID}`);
-  }, [datasetID, tagID]);
+    setBoardKey(`${analysisID}-${tagID}`);
+  }, [analysisID, tagID]);
 
   if (
     !documentsRef ||
@@ -54,7 +54,7 @@ export default function DatasetClusterTab(props) {
     return <Loading />;
   }
 
-  if (!props.dataset.documentIDs || props.dataset.documentIDs.length === 0) {
+  if (!props.analysis.documentIDs || props.analysis.documentIDs.length === 0) {
     return (
       <Container className="p-3">
         <Row>
@@ -82,13 +82,13 @@ export default function DatasetClusterTab(props) {
   //     For now, we support clustering highlights from up to ten documents.
   let highlightsRef = allHighlightsRef
     .where("organizationID", "==", orgID)
-    .where("documentID", "in", props.dataset.documentIDs)
+    .where("documentID", "in", props.analysis.documentIDs)
     .where("tagID", "==", tagID);
 
-  let datasetDocumentsRef = documentsRef.where(
+  let analysisDocumentsRef = documentsRef.where(
     window.firebase.firestore.FieldPath.documentId(),
     "in",
-    props.dataset.documentIDs
+    props.analysis.documentIDs
   );
 
   const renameGroupModalCallback = (ID) => {
@@ -130,12 +130,12 @@ export default function DatasetClusterTab(props) {
             >
               {arrows}
             </Button>
-            <DatasetClusterBoard
+            <AnalysisClusterBoard
               key={boardKey}
               orgID={orgID}
               userID={oauthClaims.user_id}
               tagID={tagID}
-              documentsRef={datasetDocumentsRef}
+              documentsRef={analysisDocumentsRef}
               highlightsRef={highlightsRef}
               cardsRef={cardsRef}
               groupsRef={groupsRef}

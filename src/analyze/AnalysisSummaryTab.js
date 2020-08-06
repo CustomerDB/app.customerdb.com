@@ -15,7 +15,7 @@ import { ResponsiveBar } from "@nivo/bar";
 
 import { Loading } from "../util/Utils.js";
 
-export default function DatasetSummaryTab(props) {
+export default function AnalysisSummaryTab(props) {
   const {
     documentsRef,
     cardsRef,
@@ -62,19 +62,19 @@ export default function DatasetSummaryTab(props) {
   }, [cardsRef]);
 
   useEffect(() => {
-    if (!allHighlightsRef || !props.orgID || !props.dataset.documentIDs) {
+    if (!allHighlightsRef || !props.orgID || !props.analysis.documentIDs) {
       return;
     }
 
-    console.log("Getting highlights for ", props.dataset.documentIDs);
+    console.log("Getting highlights for ", props.analysis.documentIDs);
 
-    if (props.dataset.documentIDs.length == 0) {
+    if (props.analysis.documentIDs.length == 0) {
       return;
     }
 
     let highlightsRef = allHighlightsRef
       .where("organizationID", "==", props.orgID)
-      .where("documentID", "in", props.dataset.documentIDs);
+      .where("documentID", "in", props.analysis.documentIDs);
 
     return highlightsRef.onSnapshot((snapshot) => {
       let newHighlights = {};
@@ -83,31 +83,31 @@ export default function DatasetSummaryTab(props) {
       });
       setHighlights(newHighlights);
     });
-  }, [allHighlightsRef, props.orgID, props.dataset.documentIDs]);
+  }, [allHighlightsRef, props.orgID, props.analysis.documentIDs]);
 
   useEffect(() => {
     if (!documentsRef) {
       return;
     }
 
-    if (props.dataset.documentIDs.length == 0) {
+    if (props.analysis.documentIDs.length == 0) {
       return;
     }
 
-    let datasetDocumentsRef = documentsRef.where(
+    let analysisDocumentsRef = documentsRef.where(
       window.firebase.firestore.FieldPath.documentId(),
       "in",
-      props.dataset.documentIDs
+      props.analysis.documentIDs
     );
 
-    return datasetDocumentsRef.onSnapshot((snapshot) => {
+    return analysisDocumentsRef.onSnapshot((snapshot) => {
       let newDocuments = {};
       snapshot.forEach((doc) => {
         newDocuments[doc.id] = doc.data();
       });
       setDocuments(newDocuments);
     });
-  }, [documentsRef, props.dataset.documentIDs]);
+  }, [documentsRef, props.analysis.documentIDs]);
 
   useEffect(() => {
     if (!allTagsRef) {
@@ -201,13 +201,13 @@ export default function DatasetSummaryTab(props) {
     });
   }
 
-  if (props.dataset.documentIDs.length == 0) {
+  if (props.analysis.documentIDs.length == 0) {
     return (
       <Tabs.Pane>
         <Tabs.Content>
           <p>
             Start analysis by selecting documents in the{" "}
-            <Link to={`/orgs/${props.orgID}/explore/${props.dataset.ID}/data`}>
+            <Link to={`/orgs/${props.orgID}/analyze/${props.analysis.ID}/data`}>
               data tab
             </Link>
           </p>

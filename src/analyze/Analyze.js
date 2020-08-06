@@ -9,105 +9,111 @@ import List from "../shell/List.js";
 import Scrollable from "../shell/Scrollable.js";
 import Options from "../shell/Options.js";
 
-import Dataset from "./Dataset.js";
-import DatasetDeleteModal from "./DatasetDeleteModal.js";
-import DatasetEditModal from "./DatasetEditModal.js";
-import ExploreHelp from "./ExploreHelp.js";
-import DatasetHelp from "./DatasetHelp.js";
+import Analysis from "./Analysis.js";
+import AnalysisDeleteModal from "./AnalysisDeleteModal.js";
+import AnalysisEditModal from "./AnalysisEditModal.js";
+import AnalyzeHelp from "./AnalyzeHelp.js";
+import AnalysisHelp from "./AnalysisHelp.js";
 
 import { useParams } from "react-router-dom";
 import WithFocus from "../util/WithFocus.js";
 
-export default function Explore(props) {
+export default function Analyze(props) {
   const { oauthClaims } = useContext(UserAuthContext);
 
-  let { datasetsRef } = useFirestore();
+  let { analysesRef } = useFirestore();
 
-  let { orgID, datasetID } = useParams();
+  let { orgID, analysisID } = useParams();
 
-  const [datasetList, setDatasetList] = useState(undefined);
-  const [datasetMap, setDatasetMap] = useState(undefined);
+  const [analysisList, setAnalysisList] = useState(undefined);
+  const [analysisMap, setAnalysisMap] = useState(undefined);
   const [addModalShow, setAddModalShow] = useState();
-  const [newDatasetRef, setNewDatasetRef] = useState();
+  const [newAnalysisRef, setNewAnalysisRef] = useState();
   const [listTotal, setListTotal] = useState();
 
+  console.log("Analyze");
+
   useEffect(() => {
-    if (!datasetsRef) {
+    if (!analysesRef) {
       return;
     }
 
-    let unsubscribe = datasetsRef
+    let unsubscribe = analysesRef
       .where("deletionTimestamp", "==", "")
       .orderBy("creationTimestamp", "desc")
       .onSnapshot((snapshot) => {
-        let newDatasetList = [];
-        let newDatasetMap = {};
+        let newAnalysisList = [];
+        let newAnalysisMap = {};
 
         snapshot.forEach((doc) => {
           let data = doc.data();
           data.ID = doc.id;
-          newDatasetList.push(data);
-          newDatasetMap[data.ID] = data;
+          newAnalysisList.push(data);
+          newAnalysisMap[data.ID] = data;
         });
 
-        setDatasetList(newDatasetList);
-        setDatasetMap(newDatasetMap);
+        setAnalysisList(newAnalysisList);
+        setAnalysisMap(newAnalysisMap);
         setListTotal(snapshot.size);
       });
     return unsubscribe;
-  }, [datasetsRef]);
+  }, [analysesRef]);
 
-  if (datasetList === undefined) {
+  if (analysisList === undefined) {
     return <></>;
   }
 
-  const options = (datasetID) => {
-    if (!datasetID) {
+  const options = (analysisID) => {
+    if (!analysisID) {
       return <></>;
     }
 
-    let datasetRef = datasetsRef.doc(datasetID);
+    let analysisRef = analysesRef.doc(analysisID);
 
     return (
-      <Options key={datasetID}>
+      <Options key={analysisID}>
         <Options.Item
           name="Edit"
-          modal={<DatasetEditModal datasetRef={datasetRef} />}
+          modal={<AnalysisEditModal analysisRef={analysisRef} />}
         />
 
         <Options.Item
           name="Delete"
-          modal={<DatasetDeleteModal datasetRef={datasetRef} />}
+          modal={<AnalysisDeleteModal analysisRef={analysisRef} />}
         />
       </Options>
     );
   };
 
   let content;
-  if (datasetID && datasetMap) {
-    let dataset = datasetMap[datasetID];
+  if (analysisID && analysisMap) {
+    let analysis = analysisMap[analysisID];
     content = (
-      <Dataset key={datasetID} dataset={dataset} options={options(datasetID)} />
+      <Analysis
+        key={analysisID}
+        analysis={analysis}
+        options={options(analysisID)}
+      />
     );
   } else if (listTotal > 0) {
-    content = <DatasetHelp />;
+    content = <AnalysisHelp />;
   }
 
   let addModal = (
-    <DatasetEditModal
+    <AnalysisEditModal
       show={addModalShow}
       onHide={() => {
         setAddModalShow(false);
       }}
-      datasetRef={newDatasetRef}
+      analysisRef={newAnalysisRef}
     />
   );
 
-  let listItems = datasetList.map((dataset) => (
+  let listItems = analysisList.map((analysis) => (
     <List.Item
-      key={dataset.ID}
-      name={dataset.name}
-      path={`/orgs/${orgID}/explore/${dataset.ID}`}
+      key={analysis.ID}
+      name={analysis.name}
+      path={`/orgs/${orgID}/analyze/${analysis.ID}`}
     />
   ));
 
@@ -116,24 +122,24 @@ export default function Explore(props) {
       <WithFocus>
         <List>
           <List.Title>
-            <List.Name>Customer datasets</List.Name>
+            <List.Name>Customer analysiss</List.Name>
             <List.Add
               onClick={() => {
-                event("create_dataset", {
+                event("create_analysis", {
                   orgID: oauthClaims.orgID,
                   userID: oauthClaims.user_id,
                 });
 
-                datasetsRef
+                analysesRef
                   .add({
-                    name: "Unnamed dataset",
+                    name: "Unnamed analysis",
                     documentIDs: [],
                     createdBy: oauthClaims.email,
                     creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
                     deletionTimestamp: "",
                   })
                   .then((doc) => {
-                    setNewDatasetRef(doc);
+                    setNewAnalysisRef(doc);
                     setAddModalShow(true);
                   });
               }}
@@ -142,7 +148,7 @@ export default function Explore(props) {
           </List.Title>
           <List.Items>
             <Scrollable>
-              {listTotal > 0 ? listItems : <ExploreHelp />}
+              {listTotal > 0 ? listItems : <AnalyzeHelp />}
             </Scrollable>
           </List.Items>
         </List>

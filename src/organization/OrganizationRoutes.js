@@ -2,7 +2,7 @@ import React from "react";
 
 import People from "../people/People.js";
 import Data from "../data/Data.js";
-import Explore from "../explore/Explore.js";
+import Analyze from "../analyze/Analyze.js";
 import Settings from "../settings/Settings.js";
 
 import { Routes, Route, Outlet, Navigate } from "react-router-dom";
@@ -25,11 +25,11 @@ export default function OrganizationRoutes(props) {
           <Route path=":documentID/:tabID" element={<Data />} />
         </Route>
 
-        <Route path="explore/*">
-          <Route path="/" element={<Explore />} />
-          <Route path=":datasetID" element={<Explore />} />
-          <Route path=":datasetID/:tabID" element={<Explore />} />
-          <Route path=":datasetID/:tabID/:tagID" element={<Explore />} />
+        <Route path="analyze/*">
+          <Route path="/" element={<Analyze />} />
+          <Route path=":analysisID" element={<Analyze />} />
+          <Route path=":analysisID/:tabID" element={<Analyze />} />
+          <Route path=":analysisID/:tabID/:tagID" element={<Analyze />} />
         </Route>
 
         <Route path="settings/*" element={<Settings />} />
