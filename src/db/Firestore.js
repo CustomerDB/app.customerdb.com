@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 
 export default function useFirestore() {
   const db = window.firebase.firestore();
-  const { orgID, personID, documentID, datasetID } = useParams();
+  const { orgID, personID, documentID, analysisID } = useParams();
   const [refs, setRefs] = useState({});
 
   useEffect(() => {
@@ -17,17 +17,17 @@ export default function useFirestore() {
     r.allHighlightsRef = db.collectionGroup("highlights");
 
     r.apiKeysRef = r.orgRef.collection("apiKeys");
-    r.datasetsRef = r.orgRef.collection("datasets");
+    r.analysesRef = r.orgRef.collection("analyses");
     r.documentsRef = r.orgRef.collection("documents");
     r.membersRef = r.orgRef.collection("members");
     r.peopleRef = r.orgRef.collection("people");
     r.tagGroupsRef = r.orgRef.collection("tagGroups");
 
-    if (datasetID) {
-      r.datasetRef = r.datasetsRef.doc(datasetID);
-      r.cardsRef = r.datasetRef.collection("cards");
-      r.groupsRef = r.datasetRef.collection("groups");
-      r.activeUsersRef = r.datasetRef.collection("activeUsers");
+    if (analysisID) {
+      r.analysisRef = r.analysesRef.doc(analysisID);
+      r.cardsRef = r.analysisRef.collection("cards");
+      r.groupsRef = r.analysisRef.collection("groups");
+      r.activeUsersRef = r.analysisRef.collection("activeUsers");
     }
 
     if (documentID) {
@@ -41,7 +41,7 @@ export default function useFirestore() {
     }
 
     setRefs(r);
-  }, [db, orgID, personID, documentID, datasetID]);
+  }, [db, orgID, personID, documentID, analysisID]);
 
   return refs;
 }

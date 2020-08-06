@@ -8,22 +8,22 @@ import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
 
 import ClusterDropdown from "./ClusterDropdown.js";
-import DatasetDataTab from "./DatasetDataTab.js";
-import DatasetClusterTab from "./DatasetClusterTab.js";
-import DatasetSummaryTab from "./DatasetSummaryTab.js";
+import AnalysisDataTab from "./AnalysisDataTab.js";
+import AnalysisClusterTab from "./AnalysisClusterTab.js";
+import AnalysisSummaryTab from "./AnalysisSummaryTab.js";
 
-export default function Dataset(props) {
-  const { orgID, datasetID, tabID, tagID } = useParams();
+export default function Analysis(props) {
+  const { orgID, analysisID, tabID, tagID } = useParams();
   const navigate = useNavigate();
 
-  // Give a hint if this dataset was deleted while in view.
-  if (props.dataset.deletionTimestamp !== "") {
+  // Give a hint if this analysis was deleted while in view.
+  if (props.analysis.deletionTimestamp !== "") {
     let date = this.state.deletionTimestamp.toDate();
 
     return (
       <Content>
         <Content.Title>
-          {props.dataset.name} was deleted on {date}
+          {props.analysis.name} was deleted on {date}
         </Content.Title>
       </Content>
     );
@@ -41,20 +41,20 @@ export default function Dataset(props) {
         key="summary"
         variant={!tabID || tabID === "summary" ? "primary" : "link"}
         onClick={() => {
-          navigate(`/orgs/${orgID}/explore/${datasetID}/summary`);
+          navigate(`/orgs/${orgID}/analyze/${analysisID}/summary`);
         }}
       >
         Summary
       </Button>
 
-      <ClusterDropdown dataset={props.dataset} />
+      <ClusterDropdown analysis={props.analysis} />
 
       <Button
         style={{ marginRight: "1em" }}
         key="data"
         variant={tabID === "data" ? "primary" : "link"}
         onClick={() => {
-          navigate(`/orgs/${orgID}/explore/${datasetID}/data`);
+          navigate(`/orgs/${orgID}/analyze/${analysisID}/data`);
         }}
       >
         Data
@@ -66,11 +66,11 @@ export default function Dataset(props) {
 
   if (!tabID || tabID === "summary") {
     view = (
-      <DatasetSummaryTab
-        key={`${datasetID}-${tagID}`}
+      <AnalysisSummaryTab
+        key={`${analysisID}-${tagID}`}
         orgID={orgID}
-        dataset={props.dataset}
-        datasetRef={props.datasetRef}
+        analysis={props.analysis}
+        analysisRef={props.analysisRef}
         documentsRef={props.documentsRef}
         allHighlightsRef={props.allHighlightsRef}
       />
@@ -79,9 +79,9 @@ export default function Dataset(props) {
 
   if (tabID === "data") {
     view = (
-      <DatasetDataTab
-        dataset={props.dataset}
-        datasetRef={props.datasetRef}
+      <AnalysisDataTab
+        analysis={props.analysis}
+        analysisRef={props.analysisRef}
         documentsRef={props.documentsRef}
       />
     );
@@ -89,11 +89,11 @@ export default function Dataset(props) {
 
   if (tabID === "cluster") {
     view = (
-      <DatasetClusterTab
-        key={`${datasetID}-${tagID}`}
+      <AnalysisClusterTab
+        key={`${analysisID}-${tagID}`}
         orgID={orgID}
-        dataset={props.dataset}
-        datasetRef={props.datasetRef}
+        analysis={props.analysis}
+        analysisRef={props.analysisRef}
         documentsRef={props.documentsRef}
         allHighlightsRef={props.allHighlightsRef}
       />
@@ -104,7 +104,7 @@ export default function Dataset(props) {
     <>
       <Content>
         <Content.Title>
-          <Content.Name>{props.dataset.name}</Content.Name>
+          <Content.Name>{props.analysis.name}</Content.Name>
           <Content.Options>{props.options}</Content.Options>
         </Content.Title>
         {controls}

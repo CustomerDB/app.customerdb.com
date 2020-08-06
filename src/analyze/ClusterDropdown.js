@@ -35,9 +35,9 @@ export default function ClusterDropdown(props) {
   }, [orgID, tagID, allTagsRef]);
 
   if (
-    !props.dataset ||
-    !props.dataset.tagGroupIDs ||
-    props.dataset.tagGroupIDs.length === 0
+    !props.analysis ||
+    !props.analysis.tagGroupIDs ||
+    props.analysis.tagGroupIDs.length === 0
   ) {
     return <></>;
   }
@@ -49,7 +49,7 @@ export default function ClusterDropdown(props) {
       variant={tabID === "cluster" ? "primary" : "link"}
       drop="down"
     >
-      {props.dataset.tagGroupIDs.map((tagGroupID) => (
+      {props.analysis.tagGroupIDs.map((tagGroupID) => (
         <ItemsForTagGroup key={tagGroupID} tagGroupID={tagGroupID} />
       ))}
     </DropdownButton>
@@ -57,7 +57,7 @@ export default function ClusterDropdown(props) {
 }
 
 function ItemsForTagGroup(props) {
-  const { orgID, datasetID } = useParams();
+  const { orgID, analysisID } = useParams();
   const navigate = useNavigate();
 
   let tags = useTagGroup(props.tagGroupID);
@@ -66,7 +66,7 @@ function ItemsForTagGroup(props) {
     <Dropdown.Item
       key={tag.ID}
       onClick={() => {
-        navigate(`/orgs/${orgID}/explore/${datasetID}/cluster/${tag.ID}`);
+        navigate(`/orgs/${orgID}/analyze/${analysisID}/cluster/${tag.ID}`);
       }}
     >
       {tag.name}

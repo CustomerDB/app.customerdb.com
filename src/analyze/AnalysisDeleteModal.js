@@ -9,46 +9,46 @@ import Button from "react-bootstrap/Button";
 
 import Modal from "../shell/Modal.js";
 
-export default function DatasetDeleteModal(props) {
+export default function AnalysisDeleteModal(props) {
   const { oauthClaims } = useContext(UserAuthContext);
   const navigate = useNavigate();
 
   const { orgID } = useParams();
 
-  const [dataset, setDataset] = useState();
+  const [analysis, setAnalysis] = useState();
 
   useEffect(() => {
-    if (!props.datasetRef) {
+    if (!props.analysisRef) {
       return;
     }
 
-    props.datasetRef.get().then((doc) => {
-      let dataset = doc.data();
-      dataset.ID = doc.id;
-      setDataset(dataset);
+    props.analysisRef.get().then((doc) => {
+      let analysis = doc.data();
+      analysis.ID = doc.id;
+      setAnalysis(analysis);
     });
-  }, [props.show, props.datasetRef]);
+  }, [props.show, props.analysisRef]);
 
-  if (!dataset) {
+  if (!analysis) {
     return <></>;
   }
 
   return (
     <Modal
-      key={dataset.ID}
-      name="Delete dataset"
+      key={analysis.ID}
+      name="Delete analysis"
       show={props.show}
       onHide={props.onHide}
       footer={[
         <Button
-          key={dataset.ID}
+          key={analysis.ID}
           onClick={() => {
-            event("delete_dataset", {
+            event("delete_analysis", {
               orgID: oauthClaims.orgID,
               userID: oauthClaims.user_id,
             });
 
-            props.datasetRef.set(
+            props.analysisRef.set(
               {
                 deletedBy: oauthClaims.email,
                 deletionTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
@@ -56,14 +56,14 @@ export default function DatasetDeleteModal(props) {
               { merge: true }
             );
 
-            navigate(`/orgs/${orgID}/explore`);
+            navigate(`/orgs/${orgID}/analyze`);
           }}
         >
           Delete
         </Button>,
       ]}
     >
-      <p>Do you want to delete {dataset.name}</p>
+      <p>Do you want to delete {analysis.name}</p>
     </Modal>
   );
 }

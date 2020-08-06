@@ -17,11 +17,11 @@
 * create_highlight
 * delete_highlight
 
-## Datasets
+## Analyses
 
-* create_dataset
-* edit_dataset_data
-* delete_dataset
+* create_analysis
+* edit_analysis_data
+* delete_analysis
 
 * create_group
 * add_card_to_group

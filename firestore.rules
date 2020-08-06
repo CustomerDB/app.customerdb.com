@@ -126,8 +126,8 @@ service cloud.firestore {
                    && activeOrgMember(orgID);
     }
 
-    // Active non-admin users can write **DATASETS** in the org.
-    match /organizations/{orgID}/datasets/{document=**} {
+    // Active non-admin users can write **ANALYSES** in the org.
+    match /organizations/{orgID}/analyses/{document=**} {
       allow write: if signedInAndVerified()
                    && activeOrgMember(orgID);
     }

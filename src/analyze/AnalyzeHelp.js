@@ -1,15 +1,16 @@
 import React from "react";
 
 import { ArrowUp } from "react-bootstrap-icons";
-import exploreGraphic from "../assets/images/explore.svg";
+import analyzeGraphic from "../assets/images/analyze.svg";
 
-export default function ExploreHelp(props) {
+export default function AnalyzeHelp(props) {
   return (
     <div className="roundedBorders" style={{ padding: "0.5rem" }}>
       <div style={{ display: "flex" }}>
         <div>
           <b>
-            Create a dataset to start exploring patterns in your customer data.
+            Create an analysis to start exploring patterns in your customer
+            data.
           </b>
         </div>
         <div>
@@ -32,8 +33,8 @@ export default function ExploreHelp(props) {
       <div>
         <img
           style={{ width: "100%" }}
-          src={exploreGraphic}
-          alt="Explore illustration"
+          src={analyzeGraphic}
+          alt="Analysis illustration"
         />
       </div>
     </div>

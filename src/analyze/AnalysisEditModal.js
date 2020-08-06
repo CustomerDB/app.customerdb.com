@@ -7,44 +7,44 @@ import Form from "react-bootstrap/Form";
 
 import Modal from "../shell/Modal.js";
 
-export default function DatasetEditModal(props) {
+export default function AnalysisEditModal(props) {
   const navigate = useNavigate();
 
   const { orgID } = useParams();
 
-  const [dataset, setDataset] = useState();
+  const [analysis, setAnalysis] = useState();
   const [name, setName] = useState();
 
   useEffect(() => {
-    if (!props.datasetRef) {
+    if (!props.analysisRef) {
       return;
     }
 
-    props.datasetRef.get().then((doc) => {
-      let dataset = doc.data();
-      dataset.ID = doc.id;
-      setName(dataset.name);
-      setDataset(dataset);
+    props.analysisRef.get().then((doc) => {
+      let analysis = doc.data();
+      analysis.ID = doc.id;
+      setName(analysis.name);
+      setAnalysis(analysis);
     });
-  }, [props.show, props.datasetRef]);
+  }, [props.show, props.analysisRef]);
 
-  if (!dataset) {
+  if (!analysis) {
     return <></>;
   }
 
   return (
     <Modal
-      key={dataset.ID}
-      name="Edit dataset"
+      key={analysis.ID}
+      name="Edit analysis"
       show={props.show}
       onHide={props.onHide}
       footer={[
         <Button
-          key={dataset.ID}
+          key={analysis.ID}
           onClick={() => {
-            props.datasetRef.set({ name: name }, { merge: true });
+            props.analysisRef.set({ name: name }, { merge: true });
 
-            navigate(`/orgs/${orgID}/explore/${dataset.ID}`);
+            navigate(`/orgs/${orgID}/analyze/${analysis.ID}`);
           }}
         >
           Save

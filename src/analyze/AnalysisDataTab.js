@@ -10,9 +10,9 @@ import Col from "react-bootstrap/Col";
 
 import GridSelector from "../search/GridSelector.js";
 
-export default function DatasetDataTab(props) {
+export default function AnalysisDataTab(props) {
   const { oauthClaims } = useContext(UserAuthContext);
-  const { datasetRef, documentsRef } = useFirestore();
+  const { analysisRef, documentsRef } = useFirestore();
   const [documents, setDocuments] = useState([]);
 
   useEffect(() => {
@@ -20,7 +20,7 @@ export default function DatasetDataTab(props) {
       return;
     }
 
-    if (props.dataset.documentIDs.length === 0) {
+    if (props.analysis.documentIDs.length === 0) {
       return;
     }
 
@@ -29,7 +29,7 @@ export default function DatasetDataTab(props) {
       .where(
         window.firebase.firestore.FieldPath.documentId(),
         "in",
-        props.dataset.documentIDs
+        props.analysis.documentIDs
       )
       .onSnapshot((snapshot) => {
         let newDocuments = [];
@@ -43,17 +43,17 @@ export default function DatasetDataTab(props) {
       });
 
     return unsubscribe;
-  }, [documentsRef, props.dataset.documentIDs]);
+  }, [documentsRef, props.analysis.documentIDs]);
 
   const onClick = (documentID) => {
-    event("edit_dataset_data", {
+    event("edit_analysis_data", {
       orgID: oauthClaims.orgID,
       userID: oauthClaims.user_id,
     });
 
-    let newDocumentIDs = props.dataset.documentIDs.slice();
+    let newDocumentIDs = props.analysis.documentIDs.slice();
 
-    if (props.dataset.documentIDs.includes(documentID)) {
+    if (props.analysis.documentIDs.includes(documentID)) {
       // Remove it.
       newDocumentIDs = newDocumentIDs.filter((id) => id !== documentID);
     } else {
@@ -63,7 +63,7 @@ export default function DatasetDataTab(props) {
 
     if (newDocumentIDs.length === 0) {
       setDocuments([]);
-      datasetRef.set(
+      analysisRef.set(
         {
           documentIDs: [],
           tagGroupIDs: [],
@@ -94,7 +94,7 @@ export default function DatasetDataTab(props) {
           }
         });
 
-        return datasetRef.set(
+        return analysisRef.set(
           {
             documentIDs: newDocumentIDs,
             tagGroupIDs: Array.from(newTagGroupIDs),
@@ -118,7 +118,7 @@ export default function DatasetDataTab(props) {
               <GridSelector
                 index={process.env.REACT_APP_ALGOLIA_DOCUMENTS_INDEX}
                 documents={documents}
-                selectedIDs={props.dataset.documentIDs}
+                selectedIDs={props.analysis.documentIDs}
                 onItemClick={onClick}
                 itemLimit={10}
                 placeholder="Search and select up to 10 documents"

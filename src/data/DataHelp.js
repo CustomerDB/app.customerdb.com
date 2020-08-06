@@ -24,7 +24,7 @@ export default function DataHelp(props) {
         <p>
           Link customer data to <Link to={`/orgs/${orgID}/people`}>people</Link>
           . Then find patterns in your data using the{" "}
-          <Link to={`/orgs/${orgID}/explore`}>explore</Link> tab.
+          <Link to={`/orgs/${orgID}/analyze`}>analyze</Link> tab.
         </p>
         <p>
           New documents start with a default tag group. You can set up tag
