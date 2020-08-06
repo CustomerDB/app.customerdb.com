@@ -263,10 +263,14 @@ export default function AnalysisSummaryTab(props) {
 
               return (
                 <>
-                  {groupNames.length > 0 && (
-                    <Row>
+                  <Row>
+                    <Col>
+                      <h4>{tagName}</h4>
+                    </Col>
+                  </Row>
+                  <Row>
+                    {groupNames.length > 0 && (
                       <Col>
-                        <h4>{tagName}</h4>
                         <b>Total</b>
                         <div style={{ height: "20rem" }}>
                           <ResponsiveBar
@@ -315,10 +319,8 @@ export default function AnalysisSummaryTab(props) {
                           />
                         </div>
                       </Col>
-                    </Row>
-                  )}
-                  {labelNames.length > 0 && (
-                    <Row>
+                    )}
+                    {labelNames.length > 0 && (
                       <Col>
                         <b>Label distribution</b>
                         <div style={{ height: "20rem" }}>
@@ -369,8 +371,8 @@ export default function AnalysisSummaryTab(props) {
                           />
                         </div>
                       </Col>
-                    </Row>
-                  )}
+                    )}
+                  </Row>
                 </>
               );
             })}
