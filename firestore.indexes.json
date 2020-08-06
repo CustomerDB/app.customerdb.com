@@ -29,6 +29,20 @@
       ]
     },
     {
+      "collectionGroup": "documents",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "personID",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "creationTimestamp",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "highlights",
       "queryScope": "COLLECTION_GROUP",
       "fields": [

@@ -4,6 +4,8 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import useFirestore from "../db/Firestore.js";
 
+import PersonSidebar from "./PersonSidebar.js";
+
 import { Loading } from "../util/Utils.js";
 import Content from "../shell/Content.js";
 import Scrollable from "../shell/Scrollable.js";
@@ -105,15 +107,14 @@ export default function Person(props) {
                 ))}
               {showLabels && (
                 <Field name="labels">
-                  <p>
-                    {Object.values(person.labels).map((label) => {
-                      return <Label name={label.name} />;
-                    })}
-                  </p>
+                  {Object.values(person.labels).map((label) => {
+                    return <Label name={label.name} />;
+                  })}
                 </Field>
               )}
             </Scrollable>
           </Tabs.Content>
+          <PersonSidebar />
         </Tabs.Pane>
       </Tabs>
     </Content>
