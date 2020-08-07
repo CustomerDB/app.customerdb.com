@@ -145,10 +145,6 @@ export default function AnalysisSummaryTab(props) {
     );
 
     cardsInGroups.forEach((card) => {
-      if (groups[card.groupID].name === "Unnamed group") {
-        return;
-      }
-
       let tag = tags[card.tagID];
 
       if (!(tag.name in analysis)) {
@@ -201,7 +197,6 @@ export default function AnalysisSummaryTab(props) {
             See a summary of your data by creating clusters per tag, using the
             tags drop down
           </p>
-          <p>Note that unnamed clusters won't show up in the statistics</p>
         </Tabs.Content>
       </Tabs.Pane>
     );

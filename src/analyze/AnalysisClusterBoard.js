@@ -45,6 +45,8 @@ export default class AnalysisClusterBoard extends React.Component {
 
     this.setCardDragging = this.setCardDragging.bind(this);
 
+    this.nextGroupName = this.nextGroupName.bind(this);
+
     this.addCardLocation = this.addCardLocation.bind(this);
     this.removeCardLocation = this.removeCardLocation.bind(this);
     this.addGroupLocation = this.addGroupLocation.bind(this);
@@ -294,6 +296,19 @@ export default class AnalysisClusterBoard extends React.Component {
     return this.getIntersecting(rect).filter((item) => item.kind === "group");
   }
 
+  nextGroupName(proposed) {
+    let names = new Set();
+    Object.values(this.state.groups).forEach((group) => {
+      names.add(group.name);
+    });
+    if (!names.has(proposed)) return proposed;
+
+    for (let i = 1; true; i++) {
+      let newProposed = `${proposed} (${i})`;
+      if (!names.has(newProposed)) return newProposed;
+    }
+  }
+
   groupDataForCard(card) {
     let undefinedGroupData = {
       ID: undefined,
@@ -395,7 +410,7 @@ export default class AnalysisClusterBoard extends React.Component {
       this.props.groupsRef.doc(groupID).set({
         kind: "group",
         ID: groupID,
-        name: "Unnamed group",
+        name: this.nextGroupName("Unnamed group"),
         color: colors.background,
         textColor: colors.foreground,
       });
