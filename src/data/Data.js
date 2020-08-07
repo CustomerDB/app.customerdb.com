@@ -37,8 +37,6 @@ export default function Data(props) {
 
   const { defaultTagGroupID } = useOrganization();
 
-  // const reactQuillRef = useRef(null);
-
   const [editor, setEditor] = useState();
   const reactQuillRef = useCallback(
     (current) => {
