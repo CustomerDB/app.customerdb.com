@@ -23,68 +23,6 @@ function computeGroupBounds(cards) {
   return rect;
 }
 
-// export default function Group(props) {
-//   useEffect(() => {
-//     return () => {
-//       props.removeGroupLocationCallback(props.group);
-//     };
-//   });
-
-//   const rect = computeGroupBounds(props.cards);
-//   props.group.minX = rect.minX;
-//   props.group.minY = rect.minY;
-//   props.group.maxX = rect.maxX;
-//   props.group.maxY = rect.maxY;
-
-//   props.addGroupLocationCallback(props.group);
-
-//   let documentIDs = new Set();
-//   props.cards.forEach((card) => {
-//     documentIDs.add(card.documentID);
-//   });
-//   const representation = documentIDs.size;
-
-//   let circle = circumscribingCircle(rect);
-//   return (
-//     <>
-//       <div
-//         className="group"
-//         style={{
-//           position: "absolute",
-//           left: circle.minX,
-//           top: circle.minY,
-//           width: circle.diameter,
-//           height: circle.diameter,
-//           borderRadius: "50%",
-//           border: `2px ${props.group.color} solid`,
-//         }}
-//       >
-//         {}
-//       </div>
-
-//       <div
-//         className="groupLabel"
-//         style={{
-//           position: "absolute",
-//           left: circle.minX,
-//           top: circle.maxY + 10,
-//           width: circle.diameter,
-//           textAlign: "center",
-//         }}
-//       >
-//         <div className="d-flex justify-content-center">
-//           <div className="d-flex justify-content-center">
-//             <div className="align-self-center">{props.name}</div> {options}
-//           </div>
-//         </div>
-//         <p>
-//           {representation} out of {props.totalCardCount}
-//         </p>
-//       </div>
-//     </>
-//   );
-// }
-
 export default class Group extends React.Component {
   constructor(props) {
     super(props);

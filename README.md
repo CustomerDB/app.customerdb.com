@@ -10,6 +10,12 @@ Voice of Customer tool for Product Teams
 $ make credentials
 ```
 
+### Install staging environment firebase runtime configuration
+
+```
+$ make runtimeconfig
+```
+
 ### Install commit hooks
 
 ```

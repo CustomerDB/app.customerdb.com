@@ -10,66 +10,70 @@ import JoinOrg from "./auth/JoinOrg.js";
 import Error404 from "./404.js";
 import Organization from "./organization/Organization.js";
 
+import ErrorBoundary from "./util/ErrorBoundary.js";
+
 import Admin from "./admin/Admin.js";
 
 export default function App() {
   return (
-    <Routes caseSensitive>
-      <Route
-        path="/"
-        element={
-          <WithOauthUser>
-            <Login />
-          </WithOauthUser>
-        }
-      />
-
-      <Route
-        path="login"
-        element={
-          <WithOauthUser>
-            <Login />
-          </WithOauthUser>
-        }
-      />
-
-      <Route path="join">
+    <ErrorBoundary>
+      <Routes caseSensitive>
         <Route
-          path=":id"
+          path="/"
           element={
             <WithOauthUser>
-              <JoinOrg />
+              <Login />
             </WithOauthUser>
           }
         />
-      </Route>
 
-      <Route path="orgs">
         <Route
-          path=":orgID/*"
+          path="login"
           element={
             <WithOauthUser>
-              <Organization />
+              <Login />
             </WithOauthUser>
           }
         />
-      </Route>
 
-      <Route
-        path="admin"
-        element={
-          <WithOauthUser>
-            <Admin />
-          </WithOauthUser>
-        }
-      />
+        <Route path="join">
+          <Route
+            path=":id"
+            element={
+              <WithOauthUser>
+                <JoinOrg />
+              </WithOauthUser>
+            }
+          />
+        </Route>
 
-      <Route path="404" element={<Error404 />} />
+        <Route path="orgs">
+          <Route
+            path=":orgID/*"
+            element={
+              <WithOauthUser>
+                <Organization />
+              </WithOauthUser>
+            }
+          />
+        </Route>
 
-      <Route path="logout">
-        <Logout />
-      </Route>
-      <Route path="*" element={<Navigate to="/404" />} />
-    </Routes>
+        <Route
+          path="admin"
+          element={
+            <WithOauthUser>
+              <Admin />
+            </WithOauthUser>
+          }
+        />
+
+        <Route path="404" element={<Error404 />} />
+
+        <Route path="logout">
+          <Logout />
+        </Route>
+        <Route path="*" element={<Navigate to="/404" />} />
+      </Routes>
+    </ErrorBoundary>
   );
 }

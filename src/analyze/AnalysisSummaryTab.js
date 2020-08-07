@@ -145,10 +145,6 @@ export default function AnalysisSummaryTab(props) {
     );
 
     cardsInGroups.forEach((card) => {
-      if (groups[card.groupID].name === "Unnamed group") {
-        return;
-      }
-
       let tag = tags[card.tagID];
 
       if (!(tag.name in analysis)) {
@@ -201,7 +197,6 @@ export default function AnalysisSummaryTab(props) {
             See a summary of your data by creating clusters per tag, using the
             tags drop down
           </p>
-          <p>Note that unnamed clusters won't show up in the statistics</p>
         </Tabs.Content>
       </Tabs.Pane>
     );
@@ -209,7 +204,7 @@ export default function AnalysisSummaryTab(props) {
 
   return (
     <Tabs.Pane>
-      <Tabs.Content>
+      <Tabs.Content wide>
         <Scrollable>
           <Container className="p-3">
             {Object.keys(analysis).map((tagName) => {
@@ -263,20 +258,26 @@ export default function AnalysisSummaryTab(props) {
 
               return (
                 <>
-                  {groupNames.length > 0 && (
-                    <Row>
+                  <Row>
+                    <Col>
+                      <h4>{tagName}</h4>
+                    </Col>
+                  </Row>
+                  <Row>
+                    {groupNames.length > 0 && (
                       <Col>
-                        <h4>{tagName}</h4>
                         <b>Total</b>
-                        <div style={{ height: "20rem" }}>
+                        <div style={{ height: "25rem" }}>
                           <ResponsiveBar
+                            isInteractive={false}
                             data={groupData}
                             keys={groupNames}
+                            maxValue={props.analysis.documentIDs.length}
                             indexBy="group"
                             margin={{
                               top: 50,
                               right: 130,
-                              bottom: 50,
+                              bottom: 150,
                               left: 60,
                             }}
                             padding={0.3}
@@ -290,10 +291,7 @@ export default function AnalysisSummaryTab(props) {
                             axisBottom={{
                               tickSize: 5,
                               tickPadding: 5,
-                              tickRotation: 0,
-                              legend: "group",
-                              legendPosition: "middle",
-                              legendOffset: 32,
+                              tickRotation: 45,
                             }}
                             axisLeft={{
                               tickSize: 5,
@@ -302,6 +300,7 @@ export default function AnalysisSummaryTab(props) {
                               legend: "People represented",
                               legendPosition: "middle",
                               legendOffset: -40,
+                              tickValues: props.analysis.documentIDs.length,
                             }}
                             labelSkipWidth={12}
                             labelSkipHeight={12}
@@ -315,22 +314,21 @@ export default function AnalysisSummaryTab(props) {
                           />
                         </div>
                       </Col>
-                    </Row>
-                  )}
-                  {labelNames.length > 0 && (
-                    <Row>
+                    )}
+                    {labelNames.length > 0 && (
                       <Col>
                         <b>Label distribution</b>
-                        <div style={{ height: "20rem" }}>
+                        <div style={{ height: "25rem" }}>
                           <ResponsiveBar
                             indexBy="group"
                             data={labelData}
                             keys={labelNames}
+                            maxValue={props.analysis.documentIDs.length}
                             groupMode="grouped"
                             margin={{
                               top: 50,
                               right: 130,
-                              bottom: 50,
+                              bottom: 150,
                               left: 60,
                             }}
                             padding={0.3}
@@ -344,10 +342,7 @@ export default function AnalysisSummaryTab(props) {
                             axisBottom={{
                               tickSize: 5,
                               tickPadding: 5,
-                              tickRotation: 0,
-                              legend: "group",
-                              legendPosition: "middle",
-                              legendOffset: 32,
+                              tickRotation: 45,
                             }}
                             axisLeft={{
                               tickSize: 5,
@@ -356,7 +351,32 @@ export default function AnalysisSummaryTab(props) {
                               legend: "People represented",
                               legendPosition: "middle",
                               legendOffset: -40,
+                              tickValues: props.analysis.documentIDs.length,
                             }}
+                            legends={[
+                              {
+                                dataFrom: "keys",
+                                anchor: "bottom-right",
+                                direction: "column",
+                                justify: false,
+                                translateX: 120,
+                                translateY: 0,
+                                itemsSpacing: 2,
+                                itemWidth: 100,
+                                itemHeight: 20,
+                                itemDirection: "left-to-right",
+                                itemOpacity: 0.85,
+                                symbolSize: 20,
+                                effects: [
+                                  {
+                                    on: "hover",
+                                    style: {
+                                      itemOpacity: 1,
+                                    },
+                                  },
+                                ],
+                              },
+                            ]}
                             labelSkipWidth={12}
                             labelSkipHeight={12}
                             labelTextColor={{
@@ -369,8 +389,8 @@ export default function AnalysisSummaryTab(props) {
                           />
                         </div>
                       </Col>
-                    </Row>
-                  )}
+                    )}
+                  </Row>
                 </>
               );
             })}

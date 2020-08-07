@@ -41,7 +41,11 @@ export default function Document(props) {
   }
 
   if (document.deletionTimestamp !== "") {
-    return <DocumentDeleted />;
+    return (
+      <Content>
+        <DocumentDeleted document={document} />
+      </Content>
+    );
   }
 
   return (

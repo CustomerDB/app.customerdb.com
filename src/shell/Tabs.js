@@ -25,8 +25,12 @@ export default class Tabs extends React.Component {
   }
 
   static Content(props) {
+    let md = "wide" in props ? 12 : 9;
     return (
-      <Col className={`h-100 ${props.className ? props.className : ""}`} md={9}>
+      <Col
+        className={`h-100 ${props.className ? props.className : ""}`}
+        md={md}
+      >
         {props.children}
       </Col>
     );

@@ -617,7 +617,7 @@ exports.emailInviteJob = functions.pubsub
 //   Backup
 //
 //////////////////////////////////////////////////////////////////////////////
-const bucket = "gs://customerdb-prod-backup";
+const bucket = functions.config().system.backup_bucket;
 
 exports.scheduledFirestoreExport = functions.pubsub
   .schedule("every 4 hours")
