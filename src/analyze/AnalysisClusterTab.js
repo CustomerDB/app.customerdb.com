@@ -94,8 +94,6 @@ export default function AnalysisClusterTab(props) {
   );
 
   const renameGroupModalCallback = (ID) => {
-    console.log("renameGroupModalCallback", ID);
-
     // Trigger modal useEffect -- without this unstable key
     // the group rename modal does not show when renaming the
     // same group consecutively.
