@@ -380,6 +380,10 @@ export default function ContentsPane(props) {
         return;
       }
 
+      if (!highlights.current) {
+        return;
+      }
+
       // Update or delete highlights based on local edits.
       Object.values(highlights.current).forEach((h) => {
         let current = getHighlightFromEditor(h.ID);
