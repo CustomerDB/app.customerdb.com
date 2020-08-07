@@ -81,11 +81,6 @@ export default function TemplateSelector(props) {
     }
   };
 
-  console.log("template selector render");
-  console.log("doc", doc);
-  console.log("templates", templates);
-  console.log("editor", props.editor);
-
   if (!doc || !templates || !props.editor) {
     return <></>;
   }
