@@ -145,10 +145,6 @@ export default function AnalysisSummaryTab(props) {
     );
 
     cardsInGroups.forEach((card) => {
-      if (groups[card.groupID].name === "Unnamed group") {
-        return;
-      }
-
       let tag = tags[card.tagID];
 
       if (!(tag.name in analysis)) {
