@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 
 import useFirestore from "../db/Firestore.js";
+import Tabs from "../shell/Tabs.js";
 
 import { useParams, Link } from "react-router-dom";
-
-import Tabs from "../shell/Tabs.js";
+import Moment from "react-moment";
 
 export default function PersonSidebar(props) {
   const [docs, setDocs] = useState([]);
@@ -34,6 +34,14 @@ export default function PersonSidebar(props) {
   let items = docs.map((doc) => (
     <Tabs.SidePaneCard>
       <Link to={`/orgs/${orgID}/data/${doc.ID}`}>{doc.name}</Link>
+      <br />
+      <small>
+        <i>
+          <Moment format="MMM Do, YYYY" date={doc.creationTimestamp.toDate()} />
+        </i>
+        <br />
+        {doc.createdBy}
+      </small>
     </Tabs.SidePaneCard>
   ));
 
