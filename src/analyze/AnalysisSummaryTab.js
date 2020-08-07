@@ -267,15 +267,17 @@ export default function AnalysisSummaryTab(props) {
                     {groupNames.length > 0 && (
                       <Col>
                         <b>Total</b>
-                        <div style={{ height: "20rem" }}>
+                        <div style={{ height: "25rem" }}>
                           <ResponsiveBar
+                            isInteractive={false}
                             data={groupData}
                             keys={groupNames}
+                            maxValue={props.analysis.documentIDs.length}
                             indexBy="group"
                             margin={{
                               top: 50,
                               right: 130,
-                              bottom: 50,
+                              bottom: 150,
                               left: 60,
                             }}
                             padding={0.3}
@@ -289,10 +291,7 @@ export default function AnalysisSummaryTab(props) {
                             axisBottom={{
                               tickSize: 5,
                               tickPadding: 5,
-                              tickRotation: 0,
-                              legend: "group",
-                              legendPosition: "middle",
-                              legendOffset: 32,
+                              tickRotation: 45,
                             }}
                             axisLeft={{
                               tickSize: 5,
@@ -301,6 +300,7 @@ export default function AnalysisSummaryTab(props) {
                               legend: "People represented",
                               legendPosition: "middle",
                               legendOffset: -40,
+                              tickValues: props.analysis.documentIDs.length,
                             }}
                             labelSkipWidth={12}
                             labelSkipHeight={12}
@@ -318,16 +318,17 @@ export default function AnalysisSummaryTab(props) {
                     {labelNames.length > 0 && (
                       <Col>
                         <b>Label distribution</b>
-                        <div style={{ height: "20rem" }}>
+                        <div style={{ height: "25rem" }}>
                           <ResponsiveBar
                             indexBy="group"
                             data={labelData}
                             keys={labelNames}
+                            maxValue={props.analysis.documentIDs.length}
                             groupMode="grouped"
                             margin={{
                               top: 50,
                               right: 130,
-                              bottom: 50,
+                              bottom: 150,
                               left: 60,
                             }}
                             padding={0.3}
@@ -341,10 +342,7 @@ export default function AnalysisSummaryTab(props) {
                             axisBottom={{
                               tickSize: 5,
                               tickPadding: 5,
-                              tickRotation: 0,
-                              legend: "group",
-                              legendPosition: "middle",
-                              legendOffset: 32,
+                              tickRotation: 45,
                             }}
                             axisLeft={{
                               tickSize: 5,
@@ -353,7 +351,32 @@ export default function AnalysisSummaryTab(props) {
                               legend: "People represented",
                               legendPosition: "middle",
                               legendOffset: -40,
+                              tickValues: props.analysis.documentIDs.length,
                             }}
+                            legends={[
+                              {
+                                dataFrom: "keys",
+                                anchor: "bottom-right",
+                                direction: "column",
+                                justify: false,
+                                translateX: 120,
+                                translateY: 0,
+                                itemsSpacing: 2,
+                                itemWidth: 100,
+                                itemHeight: 20,
+                                itemDirection: "left-to-right",
+                                itemOpacity: 0.85,
+                                symbolSize: 20,
+                                effects: [
+                                  {
+                                    on: "hover",
+                                    style: {
+                                      itemOpacity: 1,
+                                    },
+                                  },
+                                ],
+                              },
+                            ]}
                             labelSkipWidth={12}
                             labelSkipHeight={12}
                             labelTextColor={{
