@@ -36,7 +36,7 @@ export default function DocumentSidebar(props) {
 
     return peopleRef.doc(props.document.personID).onSnapshot((doc) => {
       let person = doc.data();
-      if (person.deletionTimestamp != "") {
+      if (person.deletionTimestamp !== "") {
         return;
       }
       person.ID = doc.id;
