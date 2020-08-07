@@ -87,4 +87,5 @@ div.listShadow {
 .SidePaneCard {
   border-radius: 0.25rem;
   border: 1px solid #e9e9e9;
+  background: white;
 }

@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@material-ui/core": "^4.11.0",
+    "@material-ui/icons": "^4.9.1",
     "@nivo/bar": "^0.62.0",
     "@nivo/sankey": "^0.62.0",
     "@testing-library/jest-dom": "^4.2.4",
@@ -12,6 +14,7 @@
     "bootstrap": "^4.5.0",
     "firebase": "^7.14.6",
     "history": "^5.0.0",
+    "material-ui": "^0.20.2",
     "moment": "^2.27.0",
     "nanoid": "^3.1.10",
     "nivo": "^0.31.0",
