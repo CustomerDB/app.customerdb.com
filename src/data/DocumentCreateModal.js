@@ -79,7 +79,7 @@ export default function DocumentCreateModal(props) {
           <p>
             <b>Template</b>
           </p>
-          <TemplateSelector reactQuillRef={props.reactQuillRef} />
+          <TemplateSelector editor={props.editor} />
         </Col>
       </Row>
     </Modal>

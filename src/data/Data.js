@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect, useRef } from "react";
+import React, { useCallback, useContext, useState, useEffect } from "react";
 
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
@@ -37,7 +37,19 @@ export default function Data(props) {
 
   const { defaultTagGroupID } = useOrganization();
 
-  const reactQuillRef = useRef(null);
+  // const reactQuillRef = useRef(null);
+
+  const [editor, setEditor] = useState();
+  const reactQuillRef = useCallback(
+    (current) => {
+      if (!current) {
+        setEditor();
+        return;
+      }
+      setEditor(current.getEditor());
+    },
+    [setEditor]
+  );
 
   useEffect(() => {
     console.log("defaultTagGroupID", defaultTagGroupID);
@@ -185,6 +197,7 @@ export default function Data(props) {
         user={oauthClaims}
         options={options}
         reactQuillRef={reactQuillRef}
+        editor={editor}
       />
     );
   } else if (documentItems.length > 0) {
@@ -197,7 +210,7 @@ export default function Data(props) {
       onHide={() => {
         setAddModalShow(false);
       }}
-      reactQuillRef={reactQuillRef}
+      editor={editor}
     />
   );
 
