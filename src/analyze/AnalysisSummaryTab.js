@@ -204,7 +204,7 @@ export default function AnalysisSummaryTab(props) {
 
   return (
     <Tabs.Pane>
-      <Tabs.Content>
+      <Tabs.Content wide>
         <Scrollable>
           <Container className="p-3">
             {Object.keys(analysis).map((tagName) => {
