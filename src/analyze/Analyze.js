@@ -11,7 +11,7 @@ import Options from "../shell/Options.js";
 
 import Analysis from "./Analysis.js";
 import AnalysisDeleteModal from "./AnalysisDeleteModal.js";
-import AnalysisEditModal from "./AnalysisEditModal.js";
+import AnalysisRenameModal from "./AnalysisRenameModal.js";
 import AnalyzeHelp from "./AnalyzeHelp.js";
 import AnalysisHelp from "./AnalysisHelp.js";
 
@@ -73,8 +73,8 @@ export default function Analyze(props) {
     return (
       <Options key={analysisID}>
         <Options.Item
-          name="Edit"
-          modal={<AnalysisEditModal analysisRef={analysisRef} />}
+          name="Rename"
+          modal={<AnalysisRenameModal analysisRef={analysisRef} />}
         />
 
         <Options.Item
@@ -100,7 +100,7 @@ export default function Analyze(props) {
   }
 
   let addModal = (
-    <AnalysisEditModal
+    <AnalysisRenameModal
       show={addModalShow}
       onHide={() => {
         setAddModalShow(false);

@@ -17,6 +17,7 @@ import { useParams } from "react-router-dom";
 import AnalysisClusterBoard from "./AnalysisClusterBoard.js";
 import { Loading } from "../util/Utils.js";
 
+import { nanoid } from "nanoid";
 import { ArrowsAngleExpand, ArrowsAngleContract } from "react-bootstrap-icons";
 
 export default function AnalysisClusterTab(props) {
@@ -36,6 +37,7 @@ export default function AnalysisClusterTab(props) {
 
   const [showRenameGroupModal, setShowRenameGroupModal] = useState(false);
   const [modalGroupID, setModalGroupID] = useState();
+  const [modalGroupNonce, setModalGroupNonce] = useState();
 
   useEffect(() => {
     if (!analysisID || !tagID) {
@@ -92,6 +94,12 @@ export default function AnalysisClusterTab(props) {
   );
 
   const renameGroupModalCallback = (ID) => {
+    // Trigger modal useEffect -- without this unstable key
+    // the group rename modal does not show when renaming the
+    // same group consecutively.
+    //
+    // TODO: fix this in a cleaner way.
+    setModalGroupNonce(nanoid());
     setModalGroupID(ID);
     setShowRenameGroupModal(true);
   };
@@ -146,6 +154,7 @@ export default function AnalysisClusterTab(props) {
         </Row>
       </Container>
       <RenameGroupModal
+        key={modalGroupNonce}
         groupID={modalGroupID}
         show={showRenameGroupModal}
         onHide={() => setShowRenameGroupModal(false)}
@@ -192,6 +201,7 @@ function RenameGroupModal(props) {
       }}
       footer={[
         <Button
+          key="rename"
           onClick={() => {
             groupsRef.doc(props.groupID).set(
               {

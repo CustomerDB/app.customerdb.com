@@ -7,7 +7,7 @@ import Form from "react-bootstrap/Form";
 
 import Modal from "../shell/Modal.js";
 
-export default function AnalysisEditModal(props) {
+export default function AnalysisRenameModal(props) {
   const navigate = useNavigate();
 
   const { orgID } = useParams();
@@ -35,7 +35,7 @@ export default function AnalysisEditModal(props) {
   return (
     <Modal
       key={analysis.ID}
-      name="Edit analysis"
+      name="Rename analysis"
       show={props.show}
       onHide={props.onHide}
       footer={[
