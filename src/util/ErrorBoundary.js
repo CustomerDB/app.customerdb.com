@@ -30,6 +30,7 @@ export default class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
+    console.debug("Error Boundary", error, errorInfo);
     errorHandler.report(error, errorInfo);
   }
 

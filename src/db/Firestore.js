@@ -10,7 +10,10 @@ export default function useFirestore() {
   const [personRefs, setPersonRefs] = useState({});
 
   useEffect(() => {
-    if (!orgID) return;
+    if (!orgID) {
+      setOrgRefs({});
+      return;
+    }
     let r = {};
     r.orgRef = db.collection("organizations").doc(orgID);
     r.allTagsRef = db.collectionGroup("tags");
@@ -26,7 +29,10 @@ export default function useFirestore() {
   }, [db, orgID]);
 
   useEffect(() => {
-    if (!analysisID || !orgRefs.analysesRef) return;
+    if (!analysisID || !orgRefs.analysesRef) {
+      setAnalysisRefs({});
+      return;
+    }
     let r = {};
     r.analysisRef = orgRefs.analysesRef.doc(analysisID);
     r.cardsRef = r.analysisRef.collection("cards");
@@ -36,16 +42,23 @@ export default function useFirestore() {
   }, [orgRefs.analysesRef, analysisID]);
 
   useEffect(() => {
-    if (!documentID || !orgRefs.documentsRef) return;
+    if (!documentID || !orgRefs.documentsRef) {
+      setDocumentRefs({});
+      return;
+    }
     let r = {};
     r.documentRef = orgRefs.documentsRef.doc(documentID);
+    r.snapshotsRef = r.documentRef.collection("snapshots");
     r.deltasRef = r.documentRef.collection("deltas");
     r.highlightsRef = r.documentRef.collection("highlights");
     setDocumentRefs(r);
   }, [orgRefs.documentsRef, documentID]);
 
   useEffect(() => {
-    if (!personID || !orgRefs.peopleRef) return;
+    if (!personID || !orgRefs.peopleRef) {
+      setPersonRefs({});
+      return;
+    }
     let r = {};
     r.personRef = orgRefs.peopleRef.doc(personID);
     setPersonRefs(r);

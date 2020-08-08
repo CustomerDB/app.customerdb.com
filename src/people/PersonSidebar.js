@@ -20,7 +20,6 @@ export default function PersonSidebar(props) {
       .where("personID", "==", personID)
       .orderBy("creationTimestamp", "desc")
       .onSnapshot((snapshot) => {
-        console.log("snapshot of docs for", personID);
         let newDocs = [];
         snapshot.forEach((doc) => {
           let data = doc.data();
@@ -44,8 +43,6 @@ export default function PersonSidebar(props) {
       </small>
     </Tabs.SidePaneCard>
   ));
-
-  console.log("render", items);
 
   return <Tabs.SidePane>{items}</Tabs.SidePane>;
 }

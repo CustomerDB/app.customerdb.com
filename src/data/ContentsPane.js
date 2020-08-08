@@ -64,17 +64,16 @@ const syncPeriod = 1000;
 export default function ContentsPane(props) {
   const { oauthClaims } = useContext(UserAuthContext);
   const { orgID } = useParams();
-
-  const { documentRef, highlightsRef, deltasRef } = useFirestore();
+  const { snapshotsRef, highlightsRef, deltasRef } = useFirestore();
 
   const [editorID] = useState(nanoid());
+  const [snapshotDelta, setSnapshotDelta] = useState();
+  const [snapshotTimestamp, setSnapshotTimestamp] = useState();
 
   const [tagIDsInSelection, setTagIDsInSelection] = useState(new Set());
 
   let localDelta = useRef(new Delta([]));
-  let latestDeltaTimestamp = useRef(
-    new window.firebase.firestore.Timestamp(0, 0)
-  );
+  let latestDeltaTimestamp = useRef();
 
   let currentSelection = useRef();
 
@@ -229,15 +228,34 @@ export default function ContentsPane(props) {
     setTagIDsInSelection(tagIDs);
   };
 
+  // Subscribe to the latest delta snapshot
+  useEffect(() => {
+    if (!snapshotsRef) {
+      return;
+    }
+
+    snapshotsRef
+      .orderBy("timestamp", "desc")
+      .limit(1)
+      .onSnapshot((snapshot) => {
+        // hint: limit 1 -- iterating over a list of at most 1
+        snapshot.forEach((snapshotDoc) => {
+          let data = snapshotDoc.data();
+          setSnapshotDelta(new Delta(data.delta.ops));
+          setSnapshotTimestamp(data.timestamp);
+        });
+      });
+  }, [snapshotsRef]);
+
   // Document will contain the latest cached and compressed version of the delta document.
   // Subscribe to deltas from other remote clients.
   useEffect(() => {
-    if (!props.editor || !documentRef || !deltasRef) {
+    if (!props.editor || !deltasRef || !snapshotTimestamp) {
       return;
     }
 
     if (!latestDeltaTimestamp.current) {
-      latestDeltaTimestamp.current = props.document.latestSnapshotTimestamp;
+      latestDeltaTimestamp.current = snapshotTimestamp;
     }
 
     console.debug(
@@ -247,7 +265,7 @@ export default function ContentsPane(props) {
 
     return deltasRef
       .orderBy("timestamp", "asc")
-      .where("timestamp", ">", props.document.latestSnapshotTimestamp)
+      .where("timestamp", ">", latestDeltaTimestamp.current)
       .onSnapshot((snapshot) => {
         console.debug("Delta snapshot received");
 
@@ -331,7 +349,7 @@ export default function ContentsPane(props) {
           props.editor.setSelection(selectionIndex, selection.length);
         }
       });
-  }, [editorID, props.editor, props.document, documentRef, deltasRef]);
+  }, [editorID, props.editor, snapshotTimestamp, deltasRef]);
 
   // Register timers to periodically sync local changes with firestore.
   useEffect(() => {
@@ -493,13 +511,17 @@ export default function ContentsPane(props) {
     });
   }, [highlightsRef]);
 
+  if (!snapshotDelta) {
+    return <></>;
+  }
+
   return (
     <>
       <Tabs.Content className="quillBounds">
         <Scrollable>
           <ReactQuill
             ref={props.reactQuillRef}
-            defaultValue={new Delta(props.document.latestSnapshot.ops)}
+            defaultValue={snapshotDelta}
             theme="bubble"
             bounds=".quillBounds"
             placeholder="Start typing here and select to mark highlights"

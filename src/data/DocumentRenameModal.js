@@ -37,7 +37,13 @@ export default function DocumentRenameModal(props) {
   ];
 
   const onSave = () => {
-    props.documentRef.set({ name: name }, { merge: true });
+    props.documentRef.set(
+      {
+        name: name,
+        needsIndex: true,
+      },
+      { merge: true }
+    );
     props.onHide();
   };
 
