@@ -6,7 +6,7 @@ import UserAuthContext from "../auth/UserAuthContext";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../App.css";
 
-import { useNavigate, useLocation, useParams } from "react-router-dom";
+import { useNavigate, useLocation, useParams, NavLink } from "react-router-dom";
 
 import { Loading } from "../util/Utils.js";
 
@@ -200,7 +200,7 @@ export default function Organization() {
               <MenuIcon />
             </IconButton>
             <Typography variant="h6" noWrap>
-              People
+              CustomerDB
             </Typography>
           </Toolbar>
         </AppBar>
