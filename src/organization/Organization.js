@@ -38,6 +38,8 @@ import ListItemText from "@material-ui/core/ListItemText";
 import GroupIcon from "@material-ui/icons/Group";
 import RecordVoiceOverIcon from "@material-ui/icons/RecordVoiceOver";
 import MultilineChartIcon from "@material-ui/icons/MultilineChart";
+import ExitToAppIcon from "@material-ui/icons/ExitToApp";
+import SettingsIcon from "@material-ui/icons/Settings";
 
 const drawerWidth = 240;
 
@@ -249,14 +251,21 @@ export default function Organization() {
           </List>
 
           <Divider />
-          {/* <List>
-          {['All mail', 'Trash', 'Spam'].map((text, index) => (
-            <ListItem button key={text}>
-              <ListItemIcon>{index % 2 === 0 ? <InboxIcon /> : <MailIcon />}</ListItemIcon>
-              <ListItemText primary={text} />
-            </ListItem>
-          ))}
-        </List> */}
+
+          <List>
+            <NavListItem key="Settings" to={`/orgs/${orgID}/settings`}>
+              <ListItemIcon>
+                <SettingsIcon />
+              </ListItemIcon>
+              <ListItemText primary="Settings" />
+            </NavListItem>
+            <NavListItem key="Logout" to={`/logout`}>
+              <ListItemIcon>
+                <ExitToAppIcon />
+              </ListItemIcon>
+              <ListItemText primary="Log out" />
+            </NavListItem>
+          </List>
         </Drawer>
         <main className={classes.content}>
           <div className={classes.toolbar} />

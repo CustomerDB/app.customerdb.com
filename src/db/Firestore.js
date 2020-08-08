@@ -4,18 +4,17 @@ import { useParams } from "react-router-dom";
 export default function useFirestore() {
   const db = window.firebase.firestore();
   const { orgID, personID, documentID, analysisID } = useParams();
-  const [refs, setRefs] = useState({});
+  const [orgRefs, setOrgRefs] = useState({});
+  const [analysisRefs, setAnalysisRefs] = useState({});
+  const [documentRefs, setDocumentRefs] = useState({});
+  const [personRefs, setPersonRefs] = useState({});
 
   useEffect(() => {
     if (!orgID) return;
-
     let r = {};
-
     r.orgRef = db.collection("organizations").doc(orgID);
-
     r.allTagsRef = db.collectionGroup("tags");
     r.allHighlightsRef = db.collectionGroup("highlights");
-
     r.apiKeysRef = r.orgRef.collection("apiKeys");
     r.analysesRef = r.orgRef.collection("analyses");
     r.documentsRef = r.orgRef.collection("documents");
@@ -23,26 +22,39 @@ export default function useFirestore() {
     r.peopleRef = r.orgRef.collection("people");
     r.tagGroupsRef = r.orgRef.collection("tagGroups");
     r.templatesRef = r.orgRef.collection("templates");
+    setOrgRefs(r);
+  }, [db, orgID]);
 
-    if (analysisID) {
-      r.analysisRef = r.analysesRef.doc(analysisID);
-      r.cardsRef = r.analysisRef.collection("cards");
-      r.groupsRef = r.analysisRef.collection("groups");
-      r.activeUsersRef = r.analysisRef.collection("activeUsers");
-    }
+  useEffect(() => {
+    if (!analysisID || !orgRefs.analysesRef) return;
+    let r = {};
+    r.analysisRef = orgRefs.analysesRef.doc(analysisID);
+    r.cardsRef = r.analysisRef.collection("cards");
+    r.groupsRef = r.analysisRef.collection("groups");
+    r.activeUsersRef = r.analysisRef.collection("activeUsers");
+    setAnalysisRefs(r);
+  }, [orgRefs.analysesRef, analysisID]);
 
-    if (documentID) {
-      r.documentRef = r.documentsRef.doc(documentID);
-      r.deltasRef = r.documentRef.collection("deltas");
-      r.highlightsRef = r.documentRef.collection("highlights");
-    }
+  useEffect(() => {
+    if (!documentID || !orgRefs.documentsRef) return;
+    let r = {};
+    r.documentRef = orgRefs.documentsRef.doc(documentID);
+    r.deltasRef = r.documentRef.collection("deltas");
+    r.highlightsRef = r.documentRef.collection("highlights");
+    setDocumentRefs(r);
+  }, [orgRefs.documentsRef, documentID]);
 
-    if (personID) {
-      r.personRef = r.peopleRef.doc(personID);
-    }
+  useEffect(() => {
+    if (!personID || !orgRefs.peopleRef) return;
+    let r = {};
+    r.personRef = orgRefs.peopleRef.doc(personID);
+    setPersonRefs(r);
+  }, [orgRefs.peopleRef, personID]);
 
-    setRefs(r);
-  }, [db, orgID, personID, documentID, analysisID]);
-
-  return refs;
+  return {
+    ...orgRefs,
+    ...analysisRefs,
+    ...documentRefs,
+    ...personRefs,
+  };
 }
