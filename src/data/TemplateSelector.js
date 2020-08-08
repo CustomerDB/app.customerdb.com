@@ -10,20 +10,12 @@ import Delta from "quill-delta";
 
 import Form from "react-bootstrap/Form";
 
-export default function TagGroupSelector(props) {
+export default function TemplateSelector(props) {
   const { oauthClaims } = useContext(UserAuthContext);
   const [doc, setDoc] = useState();
   const [templates, setTemplates] = useState();
-  const [editor, setEditor] = useState();
 
   const { documentRef, templatesRef } = useFirestore();
-
-  useEffect(() => {
-    if (!props.reactQuillRef.current) {
-      return;
-    }
-    setEditor(props.reactQuillRef.current.getEditor());
-  }, [props.reactQuillRef]);
 
   useEffect(() => {
     if (!documentRef) {
@@ -65,7 +57,7 @@ export default function TagGroupSelector(props) {
     // Handle setting the template to `None`.
     if (newTemplateID === "") {
       return documentRef.set({ templateID: "" }, { merge: true }).then(() => {
-        editor.setContents(initialDelta(), "user");
+        props.editor.setContents(initialDelta(), "user");
       });
     }
 
@@ -82,14 +74,14 @@ export default function TagGroupSelector(props) {
             return documentRef
               .set({ templateID: newTemplateID }, { merge: true })
               .then(() => {
-                editor.setContents(new Delta(data.delta.ops), "user");
+                props.editor.setContents(new Delta(data.delta.ops), "user");
               });
           });
         });
     }
   };
 
-  if (!doc || !templates || !editor) {
+  if (!doc || !templates || !props.editor) {
     return <></>;
   }
 

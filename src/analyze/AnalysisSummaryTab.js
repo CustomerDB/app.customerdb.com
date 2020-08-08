@@ -269,6 +269,7 @@ export default function AnalysisSummaryTab(props) {
                         <b>Total</b>
                         <div style={{ height: "25rem" }}>
                           <ResponsiveBar
+                            isInteractive={false}
                             data={groupData}
                             keys={groupNames}
                             maxValue={props.analysis.documentIDs.length}
