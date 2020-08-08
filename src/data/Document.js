@@ -59,6 +59,7 @@ export default function Document(props) {
           <ContentsPane
             document={document}
             reactQuillRef={props.reactQuillRef}
+            editor={props.editor}
           />
         </Tabs.Pane>
       </Tabs>
