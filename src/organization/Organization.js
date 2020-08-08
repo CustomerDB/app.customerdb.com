@@ -38,6 +38,8 @@ import ListItemText from "@material-ui/core/ListItemText";
 import GroupIcon from "@material-ui/icons/Group";
 import RecordVoiceOverIcon from "@material-ui/icons/RecordVoiceOver";
 import MultilineChartIcon from "@material-ui/icons/MultilineChart";
+import ExitToAppIcon from "@material-ui/icons/ExitToApp";
+import SettingsIcon from "@material-ui/icons/Settings";
 
 const drawerWidth = 240;
 
@@ -228,49 +230,44 @@ export default function Organization() {
           </div>
           <Divider />
           <List>
-            <NavLink to={`/orgs/${orgID}/people`}>
-              <ListItem button key="Customers">
-                <ListItemIcon>
-                  <GroupIcon />
-                </ListItemIcon>
-                <ListItemText primary="Customers" />
-              </ListItem>
-            </NavLink>
-          </List>
-          <List>
-            <ListItem
-              button
-              key="Data"
-              onClick={() => navigate(`/orgs/${orgID}/data`)}
-            >
+            <NavListItem key="Customers" to={`/orgs/${orgID}/people`}>
+              <ListItemIcon>
+                <GroupIcon />
+              </ListItemIcon>
+              <ListItemText primary="Customers" />
+            </NavListItem>
+
+            <NavListItem key="Data" to={`/orgs/${orgID}/data`}>
               <ListItemIcon>
                 <RecordVoiceOverIcon />
               </ListItemIcon>
               <ListItemText primary="Data" />
-            </ListItem>
-          </List>
-          <List>
-            <ListItem
-              button
-              key="Analysis"
-              onClick={() => navigate(`/orgs/${orgID}/analyze`)}
-            >
+            </NavListItem>
+
+            <NavListItem key="Analysis" to={`/orgs/${orgID}/analyze`}>
               <ListItemIcon>
                 <MultilineChartIcon />
               </ListItemIcon>
               <ListItemText primary="Analysis" />
-            </ListItem>
+            </NavListItem>
           </List>
 
           <Divider />
-          {/* <List>
-          {['All mail', 'Trash', 'Spam'].map((text, index) => (
-            <ListItem button key={text}>
-              <ListItemIcon>{index % 2 === 0 ? <InboxIcon /> : <MailIcon />}</ListItemIcon>
-              <ListItemText primary={text} />
-            </ListItem>
-          ))}
-        </List> */}
+
+          <List>
+            <NavListItem key="Settings" to={`/orgs/${orgID}/settings`}>
+              <ListItemIcon>
+                <SettingsIcon />
+              </ListItemIcon>
+              <ListItemText primary="Settings" />
+            </NavListItem>
+            <NavListItem key="Logout" to={`/logout`}>
+              <ListItemIcon>
+                <ExitToAppIcon />
+              </ListItemIcon>
+              <ListItemText primary="Log out" />
+            </NavListItem>
+          </List>
         </Drawer>
         <main className={classes.content}>
           <div className={classes.toolbar} />
@@ -278,5 +275,20 @@ export default function Organization() {
         </main>
       </div>
     </ThemeProvider>
+  );
+}
+
+function NavListItem(props) {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  let selected = props.end
+    ? location.pathname === props.to
+    : location.pathname.startsWith(props.to);
+
+  return (
+    <ListItem button selected={selected} onClick={() => navigate(props.to)}>
+      {props.children}
+    </ListItem>
   );
 }
