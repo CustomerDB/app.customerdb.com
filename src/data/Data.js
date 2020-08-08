@@ -201,7 +201,11 @@ export default function Data(props) {
       </ListItemAvatar>
       <ListItemText
         primary={doc.name}
-        secondary={<Moment fromNow date={doc.creationTimestamp.toDate()} />}
+        secondary={
+          doc.creationTimestamp && (
+            <Moment fromNow date={doc.creationTimestamp.toDate()} />
+          )
+        }
       />
     </ListItem>
   ));
