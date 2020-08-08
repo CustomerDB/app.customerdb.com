@@ -9,6 +9,8 @@ import { useParams, useNavigate } from "react-router-dom";
 
 import { nanoid } from "nanoid";
 
+import Moment from "react-moment";
+
 import Button from "react-bootstrap/Button";
 
 import { initialDelta } from "./delta.js";
@@ -16,11 +18,18 @@ import Document from "./Document.js";
 import DocumentCreateModal from "./DocumentCreateModal.js";
 import DocumentRenameModal from "./DocumentRenameModal.js";
 
-import List from "../shell/List.js";
+import ObsoleteList from "../shell/List.js";
 import Modal from "../shell/Modal.js";
 import Options from "../shell/Options.js";
 import Page from "../shell/Page.js";
 import Scrollable from "../shell/Scrollable.js";
+
+import List from "@material-ui/core/List";
+import ListItem from "@material-ui/core/ListItem";
+import ListItemText from "@material-ui/core/ListItemText";
+import ListItemAvatar from "@material-ui/core/ListItemAvatar";
+import Avatar from "@material-ui/core/Avatar";
+import DescriptionIcon from "@material-ui/icons/Description";
 
 import DataHelp from "./DataHelp.js";
 import ContentsHelp from "./ContentsHelp.js";
@@ -169,11 +178,22 @@ export default function Data(props) {
   };
 
   let documentItems = documents.map((doc) => (
-    <List.Item
-      key={doc.ID}
-      name={doc.name}
-      path={`/orgs/${orgID}/data/${doc.ID}`}
-    />
+    <ListItem
+      onClick={() => {
+        navigate(`/orgs/${orgID}/data/${doc.ID}`);
+      }}
+      selected={doc.ID == documentID}
+    >
+      <ListItemAvatar>
+        <Avatar>
+          <DescriptionIcon />
+        </Avatar>
+      </ListItemAvatar>
+      <ListItemText
+        primary={doc.name}
+        secondary={<Moment fromNow date={doc.creationTimestamp.toDate()} />}
+      />
+    </ListItem>
   ));
 
   let content = undefined;
@@ -203,24 +223,26 @@ export default function Data(props) {
 
   return (
     <Page>
-      <List>
-        <List.Search
+      <ObsoleteList>
+        <ObsoleteList.Search
           index={process.env.REACT_APP_ALGOLIA_DOCUMENTS_INDEX}
           path={(ID) => `/orgs/${orgID}/data/${ID}`}
         >
-          <List.SearchBox placeholder="Search in data..." />
-          <List.Title>
-            <List.Name>Customer Data</List.Name>
-            <List.Add onClick={onAdd} />
+          <ObsoleteList.SearchBox placeholder="Search in data..." />
+          <ObsoleteList.Title>
+            <ObsoleteList.Name>Customer Data</ObsoleteList.Name>
+            <ObsoleteList.Add onClick={onAdd} />
             {addModal}
-          </List.Title>
-          <List.Items>
+          </ObsoleteList.Title>
+          <ObsoleteList.Items>
             <Scrollable>
-              {documentItems.length > 0 ? documentItems : <DataHelp />}
+              <List>
+                {documentItems.length > 0 ? documentItems : <DataHelp />}
+              </List>
             </Scrollable>
-          </List.Items>
-        </List.Search>
-      </List>
+          </ObsoleteList.Items>
+        </ObsoleteList.Search>
+      </ObsoleteList>
       {content}
     </Page>
   );
