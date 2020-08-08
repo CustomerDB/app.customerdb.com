@@ -228,38 +228,28 @@ export default function Organization() {
           </div>
           <Divider />
           <List>
-            <NavLink to={`/orgs/${orgID}/people`}>
-              <ListItem button key="Customers">
-                <ListItemIcon>
-                  <GroupIcon />
-                </ListItemIcon>
-                <ListItemText primary="Customers" />
-              </ListItem>
-            </NavLink>
+            <NavListItem key="Customers" to={`/orgs/${orgID}/people`}>
+              <ListItemIcon>
+                <GroupIcon />
+              </ListItemIcon>
+              <ListItemText primary="Customers" />
+            </NavListItem>
           </List>
           <List>
-            <ListItem
-              button
-              key="Data"
-              onClick={() => navigate(`/orgs/${orgID}/data`)}
-            >
+            <NavListItem key="Data" to={`/orgs/${orgID}/data`}>
               <ListItemIcon>
                 <RecordVoiceOverIcon />
               </ListItemIcon>
               <ListItemText primary="Data" />
-            </ListItem>
+            </NavListItem>
           </List>
           <List>
-            <ListItem
-              button
-              key="Analysis"
-              onClick={() => navigate(`/orgs/${orgID}/analyze`)}
-            >
+            <NavListItem key="Analysis" to={`/orgs/${orgID}/analyze`}>
               <ListItemIcon>
                 <MultilineChartIcon />
               </ListItemIcon>
               <ListItemText primary="Analysis" />
-            </ListItem>
+            </NavListItem>
           </List>
 
           <Divider />
@@ -278,5 +268,20 @@ export default function Organization() {
         </main>
       </div>
     </ThemeProvider>
+  );
+}
+
+function NavListItem(props) {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  let selected = props.end
+    ? location.pathname === props.to
+    : location.pathname.startsWith(props.to);
+
+  return (
+    <ListItem button selected={selected} onClick={() => navigate(props.to)}>
+      {props.children}
+    </ListItem>
   );
 }
