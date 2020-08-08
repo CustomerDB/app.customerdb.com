@@ -226,6 +226,12 @@ export default class AnalysisClusterBoard extends React.Component {
     });
     this.unsubscribeFromHighlights();
     this.unsubscribeFromDocuments();
+    this.setState({
+      loadedDocuments: false,
+      loadedHighlights: false,
+      loadedCards: false,
+      loadedGroups: false,
+    });
   }
 
   addCardLocation(card) {
@@ -584,13 +590,17 @@ export default class AnalysisClusterBoard extends React.Component {
                   {cards.flatMap((card) => {
                     let highlight = this.state.highlights[card.ID];
                     if (!highlight) return [];
+
+                    let doc = this.state.documents[highlight.documentID];
+                    if (!doc) return <></>;
+
                     return [
                       <Card
                         key={card.ID}
                         scale={scale}
                         card={card}
                         highlight={highlight}
-                        document={this.state.documents[highlight.documentID]}
+                        document={doc}
                         minX={card.minX}
                         minY={card.minY}
                         groupColor={card.groupColor}

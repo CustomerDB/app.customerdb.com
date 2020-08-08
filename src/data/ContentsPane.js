@@ -112,8 +112,7 @@ export default function ContentsPane(props) {
     }
 
     let length = selection.length > 0 ? selection.length : 1;
-    let editor = props.reactQuillRef.current.getEditor();
-    let selectionDelta = editor.getContents(selection.index, length);
+    let selectionDelta = props.editor.getContents(selection.index, length);
     let selectedHighlightIDs = [];
 
     selectionDelta.ops.forEach((op) => {
@@ -140,10 +139,9 @@ export default function ContentsPane(props) {
 
       if (!blot) return undefined;
 
-      let editor = props.reactQuillRef.current.getEditor();
-      let index = editor.getIndex(blot);
+      let index = props.editor.getIndex(blot);
       let length = blot.length();
-      let text = editor.getText(index, length);
+      let text = props.editor.getText(index, length);
 
       return {
         tagID: tagID,
@@ -154,7 +152,7 @@ export default function ContentsPane(props) {
         text: text,
       };
     },
-    [props.reactQuillRef]
+    [props.editor]
   );
 
   // onEdit builds a batch of local edits in `localDelta`
@@ -192,14 +190,12 @@ export default function ContentsPane(props) {
 
     let selection = currentSelection.current;
 
-    let editor = props.reactQuillRef.current.getEditor();
-
     if (checked) {
       console.debug("formatting highlight with tag ", tag);
 
       let highlightID = nanoid();
 
-      editor.formatText(
+      props.editor.formatText(
         selection.index,
         selection.length,
         "highlight",
@@ -218,7 +214,7 @@ export default function ContentsPane(props) {
             tag
           );
 
-          editor.formatText(
+          props.editor.formatText(
             h.selection.index,
             h.selection.length,
             "highlight",
@@ -236,7 +232,7 @@ export default function ContentsPane(props) {
   // Document will contain the latest cached and compressed version of the delta document.
   // Subscribe to deltas from other remote clients.
   useEffect(() => {
-    if (!props.reactQuillRef.current || !documentRef || !deltasRef) {
+    if (!props.editor || !documentRef || !deltasRef) {
       return;
     }
 
@@ -296,17 +292,15 @@ export default function ContentsPane(props) {
 
         console.debug("applying deltas to editor", newDeltas);
 
-        let editor = props.reactQuillRef.current.getEditor();
-
         // What we have:
         // - localDelta: the buffered local edits that haven't been uploaded yet
         // - editor.getContents(): document delta representing local editor content
 
-        let selection = editor.getSelection();
+        let selection = props.editor.getSelection();
         let selectionIndex = selection ? selection.index : 0;
 
         // Compute inverse of local delta.
-        let editorContents = editor.getContents();
+        let editorContents = props.editor.getContents();
         console.debug("editorContents", editorContents);
 
         console.debug("localDelta (before)", localDelta.current);
@@ -315,12 +309,11 @@ export default function ContentsPane(props) {
 
         // Undo local edits
         console.debug("unapplying local delta");
-        editor.updateContents(inverseLocalDelta);
+        props.editor.updateContents(inverseLocalDelta);
         selectionIndex = inverseLocalDelta.transformPosition(selectionIndex);
 
         newDeltas.forEach((delta) => {
-          console.debug("editor.updateContents", delta);
-          editor.updateContents(delta);
+          props.editor.updateContents(delta);
           selectionIndex = delta.transformPosition(selectionIndex);
 
           console.debug("transform local delta");
@@ -330,15 +323,15 @@ export default function ContentsPane(props) {
 
         // Reapply local edits
         console.debug("applying transformed local delta", localDelta.current);
-        editor.updateContents(localDelta.current);
+        props.editor.updateContents(localDelta.current);
         selectionIndex = localDelta.current.transformPosition(selectionIndex);
 
         if (selection) {
           console.debug("updating selection index");
-          editor.setSelection(selectionIndex, selection.length);
+          props.editor.setSelection(selectionIndex, selection.length);
         }
       });
-  }, [editorID, props.reactQuillRef, props.document, documentRef, deltasRef]);
+  }, [editorID, props.editor, props.document, documentRef, deltasRef]);
 
   // Register timers to periodically sync local changes with firestore.
   useEffect(() => {
@@ -376,7 +369,7 @@ export default function ContentsPane(props) {
     // This function sends any local updates to highlight content relative
     // to the local editor to the database.
     const syncHighlights = () => {
-      if (!props.reactQuillRef.current) {
+      if (!props.editor) {
         return;
       }
 
@@ -476,7 +469,7 @@ export default function ContentsPane(props) {
     orgID,
     getHighlightFromEditor,
     props.document.ID,
-    props.reactQuillRef,
+    props.editor,
   ]);
 
   // Subscribe to highlight changes

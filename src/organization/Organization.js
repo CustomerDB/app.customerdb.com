@@ -234,16 +234,12 @@ export default function Organization() {
               </ListItemIcon>
               <ListItemText primary="Customers" />
             </NavListItem>
-          </List>
-          <List>
             <NavListItem key="Data" to={`/orgs/${orgID}/data`}>
               <ListItemIcon>
                 <RecordVoiceOverIcon />
               </ListItemIcon>
               <ListItemText primary="Data" />
             </NavListItem>
-          </List>
-          <List>
             <NavListItem key="Analysis" to={`/orgs/${orgID}/analyze`}>
               <ListItemIcon>
                 <MultilineChartIcon />

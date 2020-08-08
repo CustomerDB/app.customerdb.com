@@ -159,6 +159,7 @@ export default function People(props) {
                   >
                     {peopleList.slice(0, listLimit).map((person) => (
                       <ListItem
+                        selected={person.ID == personID}
                         onClick={() => {
                           navigate(`/orgs/${orgID}/people/${person.ID}`);
                         }}
