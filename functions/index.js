@@ -478,6 +478,13 @@ exports.markDocumentsForIndexing = functions.pubsub
                       .limit(1)
                       .get()
                       .then((snapshot) => {
+                        if (snapshot.size === 0) {
+                          return doc.ref.set(
+                            { needsIndex: true },
+                            { merge: true }
+                          );
+                        }
+
                         snapshot.forEach((latestSnapshotDoc) => {
                           let latestSnapshot = latestSnapshotDoc.data();
                           return doc.ref
