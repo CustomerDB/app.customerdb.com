@@ -15,8 +15,6 @@ export default function DocumentCreateModal(props) {
   const [name, setName] = useState();
   const { documentRef } = useFirestore();
 
-  console.log("document create modal :: render", props);
-
   useEffect(() => {
     if (!documentRef) return;
 
@@ -33,7 +31,13 @@ export default function DocumentCreateModal(props) {
   }
 
   const onSave = () => {
-    documentRef.set({ name: name }, { merge: true });
+    documentRef.set(
+      {
+        name: name,
+        needsIndex: true,
+      },
+      { merge: true }
+    );
     props.onHide();
   };
 

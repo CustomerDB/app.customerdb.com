@@ -66,11 +66,10 @@ export default function Templates(props) {
       .orderBy("timestamp", "desc")
       .limit(1)
       .onSnapshot((snapshot) => {
-        console.log("received template snapshot update");
+        // hint: limit 1 -- iterating over a list of at most 1
         snapshot.forEach((snapshotDoc) => {
           let data = snapshotDoc.data();
           let delta = new Delta(data.delta.ops);
-          console.log("updating snapshot delta", delta);
           setTemplateSnapshot(delta);
         });
       });
