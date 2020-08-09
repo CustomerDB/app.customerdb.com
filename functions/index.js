@@ -369,73 +369,79 @@ exports.onDocumentWritten = functions.firestore
       .limit(1)
       .get()
       .then((snapshot) => {
+        let latestSnapshot;
+        let ts;
+
+        if (snapshot.size === 0) {
+          latestSnapshot = new Delta([{ insert: "\n" }]);
+          ts = new admin.firestore.Timestamp(0, 0);
+        }
+
+        // nb: limit(1) -- iterating over list of 1
         snapshot.forEach((latestSnapshotDoc) => {
           let snapshotData = latestSnapshotDoc.data();
-          let latestSnapshot = new Delta(snapshotData.delta.ops);
-          let ts = snapshotData.timestamp;
-          if (ts === "") {
-            ts = new admin.firestore.Timestamp(0, 0);
-          }
+          latestSnapshot = new Delta(snapshotData.delta.ops);
+          ts = snapshotData.timestamp;
+        });
 
-          if (data.needsIndex === true) {
-            return change.after.ref
-              .collection("deltas")
-              .where("timestamp", ">", ts)
-              .get()
-              .then((deltasSnapshot) => {
-                deltasSnapshot.forEach((deltaDoc) => {
-                  let delta = deltaDoc.data();
-                  let ops = delta.ops;
-                  latestSnapshot = latestSnapshot.compose(new Delta(ops));
-                  ts = delta.timestamp;
-                });
-
-                // Convert the consolidated document delta snapshot to text.
-                let docText = toPlaintext(latestSnapshot);
-
-                // Index the new content
-                let docToIndex = {
-                  // Add an 'objectID' field which Algolia requires
-                  objectID: change.after.id,
-                  orgID: context.params.orgID,
-                  name: data.name,
-                  createdBy: data.createdBy,
-                  creationTimestamp: data.creationTimestamp.seconds,
-                  latestSnapshotTimestamp: ts.seconds,
-                  text: docText,
-                };
-
-                return index.saveObject(docToIndex).then(() => {
-                  // Write the snapshot, timestamp and index state back to document
-
-                  return change.after.ref
-                    .collection("snapshots")
-                    .add({
-                      delta: { ops: latestSnapshot.ops },
-                      timestamp: ts,
-                    })
-                    .then(() => {
-                      return change.after.ref.set(
-                        { needsIndex: false },
-                        { merge: true }
-                      );
-                    });
-                });
+        if (data.needsIndex === true) {
+          return change.after.ref
+            .collection("deltas")
+            .where("timestamp", ">", ts)
+            .get()
+            .then((deltasSnapshot) => {
+              deltasSnapshot.forEach((deltaDoc) => {
+                let delta = deltaDoc.data();
+                let ops = delta.ops;
+                latestSnapshot = latestSnapshot.compose(new Delta(ops));
+                ts = delta.timestamp;
               });
-          }
 
-          // Otherwise, just proceed with updating the index with the
-          // existing document data.
-          return index.saveObject({
-            // Add an 'objectID' field which Algolia requires
-            objectID: change.after.id,
-            orgID: context.params.orgID,
-            name: data.name,
-            createdBy: data.createdBy,
-            creationTimestamp: data.creationTimestamp.seconds,
-            latestSnapshotTimestamp: ts.seconds,
-            text: toPlaintext(latestSnapshot),
-          });
+              // Convert the consolidated document delta snapshot to text.
+              let docText = toPlaintext(latestSnapshot);
+
+              // Index the new content
+              let docToIndex = {
+                // Add an 'objectID' field which Algolia requires
+                objectID: change.after.id,
+                orgID: context.params.orgID,
+                name: data.name,
+                createdBy: data.createdBy,
+                creationTimestamp: data.creationTimestamp.seconds,
+                latestSnapshotTimestamp: ts.seconds,
+                text: docText,
+              };
+
+              return index.saveObject(docToIndex).then(() => {
+                // Write the snapshot, timestamp and index state back to document
+
+                return change.after.ref
+                  .collection("snapshots")
+                  .add({
+                    delta: { ops: latestSnapshot.ops },
+                    timestamp: ts,
+                  })
+                  .then(() => {
+                    return change.after.ref.set(
+                      { needsIndex: false },
+                      { merge: true }
+                    );
+                  });
+              });
+            });
+        }
+
+        // Otherwise, just proceed with updating the index with the
+        // existing document data.
+        return index.saveObject({
+          // Add an 'objectID' field which Algolia requires
+          objectID: change.after.id,
+          orgID: context.params.orgID,
+          name: data.name,
+          createdBy: data.createdBy,
+          creationTimestamp: data.creationTimestamp.seconds,
+          latestSnapshotTimestamp: ts.seconds,
+          text: toPlaintext(latestSnapshot),
         });
       });
   });
