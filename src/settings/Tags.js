@@ -319,6 +319,18 @@ function TagGroup(props) {
                           userID: oauthClaims.user_id,
                         });
 
+                        console.debug("TODO: use a modal for this instead");
+                        let proceed = window.confirm(
+                          `This will remove highlights associated with this tag.\nAre you sure you want to delete it?`
+                        );
+
+                        if (!proceed) {
+                          console.debug(
+                            "user declined to proceeed with deleting the tag"
+                          );
+                          return;
+                        }
+
                         props.tagGroupRef.collection("tags").doc(tag.ID).set(
                           {
                             deletedBy: oauthClaims.email,
