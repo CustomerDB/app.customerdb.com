@@ -19,6 +19,7 @@ import { useParams } from "react-router-dom";
 
 import "react-quill/dist/quill.bubble.css";
 
+import { initialDelta } from "./delta.js";
 import HighlightBlot from "./HighlightBlot.js";
 import DocumentSidebar from "./DocumentSidebar.js";
 
@@ -238,10 +239,21 @@ export default function ContentsPane(props) {
       .orderBy("timestamp", "desc")
       .limit(1)
       .onSnapshot((snapshot) => {
-        // hint: limit 1 -- iterating over a list of at most 1
+        if (snapshot.size === 0) {
+          setSnapshotDelta(initialDelta());
+          setSnapshotTimestamp(window.firebase.firestore.Timestamp(0, 0));
+          return;
+        }
+
+        // hint: limit 1 -- iterating over a list of exactly 1
         snapshot.forEach((snapshotDoc) => {
           let data = snapshotDoc.data();
           setSnapshotDelta(new Delta(data.delta.ops));
+          console.log("found data timestamp", data.timestamp);
+          if (!data.timestamp) {
+            setSnapshotTimestamp(window.firebase.firestore.Timestamp(0, 0));
+            return;
+          }
           setSnapshotTimestamp(data.timestamp);
         });
       });
