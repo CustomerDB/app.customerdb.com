@@ -176,3 +176,10 @@ span.inline-highlight {
 .tab-pane {
   flex-grow: 1 !important;
 }
+
+.ql-toolbar {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 1;
+}
