@@ -120,6 +120,12 @@ service cloud.firestore {
                    && activeOrgMember(orgID);
     }
 
+    // Active non-admin users can write **DOCUMENT SNAPSHOTS** in the org.
+    match /organizations/{orgID}/documents/{document}/snapshots/{snapshot} {
+      allow write: if signedInAndVerified()
+                   && activeOrgMember(orgID);
+    }
+
     // Active non-admin users can write **DOCUMENT DELTAS** in the org.
     match /organizations/{orgID}/documents/{document}/deltas/{delta} {
       allow write: if signedInAndVerified()
