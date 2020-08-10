@@ -97,7 +97,6 @@ export default function Login(props) {
       </Row>
       <Row>
         <Col>
-          <small>Legal</small>
           <p>
             <a href="/terms">Terms of use</a>
             <a className="pl-3" href="/privacy">
@@ -105,6 +104,13 @@ export default function Login(props) {
             </a>
             <a className="pl-3" href="/cookies">
               Cookies
+            </a>
+            <a
+              className="pl-3"
+              href="#"
+              onClick={() => window.displayPreferenceModal()}
+            >
+              Do Not Sell My Information
             </a>
           </p>
         </Col>

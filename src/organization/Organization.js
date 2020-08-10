@@ -55,6 +55,10 @@ export default function Organization(props) {
   // Initialize intercom on load
   useEffect(() => {
     if (!authorized || !oauthClaims) return;
+
+    // User may not have consented to performance / features cookies.
+    if (!window.Intercom) return;
+
     let intercomConfig = Object.assign({ app_id: "xdjuo7oo" }, oauthClaims);
     window.Intercom("boot", intercomConfig);
     setIntercomInit(true);

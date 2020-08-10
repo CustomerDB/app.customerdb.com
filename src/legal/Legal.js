@@ -32,7 +32,11 @@ export function Cookies() {
     <Legal
       termlyId="ecb8e6d6-52d7-480a-b8b0-faf537fc607d"
       header={
-        <Button onClick={window.displayPreferenceModal()}>
+        <Button
+          onClick={() => {
+            window.displayPreferenceModal();
+          }}
+        >
           Manage Cookie Preferences
         </Button>
       }
@@ -54,7 +58,7 @@ function Legal(props) {
             alt="CustomerDB logo"
           />
 
-          {props.header}
+          <div>{props.header}</div>
 
           <div
             name="termly-embed"
