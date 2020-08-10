@@ -3,12 +3,11 @@ import { useContext, useEffect, useState } from "react";
 
 import { useNavigate } from "react-router-dom";
 
+import Alert from "react-bootstrap/Alert";
+import Button from "react-bootstrap/Button";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
-
-import Button from "react-bootstrap/Button";
-import Alert from "react-bootstrap/Alert";
 
 import UserAuthContext from "./UserAuthContext.js";
 
@@ -99,19 +98,19 @@ export default function Login(props) {
         <Col>
           <p>
             <a href="/terms">Terms of use</a>
-            <a className="pl-3" href="/privacy">
+            <a className="ml-3" href="/privacy">
               Privacy
             </a>
-            <a className="pl-3" href="/cookies">
+            <a className="ml-3" href="/cookies">
               Cookies
             </a>
-            <a
-              className="pl-3"
-              href="#"
+            <Button
+              className="ml-3 p-0"
+              variant="link"
               onClick={() => window.displayPreferenceModal()}
             >
               Do Not Sell My Information
-            </a>
+            </Button>
           </p>
         </Col>
       </Row>
