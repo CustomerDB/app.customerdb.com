@@ -63,7 +63,9 @@ export default function AnalysisDeleteModal(props) {
         </Button>,
       ]}
     >
-      <p>Do you want to delete {analysis.name}</p>
+      <p>
+        Do you want to delete <b>{analysis.name}</b>?
+      </p>
     </Modal>
   );
 }

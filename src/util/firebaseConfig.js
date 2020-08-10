@@ -11,7 +11,11 @@ function init() {
   };
   // Initialize Firebase
   window.firebase.initializeApp(firebaseConfig);
-  window.firebase.analytics();
+
+  // User may not have consented to analytics.
+  if (window.firebase.analytics) {
+    window.firebase.analytics();
+  }
 }
 
 init();

@@ -539,6 +539,20 @@ export default function ContentsPane(props) {
             placeholder="Start typing here and select to mark highlights"
             onChange={onEdit}
             onChangeSelection={onSelect}
+            modules={{
+              toolbar: [
+                [{ header: [1, 2, false] }],
+                ["bold", "italic", "underline", "strike", "blockquote"],
+                [
+                  { list: "ordered" },
+                  { list: "bullet" },
+                  { indent: "-1" },
+                  { indent: "+1" },
+                ],
+                ["link", "image"],
+                ["clean"],
+              ],
+            }}
           />
         </Scrollable>
       </Tabs.Content>
