@@ -52,18 +52,27 @@ export default function AnalysisSummaryTab(props) {
   }, [groupsRef]);
 
   useEffect(() => {
-    if (!cardsRef) {
+    if (!cardsRef || !props.analysis) {
       return;
     }
 
     return cardsRef.onSnapshot((snapshot) => {
       let newCards = {};
       snapshot.forEach((doc) => {
-        newCards[doc.id] = doc.data();
+        // Only include cards for currently selected documents.
+        //
+        // We try to prevent this in the data selection and clustering
+        // tabs by deleting cards, but this is just to make sure we don't
+        // include anything extra in case those deletes failed for some
+        // reason or we're still awaiting read repair by the board.
+        let cardData = doc.data();
+        if (props.analysis.documentIDs.includes(cardData.documentID)) {
+          newCards[doc.id] = cardData;
+        }
       });
       setCards(newCards);
     });
-  }, [cardsRef]);
+  }, [cardsRef, props.analysis]);
 
   useEffect(() => {
     if (!documentsRef) {
@@ -237,7 +246,6 @@ export default function AnalysisSummaryTab(props) {
                   Object.values(card).forEach((person) => {
                     if (person && person.labels) {
                       Object.values(person.labels).forEach((label) => {
-                        console.log("label", label);
                         let name = label["name"];
 
                         if (!labelNames.includes(name)) {
@@ -257,13 +265,11 @@ export default function AnalysisSummaryTab(props) {
                 groupData.push(groupDataPoint);
               });
 
-              console.log("groupNames:", groupNames);
-
               let exportID = `graphs-${tagName}`;
               let exportButtonID = `${exportID}-export-button`;
 
               return (
-                <div id={exportID}>
+                <div key={exportID} id={exportID}>
                   <Row>
                     <Col>
                       <h4>

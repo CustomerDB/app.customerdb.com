@@ -31,8 +31,6 @@ export default function Analyze(props) {
   const [newAnalysisRef, setNewAnalysisRef] = useState();
   const [listTotal, setListTotal] = useState();
 
-  console.log("Analyze");
-
   useEffect(() => {
     if (!analysesRef) {
       return;
