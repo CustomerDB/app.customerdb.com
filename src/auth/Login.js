@@ -95,6 +95,20 @@ export default function Login(props) {
           <img style={{ width: "100%" }} src={loginFigure} alt="..." />
         </Col>
       </Row>
+      <Row>
+        <Col>
+          <small>Legal</small>
+          <p>
+            <a href="/terms">Terms of use</a>
+            <a className="pl-3" href="/privacy">
+              Privacy
+            </a>
+            <a className="pl-3" href="/cookies">
+              Cookies
+            </a>
+          </p>
+        </Col>
+      </Row>
     </Container>
   ) : (
     <></>

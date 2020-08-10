@@ -14,6 +14,8 @@ import ErrorBoundary from "./util/ErrorBoundary.js";
 
 import Admin from "./admin/Admin.js";
 
+import { Terms, Privacy, Cookies } from "./legal/Legal.js";
+
 export default function App() {
   return (
     <ErrorBoundary>
@@ -66,6 +68,12 @@ export default function App() {
             </WithOauthUser>
           }
         />
+
+        <Route path="terms" element={<Terms />} />
+
+        <Route path="privacy" element={<Privacy />} />
+
+        <Route path="cookies" element={<Cookies />} />
 
         <Route path="404" element={<Error404 />} />
 
