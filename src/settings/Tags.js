@@ -244,7 +244,7 @@ function TagGroup(props) {
     let color = colorPair();
     let newTagID = nanoid();
 
-    props.tagGroupRef.collection("tags").doc().set({
+    props.tagGroupRef.collection("tags").doc(newTagID).set({
       ID: newTagID,
       name: "Untitled tag",
       organizationID: orgID,
