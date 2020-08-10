@@ -7,9 +7,14 @@ import { Link } from "react-router-dom";
 import Scrollable from "../shell/Scrollable.js";
 import Tabs from "../shell/Tabs.js";
 
+import Button from "react-bootstrap/Button";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
+
+import { Download } from "react-bootstrap-icons";
+
+import domToImage from "dom-to-image";
 
 import { ResponsiveBar } from "@nivo/bar";
 
@@ -187,8 +192,6 @@ export default function AnalysisSummaryTab(props) {
     );
   }
 
-  console.log("analysis", analysis);
-
   if (Object.values(analysis).length === 0) {
     return (
       <Tabs.Pane>
@@ -256,11 +259,38 @@ export default function AnalysisSummaryTab(props) {
 
               console.log("groupNames:", groupNames);
 
+              let exportID = `graphs-${tagName}`;
+              let exportButtonID = `${exportID}-export-button`;
+
               return (
-                <>
+                <div id={exportID}>
                   <Row>
                     <Col>
-                      <h4>{tagName}</h4>
+                      <h4>
+                        {tagName}
+                        <Button
+                          id={exportButtonID}
+                          title="Download graph image"
+                          style={{ marginLeft: "1rem" }}
+                          variant="light"
+                          onClick={() => {
+                            let filter = (node) => {
+                              return node.id !== exportButtonID;
+                            };
+                            let domNode = document.getElementById(exportID);
+                            domToImage
+                              .toPng(domNode, { filter: filter })
+                              .then((dataURL) => {
+                                let link = document.createElement("a");
+                                link.download = `CustomerDB (${props.analysis.name}) - ${tagName}.png`;
+                                link.href = dataURL;
+                                link.click();
+                              });
+                          }}
+                        >
+                          <Download />
+                        </Button>
+                      </h4>
                     </Col>
                   </Row>
                   <Row>
@@ -391,7 +421,7 @@ export default function AnalysisSummaryTab(props) {
                       </Col>
                     )}
                   </Row>
-                </>
+                </div>
               );
             })}
           </Container>
