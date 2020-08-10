@@ -95,6 +95,26 @@ export default function Login(props) {
           <img style={{ width: "100%" }} src={loginFigure} alt="..." />
         </Col>
       </Row>
+      <Row>
+        <Col>
+          <p>
+            <a href="/terms">Terms of use</a>
+            <a className="pl-3" href="/privacy">
+              Privacy
+            </a>
+            <a className="pl-3" href="/cookies">
+              Cookies
+            </a>
+            <a
+              className="pl-3"
+              href="#"
+              onClick={() => window.displayPreferenceModal()}
+            >
+              Do Not Sell My Information
+            </a>
+          </p>
+        </Col>
+      </Row>
     </Container>
   ) : (
     <></>

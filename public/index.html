@@ -15,13 +15,6 @@
 
     <title>CustomerDB</title>
 
-    <script src="https://www.gstatic.com/firebasejs/7.14.6/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.14.6/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.14.6/firebase-analytics.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.14.6/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.14.6/firebase-functions.js"></script>
-    <script src="/getEmPixels.min.js"></script>
-
 		<script>
 			(function () {
 				var s = document.createElement('script');
@@ -35,8 +28,18 @@
 			})();
 		</script>
 
+    <script src="https://www.gstatic.com/firebasejs/7.14.6/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.14.6/firebase-auth.js"></script>
+
+    <!-- Guarded by user consent -->
+    <script type="text/plain" data-categories="analytics" src="https://www.gstatic.com/firebasejs/7.14.6/firebase-analytics.js"></script>
+  
+    <script src="https://www.gstatic.com/firebasejs/7.14.6/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.14.6/firebase-functions.js"></script>
+    <script src="/getEmPixels.min.js"></script>
+
     <!-- intercom messenger -->
-    <script>
+    <script type="text/plain" data-categories="performance">
       (function(){var w=window;var ic=w.Intercom;if(typeof ic==="function"){ic('reattach_activator');ic('update',w.intercomSettings);}else{var d=document;var i=function(){i.c(arguments);};i.q=[];i.c=function(args){i.q.push(args);};w.Intercom=i;var l=function(){var s=d.createElement('script');s.type='text/javascript';s.async=true;s.src='https://widget.intercom.io/widget/xdjuo7oo';var x=d.getElementsByTagName('script')[0];x.parentNode.insertBefore(s,x);};if(w.attachEvent){w.attachEvent('onload',l);}else{w.addEventListener('load',l,false);}}})();
     </script>
 
