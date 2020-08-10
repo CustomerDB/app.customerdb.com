@@ -1,19 +1,29 @@
 import React from "react";
 
 import { NavLink } from "react-router-dom";
+import OverlayTrigger from "react-bootstrap/OverlayTrigger";
+import Tooltip from "react-bootstrap/Tooltip";
 
 export default class Navigation extends React.Component {
   static Item(props) {
     return (
       <div>
-        <NavLink
-          to={props.path}
-          className="btn"
-          activeClassName="btn-primary"
-          end={props.end}
+        <OverlayTrigger
+          placement="right"
+          delay={{ show: 250, hide: 400 }}
+          overlay={
+            <Tooltip id={`nav-tooltip-${props.name}`}>{props.name}</Tooltip>
+          }
         >
-          {props.icon}
-        </NavLink>
+          <NavLink
+            to={props.path}
+            className="btn"
+            activeClassName="btn-primary"
+            end={props.end}
+          >
+            {props.icon}
+          </NavLink>
+        </OverlayTrigger>
       </div>
     );
   }
