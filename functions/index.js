@@ -517,7 +517,7 @@ exports.markDocumentsForIndexing = functions.pubsub
 //////////////////////////////////////////////////////////////////////////////
 
 exports.emailInviteJob = functions.pubsub
-  .schedule("every 5 minutes")
+  .schedule("every 2 minutes")
   .onRun((context) => {
     let db = admin.firestore();
 
