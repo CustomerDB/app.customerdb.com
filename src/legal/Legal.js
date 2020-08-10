@@ -20,11 +20,11 @@ function loadTermly() {
 }
 
 export function Terms() {
-  return <Legal termlyId="dcaba0e8-1fd7-4fda-a336-6532d9ab0243" />;
+  return <Legal termlyId="802aaa82-725e-4a5e-b8a2-d6cd96a3b9ea" />;
 }
 
 export function Privacy() {
-  return <Legal termlyId="2ef6b54e-09e3-4956-a8f8-cf0fd2880e4d" />;
+  return <Legal termlyId="fb85b547-fa2d-42a7-b39a-3b06ab7f84ce" />;
 }
 
 export function Cookies() {
