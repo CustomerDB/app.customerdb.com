@@ -30,6 +30,7 @@ local:
 apply-format:
 	yarn prettier --write src/
 	yarn prettier --write functions/
+	yarn prettier --write public/
 
 check-format:
 	yarn prettier --check src/

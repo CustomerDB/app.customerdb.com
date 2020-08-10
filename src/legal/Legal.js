@@ -5,6 +5,8 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Button from "react-bootstrap/Button";
 
+import { Link } from "react-router-dom";
+
 import logo from "../assets/images/logo.svg";
 
 function loadTermly() {
@@ -51,12 +53,14 @@ function Legal(props) {
     <Container>
       <Row>
         <Col md={10}>
-          <img
-            className="m-4"
-            style={{ width: "25%" }}
-            src={logo}
-            alt="CustomerDB logo"
-          />
+          <Link to="/">
+            <img
+              className="m-4"
+              style={{ width: "25%" }}
+              src={logo}
+              alt="CustomerDB logo"
+            />
+          </Link>
 
           <div>{props.header}</div>
 
