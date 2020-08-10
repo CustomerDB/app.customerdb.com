@@ -57,11 +57,18 @@ export default function Organization(props) {
     if (!authorized || !oauthClaims) return;
 
     // User may not have consented to performance / features cookies.
-    if (!window.Intercom) return;
+    console.log("intercom useEffect", window.intercomPromise);
 
-    let intercomConfig = Object.assign({ app_id: "xdjuo7oo" }, oauthClaims);
-    window.Intercom("boot", intercomConfig);
-    setIntercomInit(true);
+    window.intercomPromise.then(() => {
+      console.log(
+        "intercom promise is resolved; window.Intercom ==",
+        window.Intercom
+      );
+      if (!window.Intercom) return;
+      let intercomConfig = Object.assign({ app_id: "xdjuo7oo" }, oauthClaims);
+      window.Intercom("boot", intercomConfig);
+      setIntercomInit(true);
+    });
   }, [authorized, oauthClaims]);
 
   // Update intercom whenever the URL changes

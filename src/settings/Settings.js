@@ -221,6 +221,14 @@ function Profile(props) {
             </Button>
           </Col>
         </Row>
+        <Row className="mt-3">
+          <Button
+            variant="link"
+            onClick={() => window.displayPreferenceModal()}
+          >
+            Manage Cookie Preferences
+          </Button>
+        </Row>
       </Container>
 
       <div
