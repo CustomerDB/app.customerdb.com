@@ -22,6 +22,8 @@ import OrganizationRoutes from "./OrganizationRoutes.js";
 import Shell from "../shell/Shell.js";
 import Navigation from "../shell/Navigation.js";
 
+import { loadIntercom } from "../util/intercom.js";
+
 export default function Organization(props) {
   const { oauthUser, oauthClaims } = useContext(UserAuthContext);
   const { orgID } = useParams();
@@ -56,17 +58,16 @@ export default function Organization(props) {
   useEffect(() => {
     if (!authorized || !oauthClaims) return;
 
-    // User may not have consented to performance / features cookies.
-    console.log("intercom useEffect", window.intercomPromise);
+    window.performancePromise.then(() => {
+      console.log("Loading intercom");
+      loadIntercom();
 
-    window.intercomPromise.then(() => {
-      console.log(
-        "intercom promise is resolved; window.Intercom ==",
-        window.Intercom
-      );
       if (!window.Intercom) return;
+
       let intercomConfig = Object.assign({ app_id: "xdjuo7oo" }, oauthClaims);
       window.Intercom("boot", intercomConfig);
+
+      console.log("Done loading intercom");
       setIntercomInit(true);
     });
   }, [authorized, oauthClaims]);
