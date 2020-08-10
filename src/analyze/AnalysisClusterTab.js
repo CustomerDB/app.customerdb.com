@@ -139,6 +139,8 @@ export default function AnalysisClusterTab(props) {
               {arrows}
             </Button>
             <AnalysisClusterBoard
+              analysisID={analysisID}
+              analysisName={props.analysis.name}
               key={boardKey}
               orgID={orgID}
               userID={oauthClaims.user_id}

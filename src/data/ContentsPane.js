@@ -17,7 +17,7 @@ import { nanoid } from "nanoid";
 
 import { useParams } from "react-router-dom";
 
-import "react-quill/dist/quill.bubble.css";
+import "react-quill/dist/quill.snow.css";
 
 import { initialDelta } from "./delta.js";
 import HighlightBlot from "./HighlightBlot.js";
@@ -534,7 +534,7 @@ export default function ContentsPane(props) {
           <ReactQuill
             ref={props.reactQuillRef}
             defaultValue={snapshotDelta}
-            theme="bubble"
+            theme="snow"
             bounds=".quillBounds"
             placeholder="Start typing here and select to mark highlights"
             onChange={onEdit}

@@ -166,15 +166,6 @@ export default class Card extends React.Component {
       y: this.props.minY,
     };
 
-    // let debug = <div style={{
-    //   position: "absolute",
-    //   left: this.props.card.minX,
-    //   top: this.props.card.minY,
-    //   width: this.props.card.maxX - this.props.card.minX,
-    //   height: this.props.card.maxY - this.props.card.minY,
-    //   border: "1px solid red"
-    // }}>{}</div>;
-
     let groupPreview =
       this.state.previewCircle === undefined ? (
         <></>
