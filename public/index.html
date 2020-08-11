@@ -42,8 +42,10 @@
       });
     </script>
     <script type="text/plain" data-categories="performance">
-      while(!acceptPerformanceCookies) {}
-         acceptPerformanceCookies();
+      while (!acceptPerformanceCookies) {
+      	// busy wait :(
+      }
+      acceptPerformanceCookies();
     </script>
 
     <script
