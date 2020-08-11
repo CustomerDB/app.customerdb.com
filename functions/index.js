@@ -717,35 +717,40 @@ exports.highlightRepair = functions.pubsub
       .collection("organizations")
       .get()
       .then((snapshot) => {
-        return snapshot.docs.map((orgDoc) => {
-          return orgDoc.ref
-            .collection("documents")
-            .get()
-            .then((snapshot) => {
-              return Promise.all(
-                snapshot.docs.map((doc) => {
-                  let document = doc.data();
-                  let deletionTimestamp = document.deletionTimestamp;
+        return Promise.all(
+          snapshot.docs.map((orgDoc) => {
+            console.log(`Repairing highlights in org ${orgDoc.id}`);
+            return orgDoc.ref
+              .collection("documents")
+              .get()
+              .then((snapshot) => {
+                return Promise.all(
+                  snapshot.docs.map((doc) => {
+                    let document = doc.data();
+                    let deletionTimestamp = document.deletionTimestamp;
 
-                  return doc.ref
-                    .collection("highlights")
-                    .get()
-                    .then((snapshot) => {
-                      return Promise.all(
-                        snapshot.docs.map((doc) => {
-                          return doc.ref.set(
-                            {
+                    return doc.ref
+                      .collection("highlights")
+                      .get()
+                      .then((snapshot) => {
+                        return Promise.all(
+                          snapshot.docs.map((doc) => {
+                            let partialUpdate = {
                               deletionTimestamp: deletionTimestamp,
-                              personID: document.personID,
-                            },
-                            { merge: true }
-                          );
-                        })
-                      );
-                    });
-                })
-              );
-            });
-        });
+                            };
+
+                            if (document.personID) {
+                              partialUpdate.personID = document.personID;
+                            }
+
+                            return doc.ref.set(partialUpdate, { merge: true });
+                          })
+                        );
+                      });
+                  })
+                );
+              });
+          })
+        );
       });
   });

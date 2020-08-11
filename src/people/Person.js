@@ -42,11 +42,11 @@ export default function Person(props) {
         <Content.Name>{person.name}</Content.Name>
         <Content.Options>{props.options(personID)}</Content.Options>
       </Content.Title>
-      <Tabs default="Contact">
+      <Tabs default="contact">
         <Tabs.Pane key="contact" name="Contact">
           <PersonContactPane person={person} />
         </Tabs.Pane>
-        <Tabs.Pane key="Clips" name="Clips">
+        <Tabs.Pane key="clips" name="Clips">
           <PersonHighlightsPane person={person} />
         </Tabs.Pane>
       </Tabs>

@@ -8,6 +8,7 @@ import Button from "react-bootstrap/Button";
 export default class Tabs extends React.Component {
   constructor(props) {
     super(props);
+
     this.state = {
       key: this.props.default,
     };
@@ -61,10 +62,10 @@ export default class Tabs extends React.Component {
     if (children.length > 1) {
       buttons = children.map((child) => (
         <Button
-          key={child.props.name}
-          variant={child.props.name === this.state.key ? "primary" : "link"}
+          key={child.key}
+          variant={child.key === this.state.key ? "primary" : "link"}
           onClick={() => {
-            this.setState({ key: child.props.name });
+            this.setState({ key: child.key });
           }}
         >
           {child.props.name}
@@ -72,7 +73,7 @@ export default class Tabs extends React.Component {
       ));
     }
 
-    let page = children.filter((child) => child.props.name === this.state.key);
+    let page = children.filter((child) => child.key === this.state.key);
 
     return (
       <>
