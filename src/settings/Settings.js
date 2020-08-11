@@ -4,10 +4,10 @@ import event from "../analytics/event.js";
 import UserAuthContext from "../auth/UserAuthContext";
 import useFirestore from "../db/Firestore.js";
 
-import Page from "../shell/Page.js";
-import List from "../shell/List.js";
-import Scrollable from "../shell/Scrollable.js";
-import Content from "../shell/Content.js";
+import Page from "../shell_obsolete/Page.js";
+import List from "../shell_obsolete/List.js";
+import Scrollable from "../shell_obsolete/Scrollable.js";
+import Content from "../shell_obsolete/Content.js";
 import Options from "../Options.js";
 
 import BulkImport from "./BulkImport.js";

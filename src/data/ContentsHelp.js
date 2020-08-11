@@ -1,6 +1,6 @@
 import React from "react";
 
-import Content from "../shell/Content.js";
+import Content from "../shell_obsolete/Content.js";
 import dataGraphic from "../assets/images/data.svg";
 
 export default function ContentsHelp(props) {

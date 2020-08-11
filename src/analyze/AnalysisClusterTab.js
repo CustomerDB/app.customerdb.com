@@ -4,7 +4,7 @@ import UserAuthContext from "../auth/UserAuthContext.js";
 import FocusContext from "../util/FocusContext.js";
 import useFirestore from "../db/Firestore.js";
 
-import Modal from "../shell/Modal.js";
+import Modal from "../shell_obsolete/Modal.js";
 
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import useFirestore from "../db/Firestore.js";
 import TagGroupSelector from "./TagGroupSelector.js";
 import TemplateSelector from "./TemplateSelector.js";
-import Modal from "../shell/Modal.js";
+import Modal from "../shell_obsolete/Modal.js";
 
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";

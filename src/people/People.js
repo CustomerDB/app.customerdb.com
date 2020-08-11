@@ -11,11 +11,14 @@ import ListItem from "@material-ui/core/ListItem";
 import ListItemAvatar from "@material-ui/core/ListItemAvatar";
 import ListItemText from "@material-ui/core/ListItemText";
 
-import Page from "../shell/Page.js";
-import ObsoleteList from "../shell/List.js";
-import Infinite from "../shell/Infinite.js";
-import Scrollable from "../shell/Scrollable.js";
-import Options from "../shell/Options.js";
+import Shell from "../shell/Shell.js";
+import { Search } from "../shell/Search.js";
+
+import Page from "../shell_obsolete/Page.js";
+import ObsoleteList from "../shell_obsolete/List.js";
+import Infinite from "../shell_obsolete/Infinite.js";
+import Scrollable from "../shell_obsolete/Scrollable.js";
+import Options from "../shell_obsolete/Options.js";
 
 import PersonEditModal from "./PersonEditModal.js";
 import PersonDeleteModal from "./PersonDeleteModal.js";
@@ -112,77 +115,55 @@ export default function People(props) {
   );
 
   return (
-    <Page>
-      <ObsoleteList>
-        <ObsoleteList.Search
-          index={process.env.REACT_APP_ALGOLIA_PEOPLE_INDEX}
-          path={(ID) => `/orgs/${orgID}/people/${ID}`}
-        >
-          <ObsoleteList.SearchBox placeholder="Search in people..." />
-          <ObsoleteList.Title>
-            <ObsoleteList.Name>People</ObsoleteList.Name>
-            <ObsoleteList.Add
-              onClick={() => {
-                event("create_person", {
-                  orgID: oauthClaims.orgID,
-                  userID: oauthClaims.user_id,
-                });
-                peopleRef
-                  .add({
-                    name: "Unnamed person",
-                    createdBy: oauthClaims.email,
-                    creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
-                    deletionTimestamp: "",
-                  })
-                  .then((doc) => {
-                    navigate(`/orgs/${orgID}/people/${doc.id}`);
-                    setNewPersonRef(doc);
-                    setAddModalShow(true);
-                  });
-              }}
-            />
-            {addModal}
-          </ObsoleteList.Title>
-          <ObsoleteList.Items>
-            <Scrollable>
-              <List>
-                {listTotal > 0 ? (
-                  <Infinite
-                    hasMore={() => {
-                      if (!listTotal) {
-                        return true;
-                      }
+    <Search
+      index={process.env.REACT_APP_ALGOLIA_PEOPLE_INDEX}
+      path={(ID) => `/orgs/${orgID}/people/${ID}`}
+    >
+      <Shell title="Customers">
+        <Page>
+          <ObsoleteList>
+            <ObsoleteList.Items>
+              <Scrollable>
+                <List>
+                  {listTotal > 0 ? (
+                    <Infinite
+                      hasMore={() => {
+                        if (!listTotal) {
+                          return true;
+                        }
 
-                      return listTotal < listLimit;
-                    }}
-                    onLoad={() => setListLimit(listLimit + batchSize)}
-                  >
-                    {peopleList.slice(0, listLimit).map((person) => (
-                      <ListItem
-                        selected={person.ID == personID}
-                        onClick={() => {
-                          navigate(`/orgs/${orgID}/people/${person.ID}`);
-                        }}
-                      >
-                        <ListItemAvatar>
-                          <Avatar size={50} name={person.name} round={true} />
-                        </ListItemAvatar>
-                        <ListItemText
-                          primary={person.name}
-                          secondary={person.company}
-                        />
-                      </ListItem>
-                    ))}
-                  </Infinite>
-                ) : (
-                  <PeopleHelp />
-                )}
-              </List>
-            </Scrollable>
-          </ObsoleteList.Items>
-        </ObsoleteList.Search>
-      </ObsoleteList>
-      {content}
-    </Page>
+                        return listTotal < listLimit;
+                      }}
+                      onLoad={() => setListLimit(listLimit + batchSize)}
+                    >
+                      {peopleList.slice(0, listLimit).map((person) => (
+                        <ListItem
+                          selected={person.ID == personID}
+                          onClick={() => {
+                            navigate(`/orgs/${orgID}/people/${person.ID}`);
+                          }}
+                        >
+                          <ListItemAvatar>
+                            <Avatar size={50} name={person.name} round={true} />
+                          </ListItemAvatar>
+                          <ListItemText
+                            primary={person.name}
+                            secondary={person.company}
+                          />
+                        </ListItem>
+                      ))}
+                    </Infinite>
+                  ) : (
+                    <PeopleHelp />
+                  )}
+                </List>
+              </Scrollable>
+            </ObsoleteList.Items>
+            {/* </ObsoleteList.Search> */}
+          </ObsoleteList>
+          {content}
+        </Page>
+      </Shell>
+    </Search>
   );
 }

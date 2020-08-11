@@ -23,8 +23,8 @@ import { initialDelta } from "./delta.js";
 import HighlightBlot from "./HighlightBlot.js";
 import DocumentSidebar from "./DocumentSidebar.js";
 
-import Tabs from "../shell/Tabs.js";
-import Scrollable from "../shell/Scrollable.js";
+import Tabs from "../shell_obsolete/Tabs.js";
+import Scrollable from "../shell_obsolete/Scrollable.js";
 
 Quill.register("formats/highlight", HighlightBlot);
 

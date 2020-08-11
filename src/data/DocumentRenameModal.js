@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-import Modal from "../shell/Modal.js";
+import Modal from "../shell_obsolete/Modal.js";
 
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";

@@ -1,7 +1,7 @@
 import React from "react";
 
 import { circumscribingCircle } from "./geom.js";
-import Options from "../shell/Options.js";
+import Options from "../shell_obsolete/Options.js";
 
 export function computeGroupBounds(cards) {
   let rect = {};

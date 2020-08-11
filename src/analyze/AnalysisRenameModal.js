@@ -5,7 +5,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 
-import Modal from "../shell/Modal.js";
+import Modal from "../shell_obsolete/Modal.js";
 
 export default function AnalysisRenameModal(props) {
   const navigate = useNavigate();

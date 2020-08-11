@@ -7,13 +7,13 @@ import useFirestore from "../db/Firestore.js";
 import PersonSidebar from "./PersonSidebar.js";
 
 import { Loading } from "../util/Utils.js";
-import Content from "../shell/Content.js";
-import Scrollable from "../shell/Scrollable.js";
+import Content from "../shell_obsolete/Content.js";
+import Scrollable from "../shell_obsolete/Scrollable.js";
 
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Badge from "react-bootstrap/Badge";
-import Tabs from "../shell/Tabs.js";
+import Tabs from "../shell_obsolete/Tabs.js";
 
 import Linkify from "react-linkify";
 

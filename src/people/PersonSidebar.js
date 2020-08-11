@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 
 import useFirestore from "../db/Firestore.js";
-import Tabs from "../shell/Tabs.js";
+import Tabs from "../shell_obsolete/Tabs.js";
 
 import { useParams, Link } from "react-router-dom";
 import Moment from "react-moment";

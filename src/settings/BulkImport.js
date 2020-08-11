@@ -3,7 +3,7 @@ import React, { useContext, useCallback, useEffect, useState } from "react";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import useFirestore from "../db/Firestore.js";
 
-import Scrollable from "../shell/Scrollable.js";
+import Scrollable from "../shell_obsolete/Scrollable.js";
 import { Loading } from "../util/Utils.js";
 
 import { useDropzone } from "react-dropzone";

@@ -3,13 +3,13 @@ import React, { useContext, useEffect, useRef, useState } from "react";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
 import useFirestore from "../db/Firestore.js";
-import Content from "../shell/Content.js";
-import List from "../shell/List.js";
-import Scrollable from "../shell/Scrollable.js";
+import Content from "../shell_obsolete/Content.js";
+import List from "../shell_obsolete/List.js";
+import Scrollable from "../shell_obsolete/Scrollable.js";
 import { Loading } from "../util/Utils.js";
 import Form from "react-bootstrap/Form";
-import Modal from "../shell/Modal.js";
-import Options from "../shell/Options.js";
+import Modal from "../shell_obsolete/Modal.js";
+import Options from "../shell_obsolete/Options.js";
 import { initialDelta } from "../data/delta.js";
 
 import { nanoid } from "nanoid";

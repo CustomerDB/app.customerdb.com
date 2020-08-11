@@ -4,10 +4,12 @@ import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
 import useFirestore from "../db/Firestore.js";
 
-import Page from "../shell/Page.js";
-import List from "../shell/List.js";
-import Scrollable from "../shell/Scrollable.js";
-import Options from "../shell/Options.js";
+import Shell from "../shell/Shell.js";
+
+import Page from "../shell_obsolete/Page.js";
+import List from "../shell_obsolete/List.js";
+import Scrollable from "../shell_obsolete/Scrollable.js";
+import Options from "../shell_obsolete/Options.js";
 
 import Analysis from "./Analysis.js";
 import AnalysisDeleteModal from "./AnalysisDeleteModal.js";
@@ -116,42 +118,44 @@ export default function Analyze(props) {
   ));
 
   return (
-    <Page>
-      <WithFocus>
-        <List>
-          <List.Title>
-            <List.Name>Customer Analysis</List.Name>
-            <List.Add
-              onClick={() => {
-                event("create_analysis", {
-                  orgID: oauthClaims.orgID,
-                  userID: oauthClaims.user_id,
-                });
-
-                analysesRef
-                  .add({
-                    name: "Unnamed analysis",
-                    documentIDs: [],
-                    createdBy: oauthClaims.email,
-                    creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
-                    deletionTimestamp: "",
-                  })
-                  .then((doc) => {
-                    setNewAnalysisRef(doc);
-                    setAddModalShow(true);
+    <Shell title="Analysis">
+      <Page>
+        <WithFocus>
+          <List>
+            <List.Title>
+              <List.Name>Customer Analysis</List.Name>
+              <List.Add
+                onClick={() => {
+                  event("create_analysis", {
+                    orgID: oauthClaims.orgID,
+                    userID: oauthClaims.user_id,
                   });
-              }}
-            />
-            {addModal}
-          </List.Title>
-          <List.Items>
-            <Scrollable>
-              {listTotal > 0 ? listItems : <AnalyzeHelp />}
-            </Scrollable>
-          </List.Items>
-        </List>
-        {content}
-      </WithFocus>
-    </Page>
+
+                  analysesRef
+                    .add({
+                      name: "Unnamed analysis",
+                      documentIDs: [],
+                      createdBy: oauthClaims.email,
+                      creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+                      deletionTimestamp: "",
+                    })
+                    .then((doc) => {
+                      setNewAnalysisRef(doc);
+                      setAddModalShow(true);
+                    });
+                }}
+              />
+              {addModal}
+            </List.Title>
+            <List.Items>
+              <Scrollable>
+                {listTotal > 0 ? listItems : <AnalyzeHelp />}
+              </Scrollable>
+            </List.Items>
+          </List>
+          {content}
+        </WithFocus>
+      </Page>
+    </Shell>
   );
 }

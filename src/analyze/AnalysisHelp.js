@@ -1,6 +1,6 @@
 import React from "react";
 
-import Content from "../shell/Content.js";
+import Content from "../shell_obsolete/Content.js";
 
 import analyzeGraphic from "../assets/images/analyze.svg";
 

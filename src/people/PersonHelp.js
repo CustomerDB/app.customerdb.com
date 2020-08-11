@@ -1,6 +1,6 @@
 import React from "react";
 
-import Content from "../shell/Content.js";
+import Content from "../shell_obsolete/Content.js";
 import personGraphic from "../assets/images/person.svg";
 
 export default function PersonHelp(props) {

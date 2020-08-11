@@ -18,11 +18,13 @@ import Document from "./Document.js";
 import DocumentCreateModal from "./DocumentCreateModal.js";
 import DocumentRenameModal from "./DocumentRenameModal.js";
 
-import ObsoleteList from "../shell/List.js";
-import Modal from "../shell/Modal.js";
-import Options from "../shell/Options.js";
-import Page from "../shell/Page.js";
-import Scrollable from "../shell/Scrollable.js";
+import Shell from "../shell/Shell.js";
+
+import ObsoleteList from "../shell_obsolete/List.js";
+import Modal from "../shell_obsolete/Modal.js";
+import Options from "../shell_obsolete/Options.js";
+import Page from "../shell_obsolete/Page.js";
+import Scrollable from "../shell_obsolete/Scrollable.js";
 
 import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
@@ -182,28 +184,32 @@ export default function Data(props) {
       });
   };
 
-  let documentItems = documents.map((doc) => (
-    <ListItem
-      onClick={() => {
-        navigate(`/orgs/${orgID}/data/${doc.ID}`);
-      }}
-      selected={doc.ID == documentID}
-    >
-      <ListItemAvatar>
-        <Avatar>
-          <DescriptionIcon />
-        </Avatar>
-      </ListItemAvatar>
-      <ListItemText
-        primary={doc.name}
-        secondary={
-          doc.creationTimestamp && (
-            <Moment fromNow date={doc.creationTimestamp.toDate()} />
-          )
-        }
-      />
-    </ListItem>
-  ));
+  let documentItems = documents ? (
+    documents.map((doc) => (
+      <ListItem
+        onClick={() => {
+          navigate(`/orgs/${orgID}/data/${doc.ID}`);
+        }}
+        selected={doc.ID == documentID}
+      >
+        <ListItemAvatar>
+          <Avatar>
+            <DescriptionIcon />
+          </Avatar>
+        </ListItemAvatar>
+        <ListItemText
+          primary={doc.name}
+          secondary={
+            doc.creationTimestamp && (
+              <Moment fromNow date={doc.creationTimestamp.toDate()} />
+            )
+          }
+        />
+      </ListItem>
+    ))
+  ) : (
+    <></>
+  );
 
   let content = undefined;
   if (documentID) {
@@ -232,28 +238,30 @@ export default function Data(props) {
   );
 
   return (
-    <Page>
-      <ObsoleteList>
-        <ObsoleteList.Search
-          index={process.env.REACT_APP_ALGOLIA_DOCUMENTS_INDEX}
-          path={(ID) => `/orgs/${orgID}/data/${ID}`}
-        >
-          <ObsoleteList.SearchBox placeholder="Search in data..." />
-          <ObsoleteList.Title>
-            <ObsoleteList.Name>Customer Data</ObsoleteList.Name>
-            <ObsoleteList.Add onClick={onAdd} />
-            {addModal}
-          </ObsoleteList.Title>
-          <ObsoleteList.Items>
-            <Scrollable>
-              <List>
-                {documentItems.length > 0 ? documentItems : <DataHelp />}
-              </List>
-            </Scrollable>
-          </ObsoleteList.Items>
-        </ObsoleteList.Search>
-      </ObsoleteList>
-      {content}
-    </Page>
+    <Shell title="Data">
+      <Page>
+        <ObsoleteList>
+          <ObsoleteList.Search
+            index={process.env.REACT_APP_ALGOLIA_DOCUMENTS_INDEX}
+            path={(ID) => `/orgs/${orgID}/data/${ID}`}
+          >
+            <ObsoleteList.SearchBox placeholder="Search in data..." />
+            <ObsoleteList.Title>
+              <ObsoleteList.Name>Customer Data</ObsoleteList.Name>
+              <ObsoleteList.Add onClick={onAdd} />
+              {addModal}
+            </ObsoleteList.Title>
+            <ObsoleteList.Items>
+              <Scrollable>
+                <List>
+                  {documentItems.length > 0 ? documentItems : <DataHelp />}
+                </List>
+              </Scrollable>
+            </ObsoleteList.Items>
+          </ObsoleteList.Search>
+        </ObsoleteList>
+        {content}
+      </Page>
+    </Shell>
   );
 }

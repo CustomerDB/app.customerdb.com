@@ -7,7 +7,7 @@ import Tags, { addTagStyles, removeTagStyles } from "./Tags.js";
 
 import TagGroupSelector from "./TagGroupSelector.js";
 
-import Tabs from "../shell/Tabs.js";
+import Tabs from "../shell_obsolete/Tabs.js";
 import SearchDropdown from "../search/Dropdown.js";
 
 import Moment from "react-moment";

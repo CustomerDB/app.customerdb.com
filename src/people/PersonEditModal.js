@@ -2,7 +2,7 @@ import React, { useContext, useState, useEffect } from "react";
 
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
-import Modal from "../shell/Modal.js";
+import Modal from "../shell_obsolete/Modal.js";
 
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";

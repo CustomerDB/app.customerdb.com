@@ -5,13 +5,13 @@ import Form from "react-bootstrap/Form";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 
-import Shell from "../shell/Shell.js";
-import Page from "../shell/Page.js";
-import Content from "../shell/Content.js";
-import Navigation from "../shell/Navigation.js";
+import Shell from "../shell_obsolete/Shell.js";
+import Page from "../shell_obsolete/Page.js";
+import Content from "../shell_obsolete/Content.js";
+import Navigation from "../shell_obsolete/Navigation.js";
 
-import List from "../shell/List.js";
-import Modal from "../shell/Modal.js";
+import List from "../shell_obsolete/List.js";
+import Modal from "../shell_obsolete/Modal.js";
 
 import { Globe } from "react-bootstrap-icons";
 

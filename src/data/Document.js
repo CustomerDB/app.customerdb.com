@@ -8,8 +8,8 @@ import DocumentDeleted from "./DocumentDeleted.js";
 import ContentsPane from "./ContentsPane.js";
 
 import { Loading } from "../util/Utils.js";
-import Content from "../shell/Content.js";
-import Tabs from "../shell/Tabs.js";
+import Content from "../shell_obsolete/Content.js";
+import Tabs from "../shell_obsolete/Tabs.js";
 
 export default function Document(props) {
   const { documentRef } = useFirestore();
