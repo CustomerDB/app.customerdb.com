@@ -348,20 +348,49 @@ exports.onPersonWritten = functions.firestore
     return index.saveObject(personToIndex);
   });
 
+// Update highlight records when document personID is updated.
+exports.updateHighlightsForUpdatedDocument = functions.firestore
+  .document("organizations/{orgID}/documents/{documentID}")
+  .onUpdate((change, context) => {
+    let before = change.before.data();
+    let after = change.after.data();
+
+    let partialUpdate = {};
+
+    if (before.deletionTimestamp != after.deletionTimestamp) {
+      partialUpdate.deletionTimestamp = after.deletionTimestamp;
+    }
+
+    if (before.personID != after.personID) {
+      partialUpdate.personID = after.personID;
+    }
+
+    if (Object.keys(partialUpdate).length > 0) {
+      return change.after.ref
+        .collection("highlights")
+        .get()
+        .then((snapshot) => {
+          snapshot.forEach((highlightDoc) => {
+            return highlightDoc.ref.set(partialUpdate, { merge: true });
+          });
+        });
+    }
+  });
+
 // Add document records to the search index when created or
 // when marked for re-index.
-exports.onDocumentWritten = functions.firestore
+exports.indexUpdatedDocument = functions.firestore
   .document("organizations/{orgID}/documents/{documentID}")
   .onWrite((change, context) => {
     const index = client.initIndex(ALGOLIA_DOCUMENTS_INDEX_NAME);
 
-    let data = change.after.data();
-
-    if (!change.after.exists || data.deletionTimestamp != "") {
+    if (!change.after.exists || change.after.data().deletionTimestamp != "") {
       // Delete document from index;
       console.log("deleting document from index", context.params.documentID);
       return index.deleteObject(context.params.documentID);
     }
+
+    let data = change.after.data();
 
     return change.after.ref
       .collection("snapshots")
