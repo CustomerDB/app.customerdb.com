@@ -12,7 +12,7 @@ import GridSelector from "../search/GridSelector.js";
 
 export default function AnalysisDataTab(props) {
   const { oauthClaims } = useContext(UserAuthContext);
-  const { analysisRef, documentsRef } = useFirestore();
+  const { analysisRef, documentsRef, cardsRef } = useFirestore();
   const [documents, setDocuments] = useState([]);
 
   useEffect(() => {
@@ -53,9 +53,24 @@ export default function AnalysisDataTab(props) {
 
     let newDocumentIDs = props.analysis.documentIDs.slice();
 
+    let deleteDocumentCardsIfNecessary = () => {};
+
     if (props.analysis.documentIDs.includes(documentID)) {
       // Remove it.
       newDocumentIDs = newDocumentIDs.filter((id) => id !== documentID);
+
+      // Register operation to delete cards after the analysis doc is updated.
+      deleteDocumentCardsIfNecessary = () => {
+        cardsRef
+          .where("documentID", "==", documentID)
+          .get()
+          .then((snapshot) => {
+            snapshot.forEach((doc) => {
+              console.debug("deleting card", doc.data());
+              doc.ref.delete();
+            });
+          });
+      };
     } else {
       // If absent, add.
       newDocumentIDs.push(documentID);
@@ -63,13 +78,15 @@ export default function AnalysisDataTab(props) {
 
     if (newDocumentIDs.length === 0) {
       setDocuments([]);
-      analysisRef.set(
-        {
-          documentIDs: [],
-          tagGroupIDs: [],
-        },
-        { merge: true }
-      );
+      analysisRef
+        .set(
+          {
+            documentIDs: [],
+            tagGroupIDs: [],
+          },
+          { merge: true }
+        )
+        .then(deleteDocumentCardsIfNecessary);
       return;
     }
 
@@ -94,13 +111,15 @@ export default function AnalysisDataTab(props) {
           }
         });
 
-        return analysisRef.set(
-          {
-            documentIDs: newDocumentIDs,
-            tagGroupIDs: Array.from(newTagGroupIDs),
-          },
-          { merge: true }
-        );
+        return analysisRef
+          .set(
+            {
+              documentIDs: newDocumentIDs,
+              tagGroupIDs: Array.from(newTagGroupIDs),
+            },
+            { merge: true }
+          )
+          .then(deleteDocumentCardsIfNecessary);
       });
   };
 

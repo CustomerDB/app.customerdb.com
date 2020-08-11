@@ -11,7 +11,8 @@ import RBush from "rbush";
 import { nanoid } from "nanoid";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import Button from "react-bootstrap/Button";
-import { AspectRatio } from "react-bootstrap-icons";
+import { AspectRatio, Download } from "react-bootstrap-icons";
+import domToImage from "dom-to-image";
 
 export default class AnalysisClusterBoard extends React.Component {
   constructor(props) {
@@ -538,6 +539,8 @@ export default class AnalysisClusterBoard extends React.Component {
     let pointers = undefined;
     // pointers = <Pointers activeUsersRef={this.props.activeUsersRef} />;
 
+    let boardID = `board-${this.props.analysisID}-${this.props.tagID}`;
+
     return (
       <TransformWrapper
         options={{
@@ -573,6 +576,73 @@ export default class AnalysisClusterBoard extends React.Component {
             >
               <AspectRatio />
             </Button>
+            <Button
+              title="Download board image"
+              style={{
+                color: "black",
+                background: "#ddf",
+                border: "0",
+                borderRadius: "0.25rem",
+                position: "absolute",
+                top: "2rem",
+                right: "0.25rem",
+                opacity: 0.8,
+                zIndex: 200,
+              }}
+              variant="light"
+              onClick={() => {
+                let domNode = document.getElementById(boardID);
+
+                let maxX = 0;
+                let maxY = 0;
+                this.rtree.all().forEach((g) => {
+                  console.log("adding geometry", g);
+                  maxX = Math.max(maxX, g.maxX);
+                  maxY = Math.max(maxY, g.maxY);
+                });
+
+                let groupLabels = domNode.getElementsByClassName("groupLabel");
+                for (let i = 0; i < groupLabels.length; i++) {
+                  let node = groupLabels[i];
+                  maxX = Math.max(
+                    maxX,
+                    parseInt(node.style.left) + parseInt(node.style.width)
+                  );
+                  maxY = Math.max(maxY, parseInt(node.style.top) + 128);
+                }
+
+                // A little extra padding
+                maxX += 64;
+                maxY += 64;
+
+                // Clamp to canvas bounds
+                maxX = Math.min(maxX, CANVAS_WIDTH);
+                maxY = Math.min(maxY, CANVAS_HEIGHT);
+
+                console.log("computed bounding box", maxX, maxY);
+
+                domNode.style.width = `${maxX}px`;
+                domNode.style.height = `${maxY}px`;
+
+                domToImage
+                  .toPng(domNode)
+                  .then((dataURL) => {
+                    domNode.style.width = `${CANVAS_WIDTH}px`;
+                    domNode.style.height = `${CANVAS_HEIGHT}px`;
+                    let link = document.createElement("a");
+                    link.download = `CustomerDB (${this.props.analysisName}) - clusters-${this.props.tagID}.png`;
+                    link.href = dataURL;
+                    link.click();
+                  })
+                  .catch((error) => {
+                    domNode.style.width = `${CANVAS_WIDTH}px`;
+                    domNode.style.height = `${CANVAS_HEIGHT}px`;
+                    throw error;
+                  });
+              }}
+            >
+              <Download />
+            </Button>
             <div
               className="scrollContainer"
               style={{ overflow: "hidden", background: "#e9e9e9" }}
@@ -586,44 +656,54 @@ export default class AnalysisClusterBoard extends React.Component {
                     boxShadow: "0 6px 6px rgba(0, 0, 0, 0.2)",
                   }}
                 >
-                  {groupComponents}
-                  {cards.flatMap((card) => {
-                    let highlight = this.state.highlights[card.ID];
-                    if (!highlight) return [];
+                  <div
+                    id={boardID}
+                    style={{
+                      width: `${CANVAS_WIDTH}px`,
+                      height: `${CANVAS_HEIGHT}px`,
+                    }}
+                  >
+                    {groupComponents}
+                    {cards.flatMap((card) => {
+                      let highlight = this.state.highlights[card.ID];
+                      if (!highlight) return [];
 
-                    let doc = this.state.documents[highlight.documentID];
-                    if (!doc) return <></>;
+                      let doc = this.state.documents[highlight.documentID];
+                      if (!doc) return <></>;
 
-                    return [
-                      <Card
-                        key={card.ID}
-                        scale={scale}
-                        card={card}
-                        highlight={highlight}
-                        document={doc}
-                        minX={card.minX}
-                        minY={card.minY}
-                        groupColor={card.groupColor}
-                        textColor={card.textColor}
-                        cardRef={this.props.cardsRef.doc(card.ID)}
-                        modalCallBack={this.modalCallBack}
-                        addLocationCallBack={this.addCardLocation}
-                        removeLocationCallBack={this.removeCardLocation}
-                        getIntersectingCardsCallBack={this.getIntersectingCards}
-                        getIntersectingGroupsCallBack={
-                          this.getIntersectingGroups
-                        }
-                        groupDataForCardCallback={this.groupDataForCard}
-                        setCardDragging={this.setCardDragging}
-                      />,
-                    ];
-                  })}
-                  {pointers}
-                  <HighlightModal
-                    show={this.state.modalShow}
-                    data={this.state.modalData}
-                    onHide={() => this.setState({ modalShow: false })}
-                  />
+                      return [
+                        <Card
+                          key={card.ID}
+                          scale={scale}
+                          card={card}
+                          highlight={highlight}
+                          document={doc}
+                          minX={card.minX}
+                          minY={card.minY}
+                          groupColor={card.groupColor}
+                          textColor={card.textColor}
+                          cardRef={this.props.cardsRef.doc(card.ID)}
+                          modalCallBack={this.modalCallBack}
+                          addLocationCallBack={this.addCardLocation}
+                          removeLocationCallBack={this.removeCardLocation}
+                          getIntersectingCardsCallBack={
+                            this.getIntersectingCards
+                          }
+                          getIntersectingGroupsCallBack={
+                            this.getIntersectingGroups
+                          }
+                          groupDataForCardCallback={this.groupDataForCard}
+                          setCardDragging={this.setCardDragging}
+                        />,
+                      ];
+                    })}
+                    {pointers}
+                    <HighlightModal
+                      show={this.state.modalShow}
+                      data={this.state.modalData}
+                      onHide={() => this.setState({ modalShow: false })}
+                    />
+                  </div>
                 </div>
               </TransformComponent>
             </div>

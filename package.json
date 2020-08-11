@@ -12,6 +12,7 @@
     "@testing-library/user-event": "^7.1.2",
     "algoliasearch": "^4.3.1",
     "bootstrap": "^4.5.0",
+    "dom-to-image": "^2.6.0",
     "firebase": "^7.14.6",
     "history": "^5.0.0",
     "material-ui": "^0.20.2",

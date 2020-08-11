@@ -34,8 +34,6 @@ import DescriptionIcon from "@material-ui/icons/Description";
 import DataHelp from "./DataHelp.js";
 import ContentsHelp from "./ContentsHelp.js";
 
-import { Loading } from "../util/Utils.js";
-
 export default function Data(props) {
   let { oauthClaims } = useContext(UserAuthContext);
   let { documentsRef } = useFirestore();
@@ -59,10 +57,6 @@ export default function Data(props) {
   );
 
   useEffect(() => {
-    console.log("defaultTagGroupID", defaultTagGroupID);
-  }, [defaultTagGroupID]);
-
-  useEffect(() => {
     if (!documentsRef) {
       return;
     }
@@ -84,10 +78,6 @@ export default function Data(props) {
         setDocuments(newDocuments);
       });
   }, [documentsRef]);
-
-  if (!documents) {
-    return <Loading />;
-  }
 
   const options = (doc) => {
     let documentRef = documentsRef.doc(doc.ID);
@@ -160,10 +150,6 @@ export default function Data(props) {
         createdBy: oauthClaims.email,
         creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
 
-        latestSnapshot: { ops: initialDelta().ops },
-
-        latestSnapshotTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
-
         tagGroupID: defaultTagGroupID || "",
 
         templateID: "",
@@ -181,7 +167,16 @@ export default function Data(props) {
         // the deletion grace period expires and the GC sweep does a permanent delete.
         deletionTimestamp: "",
       })
-      .then((newDocRef) => {
+      .then(() => {
+        documentsRef
+          .doc(documentID)
+          .collection("snapshots")
+          .add({
+            delta: { ops: initialDelta().ops },
+            timestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+          });
+      })
+      .then(() => {
         navigate(`/orgs/${orgID}/data/${documentID}`);
         setAddModalShow(true);
       });

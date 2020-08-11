@@ -3,7 +3,7 @@ import React from "react";
 import { circumscribingCircle } from "./geom.js";
 import Options from "../shell/Options.js";
 
-function computeGroupBounds(cards) {
+export function computeGroupBounds(cards) {
   let rect = {};
 
   if (cards.length > 0) {

@@ -7,9 +7,14 @@ import { Link } from "react-router-dom";
 import Scrollable from "../shell/Scrollable.js";
 import Tabs from "../shell/Tabs.js";
 
+import Button from "react-bootstrap/Button";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
+
+import { Download } from "react-bootstrap-icons";
+
+import domToImage from "dom-to-image";
 
 import { ResponsiveBar } from "@nivo/bar";
 
@@ -47,18 +52,27 @@ export default function AnalysisSummaryTab(props) {
   }, [groupsRef]);
 
   useEffect(() => {
-    if (!cardsRef) {
+    if (!cardsRef || !props.analysis) {
       return;
     }
 
     return cardsRef.onSnapshot((snapshot) => {
       let newCards = {};
       snapshot.forEach((doc) => {
-        newCards[doc.id] = doc.data();
+        // Only include cards for currently selected documents.
+        //
+        // We try to prevent this in the data selection and clustering
+        // tabs by deleting cards, but this is just to make sure we don't
+        // include anything extra in case those deletes failed for some
+        // reason or we're still awaiting read repair by the board.
+        let cardData = doc.data();
+        if (props.analysis.documentIDs.includes(cardData.documentID)) {
+          newCards[doc.id] = cardData;
+        }
       });
       setCards(newCards);
     });
-  }, [cardsRef]);
+  }, [cardsRef, props.analysis]);
 
   useEffect(() => {
     if (!documentsRef) {
@@ -187,8 +201,6 @@ export default function AnalysisSummaryTab(props) {
     );
   }
 
-  console.log("analysis", analysis);
-
   if (Object.values(analysis).length === 0) {
     return (
       <Tabs.Pane>
@@ -234,7 +246,6 @@ export default function AnalysisSummaryTab(props) {
                   Object.values(card).forEach((person) => {
                     if (person && person.labels) {
                       Object.values(person.labels).forEach((label) => {
-                        console.log("label", label);
                         let name = label["name"];
 
                         if (!labelNames.includes(name)) {
@@ -254,13 +265,38 @@ export default function AnalysisSummaryTab(props) {
                 groupData.push(groupDataPoint);
               });
 
-              console.log("groupNames:", groupNames);
+              let exportID = `graphs-${tagName}`;
+              let exportButtonID = `${exportID}-export-button`;
 
               return (
-                <>
+                <div key={exportID} id={exportID}>
                   <Row>
                     <Col>
-                      <h4>{tagName}</h4>
+                      <h4>
+                        {tagName}
+                        <Button
+                          id={exportButtonID}
+                          title="Download graph image"
+                          style={{ marginLeft: "1rem" }}
+                          variant="light"
+                          onClick={() => {
+                            let filter = (node) => {
+                              return node.id !== exportButtonID;
+                            };
+                            let domNode = document.getElementById(exportID);
+                            domToImage
+                              .toPng(domNode, { filter: filter })
+                              .then((dataURL) => {
+                                let link = document.createElement("a");
+                                link.download = `CustomerDB (${props.analysis.name}) - ${tagName}.png`;
+                                link.href = dataURL;
+                                link.click();
+                              });
+                          }}
+                        >
+                          <Download />
+                        </Button>
+                      </h4>
                     </Col>
                   </Row>
                   <Row>
@@ -391,7 +427,7 @@ export default function AnalysisSummaryTab(props) {
                       </Col>
                     )}
                   </Row>
-                </>
+                </div>
               );
             })}
           </Container>

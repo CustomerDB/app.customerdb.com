@@ -39,6 +39,8 @@ import GroupIcon from "@material-ui/icons/Group";
 import RecordVoiceOverIcon from "@material-ui/icons/RecordVoiceOver";
 import MultilineChartIcon from "@material-ui/icons/MultilineChart";
 
+import { loadIntercom } from "../util/intercom.js";
+
 const drawerWidth = 240;
 
 const useStyles = makeStyles((theme) => ({
@@ -137,9 +139,19 @@ export default function Organization() {
   // Initialize intercom on load
   useEffect(() => {
     if (!authorized || !oauthClaims) return;
-    let intercomConfig = Object.assign({ app_id: "xdjuo7oo" }, oauthClaims);
-    window.Intercom("boot", intercomConfig);
-    setIntercomInit(true);
+
+    window.performancePromise.then(() => {
+      console.log("Loading intercom");
+      loadIntercom();
+
+      if (!window.Intercom) return;
+
+      let intercomConfig = Object.assign({ app_id: "xdjuo7oo" }, oauthClaims);
+      window.Intercom("boot", intercomConfig);
+
+      console.log("Done loading intercom");
+      setIntercomInit(true);
+    });
   }, [authorized, oauthClaims]);
 
   // Update intercom whenever the URL changes
