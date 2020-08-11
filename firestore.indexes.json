@@ -75,6 +75,20 @@
       ]
     },
     {
+      "collectionGroup": "highlights",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "personID",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "organizationID",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "people",
       "queryScope": "COLLECTION",
       "fields": [
