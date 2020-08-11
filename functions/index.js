@@ -709,3 +709,50 @@ exports.scheduledFirestoreExport = functions.pubsub
         throw new Error("Export operation failed");
       });
   });
+
+exports.highlightRepair = functions.pubsub
+  .schedule("every 4 hours")
+  .onRun((context) => {
+    let db = admin.firestore();
+
+    return db
+      .collection("organizations")
+      .get()
+      .then((snapshot) => {
+        return Promise.all(
+          snapshot.docs.map((orgDoc) => {
+            console.log(`Repairing highlights in org ${orgDoc.id}`);
+            return orgDoc.ref
+              .collection("documents")
+              .get()
+              .then((snapshot) => {
+                return Promise.all(
+                  snapshot.docs.map((doc) => {
+                    let document = doc.data();
+                    let deletionTimestamp = document.deletionTimestamp;
+
+                    return doc.ref
+                      .collection("highlights")
+                      .get()
+                      .then((snapshot) => {
+                        return Promise.all(
+                          snapshot.docs.map((doc) => {
+                            let partialUpdate = {
+                              deletionTimestamp: deletionTimestamp,
+                            };
+
+                            if (document.personID) {
+                              partialUpdate.personID = document.personID;
+                            }
+
+                            return doc.ref.set(partialUpdate, { merge: true });
+                          })
+                        );
+                      });
+                  })
+                );
+              });
+          })
+        );
+      });
+  });
