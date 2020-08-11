@@ -32,7 +32,7 @@
     <script src="https://www.gstatic.com/firebasejs/7.14.6/firebase-auth.js"></script>
 
     <!-- Guarded by user consent -->
-		<script type="text/javascript">
+    <script type="text/javascript">
       var acceptPerformanceCookies;
       var performancePromise = new Promise(function (resolve) {
         acceptPerformanceCookies = () => {
@@ -42,8 +42,8 @@
       });
     </script>
     <script type="text/plain" data-categories="performance">
-			while(!acceptPerformanceCookies) {}
-      acceptPerformanceCookies();
+      while(!acceptPerformanceCookies) {}
+         acceptPerformanceCookies();
     </script>
 
     <script
@@ -51,12 +51,9 @@
       data-categories="analytics"
       src="https://www.gstatic.com/firebasejs/7.14.6/firebase-analytics.js"
     ></script>
-		<script
-			type="text/plain"
-      data-categories="analytics"
-    >
-			window.firebase.analytics();
-		</script>
+    <script type="text/plain" data-categories="analytics">
+      window.firebase.analytics();
+    </script>
 
     <script src="https://www.gstatic.com/firebasejs/7.14.6/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.14.6/firebase-functions.js"></script>
