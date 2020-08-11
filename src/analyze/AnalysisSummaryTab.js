@@ -207,7 +207,7 @@ export default function AnalysisSummaryTab(props) {
         <Tabs.Content>
           <p>
             See a summary of your data by creating clusters per tag, using the
-            tags drop down
+            tags drop down.
           </p>
         </Tabs.Content>
       </Tabs.Pane>
