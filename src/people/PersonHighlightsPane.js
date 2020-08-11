@@ -74,6 +74,15 @@ export default function PersonHighlightsPane(props) {
     return <Loading />;
   }
 
+  if (highlights.length + pinnedHighlights.length === 0) {
+    return (
+      <p>
+        Clips in linked customer data will appear here. Pin the most important
+        clips to build rich customer profiles.
+      </p>
+    );
+  }
+
   return (
     <Tabs.Content>
       <Scrollable>
