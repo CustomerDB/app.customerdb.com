@@ -6,7 +6,6 @@ import useFirestore from "../db/Firestore.js";
 
 import { Loading } from "../util/Utils.js";
 import Content from "../shell/Content.js";
-import Scrollable from "../shell/Scrollable.js";
 
 import Tabs from "../shell/Tabs.js";
 

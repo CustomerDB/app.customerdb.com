@@ -503,6 +503,8 @@ export default function ContentsPane(props) {
     orgID,
     getHighlightFromEditor,
     props.document.ID,
+    props.document.deletionTimestamp,
+    props.document.personID,
     props.editor,
   ]);
 
