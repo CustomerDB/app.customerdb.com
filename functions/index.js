@@ -369,11 +369,13 @@ exports.updateHighlightsForUpdatedDocument = functions.firestore
       return change.after.ref
         .collection("highlights")
         .get()
-        .then((snapshot) => {
-          snapshot.forEach((highlightDoc) => {
-            return highlightDoc.ref.set(partialUpdate, { merge: true });
-          });
-        });
+        .then((snapshot) =>
+          Promise.all(
+            snapshot.docs.map((highlightDoc) =>
+              highlightDoc.ref.set(partialUpdate, { merge: true })
+            )
+          )
+        );
     }
   });
 
