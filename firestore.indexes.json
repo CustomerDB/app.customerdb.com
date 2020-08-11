@@ -172,14 +172,14 @@
     },
     {
       "collectionGroup": "tags",
-      "queryScope": "COLLECTION",
+      "queryScope": "COLLECTION_GROUP",
       "fields": [
         {
-          "fieldPath": "deletionTimestamp",
+          "fieldPath": "organizationID",
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "creationTimestamp",
+          "fieldPath": "deletionTimestamp",
           "order": "ASCENDING"
         }
       ]
@@ -189,11 +189,11 @@
       "queryScope": "COLLECTION",
       "fields": [
         {
-          "fieldPath": "organizationID",
+          "fieldPath": "deletionTimestamp",
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "deletionTimestamp",
+          "fieldPath": "creationTimestamp",
           "order": "ASCENDING"
         }
       ]

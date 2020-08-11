@@ -442,6 +442,7 @@ export default function ContentsPane(props) {
                 length: current.selection.length,
               },
               text: current.text,
+              deletionTimestamp: props.document.deletionTimestamp,
               lastUpdateTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
             },
             { merge: true }
@@ -469,6 +470,7 @@ export default function ContentsPane(props) {
             text: current.text,
             createdBy: oauthClaims.email,
             creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+            deletionTimestamp: props.document.deletionTimestamp,
             lastUpdateTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
           };
 
