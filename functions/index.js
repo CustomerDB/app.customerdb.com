@@ -365,7 +365,7 @@ exports.updateHighlightsForUpdatedDocument = functions.firestore
       partialUpdate.personID = after.personID;
     }
 
-    if (Object.keys(update).length > 0) {
+    if (Object.keys(partialUpdate).length > 0) {
       return change.after.ref
         .collection("highlights")
         .get()
