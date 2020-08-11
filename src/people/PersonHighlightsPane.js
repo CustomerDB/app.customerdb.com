@@ -37,7 +37,7 @@ export default function PersonHighlightsPane(props) {
         });
         setTags(newTags);
       });
-  }, [allTagsRef]);
+  }, [allTagsRef, orgID]);
 
   useEffect(() => {
     if (!props.person || !allHighlightsRef) {
@@ -68,7 +68,7 @@ export default function PersonHighlightsPane(props) {
         setHighlights(newHighlights);
         setPinnedHighlights(newPinnedHighlights);
       });
-  }, [props.person, allHighlightsRef]);
+  }, [orgID, props.person, allHighlightsRef]);
 
   if (!highlights || !tags || !pinnedHighlights) {
     return <Loading />;
