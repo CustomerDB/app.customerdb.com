@@ -9,7 +9,7 @@ import Scrollable from "../shell/Scrollable.js";
 
 import { Bookmark, BookmarkFill } from "react-bootstrap-icons";
 
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
 import { Loading } from "../util/Utils.js";
 
@@ -100,19 +100,34 @@ export default function PersonHighlightsPane(props) {
 }
 
 function HighlightCard(props) {
+  const { orgID } = useParams();
   const { documentsRef } = useFirestore();
+  const navigate = useNavigate();
 
   if (!props.tag || !props.highlight) {
     return <></>;
   }
 
   return (
-    <div className="roundedBorders m-3 p-3" style={{ position: "relative" }}>
+    <div
+      className="roundedBorders m-3 p-3"
+      style={{
+        position: "relative",
+        boxShadow: "0 6px 6px rgba(0,0,0,.2)",
+      }}
+      onClick={() => {
+        navigate(`/orgs/${orgID}/data/${props.highlight.documentID}`);
+      }}
+    >
       <p style={{ paddingRight: "2rem" }}>{props.highlight.text}</p>
       <Button
+        title={props.highlight.pinned ? "Unpin" : "Pin"}
         variant="link"
         style={{ position: "absolute", right: 0, top: 0 }}
-        onClick={() => {
+        onClick={(e) => {
+          // Stop event propagation up the DOM tree
+          e.stopPropagation();
+
           if (!documentsRef) {
             return;
           }
