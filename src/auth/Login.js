@@ -55,17 +55,16 @@ export default function Login(props) {
 
   let loginFailedMessage =
     loginSuccess === false ? (
-      <Alert variant="danger">Oops - looks like you don't have an account with us yet. If you think this is an error contact us at <a href="mailto:support@quantap.com">support@quantap.com</a></Alert>
+      <Alert variant="danger">
+        Oops - looks like you don't have an account with us yet. If you think
+        this is an error contact us at{" "}
+        <a href="mailto:support@quantap.com">support@quantap.com</a>
+      </Alert>
     ) : (
       <div></div>
     );
 
-  console.log("auth.oauthUser ", auth.oauthUser);
-  console.log("auth.oauthLoading ", auth.oauthLoading);
-  console.log("loginSuccess", loginSuccess);
-
-  return auth.oauthUser === null &&
-    auth.oauthLoading === false ? (
+  return auth.oauthUser === null && auth.oauthLoading === false ? (
     <Container>
       <Row className="align-items-center">
         <Col md={6}>
