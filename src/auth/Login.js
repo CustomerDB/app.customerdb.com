@@ -39,8 +39,8 @@ export default function Login(props) {
         .get()
         .then((doc) => {
           if (!doc.exists) {
-            // Couldn't find your org.
             setLoginSuccess(false);
+            window.firebase.auth().signOut();
             return;
           }
 
@@ -55,14 +55,16 @@ export default function Login(props) {
 
   let loginFailedMessage =
     loginSuccess === false ? (
-      <Alert variant="danger">Login failed</Alert>
+      <Alert variant="danger">
+        Oops - looks like you don't have an account with us yet. If you think
+        this is an error contact us at{" "}
+        <a href="mailto:support@quantap.com">support@quantap.com</a>
+      </Alert>
     ) : (
       <div></div>
     );
 
-  return loginSuccess === undefined &&
-    auth.oauthUser === null &&
-    auth.oauthLoading === false ? (
+  return auth.oauthUser === null && auth.oauthLoading === false ? (
     <Container>
       <Row className="align-items-center">
         <Col md={6}>
@@ -82,7 +84,7 @@ export default function Login(props) {
             </Col>
           </Row>
           <Row>
-            <Col>{loginFailedMessage}</Col>
+            <Col className="pt-3">{loginFailedMessage}</Col>
           </Row>
           <Row className="pt-5">
             <Col>
