@@ -19,7 +19,7 @@ import Row from "react-bootstrap/Row";
 import ReactQuill from "react-quill";
 import Delta from "quill-delta";
 
-import "react-quill/dist/quill.bubble.css";
+import "react-quill/dist/quill.snow.css";
 
 export default function Templates(props) {
   const { oauthClaims } = useContext(UserAuthContext);
@@ -224,26 +224,49 @@ export default function Templates(props) {
   );
 
   let content = template && templateSnapshot && (
-    <Content className="quillBounds">
+    <Content>
       <Content.Title>
         <Content.Name>{template.name}</Content.Name>
         <Content.Options>{options}</Content.Options>
       </Content.Title>
-      <Button
-        key="save"
-        variant="primary"
-        onClick={onSave}
-        style={{ width: "6rem" }}
-      >
-        Save
-      </Button>
-      <ReactQuill
-        ref={reactQuillRef}
-        value={templateSnapshot}
-        theme="bubble"
-        bounds=".quillBounds"
-        placeholder="Start typing here"
-      />
+
+      <Row>
+        <Button
+          key="save"
+          variant="primary"
+          onClick={onSave}
+          style={{ width: "6rem" }}
+        >
+          Save
+        </Button>
+      </Row>
+      <div className="h-100 p-0 mt-3 row no-gutters">
+        <div className="h-100 m-0 p-0 quillBounds col-md-10 col-ms-12">
+          <Scrollable>
+            <ReactQuill
+              ref={reactQuillRef}
+              value={templateSnapshot}
+              theme="snow"
+              bounds=".quillBounds"
+              placeholder="Start typing here"
+              modules={{
+                toolbar: [
+                  [{ header: [1, 2, false] }],
+                  ["bold", "italic", "underline", "strike", "blockquote"],
+                  [
+                    { list: "ordered" },
+                    { list: "bullet" },
+                    { indent: "-1" },
+                    { indent: "+1" },
+                  ],
+                  ["link", "image"],
+                  ["clean"],
+                ],
+              }}
+            />
+          </Scrollable>
+        </div>
+      </div>
     </Content>
   );
 
