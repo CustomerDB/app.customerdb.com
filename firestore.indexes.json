@@ -75,6 +75,46 @@
       ]
     },
     {
+      "collectionGroup": "highlights",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "personID",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "organizationID",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "deletionTimestamp",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "highlights",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "personID",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "organizationID",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "deletionTimestamp",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "creationTimestamp",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "people",
       "queryScope": "COLLECTION",
       "fields": [
@@ -132,6 +172,20 @@
     },
     {
       "collectionGroup": "tags",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "organizationID",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "deletionTimestamp",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "tags",
       "queryScope": "COLLECTION",
       "fields": [
         {
@@ -140,6 +194,20 @@
         },
         {
           "fieldPath": "creationTimestamp",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "tags",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "organizationID",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "deletionTimestamp",
           "order": "ASCENDING"
         }
       ]

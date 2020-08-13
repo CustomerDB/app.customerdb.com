@@ -54,8 +54,8 @@ export default function Document(props) {
         <Content.Name>{document.name}</Content.Name>
         <Content.Options>{props.options(document)}</Content.Options>
       </Content.Title>
-      <Tabs>
-        <Tabs.Pane>
+      <Tabs default="content">
+        <Tabs.Pane key="content" name="Content">
           <ContentsPane
             document={document}
             reactQuillRef={props.reactQuillRef}

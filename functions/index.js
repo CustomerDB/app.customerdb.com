@@ -28,7 +28,7 @@ exports.onMemberWritten = functions.firestore
     let before = change.before.data();
     let after = change.after.data();
 
-    let uid = before && before.uid ? before.uid : after.uid;
+    let uid = before && before.uid ? before.uid : after && after.uid;
 
     if (!uid) {
       console.log("no uid -- terminating");
@@ -348,20 +348,51 @@ exports.onPersonWritten = functions.firestore
     return index.saveObject(personToIndex);
   });
 
+// Update highlight records when document personID is updated.
+exports.updateHighlightsForUpdatedDocument = functions.firestore
+  .document("organizations/{orgID}/documents/{documentID}")
+  .onUpdate((change, context) => {
+    let before = change.before.data();
+    let after = change.after.data();
+
+    let partialUpdate = {};
+
+    if (before.deletionTimestamp != after.deletionTimestamp) {
+      partialUpdate.deletionTimestamp = after.deletionTimestamp;
+    }
+
+    if (before.personID != after.personID) {
+      partialUpdate.personID = after.personID;
+    }
+
+    if (Object.keys(partialUpdate).length > 0) {
+      return change.after.ref
+        .collection("highlights")
+        .get()
+        .then((snapshot) =>
+          Promise.all(
+            snapshot.docs.map((highlightDoc) =>
+              highlightDoc.ref.set(partialUpdate, { merge: true })
+            )
+          )
+        );
+    }
+  });
+
 // Add document records to the search index when created or
 // when marked for re-index.
-exports.onDocumentWritten = functions.firestore
+exports.indexUpdatedDocument = functions.firestore
   .document("organizations/{orgID}/documents/{documentID}")
   .onWrite((change, context) => {
     const index = client.initIndex(ALGOLIA_DOCUMENTS_INDEX_NAME);
 
-    let data = change.after.data();
-
-    if (!change.after.exists || data.deletionTimestamp != "") {
+    if (!change.after.exists || change.after.data().deletionTimestamp != "") {
       // Delete document from index;
       console.log("deleting document from index", context.params.documentID);
       return index.deleteObject(context.params.documentID);
     }
+
+    let data = change.after.data();
 
     return change.after.ref
       .collection("snapshots")
@@ -517,7 +548,7 @@ exports.markDocumentsForIndexing = functions.pubsub
 //////////////////////////////////////////////////////////////////////////////
 
 exports.emailInviteJob = functions.pubsub
-  .schedule("every 5 minutes")
+  .schedule("every 2 minutes")
   .onRun((context) => {
     let db = admin.firestore();
 
@@ -676,5 +707,52 @@ exports.scheduledFirestoreExport = functions.pubsub
       .catch((err) => {
         console.error(err);
         throw new Error("Export operation failed");
+      });
+  });
+
+exports.highlightRepair = functions.pubsub
+  .schedule("every 4 hours")
+  .onRun((context) => {
+    let db = admin.firestore();
+
+    return db
+      .collection("organizations")
+      .get()
+      .then((snapshot) => {
+        return Promise.all(
+          snapshot.docs.map((orgDoc) => {
+            console.log(`Repairing highlights in org ${orgDoc.id}`);
+            return orgDoc.ref
+              .collection("documents")
+              .get()
+              .then((snapshot) => {
+                return Promise.all(
+                  snapshot.docs.map((doc) => {
+                    let document = doc.data();
+                    let deletionTimestamp = document.deletionTimestamp;
+
+                    return doc.ref
+                      .collection("highlights")
+                      .get()
+                      .then((snapshot) => {
+                        return Promise.all(
+                          snapshot.docs.map((doc) => {
+                            let partialUpdate = {
+                              deletionTimestamp: deletionTimestamp,
+                            };
+
+                            if (document.personID) {
+                              partialUpdate.personID = document.personID;
+                            }
+
+                            return doc.ref.set(partialUpdate, { merge: true });
+                          })
+                        );
+                      });
+                  })
+                );
+              });
+          })
+        );
       });
   });

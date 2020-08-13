@@ -436,11 +436,13 @@ export default function ContentsPane(props) {
           highlightsRef.doc(h.ID).set(
             {
               tagID: current.tagID,
+              personID: props.document.personID,
               selection: {
                 index: current.selection.index,
                 length: current.selection.length,
               },
               text: current.text,
+              deletionTimestamp: props.document.deletionTimestamp,
               lastUpdateTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
             },
             { merge: true }
@@ -460,6 +462,7 @@ export default function ContentsPane(props) {
             organizationID: orgID,
             documentID: props.document.ID,
             tagID: current.tagID,
+            personID: props.document.personID,
             selection: {
               index: current.selection.index,
               length: current.selection.length,
@@ -467,6 +470,7 @@ export default function ContentsPane(props) {
             text: current.text,
             createdBy: oauthClaims.email,
             creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+            deletionTimestamp: props.document.deletionTimestamp,
             lastUpdateTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
           };
 
@@ -499,6 +503,8 @@ export default function ContentsPane(props) {
     orgID,
     getHighlightFromEditor,
     props.document.ID,
+    props.document.deletionTimestamp,
+    props.document.personID,
     props.editor,
   ]);
 

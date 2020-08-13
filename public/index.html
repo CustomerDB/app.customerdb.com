@@ -15,46 +15,36 @@
 
     <title>CustomerDB</title>
 
-    <script>
-      (function () {
-        var s = document.createElement("script");
-        s.type = "text/javascript";
-        s.async = true;
-        s.src = "https://app.termly.io/embed.min.js";
-        s.id = "feee66e6-ac33-41a2-bef8-e206f3163a07";
-        s.setAttribute("data-name", "termly-embed-banner");
-        var x = document.getElementsByTagName("script")[0];
-        x.parentNode.insertBefore(s, x);
-      })();
-    </script>
-
     <script src="https://www.gstatic.com/firebasejs/7.14.6/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.14.6/firebase-auth.js"></script>
 
     <!-- Guarded by user consent -->
-    <script
-      type="text/plain"
-      data-categories="analytics"
-      src="https://www.gstatic.com/firebasejs/7.14.6/firebase-analytics.js"
-    ></script>
-
-    <script src="https://www.gstatic.com/firebasejs/7.14.6/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.14.6/firebase-functions.js"></script>
-    <script src="/getEmPixels.min.js"></script>
-
-    <!-- intercom messenger -->
-    <script type="text/javascript">
-      var termlyLoaded;
-      var performancePromise = new Promise(function (resolve) {
-        termlyLoaded = () => {
+    <script>
+      window.acceptPerformanceCookies = undefined;
+      window.performancePromise = new Promise(function (resolve) {
+        window.acceptPerformanceCookies = () => {
           console.log("resolving performancePromise");
           resolve();
         };
       });
     </script>
     <script type="text/plain" data-categories="performance">
-      termlyLoaded();
+      while (!window.acceptPerformanceCookies) {
+        // busy wait :(
+      }
+      window.acceptPerformanceCookies();
     </script>
+
+    <script
+      type="text/plain"
+      data-categories="analytics"
+      src="https://www.gstatic.com/firebasejs/7.14.6/firebase-analytics.js"
+      onload="(function () { console.debug('initialize analytics'); window.firebase.analytics(); })()"
+    ></script>
+
+    <script src="https://www.gstatic.com/firebasejs/7.14.6/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.14.6/firebase-functions.js"></script>
+    <script src="/getEmPixels.min.js"></script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
@@ -72,5 +62,22 @@
     <!-- Insert these scripts at the bottom of the HTML, but before you use any Firebase services -->
 
     <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+
+    <script>
+      (function () {
+        const onTermlyEmbedLoad = () => {
+          console.log("embed.min.js loaded");
+        };
+        var s = document.createElement("script");
+        s.type = "text/javascript";
+        s.async = true;
+        s.src = "https://app.termly.io/embed.min.js";
+        s.id = "feee66e6-ac33-41a2-bef8-e206f3163a07";
+        s.setAttribute("data-name", "termly-embed-banner");
+        s.onload = onTermlyEmbedLoad;
+        var x = document.getElementsByTagName("script")[0];
+        x.parentNode.insertBefore(s, x);
+      })();
+    </script>
   </body>
 </html>

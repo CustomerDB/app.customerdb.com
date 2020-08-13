@@ -21,6 +21,7 @@ export default class Card extends React.Component {
 
     this.state = {
       zIndex: 0,
+      dragging: false,
     };
   }
 
@@ -50,7 +51,7 @@ export default class Card extends React.Component {
 
   handleStart(e) {
     this.props.setCardDragging(true);
-    this.setState({ zIndex: 100 });
+    this.setState({ zIndex: 100, dragging: true });
     this.props.removeLocationCallBack(this.props.card);
   }
 
@@ -138,6 +139,7 @@ export default class Card extends React.Component {
 
     this.setState({
       zIndex: 0,
+      dragging: false,
       previewCircle: undefined,
       previewColor: undefined,
     });
@@ -184,6 +186,8 @@ export default class Card extends React.Component {
         />
       );
 
+    let titleBarCursor = this.state.dragging ? "grabbing" : "grab";
+
     // Draggable nodeRef required to fix findDOMNode warnings.
     // see: https://github.com/STRML/react-draggable/pull/478
     return (
@@ -204,6 +208,7 @@ export default class Card extends React.Component {
               style={{
                 backgroundColor: titleBarColor,
                 color: titleBarTextColor,
+                cursor: titleBarCursor,
               }}
             >
               <small>{this.props.document.name}</small>
