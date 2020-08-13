@@ -7,6 +7,8 @@ import { useOrganization } from "../organization/hooks.js";
 
 import { useParams, useNavigate } from "react-router-dom";
 
+import { connectHits } from "react-instantsearch-dom";
+
 import { nanoid } from "nanoid";
 
 import Moment from "react-moment";
@@ -19,19 +21,21 @@ import DocumentCreateModal from "./DocumentCreateModal.js";
 import DocumentRenameModal from "./DocumentRenameModal.js";
 
 import Shell from "../shell/Shell.js";
+import ListContainer from "../shell/ListContainer";
 
-import ObsoleteList from "../shell_obsolete/List.js";
 import Modal from "../shell_obsolete/Modal.js";
 import Options from "../shell_obsolete/Options.js";
-import Page from "../shell_obsolete/Page.js";
 import Scrollable from "../shell_obsolete/Scrollable.js";
 
+import AddIcon from "@material-ui/icons/Add";
 import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemText from "@material-ui/core/ListItemText";
 import ListItemAvatar from "@material-ui/core/ListItemAvatar";
 import Avatar from "@material-ui/core/Avatar";
 import DescriptionIcon from "@material-ui/icons/Description";
+import Fab from "@material-ui/core/Fab";
+import Grid from "@material-ui/core/Grid";
 
 import DataHelp from "./DataHelp.js";
 import ContentsHelp from "./ContentsHelp.js";
@@ -41,8 +45,9 @@ export default function Data(props) {
   let { documentsRef } = useFirestore();
   let navigate = useNavigate();
   let { documentID, orgID } = useParams();
-  const [documents, setDocuments] = useState();
+  const [documents, setDocuments] = useState([]);
   const [addModalShow, setAddModalShow] = useState();
+  const [showResults, setShowResults] = useState();
 
   const { defaultTagGroupID } = useOrganization();
 
@@ -184,32 +189,40 @@ export default function Data(props) {
       });
   };
 
-  let documentItems = documents ? (
-    documents.map((doc) => (
-      <ListItem
-        onClick={() => {
-          navigate(`/orgs/${orgID}/data/${doc.ID}`);
-        }}
-        selected={doc.ID === documentID}
-      >
-        <ListItemAvatar>
-          <Avatar>
-            <DescriptionIcon />
-          </Avatar>
-        </ListItemAvatar>
-        <ListItemText
-          primary={doc.name}
-          secondary={
-            doc.creationTimestamp && (
-              <Moment fromNow date={doc.creationTimestamp.toDate()} />
-            )
-          }
-        />
-      </ListItem>
-    ))
-  ) : (
-    <></>
+  const dataListItem = (ID, name, timestamp) => (
+    <ListItem
+      button
+      key={ID}
+      selected={ID === documentID}
+      onClick={() => {
+        navigate(`/orgs/${orgID}/data/${ID}`);
+      }}
+    >
+      <ListItemAvatar>
+        <Avatar>
+          <DescriptionIcon />
+        </Avatar>
+      </ListItemAvatar>
+      <ListItemText
+        primary={name}
+        secondary={timestamp && <Moment fromNow date={timestamp} />}
+      />
+    </ListItem>
   );
+
+  let documentItems = documents.map((doc) =>
+    dataListItem(
+      doc.ID,
+      doc.name,
+      doc.creationTimestamp && doc.creationTimestamp.toDate()
+    )
+  );
+
+  const SearchResults = connectHits((result) => {
+    return result.hits.map((hit) =>
+      dataListItem(hit.objectID, hit.name, hit.creationTimestamp)
+    );
+  });
 
   let content = undefined;
   if (documentID) {
@@ -238,30 +251,38 @@ export default function Data(props) {
   );
 
   return (
-    <Shell title="Data">
-      <Page>
-        <ObsoleteList>
-          <ObsoleteList.Search
-            index={process.env.REACT_APP_ALGOLIA_DOCUMENTS_INDEX}
-            path={(ID) => `/orgs/${orgID}/data/${ID}`}
+    <Shell
+      title="Data"
+      search={{
+        index: process.env.REACT_APP_ALGOLIA_DOCUMENTS_INDEX,
+        setShowResults: (value) => {
+          setShowResults(value);
+        },
+      }}
+    >
+      <Grid container alignItems="stretch">
+        <ListContainer>
+          <Scrollable>
+            {showResults ? (
+              <SearchResults />
+            ) : (
+              <List>
+                {documentItems.length > 0 ? documentItems : <DataHelp />}
+              </List>
+            )}
+          </Scrollable>
+          <Fab
+            style={{ position: "absolute", bottom: "15px", right: "15px" }}
+            color="secondary"
+            aria-label="add"
+            onClick={onAdd}
           >
-            <ObsoleteList.SearchBox placeholder="Search in data..." />
-            <ObsoleteList.Title>
-              <ObsoleteList.Name>Customer Data</ObsoleteList.Name>
-              <ObsoleteList.Add onClick={onAdd} />
-              {addModal}
-            </ObsoleteList.Title>
-            <ObsoleteList.Items>
-              <Scrollable>
-                <List>
-                  {documentItems.length > 0 ? documentItems : <DataHelp />}
-                </List>
-              </Scrollable>
-            </ObsoleteList.Items>
-          </ObsoleteList.Search>
-        </ObsoleteList>
+            <AddIcon />
+          </Fab>
+        </ListContainer>
         {content}
-      </Page>
+        {addModal}
+      </Grid>
     </Shell>
   );
 }
