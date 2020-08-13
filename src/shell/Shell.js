@@ -1,13 +1,7 @@
 import React, { useState } from "react";
 
 import clsx from "clsx";
-import {
-  fade,
-  makeStyles,
-  useTheme,
-  ThemeProvider,
-  createMuiTheme,
-} from "@material-ui/core/styles";
+import { makeStyles, useTheme } from "@material-ui/core/styles";
 
 import AppBar from "@material-ui/core/AppBar";
 import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
@@ -113,19 +107,8 @@ export default function Shell(props) {
     setOpen(false);
   };
 
-  const customTheme = createMuiTheme({
-    palette: {
-      primary: {
-        main: "#424242",
-      },
-      secondary: {
-        main: "#ff5252",
-      },
-    },
-  });
-
   let app = (
-    <ThemeProvider theme={customTheme}>
+    <Search search={props.search}>
       <div className={classes.root}>
         <CssBaseline />
         <AppBar
@@ -218,22 +201,9 @@ export default function Shell(props) {
           {props.children}
         </main>
       </div>
-    </ThemeProvider>
+    </Search>
   );
 
-  // If search index is provided, wrap application in an Algolia instant search
-  // and provide a search box.
-  // Search results will replace the provided listRef.
-  if (props.search) {
-    return (
-      <Search
-        index={props.search.index}
-        setShowResults={props.search.setShowResults}
-      >
-        {app}
-      </Search>
-    );
-  }
   return app;
 }
 

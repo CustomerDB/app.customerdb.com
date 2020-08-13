@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect, useRef } from "react";
+import React, { useContext, useState, useEffect } from "react";
 
 import UserAuthContext from "../auth/UserAuthContext.js";
 import useFirestore from "../db/Firestore.js";
@@ -14,7 +14,6 @@ import ListItemAvatar from "@material-ui/core/ListItemAvatar";
 import ListItemText from "@material-ui/core/ListItemText";
 
 import Shell from "../shell/Shell.js";
-import { Search } from "../shell/Search.js";
 
 import Page from "../shell_obsolete/Page.js";
 import ObsoleteList from "../shell_obsolete/List.js";
@@ -31,8 +30,6 @@ import PersonHelp from "./PersonHelp.js";
 
 import { useParams, useNavigate } from "react-router-dom";
 
-import { Loading } from "../util/Utils.js";
-
 const batchSize = 25;
 
 export default function People(props) {
@@ -44,14 +41,12 @@ export default function People(props) {
 
   const { personID, orgID } = useParams();
 
-  const [peopleList, setPeopleList] = useState();
+  const [peopleList, setPeopleList] = useState([]);
   const [addModalShow, setAddModalShow] = useState();
   const [newPersonRef, setNewPersonRef] = useState();
   const [listLimit, setListLimit] = useState(batchSize);
   const [listTotal, setListTotal] = useState();
   const [showResults, setShowResults] = useState();
-
-  let listRef = useRef();
 
   useEffect(() => {
     if (!peopleRef) {
@@ -75,10 +70,6 @@ export default function People(props) {
       });
     return unsubscribe;
   }, [peopleRef]);
-
-  if (!peopleList) {
-    return <Loading />;
-  }
 
   const options = (personID) => {
     if (!personID) {
@@ -122,7 +113,7 @@ export default function People(props) {
   const personListItem = (ID, name, company) => (
     <ListItem
       key={ID}
-      selected={ID == personID}
+      selected={ID === personID}
       onClick={() => {
         navigate(`/orgs/${orgID}/people/${ID}`);
       }}

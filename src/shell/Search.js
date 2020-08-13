@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect, useRef } from "react";
+import React, { useState, useContext, useEffect } from "react";
 
 import { fade, makeStyles } from "@material-ui/core/styles";
 
@@ -7,16 +7,9 @@ import { getSearchClient } from "../search/client.js";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import { Loading } from "../util/Utils.js";
 
-import {
-  InstantSearch,
-  connectSearchBox,
-  connectHits,
-} from "react-instantsearch-dom";
+import { InstantSearch, connectSearchBox } from "react-instantsearch-dom";
 import SearchIcon from "@material-ui/icons/Search";
 import InputBase from "@material-ui/core/InputBase";
-
-import ObsoleteList from "../shell_obsolete/List.js";
-import Scrollable from "../shell_obsolete/Scrollable.js";
 
 export function Search(props) {
   const auth = useContext(UserAuthContext);
@@ -34,8 +27,15 @@ export function Search(props) {
   }, [auth.oauthClaims.orgID, auth.oauthUser.uid]);
 
   useEffect(() => {
-    props.setShowResults(searchState.query);
-  }, [searchState]);
+    if (!props.search || !props.search.setShowResults) {
+      return;
+    }
+    props.search.setShowResults(searchState.query);
+  }, [props.search, searchState]);
+
+  if (!props.search) {
+    return props.children;
+  }
 
   if (!searchClient) {
     return <Loading />;
@@ -43,7 +43,7 @@ export function Search(props) {
 
   return (
     <InstantSearch
-      indexName={props.index}
+      indexName={props.search.index}
       searchClient={searchClient}
       searchState={searchState}
       onSearchStateChange={(st) => setSearchState(st)}

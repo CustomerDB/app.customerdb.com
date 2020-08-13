@@ -190,7 +190,7 @@ export default function Data(props) {
         onClick={() => {
           navigate(`/orgs/${orgID}/data/${doc.ID}`);
         }}
-        selected={doc.ID == documentID}
+        selected={doc.ID === documentID}
       >
         <ListItemAvatar>
           <Avatar>
