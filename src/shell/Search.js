@@ -38,7 +38,7 @@ export function Search(props) {
   }
 
   if (!searchClient) {
-    return <Loading />;
+    return <></>;
   }
 
   return (

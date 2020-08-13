@@ -7,7 +7,7 @@ import useFirestore from "../db/Firestore.js";
 import Shell from "../shell/Shell.js";
 
 import Page from "../shell_obsolete/Page.js";
-import List from "../shell_obsolete/List.js";
+import ObsoleteList from "../shell_obsolete/List.js";
 import Scrollable from "../shell_obsolete/Scrollable.js";
 import Options from "../shell_obsolete/Options.js";
 
@@ -110,7 +110,7 @@ export default function Analyze(props) {
   );
 
   let listItems = analysisList.map((analysis) => (
-    <List.Item
+    <ObsoleteList.Item
       key={analysis.ID}
       name={analysis.name}
       path={`/orgs/${orgID}/analyze/${analysis.ID}`}
@@ -121,10 +121,10 @@ export default function Analyze(props) {
     <Shell title="Analysis">
       <Page>
         <WithFocus>
-          <List>
-            <List.Title>
-              <List.Name>Customer Analysis</List.Name>
-              <List.Add
+          <ObsoleteList>
+            <ObsoleteList.Title>
+              <ObsoleteList.Name>Customer Analysis</ObsoleteList.Name>
+              <ObsoleteList.Add
                 onClick={() => {
                   event("create_analysis", {
                     orgID: oauthClaims.orgID,
@@ -146,13 +146,13 @@ export default function Analyze(props) {
                 }}
               />
               {addModal}
-            </List.Title>
-            <List.Items>
+            </ObsoleteList.Title>
+            <ObsoleteList.Items>
               <Scrollable>
                 {listTotal > 0 ? listItems : <AnalyzeHelp />}
               </Scrollable>
-            </List.Items>
-          </List>
+            </ObsoleteList.Items>
+          </ObsoleteList>
           {content}
         </WithFocus>
       </Page>

@@ -5,9 +5,9 @@ import { useNavigate, useParams } from "react-router-dom";
 import useFirestore from "../db/Firestore.js";
 
 import { Loading } from "../util/Utils.js";
-import Content from "../shell/Content.js";
 
-import Tabs from "../shell/Tabs.js";
+import Content from "../shell_obsolete/Content.js";
+import Tabs from "../shell_obsolete/Tabs.js";
 
 import PersonContactPane from "./PersonContactPane.js";
 import PersonHighlightsPane from "./PersonHighlightsPane.js";

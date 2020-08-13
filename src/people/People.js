@@ -12,11 +12,15 @@ import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemAvatar from "@material-ui/core/ListItemAvatar";
 import ListItemText from "@material-ui/core/ListItemText";
+import AddIcon from "@material-ui/icons/Add";
+import Fab from "@material-ui/core/Fab";
+import Grid from "@material-ui/core/Grid";
 
 import Shell from "../shell/Shell.js";
+import ListContainer from "../shell/ListContainer";
 
 import Page from "../shell_obsolete/Page.js";
-import ObsoleteList from "../shell_obsolete/List.js";
+// import ObsoleteList from "../shell_obsolete/List.js";
 import Infinite from "../shell_obsolete/Infinite.js";
 import Scrollable from "../shell_obsolete/Scrollable.js";
 import Options from "../shell_obsolete/Options.js";
@@ -112,6 +116,7 @@ export default function People(props) {
 
   const personListItem = (ID, name, company) => (
     <ListItem
+      button
       key={ID}
       selected={ID === personID}
       onClick={() => {
@@ -141,42 +146,65 @@ export default function People(props) {
         },
       }}
     >
-      <Page>
-        <ObsoleteList>
-          <ObsoleteList.Items>
-            <Scrollable>
-              {showResults ? (
-                <SearchResults />
-              ) : (
-                <List>
-                  {listTotal > 0 ? (
-                    <Infinite
-                      hasMore={() => {
-                        if (!listTotal) {
-                          return true;
-                        }
+      <Grid container alignItems="stretch">
+        <ListContainer>
+          <Scrollable>
+            {showResults ? (
+              <SearchResults />
+            ) : (
+              <List>
+                {listTotal > 0 ? (
+                  <Infinite
+                    hasMore={() => {
+                      if (!listTotal) {
+                        return true;
+                      }
 
-                        return listTotal < listLimit;
-                      }}
-                      onLoad={() => setListLimit(listLimit + batchSize)}
-                    >
-                      {peopleList
-                        .slice(0, listLimit)
-                        .map((person) =>
-                          personListItem(person.ID, person.name, person.company)
-                        )}
-                    </Infinite>
-                  ) : (
-                    <PeopleHelp />
-                  )}
-                </List>
-              )}
-            </Scrollable>
-          </ObsoleteList.Items>
-          {/* </ObsoleteList.Search> */}
-        </ObsoleteList>
+                      return listTotal < listLimit;
+                    }}
+                    onLoad={() => setListLimit(listLimit + batchSize)}
+                  >
+                    {peopleList
+                      .slice(0, listLimit)
+                      .map((person) =>
+                        personListItem(person.ID, person.name, person.company)
+                      )}
+                  </Infinite>
+                ) : (
+                  <PeopleHelp />
+                )}
+              </List>
+            )}
+          </Scrollable>
+          <Fab
+            style={{ position: "absolute", bottom: "15px", right: "15px" }}
+            color="secondary"
+            aria-label="add"
+            onClick={() => {
+              event("create_person", {
+                orgID: oauthClaims.orgID,
+                userID: oauthClaims.user_id,
+              });
+              peopleRef
+                .add({
+                  name: "Unnamed person",
+                  createdBy: oauthClaims.email,
+                  creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+                  deletionTimestamp: "",
+                })
+                .then((doc) => {
+                  navigate(`/orgs/${orgID}/people/${doc.id}`);
+                  setNewPersonRef(doc);
+                  setAddModalShow(true);
+                });
+            }}
+          >
+            <AddIcon />
+          </Fab>
+        </ListContainer>
         {content}
-      </Page>
+        {addModal}
+      </Grid>
     </Shell>
   );
 }

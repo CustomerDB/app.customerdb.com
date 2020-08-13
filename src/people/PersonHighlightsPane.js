@@ -4,8 +4,9 @@ import useFirestore from "../db/Firestore.js";
 
 import Button from "react-bootstrap/Button";
 import Badge from "react-bootstrap/Badge";
-import Tabs from "../shell/Tabs.js";
-import Scrollable from "../shell/Scrollable.js";
+
+import Tabs from "../shell_obsolete/Tabs.js";
+import Scrollable from "../shell_obsolete/Scrollable.js";
 
 import { Bookmark, BookmarkFill } from "react-bootstrap-icons";
 

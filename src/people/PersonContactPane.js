@@ -8,8 +8,8 @@ import Linkify from "react-linkify";
 
 import PersonSidebar from "./PersonSidebar.js";
 
-import Tabs from "../shell/Tabs.js";
-import Scrollable from "../shell/Scrollable.js";
+import Tabs from "../shell_obsolete/Tabs.js";
+import Scrollable from "../shell_obsolete/Scrollable.js";
 
 function Field(props) {
   if (props.children == null) {
