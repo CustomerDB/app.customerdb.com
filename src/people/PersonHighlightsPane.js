@@ -114,6 +114,7 @@ function HighlightCard(props) {
       style={{
         position: "relative",
         boxShadow: "0 6px 6px rgba(0,0,0,.2)",
+        cursor: "pointer",
       }}
       onClick={() => {
         navigate(`/orgs/${orgID}/data/${props.highlight.documentID}`);
@@ -123,7 +124,12 @@ function HighlightCard(props) {
       <Button
         title={props.highlight.pinned ? "Unpin" : "Pin"}
         variant="link"
-        style={{ position: "absolute", right: 0, top: 0 }}
+        style={{
+          position: "absolute",
+          right: 0,
+          top: 0,
+          cursor: "default",
+        }}
         onClick={(e) => {
           // Stop event propagation up the DOM tree
           e.stopPropagation();
