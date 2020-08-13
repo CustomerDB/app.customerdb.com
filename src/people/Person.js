@@ -18,8 +18,6 @@ import Tabs from "../shell_obsolete/Tabs.js";
 import Linkify from "react-linkify";
 
 function Field(props) {
-  console.log("Field props", props);
-
   if (props.children == null) {
     return <></>;
   }
@@ -108,7 +106,7 @@ export default function Person(props) {
               {showLabels && (
                 <Field name="labels">
                   {Object.values(person.labels).map((label) => {
-                    return <Label name={label.name} />;
+                    return <Label key={label.ID} name={label.name} />;
                   })}
                 </Field>
               )}

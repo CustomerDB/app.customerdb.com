@@ -31,7 +31,7 @@ export default function PersonSidebar(props) {
   }, [documentsRef, personID]);
 
   let items = docs.map((doc) => (
-    <Tabs.SidePaneCard>
+    <Tabs.SidePaneCard key={doc.ID}>
       <Link to={`/orgs/${orgID}/data/${doc.ID}`}>{doc.name}</Link>
       <br />
       <small>

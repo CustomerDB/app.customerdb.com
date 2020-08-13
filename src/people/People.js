@@ -1,8 +1,10 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState, useEffect, useRef } from "react";
 
 import UserAuthContext from "../auth/UserAuthContext.js";
 import useFirestore from "../db/Firestore.js";
 import event from "../analytics/event.js";
+
+import { connectHits } from "react-instantsearch-dom";
 
 import Avatar from "react-avatar";
 
@@ -47,6 +49,9 @@ export default function People(props) {
   const [newPersonRef, setNewPersonRef] = useState();
   const [listLimit, setListLimit] = useState(batchSize);
   const [listTotal, setListTotal] = useState();
+  const [showResults, setShowResults] = useState();
+
+  let listRef = useRef();
 
   useEffect(() => {
     if (!peopleRef) {
@@ -114,16 +119,44 @@ export default function People(props) {
     />
   );
 
-  return (
-    <Search
-      index={process.env.REACT_APP_ALGOLIA_PEOPLE_INDEX}
-      path={(ID) => `/orgs/${orgID}/people/${ID}`}
+  const personListItem = (ID, name, company) => (
+    <ListItem
+      key={ID}
+      selected={ID == personID}
+      onClick={() => {
+        navigate(`/orgs/${orgID}/people/${ID}`);
+      }}
     >
-      <Shell title="Customers">
-        <Page>
-          <ObsoleteList>
-            <ObsoleteList.Items>
-              <Scrollable>
+      <ListItemAvatar>
+        <Avatar size={50} name={name} round={true} />
+      </ListItemAvatar>
+      <ListItemText primary={name} secondary={company} />
+    </ListItem>
+  );
+
+  const SearchResults = connectHits((result) => {
+    return result.hits.map((hit) =>
+      personListItem(hit.objectID, hit.name, hit.company)
+    );
+  });
+
+  return (
+    <Shell
+      title="Customers"
+      search={{
+        index: process.env.REACT_APP_ALGOLIA_PEOPLE_INDEX,
+        setShowResults: (value) => {
+          setShowResults(value);
+        },
+      }}
+    >
+      <Page>
+        <ObsoleteList>
+          <ObsoleteList.Items>
+            <Scrollable>
+              {showResults ? (
+                <SearchResults />
+              ) : (
                 <List>
                   {listTotal > 0 ? (
                     <Infinite
@@ -136,34 +169,23 @@ export default function People(props) {
                       }}
                       onLoad={() => setListLimit(listLimit + batchSize)}
                     >
-                      {peopleList.slice(0, listLimit).map((person) => (
-                        <ListItem
-                          selected={person.ID == personID}
-                          onClick={() => {
-                            navigate(`/orgs/${orgID}/people/${person.ID}`);
-                          }}
-                        >
-                          <ListItemAvatar>
-                            <Avatar size={50} name={person.name} round={true} />
-                          </ListItemAvatar>
-                          <ListItemText
-                            primary={person.name}
-                            secondary={person.company}
-                          />
-                        </ListItem>
-                      ))}
+                      {peopleList
+                        .slice(0, listLimit)
+                        .map((person) =>
+                          personListItem(person.ID, person.name, person.company)
+                        )}
                     </Infinite>
                   ) : (
                     <PeopleHelp />
                   )}
                 </List>
-              </Scrollable>
-            </ObsoleteList.Items>
-            {/* </ObsoleteList.Search> */}
-          </ObsoleteList>
-          {content}
-        </Page>
-      </Shell>
-    </Search>
+              )}
+            </Scrollable>
+          </ObsoleteList.Items>
+          {/* </ObsoleteList.Search> */}
+        </ObsoleteList>
+        {content}
+      </Page>
+    </Shell>
   );
 }

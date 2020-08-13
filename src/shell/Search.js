@@ -1,11 +1,19 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext, useEffect, useRef } from "react";
+
+import { fade, makeStyles } from "@material-ui/core/styles";
 
 import { getSearchClient } from "../search/client.js";
 
 import UserAuthContext from "../auth/UserAuthContext.js";
 import { Loading } from "../util/Utils.js";
 
-import { InstantSearch, SearchBox, connectHits } from "react-instantsearch-dom";
+import {
+  InstantSearch,
+  connectSearchBox,
+  connectHits,
+} from "react-instantsearch-dom";
+import SearchIcon from "@material-ui/icons/Search";
+import InputBase from "@material-ui/core/InputBase";
 
 import ObsoleteList from "../shell_obsolete/List.js";
 import Scrollable from "../shell_obsolete/Scrollable.js";
@@ -25,46 +33,12 @@ export function Search(props) {
     );
   }, [auth.oauthClaims.orgID, auth.oauthUser.uid]);
 
+  useEffect(() => {
+    props.setShowResults(searchState.query);
+  }, [searchState]);
+
   if (!searchClient) {
     return <Loading />;
-  }
-
-  const CustomHits = connectHits((result) => {
-    console.log("Recieved search results ", result.hits.length);
-    return result.hits.map((hit) => (
-      <ObsoleteList.Item
-        key={hit.objectID}
-        name={hit.name}
-        path={props.path(hit.objectID)}
-      />
-    ));
-  });
-
-  if (!props.children) {
-    return <></>;
-  }
-
-  let children = props.children;
-
-  // Replace "ObsoleteList.Items" child with search results.
-  if (searchState.query && searchState.query !== "") {
-    console.log("searchState", searchState);
-    children = props.children.slice();
-    for (let i = 0; i < children.length; i++) {
-      let child = children[i];
-
-      if (child.type === ObsoleteList.Items) {
-        console.log("Rerender custom hits");
-        children[i] = (
-          <ObsoleteList.Items>
-            <Scrollable>
-              <CustomHits />
-            </Scrollable>
-          </ObsoleteList.Items>
-        );
-        break;
-      }
-    }
   }
 
   return (
@@ -74,7 +48,81 @@ export function Search(props) {
       searchState={searchState}
       onSearchStateChange={(st) => setSearchState(st)}
     >
-      {children}
+      {props.children}
     </InstantSearch>
   );
+}
+
+const SearchBox = ({
+  currentRefinement,
+  isSearchStalled,
+  refine,
+  placeholder,
+}) => {
+  const useStyles = makeStyles((theme) => ({
+    inputRoot: {
+      color: "inherit",
+    },
+    inputInput: {
+      padding: theme.spacing(1, 1, 1, 0),
+      // vertical padding + font size from searchIcon
+      paddingLeft: `calc(1em + ${theme.spacing(4)}px)`,
+      transition: theme.transitions.create("width"),
+      width: "100%",
+      [theme.breakpoints.up("md")]: {
+        width: "20ch",
+      },
+    },
+    search: {
+      position: "relative",
+      borderRadius: theme.shape.borderRadius,
+      backgroundColor: fade(theme.palette.common.white, 0.15),
+      "&:hover": {
+        backgroundColor: fade(theme.palette.common.white, 0.25),
+      },
+      marginRight: theme.spacing(2),
+      marginLeft: 0,
+      width: "100%",
+      [theme.breakpoints.up("sm")]: {
+        marginLeft: theme.spacing(3),
+        width: "auto",
+      },
+    },
+    searchIcon: {
+      padding: theme.spacing(0, 2),
+      height: "100%",
+      position: "absolute",
+      pointerEvents: "none",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+  }));
+  const classes = useStyles();
+
+  return (
+    <div className={classes.search}>
+      <div className={classes.searchIcon}>
+        <SearchIcon />
+      </div>
+      <InputBase
+        placeholder="Search…"
+        classes={{
+          root: classes.inputRoot,
+          input: classes.inputInput,
+        }}
+        inputProps={{ "aria-label": "search" }}
+        value={currentRefinement}
+        onChange={(event) => {
+          refine(event.currentTarget.value);
+        }}
+      />
+    </div>
+  );
+};
+
+const CustomSearchBox = connectSearchBox(SearchBox);
+
+export function SearchInput(props) {
+  return <CustomSearchBox />;
 }
