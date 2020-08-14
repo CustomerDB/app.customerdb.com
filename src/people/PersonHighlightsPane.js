@@ -7,12 +7,14 @@ import { useParams, useNavigate } from "react-router-dom";
 import Badge from "react-bootstrap/Badge";
 import Button from "react-bootstrap/Button";
 import Card from "@material-ui/core/Card";
+import CardActionArea from "@material-ui/core/CardActionArea";
 import useFirestore from "../db/Firestore.js";
 
 const useStyles = makeStyles({
   helpText: {
     margin: "1rem",
     padding: "1rem",
+    maxWidth: 500,
   },
   quoteCard: {
     margin: "1rem",
@@ -128,52 +130,54 @@ function HighlightCard(props) {
         navigate(`/orgs/${orgID}/data/${props.highlight.documentID}`);
       }}
     >
-      <p style={{ paddingRight: "2rem" }}>
-        <i>"{props.highlight.text}"</i>
-      </p>
-      <Button
-        title={props.highlight.pinned ? "Unpin" : "Pin"}
-        variant="link"
-        style={{
-          position: "absolute",
-          right: 0,
-          top: 0,
-          cursor: "default",
-        }}
-        onClick={(e) => {
-          // Stop event propagation up the DOM tree
-          e.stopPropagation();
-
-          if (!documentsRef) {
-            return;
-          }
-
-          documentsRef
-            .doc(props.highlight.documentID)
-            .collection("highlights")
-            .doc(props.highlight.ID)
-            .set(
-              {
-                pinned: !props.highlight.pinned,
-              },
-              { merge: true }
-            );
-        }}
-      >
-        {props.highlight.pinned ? <BookmarkFill /> : <Bookmark />}
-      </Button>
-      <div>
-        <Badge
-          variant="secondary"
-          pill
+      <CardActionArea>
+        <p style={{ paddingRight: "2rem" }}>
+          <i>"{props.highlight.text}"</i>
+        </p>
+        <Button
+          title={props.highlight.pinned ? "Unpin" : "Pin"}
+          variant="link"
           style={{
-            color: props.tag.textColor,
-            backgroundColor: props.tag.color,
+            position: "absolute",
+            right: 0,
+            top: 0,
+            cursor: "default",
+          }}
+          onClick={(e) => {
+            // Stop event propagation up the DOM tree
+            e.stopPropagation();
+
+            if (!documentsRef) {
+              return;
+            }
+
+            documentsRef
+              .doc(props.highlight.documentID)
+              .collection("highlights")
+              .doc(props.highlight.ID)
+              .set(
+                {
+                  pinned: !props.highlight.pinned,
+                },
+                { merge: true }
+              );
           }}
         >
-          {props.tag.name}
-        </Badge>
-      </div>
+          {props.highlight.pinned ? <BookmarkFill /> : <Bookmark />}
+        </Button>
+        <div>
+          <Badge
+            variant="secondary"
+            pill
+            style={{
+              color: props.tag.textColor,
+              backgroundColor: props.tag.color,
+            }}
+          >
+            {props.tag.name}
+          </Badge>
+        </div>
+      </CardActionArea>
     </Card>
   );
 }

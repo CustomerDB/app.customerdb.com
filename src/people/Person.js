@@ -117,7 +117,7 @@ export default function Person(props) {
     <>
       <Grid container item md={9} style={{ position: "relative" }}>
         <Scrollable>
-          <Grid container spacing={3}>
+          <Grid container spacing={1}>
             <Grid container item md={3} direction="column">
               <Card className={classes.nameCard}>
                 <CardContent>
@@ -241,7 +241,7 @@ function Field(props) {
   }
 
   return (
-    <Row key={props.name} className="mb-3" noGutters={true}>
+    <Row key={props.name} noGutters={true}>
       <Col>
         <p style={{ margin: 0 }}>
           <small>{props.name}</small>

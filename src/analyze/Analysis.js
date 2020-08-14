@@ -7,6 +7,10 @@ import { useParams, useNavigate, Navigate } from "react-router-dom";
 import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
 
+import Grid from "@material-ui/core/Grid";
+import Paper from "@material-ui/core/Paper";
+import Typography from "@material-ui/core/Typography";
+
 import ClusterDropdown from "./ClusterDropdown.js";
 import AnalysisDataTab from "./AnalysisDataTab.js";
 import AnalysisClusterTab from "./AnalysisClusterTab.js";
@@ -102,14 +106,23 @@ export default function Analysis(props) {
 
   return (
     <>
-      <Content>
-        <Content.Title>
-          <Content.Name>{props.analysis.name}</Content.Name>
-          <Content.Options>{props.options}</Content.Options>
-        </Content.Title>
-        {controls}
-        {view}
-      </Content>
+      <Grid container item md={9}>
+        <Paper
+          style={{
+            width: "90%",
+            margin: "1rem",
+            padding: "1rem",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          <Typography gutterBottom variant="h5" component="h2">
+            {props.analysis.name}
+          </Typography>
+          {controls}
+          <div style={{ position: "relative", flexGrow: 1 }}>{view}</div>
+        </Paper>
+      </Grid>
     </>
   );
 }

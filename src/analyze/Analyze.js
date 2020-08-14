@@ -6,8 +6,6 @@ import useFirestore from "../db/Firestore.js";
 
 import Shell from "../shell/Shell.js";
 
-import Page from "../shell_obsolete/Page.js";
-import ObsoleteList from "../shell_obsolete/List.js";
 import Scrollable from "../shell_obsolete/Scrollable.js";
 import Options from "../shell_obsolete/Options.js";
 
@@ -15,9 +13,22 @@ import Analysis from "./Analysis.js";
 import AnalysisDeleteModal from "./AnalysisDeleteModal.js";
 import AnalysisRenameModal from "./AnalysisRenameModal.js";
 import AnalyzeHelp from "./AnalyzeHelp.js";
+import Avatar from "@material-ui/core/Avatar";
 import AnalysisHelp from "./AnalysisHelp.js";
+import Grid from "@material-ui/core/Grid";
+import ListContainer from "../shell/ListContainer";
 
-import { useParams } from "react-router-dom";
+import List from "@material-ui/core/List";
+import ListItem from "@material-ui/core/ListItem";
+import ListItemText from "@material-ui/core/ListItemText";
+import ListItemAvatar from "@material-ui/core/ListItemAvatar";
+import BarChartIcon from "@material-ui/icons/BarChart";
+import Fab from "@material-ui/core/Fab";
+import AddIcon from "@material-ui/icons/Add";
+
+import Moment from "react-moment";
+
+import { useParams, useNavigate } from "react-router-dom";
 import WithFocus from "../util/WithFocus.js";
 
 export default function Analyze(props) {
@@ -26,6 +37,8 @@ export default function Analyze(props) {
   let { analysesRef } = useFirestore();
 
   let { orgID, analysisID } = useParams();
+
+  const navigate = useNavigate();
 
   const [analysisList, setAnalysisList] = useState(undefined);
   const [analysisMap, setAnalysisMap] = useState(undefined);
@@ -110,52 +123,72 @@ export default function Analyze(props) {
   );
 
   let listItems = analysisList.map((analysis) => (
-    <ObsoleteList.Item
+    <ListItem
+      button
       key={analysis.ID}
-      name={analysis.name}
-      path={`/orgs/${orgID}/analyze/${analysis.ID}`}
-    />
+      selected={analysis.ID === analysisID}
+      onClick={() => {
+        navigate(`/orgs/${orgID}/analyze/${analysis.ID}`);
+      }}
+    >
+      <ListItemAvatar>
+        <Avatar>
+          <BarChartIcon />
+        </Avatar>
+      </ListItemAvatar>
+      <ListItemText
+        primary={analysis.name}
+        secondary={
+          <Moment
+            fromNow
+            date={
+              analysis.creationTimestamp && analysis.creationTimestamp.toDate()
+            }
+          />
+        }
+      />
+    </ListItem>
   ));
+
+  const onAdd = () => {
+    event("create_analysis", {
+      orgID: oauthClaims.orgID,
+      userID: oauthClaims.user_id,
+    });
+
+    analysesRef
+      .add({
+        name: "Unnamed analysis",
+        documentIDs: [],
+        createdBy: oauthClaims.email,
+        creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+        deletionTimestamp: "",
+      })
+      .then((doc) => {
+        setNewAnalysisRef(doc);
+        setAddModalShow(true);
+      });
+  };
 
   return (
     <Shell title="Analysis">
-      <Page>
-        <WithFocus>
-          <ObsoleteList>
-            <ObsoleteList.Title>
-              <ObsoleteList.Name>Customer Analysis</ObsoleteList.Name>
-              <ObsoleteList.Add
-                onClick={() => {
-                  event("create_analysis", {
-                    orgID: oauthClaims.orgID,
-                    userID: oauthClaims.user_id,
-                  });
-
-                  analysesRef
-                    .add({
-                      name: "Unnamed analysis",
-                      documentIDs: [],
-                      createdBy: oauthClaims.email,
-                      creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
-                      deletionTimestamp: "",
-                    })
-                    .then((doc) => {
-                      setNewAnalysisRef(doc);
-                      setAddModalShow(true);
-                    });
-                }}
-              />
-              {addModal}
-            </ObsoleteList.Title>
-            <ObsoleteList.Items>
-              <Scrollable>
-                {listTotal > 0 ? listItems : <AnalyzeHelp />}
-              </Scrollable>
-            </ObsoleteList.Items>
-          </ObsoleteList>
-          {content}
-        </WithFocus>
-      </Page>
+      <Grid container alignItems="stretch">
+        <ListContainer>
+          <Scrollable>
+            <List>{listTotal > 0 ? listItems : <AnalyzeHelp />}</List>
+          </Scrollable>
+          <Fab
+            style={{ position: "absolute", bottom: "15px", right: "15px" }}
+            color="secondary"
+            aria-label="add"
+            onClick={onAdd}
+          >
+            <AddIcon />
+          </Fab>
+        </ListContainer>
+        {content}
+        {addModal}
+      </Grid>
     </Shell>
   );
 }

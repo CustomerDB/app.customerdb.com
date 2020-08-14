@@ -41,15 +41,16 @@ import DataHelp from "./DataHelp.js";
 import ContentsHelp from "./ContentsHelp.js";
 
 export default function Data(props) {
-  let { oauthClaims } = useContext(UserAuthContext);
-  let { documentsRef } = useFirestore();
-  let navigate = useNavigate();
-  let { documentID, orgID } = useParams();
-  const [documents, setDocuments] = useState([]);
   const [addModalShow, setAddModalShow] = useState();
+  const [documents, setDocuments] = useState([]);
   const [showResults, setShowResults] = useState();
-
   const { defaultTagGroupID } = useOrganization();
+
+  const navigate = useNavigate();
+
+  let { documentID, orgID } = useParams();
+  let { documentsRef } = useFirestore();
+  let { oauthClaims } = useContext(UserAuthContext);
 
   const [editor, setEditor] = useState();
   const reactQuillRef = useCallback(
