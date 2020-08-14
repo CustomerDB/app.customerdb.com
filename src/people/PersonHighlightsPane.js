@@ -1,21 +1,31 @@
 import React, { useEffect, useState } from "react";
 
+import { Bookmark, BookmarkFill } from "react-bootstrap-icons";
+import { Loading } from "../util/Utils.js";
+import { makeStyles } from "@material-ui/core/styles";
+import { useParams, useNavigate } from "react-router-dom";
+import Badge from "react-bootstrap/Badge";
+import Button from "react-bootstrap/Button";
+import Card from "@material-ui/core/Card";
 import useFirestore from "../db/Firestore.js";
 
-import Button from "react-bootstrap/Button";
-import Badge from "react-bootstrap/Badge";
-
-import Tabs from "../shell_obsolete/Tabs.js";
-import Scrollable from "../shell_obsolete/Scrollable.js";
-
-import { Bookmark, BookmarkFill } from "react-bootstrap-icons";
-
-import { useParams, useNavigate } from "react-router-dom";
-
-import { Loading } from "../util/Utils.js";
+const useStyles = makeStyles({
+  helpText: {
+    margin: "1rem",
+    padding: "1rem",
+  },
+  quoteCard: {
+    margin: "1rem",
+    padding: "0.5rem",
+    position: "relative",
+    maxWidth: 500,
+  },
+});
 
 export default function PersonHighlightsPane(props) {
   let { orgID } = useParams();
+
+  const classes = useStyles();
 
   const [tags, setTags] = useState();
   const [pinnedHighlights, setPinnedHighlights] = useState();
@@ -75,32 +85,34 @@ export default function PersonHighlightsPane(props) {
     return <Loading />;
   }
 
+  console.log("Rendering clips");
+
   if (highlights.length + pinnedHighlights.length === 0) {
     return (
-      <p>
+      <div className={classes.helpText}>
         Clips in linked customer data will appear here. Pin the most important
         clips to build rich customer profiles.
-      </p>
+      </div>
     );
   }
 
   return (
-    <Tabs.Content>
-      <Scrollable>
-        {pinnedHighlights.length > 0 && <b>Pinned</b>}
-        {pinnedHighlights.map((highlight) => (
-          <HighlightCard tag={tags[highlight.tagID]} highlight={highlight} />
-        ))}
-        {pinnedHighlights.length > 0 && <hr />}
-        {highlights.map((highlight) => (
-          <HighlightCard tag={tags[highlight.tagID]} highlight={highlight} />
-        ))}
-      </Scrollable>
-    </Tabs.Content>
+    <>
+      {pinnedHighlights.length > 0 && <b>Pinned</b>}
+      {pinnedHighlights.map((highlight) => (
+        <HighlightCard tag={tags[highlight.tagID]} highlight={highlight} />
+      ))}
+      {pinnedHighlights.length > 0 && <hr />}
+      {highlights.map((highlight) => (
+        <HighlightCard tag={tags[highlight.tagID]} highlight={highlight} />
+      ))}
+    </>
   );
 }
 
 function HighlightCard(props) {
+  const classes = useStyles();
+
   const { orgID } = useParams();
   const { documentsRef } = useFirestore();
   const navigate = useNavigate();
@@ -110,18 +122,15 @@ function HighlightCard(props) {
   }
 
   return (
-    <div
-      className="roundedBorders m-3 p-3"
-      style={{
-        position: "relative",
-        boxShadow: "0 6px 6px rgba(0,0,0,.2)",
-        cursor: "pointer",
-      }}
+    <Card
+      className={classes.quoteCard}
       onClick={() => {
         navigate(`/orgs/${orgID}/data/${props.highlight.documentID}`);
       }}
     >
-      <p style={{ paddingRight: "2rem" }}>{props.highlight.text}</p>
+      <p style={{ paddingRight: "2rem" }}>
+        <i>"{props.highlight.text}"</i>
+      </p>
       <Button
         title={props.highlight.pinned ? "Unpin" : "Pin"}
         variant="link"
@@ -165,6 +174,6 @@ function HighlightCard(props) {
           {props.tag.name}
         </Badge>
       </div>
-    </div>
+    </Card>
   );
 }

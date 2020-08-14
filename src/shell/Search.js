@@ -5,7 +5,6 @@ import { fade, makeStyles } from "@material-ui/core/styles";
 import { getSearchClient } from "../search/client.js";
 
 import UserAuthContext from "../auth/UserAuthContext.js";
-import { Loading } from "../util/Utils.js";
 
 import { InstantSearch, connectSearchBox } from "react-instantsearch-dom";
 import SearchIcon from "@material-ui/icons/Search";

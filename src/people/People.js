@@ -19,14 +19,10 @@ import Grid from "@material-ui/core/Grid";
 import Shell from "../shell/Shell.js";
 import ListContainer from "../shell/ListContainer";
 
-import Page from "../shell_obsolete/Page.js";
-// import ObsoleteList from "../shell_obsolete/List.js";
 import Infinite from "../shell_obsolete/Infinite.js";
 import Scrollable from "../shell_obsolete/Scrollable.js";
-import Options from "../shell_obsolete/Options.js";
 
 import PersonEditModal from "./PersonEditModal.js";
-import PersonDeleteModal from "./PersonDeleteModal.js";
 import Person from "./Person.js";
 
 import PeopleHelp from "./PeopleHelp.js";
@@ -75,31 +71,9 @@ export default function People(props) {
     return unsubscribe;
   }, [peopleRef]);
 
-  const options = (personID) => {
-    if (!personID) {
-      return <></>;
-    }
-
-    let personRef = peopleRef.doc(personID);
-
-    return (
-      <Options key={personID}>
-        <Options.Item
-          name="Edit"
-          modal={<PersonEditModal personRef={personRef} />}
-        />
-
-        <Options.Item
-          name="Delete"
-          modal={<PersonDeleteModal personRef={personRef} />}
-        />
-      </Options>
-    );
-  };
-
   let content;
   if (personID) {
-    content = <Person key={personID} options={options} />;
+    content = <Person key={personID} />;
   } else if (listTotal > 0) {
     content = <PersonHelp />;
   }

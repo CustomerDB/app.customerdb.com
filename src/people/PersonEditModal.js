@@ -265,7 +265,7 @@ export default function PersonEditModal(props) {
                       let l = {};
                       Object.assign(l, labels);
                       l[label.ID].name = e.target.value;
-                      // setLabels(l);
+                      setLabels(l);
                     }}
                   />
                 </Col>
@@ -277,7 +277,7 @@ export default function PersonEditModal(props) {
                         let l = {};
                         Object.assign(l, labels);
                         delete l[label.ID];
-                        // setLabels(l);
+                        setLabels(l);
                       }}
                     />
                   </Button>
