@@ -9,7 +9,8 @@ import ContentsPane from "./ContentsPane.js";
 
 import { Loading } from "../util/Utils.js";
 import Content from "../shell_obsolete/Content.js";
-import Tabs from "../shell_obsolete/Tabs.js";
+
+import Grid from "@material-ui/core/Grid";
 
 export default function Document(props) {
   const { documentRef } = useFirestore();
@@ -49,20 +50,13 @@ export default function Document(props) {
   }
 
   return (
-    <Content>
-      <Content.Title>
-        <Content.Name>{document.name}</Content.Name>
-        <Content.Options>{props.options(document)}</Content.Options>
-      </Content.Title>
-      <Tabs default="content">
-        <Tabs.Pane key="content" name="Content">
-          <ContentsPane
-            document={document}
-            reactQuillRef={props.reactQuillRef}
-            editor={props.editor}
-          />
-        </Tabs.Pane>
-      </Tabs>
-    </Content>
+    <Grid container md={10} spacing={0}>
+      <ContentsPane
+        document={document}
+        reactQuillRef={props.reactQuillRef}
+        editor={props.editor}
+        options={props.options}
+      />
+    </Grid>
   );
 }

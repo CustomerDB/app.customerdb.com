@@ -189,3 +189,21 @@ span.inline-highlight {
   padding-top: 5px;
   padding-bottom: 5px;
 }
+
+.ql-snow {
+  border: 0 !important;
+}
+
+.ql-snow .ql-picker {
+  height: 32px !important;
+}
+
+.ql-snow .ql-picker-label::before {
+  line-height: 30px !important;
+}
+
+.ql-snow.ql-toolbar button,
+.ql-snow .ql-toolbar button {
+  height: 32px !important;
+  padding: 3px 20px !important;
+}

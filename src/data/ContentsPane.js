@@ -23,13 +23,28 @@ import { initialDelta } from "./delta.js";
 import HighlightBlot from "./HighlightBlot.js";
 import DocumentSidebar from "./DocumentSidebar.js";
 
-import Tabs from "../shell_obsolete/Tabs.js";
 import Scrollable from "../shell_obsolete/Scrollable.js";
+
+import ContentEditable from "react-contenteditable";
+
+import { makeStyles } from "@material-ui/core/styles";
+import Grid from "@material-ui/core/Grid";
+import Paper from "@material-ui/core/Paper";
+import Typography from "@material-ui/core/Typography";
 
 Quill.register("formats/highlight", HighlightBlot);
 
 // Synchronize every second (1000ms).
 const syncPeriod = 1000;
+
+const useStyles = makeStyles({
+  documentPaper: {
+    margin: "2rem 1rem 6rem 1rem",
+    padding: "1rem 2rem 4rem 2rem",
+    minHeight: "80rem",
+    width: "100%",
+  },
+});
 
 // ContentsPane is a React component that allows multiple users to edit
 // and highlight a text document simultaneously.
@@ -65,7 +80,12 @@ const syncPeriod = 1000;
 export default function ContentsPane(props) {
   const { oauthClaims } = useContext(UserAuthContext);
   const { orgID } = useParams();
-  const { snapshotsRef, highlightsRef, deltasRef } = useFirestore();
+  const {
+    documentRef,
+    snapshotsRef,
+    highlightsRef,
+    deltasRef,
+  } = useFirestore();
 
   const [editorID] = useState(nanoid());
   const [snapshotDelta, setSnapshotDelta] = useState();
@@ -79,6 +99,8 @@ export default function ContentsPane(props) {
   let currentSelection = useRef();
 
   let highlights = useRef();
+
+  const classes = useStyles();
 
   // Returns the index and length of the highlight with the supplied ID
   // in the current editor.
@@ -202,6 +224,8 @@ export default function ContentsPane(props) {
         { highlightID: highlightID, tagID: tag.ID },
         "user"
       );
+
+      props.editor.setSelection(selection.index + selection.length);
     }
 
     if (!checked) {
@@ -535,33 +559,69 @@ export default function ContentsPane(props) {
 
   return (
     <>
-      <Tabs.Content className="quillBounds">
+      <Grid
+        className="quillBounds"
+        style={{ position: "relative" }}
+        container
+        item
+        md={8}
+        xl={9}
+      >
         <Scrollable>
-          <ReactQuill
-            ref={props.reactQuillRef}
-            defaultValue={snapshotDelta}
-            theme="snow"
-            bounds=".quillBounds"
-            placeholder="Start typing here and select to mark highlights"
-            onChange={onEdit}
-            onChangeSelection={onSelect}
-            modules={{
-              toolbar: [
-                [{ header: [1, 2, false] }],
-                ["bold", "italic", "underline", "strike", "blockquote"],
-                [
-                  { list: "ordered" },
-                  { list: "bullet" },
-                  { indent: "-1" },
-                  { indent: "+1" },
-                ],
-                ["link", "image"],
-                ["clean"],
-              ],
-            }}
-          />
+          <Grid container spacing={0} xs={12}>
+            <Grid container item xs={12}>
+              <Paper elevation={5} className={classes.documentPaper}>
+                <Typography gutterBottom variant="h4" component="h2">
+                  <ContentEditable
+                    html={props.document.name}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.target.blur();
+                      }
+                    }}
+                    onBlur={(e) => {
+                      if (documentRef) {
+                        let newName = e.target.innerText
+                          .replace(/(\r\n|\n|\r)/gm, " ")
+                          .replace(/\s+/g, " ")
+                          .trim();
+
+                        console.debug("setting document name", newName);
+
+                        documentRef.set({ name: newName }, { merge: true });
+                      }
+                    }}
+                  />
+                </Typography>
+
+                <ReactQuill
+                  ref={props.reactQuillRef}
+                  defaultValue={snapshotDelta}
+                  theme="snow"
+                  bounds=".quillBounds"
+                  placeholder="Start typing here and select to mark highlights"
+                  onChange={onEdit}
+                  onChangeSelection={onSelect}
+                  modules={{
+                    toolbar: [
+                      [{ header: [1, 2, false] }],
+                      ["bold", "italic", "underline", "strike", "blockquote"],
+                      [
+                        { list: "ordered" },
+                        { list: "bullet" },
+                        { indent: "-1" },
+                        { indent: "+1" },
+                      ],
+                      ["link", "image"],
+                      ["clean"],
+                    ],
+                  }}
+                />
+              </Paper>
+            </Grid>
+          </Grid>
         </Scrollable>
-      </Tabs.Content>
+      </Grid>
 
       <DocumentSidebar
         document={props.document}

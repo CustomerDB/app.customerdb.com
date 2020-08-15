@@ -1,5 +1,7 @@
 import React from "react";
-import Form from "react-bootstrap/Form";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import FormGroup from "@material-ui/core/FormGroup";
+import Switch from "@material-ui/core/Switch";
 
 export default class Tags extends React.Component {
   onTagControlChange(e, tag) {
@@ -15,38 +17,26 @@ export default class Tags extends React.Component {
     let tagControls = Object.values(this.props.tags).map((t) => {
       let checked = this.props.tagIDsInSelection.has(t.ID);
 
-      let label = (
-        <span
-          style={{
-            color: t.textColor,
-          }}
-        >
-          {t.name}
-        </span>
-      );
-
       return (
-        <Form.Switch
-          key={t.ID}
-          id={`tag-${t.ID}`}
-          checked={checked}
-          style={{
-            background: t.color,
-            borderRadius: "0.25rem",
-            marginBottom: "0.25rem",
-          }}
-          label={label}
-          title={t.name}
-          onChange={(e) => {
-            this.onTagControlChange(e, t);
-          }}
+        <FormControlLabel
+          label={t.name}
+          control={
+            <Switch
+              key={t.ID}
+              id={`tag-${t.ID}`}
+              checked={checked}
+              style={{ color: t.color }}
+              color={t.color}
+              onChange={(e) => {
+                this.onTagControlChange(e, t);
+              }}
+            />
+          }
         />
       );
     });
 
-    return (
-      <div>{tagControls.length > 0 ? tagControls : <small>None</small>}</div>
-    );
+    return <FormGroup column>{tagControls}</FormGroup>;
   }
 }
 
