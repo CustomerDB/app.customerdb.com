@@ -25,7 +25,7 @@ import Button from "@material-ui/core/Button";
 
 const useStyles = makeStyles({
   documentSidebarCard: {
-    margin: "2rem 1rem 0rem 1rem",
+    margin: "0rem 2rem 1rem 1rem",
     padding: "1rem 1rem 0rem 1rem",
   },
 });
@@ -113,23 +113,33 @@ export default function DocumentSidebar(props) {
       justify="flex-start"
       alignItems="stretch"
       spacing={0}
+      style={{
+        overflowX: "hidden",
+        paddingTop: "1rem",
+      }}
     >
       <Grid item>
         <Card elevation={2} className={classes.documentSidebarCard}>
           <CardContent>
-            <Typography gutterBottom variant="h6" component="h2">
-              Created by
-            </Typography>
-            <Typography variant="body2" color="textSecondary" component="p">
-              {props.document.createdBy}
-              <br />
-              <em>
-                <Moment
-                  fromNow
-                  date={props.document.creationTimestamp.toDate()}
-                />
-              </em>
-            </Typography>
+            <Grid container>
+              <Grid item md={6}>
+                <Typography gutterBottom color="textSecondary">
+                  Created
+                </Typography>
+              </Grid>
+              <Grid item xs>
+                <Typography variant="body2" color="textSecondary" component="p">
+                  {props.document.createdBy}
+                  <br />
+                  <em>
+                    <Moment
+                      fromNow
+                      date={props.document.creationTimestamp.toDate()}
+                    />
+                  </em>
+                </Typography>
+              </Grid>
+            </Grid>
           </CardContent>
         </Card>
       </Grid>
@@ -142,9 +152,6 @@ export default function DocumentSidebar(props) {
             }}
           >
             <CardContent>
-              <Typography gutterBottom variant="h6" component="h2">
-                Linked person
-              </Typography>
               {person && !editPerson ? (
                 <Grid container spacing={0}>
                   <Grid
@@ -153,10 +160,10 @@ export default function DocumentSidebar(props) {
                     direction="row"
                     style={{ marginTop: "1rem" }}
                   >
-                    <Grid item md={3}>
+                    <Grid item xl={3} md={12} style={{ marginBottom: "1rem" }}>
                       <Avatar size={70} name={person.name} round={true} />
                     </Grid>
-                    <Grid item md={9}>
+                    <Grid item xl={9} md={12} style={{ marginBottom: "1rem" }}>
                       <Typography gutterBottom variant="h5" component="h2">
                         <Link to={`/orgs/${orgID}/people/${person.ID}`}>
                           {person.name}
@@ -164,7 +171,7 @@ export default function DocumentSidebar(props) {
                       </Typography>
                     </Grid>
                   </Grid>
-                  <Grid item xs={12} style={{ marginTop: "1rem" }}>
+                  <Grid item xs={12}>
                     <Typography
                       variant="body"
                       color="textSecondary"
@@ -178,29 +185,30 @@ export default function DocumentSidebar(props) {
                 </Grid>
               ) : (
                 <>
-                  <div className="d-flex">
-                    <SearchDropdown
-                      index={process.env.REACT_APP_ALGOLIA_PEOPLE_INDEX}
-                      default={person ? person.name : ""}
-                      onChange={(ID, name) => {
-                        event("link_data_to_person", {
-                          orgID: oauthClaims.orgID,
-                          userID: oauthClaims.user_id,
-                        });
+                  <Typography gutterBottom color="textSecondary">
+                    Link customer
+                  </Typography>
+                  <SearchDropdown
+                    index={process.env.REACT_APP_ALGOLIA_PEOPLE_INDEX}
+                    default={person ? person.name : ""}
+                    onChange={(ID, name) => {
+                      event("link_data_to_person", {
+                        orgID: oauthClaims.orgID,
+                        userID: oauthClaims.user_id,
+                      });
 
-                        documentRef
-                          .set(
-                            {
-                              personID: ID,
-                            },
-                            { merge: true }
-                          )
-                          .then(() => {
-                            setEditPerson(false);
-                          });
-                      }}
-                    />
-                  </div>
+                      documentRef
+                        .set(
+                          {
+                            personID: ID,
+                          },
+                          { merge: true }
+                        )
+                        .then(() => {
+                          setEditPerson(false);
+                        });
+                    }}
+                  />
                 </>
               )}
             </CardContent>
@@ -239,10 +247,6 @@ export default function DocumentSidebar(props) {
           <CardContent>
             {tags && !editTagGroup ? (
               <>
-                <Typography gutterBottom variant="h6" component="h2">
-                  {tagGroupName}
-                </Typography>
-
                 <Tags
                   tags={tags}
                   tagIDsInSelection={props.tagIDsInSelection}
@@ -251,9 +255,9 @@ export default function DocumentSidebar(props) {
               </>
             ) : (
               <>
-                <p>
-                  <b>Tag Group</b>
-                </p>
+                <Typography gutterBottom color="textSecondary">
+                  Tag Group
+                </Typography>
                 <TagGroupSelector
                   onChange={() => {
                     setEditTagGroup(false);

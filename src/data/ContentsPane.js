@@ -29,6 +29,7 @@ import ContentEditable from "react-contenteditable";
 
 import { makeStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
+import Hidden from "@material-ui/core/Hidden";
 import Paper from "@material-ui/core/Paper";
 import Typography from "@material-ui/core/Typography";
 
@@ -39,10 +40,11 @@ const syncPeriod = 1000;
 
 const useStyles = makeStyles({
   documentPaper: {
-    margin: "2rem 1rem 6rem 1rem",
+    margin: "1rem 1rem 1rem 2rem",
     padding: "1rem 2rem 4rem 2rem",
-    minHeight: "80rem",
+    minHeight: "48rem",
     width: "100%",
+    maxWidth: "80rem",
   },
 });
 
@@ -561,15 +563,15 @@ export default function ContentsPane(props) {
     <>
       <Grid
         className="quillBounds"
-        style={{ position: "relative" }}
+        style={{ position: "relative", height: "100%" }}
         container
-        item
+        sm={12}
         md={8}
         xl={9}
       >
         <Scrollable>
           <Grid container spacing={0} xs={12}>
-            <Grid container item xs={12}>
+            <Grid container item justify="center">
               <Paper elevation={5} className={classes.documentPaper}>
                 <Typography gutterBottom variant="h4" component="h2">
                   <ContentEditable
@@ -623,11 +625,13 @@ export default function ContentsPane(props) {
         </Scrollable>
       </Grid>
 
-      <DocumentSidebar
-        document={props.document}
-        tagIDsInSelection={tagIDsInSelection}
-        onTagControlChange={onTagControlChange}
-      />
+      <Hidden smDown>
+        <DocumentSidebar
+          document={props.document}
+          tagIDsInSelection={tagIDsInSelection}
+          onTagControlChange={onTagControlChange}
+        />
+      </Hidden>
     </>
   );
 }

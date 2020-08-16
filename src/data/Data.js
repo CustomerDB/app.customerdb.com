@@ -36,6 +36,7 @@ import Avatar from "@material-ui/core/Avatar";
 import DescriptionIcon from "@material-ui/icons/Description";
 import Fab from "@material-ui/core/Fab";
 import Grid from "@material-ui/core/Grid";
+import Hidden from "@material-ui/core/Hidden";
 
 import DataHelp from "./DataHelp.js";
 import ContentsHelp from "./ContentsHelp.js";
@@ -225,6 +226,31 @@ export default function Data(props) {
     );
   });
 
+  let list = (
+    <ListContainer>
+      <Scrollable>
+        {showResults ? (
+          <SearchResults />
+        ) : (
+          <List>{documentItems.length > 0 ? documentItems : <DataHelp />}</List>
+        )}
+      </Scrollable>
+      <Fab
+        style={{ position: "absolute", bottom: "15px", right: "15px" }}
+        color="secondary"
+        aria-label="add"
+        onClick={onAdd}
+      >
+        <AddIcon />
+      </Fab>
+    </ListContainer>
+  );
+
+  if (documentID) {
+    // Optionally hide the list if the viewport is too small
+    list = <Hidden mdDown>{list}</Hidden>;
+  }
+
   let content = undefined;
   if (documentID) {
     content = (
@@ -261,26 +287,8 @@ export default function Data(props) {
         },
       }}
     >
-      <Grid container alignItems="stretch">
-        <ListContainer>
-          <Scrollable>
-            {showResults ? (
-              <SearchResults />
-            ) : (
-              <List>
-                {documentItems.length > 0 ? documentItems : <DataHelp />}
-              </List>
-            )}
-          </Scrollable>
-          <Fab
-            style={{ position: "absolute", bottom: "15px", right: "15px" }}
-            color="secondary"
-            aria-label="add"
-            onClick={onAdd}
-          >
-            <AddIcon />
-          </Fab>
-        </ListContainer>
+      <Grid container className="fullHeight">
+        {list}
         {content}
         {addModal}
       </Grid>
