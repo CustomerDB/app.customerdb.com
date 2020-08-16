@@ -23,6 +23,7 @@ import { initialDelta } from "./delta.js";
 import HighlightBlot from "./HighlightBlot.js";
 import DocumentSidebar from "./DocumentSidebar.js";
 import DocumentDeleteDialog from "./DocumentDeleteDialog.js";
+import { addTagStyles, removeTagStyles } from "./Tags.js";
 
 import Scrollable from "../shell_obsolete/Scrollable.js";
 
@@ -33,7 +34,6 @@ import Grid from "@material-ui/core/Grid";
 import Hidden from "@material-ui/core/Hidden";
 import Paper from "@material-ui/core/Paper";
 import Typography from "@material-ui/core/Typography";
-import CardActions from "@material-ui/core/CardActions";
 import IconButton from "@material-ui/core/IconButton";
 import Archive from "@material-ui/icons/Archive";
 
@@ -87,6 +87,7 @@ export default function ContentsPane(props) {
   const { oauthClaims } = useContext(UserAuthContext);
   const { orgID } = useParams();
   const {
+    tagGroupsRef,
     documentRef,
     snapshotsRef,
     highlightsRef,
@@ -98,6 +99,7 @@ export default function ContentsPane(props) {
   const [editorID] = useState(nanoid());
   const [snapshotDelta, setSnapshotDelta] = useState();
   const [snapshotTimestamp, setSnapshotTimestamp] = useState();
+  const [tags, setTags] = useState();
 
   const [tagIDsInSelection, setTagIDsInSelection] = useState(new Set());
 
@@ -260,6 +262,37 @@ export default function ContentsPane(props) {
     let tagIDs = computeTagIDsInSelection(selection);
     setTagIDsInSelection(tagIDs);
   };
+
+  // Subscribe to tags for the document's tag group.
+  useEffect(() => {
+    if (!tagGroupsRef) {
+      return;
+    }
+    if (!props.document.tagGroupID) {
+      setTags();
+      removeTagStyles();
+      return;
+    }
+
+    let unsubscribe = tagGroupsRef
+      .doc(props.document.tagGroupID)
+      .collection("tags")
+      .where("deletionTimestamp", "==", "")
+      .onSnapshot((snapshot) => {
+        let newTags = {};
+        snapshot.forEach((doc) => {
+          let data = doc.data();
+          data.ID = doc.id;
+          newTags[data.ID] = data;
+        });
+        setTags(newTags);
+        addTagStyles(newTags);
+      });
+    return () => {
+      removeTagStyles();
+      unsubscribe();
+    };
+  }, [props.document.tagGroupID, tagGroupsRef]);
 
   // Subscribe to the latest delta snapshot
   useEffect(() => {
@@ -665,6 +698,7 @@ export default function ContentsPane(props) {
       <Hidden smDown>
         <DocumentSidebar
           document={props.document}
+          tags={tags}
           tagIDsInSelection={tagIDsInSelection}
           onTagControlChange={onTagControlChange}
         />

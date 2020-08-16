@@ -3,7 +3,7 @@ import React, { useContext, useState, useEffect } from "react";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
 import useFirestore from "../db/Firestore.js";
-import Tags, { addTagStyles, removeTagStyles } from "./Tags.js";
+import Tags from "./Tags.js";
 
 import TagGroupSelector from "./TagGroupSelector.js";
 
@@ -33,13 +33,11 @@ const useStyles = makeStyles({
 export default function DocumentSidebar(props) {
   const { oauthClaims } = useContext(UserAuthContext);
   const { orgID } = useParams();
-  const { documentRef, tagGroupsRef, peopleRef } = useFirestore();
+  const { documentRef, peopleRef } = useFirestore();
 
   const navigate = useNavigate();
 
   const [person, setPerson] = useState();
-  const [tagGroupName, setTagGroupName] = useState("Tags");
-  const [tags, setTags] = useState();
   const [editPerson, setEditPerson] = useState(false);
   const [editTagGroup, setEditTagGroup] = useState(false);
 
@@ -60,49 +58,6 @@ export default function DocumentSidebar(props) {
       setPerson(person);
     });
   }, [props.document, peopleRef]);
-
-  // Subscribe to document's tag group name.
-  useEffect(() => {
-    if (!props.document.tagGroupID || !tagGroupsRef) {
-      return;
-    }
-
-    return tagGroupsRef.doc(props.document.tagGroupID).onSnapshot((doc) => {
-      let tagGroupData = doc.data();
-      setTagGroupName(tagGroupData.name);
-    });
-  }, [props.document.tagGroupID, tagGroupsRef]);
-
-  // Subscribe to tags for the document's tag group.
-  useEffect(() => {
-    if (!tagGroupsRef) {
-      return;
-    }
-    if (!props.document.tagGroupID) {
-      setTags();
-      removeTagStyles();
-      return;
-    }
-
-    let unsubscribe = tagGroupsRef
-      .doc(props.document.tagGroupID)
-      .collection("tags")
-      .where("deletionTimestamp", "==", "")
-      .onSnapshot((snapshot) => {
-        let newTags = {};
-        snapshot.forEach((doc) => {
-          let data = doc.data();
-          data.ID = doc.id;
-          newTags[data.ID] = data;
-        });
-        setTags(newTags);
-        addTagStyles(newTags);
-      });
-    return () => {
-      removeTagStyles();
-      unsubscribe();
-    };
-  }, [props.document.tagGroupID, tagGroupsRef]);
 
   return (
     <Grid
@@ -146,7 +101,9 @@ export default function DocumentSidebar(props) {
       <Card elevation={2} className={classes.documentSidebarCard}>
         <CardActionArea
           onClick={() => {
-            person && navigate(`/orgs/${orgID}/people/${person.ID}`);
+            person &&
+              !editPerson &&
+              navigate(`/orgs/${orgID}/people/${person.ID}`);
           }}
         >
           <CardContent>
@@ -247,10 +204,10 @@ export default function DocumentSidebar(props) {
 
       <Card elevation={2} className={classes.documentSidebarCard}>
         <CardContent>
-          {tags && !editTagGroup ? (
+          {props.tags && !editTagGroup ? (
             <>
               <Tags
-                tags={tags}
+                tags={props.tags}
                 tagIDsInSelection={props.tagIDsInSelection}
                 onChange={props.onTagControlChange}
               />
