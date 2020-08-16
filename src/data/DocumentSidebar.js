@@ -107,6 +107,7 @@ export default function DocumentSidebar(props) {
   return (
     <Grid
       container
+      item
       md={4}
       xl={3}
       direction="column"
@@ -118,186 +119,181 @@ export default function DocumentSidebar(props) {
         paddingTop: "1rem",
       }}
     >
-      <Grid item>
-        <Card elevation={2} className={classes.documentSidebarCard}>
-          <CardContent>
-            <Grid container>
-              <Grid item md={6}>
-                <Typography gutterBottom color="textSecondary">
-                  Created
-                </Typography>
-              </Grid>
-              <Grid item xs>
-                <Typography variant="body2" color="textSecondary" component="p">
-                  {props.document.createdBy}
-                  <br />
-                  <em>
-                    <Moment
-                      fromNow
-                      date={props.document.creationTimestamp.toDate()}
-                    />
-                  </em>
-                </Typography>
-              </Grid>
+      <Card elevation={2} className={classes.documentSidebarCard}>
+        <CardContent>
+          <Grid container>
+            <Grid item md={6}>
+              <Typography gutterBottom color="textSecondary">
+                Created
+              </Typography>
             </Grid>
-          </CardContent>
-        </Card>
-      </Grid>
+            <Grid item xs>
+              <Typography variant="body2" color="textSecondary" component="p">
+                {props.document.createdBy}
+                <br />
+                <em>
+                  <Moment
+                    fromNow
+                    date={props.document.creationTimestamp.toDate()}
+                  />
+                </em>
+              </Typography>
+            </Grid>
+          </Grid>
+        </CardContent>
+      </Card>
 
-      <Grid item>
-        <Card elevation={2} className={classes.documentSidebarCard}>
-          <CardActionArea
-            onClick={() => {
-              person && navigate(`/orgs/${orgID}/people/${person.ID}`);
-            }}
-          >
-            <CardContent>
-              {person && !editPerson ? (
-                <Grid container spacing={0}>
+      <Card elevation={2} className={classes.documentSidebarCard}>
+        <CardActionArea
+          onClick={() => {
+            person && navigate(`/orgs/${orgID}/people/${person.ID}`);
+          }}
+        >
+          <CardContent>
+            {person && !editPerson ? (
+              <Grid container spacing={0}>
+                <Grid
+                  container
+                  item
+                  xs={12}
+                  direction="row"
+                  style={{ marginTop: "1rem" }}
+                >
                   <Grid
-                    container
-                    xs={12}
-                    direction="row"
-                    style={{ marginTop: "1rem" }}
+                    item
+                    xl={3}
+                    md={12}
+                    style={{ marginBottom: "1rem", paddingRight: "1rem" }}
                   >
-                    <Grid
-                      item
-                      xl={3}
-                      md={12}
-                      style={{ marginBottom: "1rem", paddingRight: "1rem" }}
-                    >
-                      <Avatar size={70} name={person.name} round={true} />
-                    </Grid>
-                    <Grid item xl={9} md={12} style={{ marginBottom: "1rem" }}>
-                      <Typography gutterBottom variant="h5" component="h2">
-                        <Link to={`/orgs/${orgID}/people/${person.ID}`}>
-                          {person.name}
-                        </Link>
-                      </Typography>
-                    </Grid>
+                    <Avatar size={70} name={person.name} round={true} />
                   </Grid>
-                  <Grid item xs={12}>
-                    <Typography
-                      variant="body2"
-                      color="textSecondary"
-                      component="p"
-                    >
-                      {person.job}
-                      <br />
-                      {person.company}
+                  <Grid item xl={9} md={12} style={{ marginBottom: "1rem" }}>
+                    <Typography gutterBottom variant="h5" component="h2">
+                      <Link to={`/orgs/${orgID}/people/${person.ID}`}>
+                        {person.name}
+                      </Link>
                     </Typography>
                   </Grid>
                 </Grid>
-              ) : (
-                <>
-                  <Typography gutterBottom color="textSecondary">
-                    Link customer
+                <Grid item xs={12}>
+                  <Typography
+                    variant="body2"
+                    color="textSecondary"
+                    component="p"
+                  >
+                    {person.job}
+                    <br />
+                    {person.company}
                   </Typography>
-                  <SearchDropdown
-                    index={process.env.REACT_APP_ALGOLIA_PEOPLE_INDEX}
-                    default={person ? person.name : ""}
-                    onChange={(ID, name) => {
-                      event("link_data_to_person", {
-                        orgID: oauthClaims.orgID,
-                        userID: oauthClaims.user_id,
-                      });
-
-                      documentRef
-                        .set(
-                          {
-                            personID: ID,
-                          },
-                          { merge: true }
-                        )
-                        .then(() => {
-                          setEditPerson(false);
-                        });
-                    }}
-                  />
-                </>
-              )}
-            </CardContent>
-          </CardActionArea>
-
-          <CardActions>
-            {person && !editPerson && (
-              <Button
-                size="small"
-                color="primary"
-                onClick={() => {
-                  setEditPerson(true);
-                }}
-              >
-                Change
-              </Button>
-            )}
-
-            {editPerson && (
-              <Button
-                size="small"
-                color="primary"
-                onClick={() => {
-                  setEditPerson(false);
-                }}
-              >
-                Cancel
-              </Button>
-            )}
-          </CardActions>
-        </Card>
-      </Grid>
-
-      <Grid item>
-        <Card elevation={2} className={classes.documentSidebarCard}>
-          <CardContent>
-            {tags && !editTagGroup ? (
-              <>
-                <Tags
-                  tags={tags}
-                  tagIDsInSelection={props.tagIDsInSelection}
-                  onChange={props.onTagControlChange}
-                />
-              </>
+                </Grid>
+              </Grid>
             ) : (
               <>
                 <Typography gutterBottom color="textSecondary">
-                  Tag Group
+                  Link customer
                 </Typography>
-                <TagGroupSelector
-                  onChange={() => {
-                    setEditTagGroup(false);
+                <SearchDropdown
+                  index={process.env.REACT_APP_ALGOLIA_PEOPLE_INDEX}
+                  default={person ? person.name : ""}
+                  onChange={(ID, name) => {
+                    event("link_data_to_person", {
+                      orgID: oauthClaims.orgID,
+                      userID: oauthClaims.user_id,
+                    });
+
+                    documentRef
+                      .set(
+                        {
+                          personID: ID,
+                        },
+                        { merge: true }
+                      )
+                      .then(() => {
+                        setEditPerson(false);
+                      });
                   }}
                 />
               </>
             )}
           </CardContent>
-          <CardActions>
-            {!editTagGroup && (
-              <Button
-                size="small"
-                color="primary"
-                onClick={() => {
-                  setEditTagGroup(true);
-                }}
-              >
-                Change
-              </Button>
-            )}
+        </CardActionArea>
 
-            {editTagGroup && (
-              <Button
-                size="small"
-                color="primary"
-                onClick={() => {
+        <CardActions>
+          {person && !editPerson && (
+            <Button
+              size="small"
+              color="primary"
+              onClick={() => {
+                setEditPerson(true);
+              }}
+            >
+              Change
+            </Button>
+          )}
+
+          {editPerson && (
+            <Button
+              size="small"
+              color="primary"
+              onClick={() => {
+                setEditPerson(false);
+              }}
+            >
+              Cancel
+            </Button>
+          )}
+        </CardActions>
+      </Card>
+
+      <Card elevation={2} className={classes.documentSidebarCard}>
+        <CardContent>
+          {tags && !editTagGroup ? (
+            <>
+              <Tags
+                tags={tags}
+                tagIDsInSelection={props.tagIDsInSelection}
+                onChange={props.onTagControlChange}
+              />
+            </>
+          ) : (
+            <>
+              <Typography gutterBottom color="textSecondary">
+                Tag Group
+              </Typography>
+              <TagGroupSelector
+                onChange={() => {
                   setEditTagGroup(false);
                 }}
-              >
-                Cancel
-              </Button>
-            )}
-          </CardActions>
-        </Card>
-      </Grid>
+              />
+            </>
+          )}
+        </CardContent>
+        <CardActions>
+          {!editTagGroup && (
+            <Button
+              size="small"
+              color="primary"
+              onClick={() => {
+                setEditTagGroup(true);
+              }}
+            >
+              Change
+            </Button>
+          )}
+
+          {editTagGroup && (
+            <Button
+              size="small"
+              color="primary"
+              onClick={() => {
+                setEditTagGroup(false);
+              }}
+            >
+              Cancel
+            </Button>
+          )}
+        </CardActions>
+      </Card>
     </Grid>
   );
 }

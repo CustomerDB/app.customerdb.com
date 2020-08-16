@@ -50,7 +50,7 @@ export default function Document(props) {
   }
 
   return (
-    <Grid container md={12} lg={9} xl={10} spacing={0}>
+    <Grid container item md={12} lg={9} xl={10} spacing={0}>
       <ContentsPane
         document={document}
         reactQuillRef={props.reactQuillRef}

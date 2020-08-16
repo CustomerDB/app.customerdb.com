@@ -7,10 +7,11 @@ import Col from "react-bootstrap/Col";
 import Moment from "react-moment";
 
 export default function DocumentDeleted(props) {
-
   let relativeTime = undefined;
   if (props.document.deletionTimestamp) {
-    relativeTime = <Moment fromNow date={props.document.deletionTimestamp.toDate()} />
+    relativeTime = (
+      <Moment fromNow date={props.document.deletionTimestamp.toDate()} />
+    );
   }
 
   return (

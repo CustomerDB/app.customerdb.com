@@ -34,7 +34,7 @@ import Hidden from "@material-ui/core/Hidden";
 import Paper from "@material-ui/core/Paper";
 import Typography from "@material-ui/core/Typography";
 import CardActions from "@material-ui/core/CardActions";
-import Button from "@material-ui/core/Button";
+import IconButton from "@material-ui/core/IconButton";
 import Archive from "@material-ui/icons/Archive";
 
 Quill.register("formats/highlight", HighlightBlot);
@@ -571,17 +571,17 @@ export default function ContentsPane(props) {
         className="quillBounds"
         style={{ position: "relative", height: "100%" }}
         container
+        item
         sm={12}
         md={8}
         xl={9}
       >
         <Scrollable>
-          <Grid container spacing={0} xs={12}>
+          <Grid container item spacing={0} xs={12}>
             <Grid container item justify="center">
               <Paper elevation={5} className={classes.documentPaper}>
                 <Grid container>
-
-                  <Grid container xs={12} alignItems="flex-start">
+                  <Grid container item xs={12} alignItems="flex-start">
                     <Grid item xs={11}>
                       <Typography gutterBottom variant="h4" component="h2">
                         <ContentEditable
@@ -600,7 +600,10 @@ export default function ContentsPane(props) {
 
                               console.debug("setting document name", newName);
 
-                              documentRef.set({ name: newName }, { merge: true });
+                              documentRef.set(
+                                { name: newName },
+                                { merge: true }
+                              );
                             }
                           }}
                         />
@@ -608,18 +611,17 @@ export default function ContentsPane(props) {
                     </Grid>
 
                     <Grid item xs={1}>
-                      <Button
+                      <IconButton
                         color="primary"
-                        title="Archive document"
+                        aria-label="Archive document"
                         onClick={() => {
                           console.debug("confirm archive doc");
-													setOpenDeleteDialog(true);
+                          setOpenDeleteDialog(true);
                         }}
                       >
                         <Archive />
-                      </Button>
+                      </IconButton>
                     </Grid>
-
                   </Grid>
 
                   <Grid item xs={12}>
@@ -634,7 +636,13 @@ export default function ContentsPane(props) {
                       modules={{
                         toolbar: [
                           [{ header: [1, 2, false] }],
-                          ["bold", "italic", "underline", "strike", "blockquote"],
+                          [
+                            "bold",
+                            "italic",
+                            "underline",
+                            "strike",
+                            "blockquote",
+                          ],
                           [
                             { list: "ordered" },
                             { list: "bullet" },
@@ -647,7 +655,6 @@ export default function ContentsPane(props) {
                       }}
                     />
                   </Grid>
-
                 </Grid>
               </Paper>
             </Grid>
@@ -663,7 +670,11 @@ export default function ContentsPane(props) {
         />
       </Hidden>
 
-			<DocumentDeleteDialog open={openDeleteDialog} setOpen={setOpenDeleteDialog} document={props.document} />
+      <DocumentDeleteDialog
+        open={openDeleteDialog}
+        setOpen={setOpenDeleteDialog}
+        document={props.document}
+      />
     </>
   );
 }

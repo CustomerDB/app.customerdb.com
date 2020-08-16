@@ -19,7 +19,7 @@ export default class Tags extends React.Component {
 
       return (
         <FormControlLabel
-					key={t.ID}
+          key={t.ID}
           label={t.name}
           control={
             <Switch
@@ -36,7 +36,7 @@ export default class Tags extends React.Component {
       );
     });
 
-    return <FormGroup column>{tagControls}</FormGroup>;
+    return <FormGroup>{tagControls}</FormGroup>;
   }
 }
 
