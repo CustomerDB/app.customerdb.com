@@ -19,6 +19,7 @@ export default class Tags extends React.Component {
 
       return (
         <FormControlLabel
+					key={t.ID}
           label={t.name}
           control={
             <Switch
@@ -26,7 +27,6 @@ export default class Tags extends React.Component {
               id={`tag-${t.ID}`}
               checked={checked}
               style={{ color: t.color }}
-              color={t.color}
               onChange={(e) => {
                 this.onTagControlChange(e, t);
               }}

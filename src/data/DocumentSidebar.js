@@ -160,7 +160,12 @@ export default function DocumentSidebar(props) {
                     direction="row"
                     style={{ marginTop: "1rem" }}
                   >
-                    <Grid item xl={3} md={12} style={{ marginBottom: "1rem", paddingRight: "1rem" }}>
+                    <Grid
+                      item
+                      xl={3}
+                      md={12}
+                      style={{ marginBottom: "1rem", paddingRight: "1rem" }}
+                    >
                       <Avatar size={70} name={person.name} round={true} />
                     </Grid>
                     <Grid item xl={9} md={12} style={{ marginBottom: "1rem" }}>
@@ -173,7 +178,7 @@ export default function DocumentSidebar(props) {
                   </Grid>
                   <Grid item xs={12}>
                     <Typography
-                      variant="body"
+                      variant="body2"
                       color="textSecondary"
                       component="p"
                     >

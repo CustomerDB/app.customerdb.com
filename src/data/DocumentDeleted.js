@@ -7,7 +7,11 @@ import Col from "react-bootstrap/Col";
 import Moment from "react-moment";
 
 export default function DocumentDeleted(props) {
-  let date = props.document.deletionTimestamp.toDate();
+
+  let relativeTime = undefined;
+  if (props.document.deletionTimestamp) {
+    relativeTime = <Moment fromNow date={props.document.deletionTimestamp.toDate()} />
+  }
 
   return (
     <Container>
@@ -19,7 +23,7 @@ export default function DocumentDeleted(props) {
       <Row noGutters={true}>
         <Col>
           <p>
-            This document was deleted <Moment fromNow date={date} /> by{" "}
+            This document was deleted {relativeTime} by{" "}
             {props.document.deletedBy}
           </p>
         </Col>

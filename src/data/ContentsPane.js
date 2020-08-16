@@ -22,6 +22,7 @@ import "react-quill/dist/quill.snow.css";
 import { initialDelta } from "./delta.js";
 import HighlightBlot from "./HighlightBlot.js";
 import DocumentSidebar from "./DocumentSidebar.js";
+import DocumentDeleteDialog from "./DocumentDeleteDialog.js";
 
 import Scrollable from "../shell_obsolete/Scrollable.js";
 
@@ -32,6 +33,9 @@ import Grid from "@material-ui/core/Grid";
 import Hidden from "@material-ui/core/Hidden";
 import Paper from "@material-ui/core/Paper";
 import Typography from "@material-ui/core/Typography";
+import CardActions from "@material-ui/core/CardActions";
+import Button from "@material-ui/core/Button";
+import Archive from "@material-ui/icons/Archive";
 
 Quill.register("formats/highlight", HighlightBlot);
 
@@ -88,6 +92,8 @@ export default function ContentsPane(props) {
     highlightsRef,
     deltasRef,
   } = useFirestore();
+
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
   const [editorID] = useState(nanoid());
   const [snapshotDelta, setSnapshotDelta] = useState();
@@ -573,52 +579,76 @@ export default function ContentsPane(props) {
           <Grid container spacing={0} xs={12}>
             <Grid container item justify="center">
               <Paper elevation={5} className={classes.documentPaper}>
-                <Typography gutterBottom variant="h4" component="h2">
-                  <ContentEditable
-                    html={props.document.name}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.target.blur();
-                      }
-                    }}
-                    onBlur={(e) => {
-                      if (documentRef) {
-                        let newName = e.target.innerText
-                          .replace(/(\r\n|\n|\r)/gm, " ")
-                          .replace(/\s+/g, " ")
-                          .trim();
+                <Grid container>
 
-                        console.debug("setting document name", newName);
+                  <Grid container xs={12} alignItems="flex-start">
+                    <Grid item xs={11}>
+                      <Typography gutterBottom variant="h4" component="h2">
+                        <ContentEditable
+                          html={props.document.name}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.target.blur();
+                            }
+                          }}
+                          onBlur={(e) => {
+                            if (documentRef) {
+                              let newName = e.target.innerText
+                                .replace(/(\r\n|\n|\r)/gm, " ")
+                                .replace(/\s+/g, " ")
+                                .trim();
 
-                        documentRef.set({ name: newName }, { merge: true });
-                      }
-                    }}
-                  />
-                </Typography>
+                              console.debug("setting document name", newName);
 
-                <ReactQuill
-                  ref={props.reactQuillRef}
-                  defaultValue={snapshotDelta}
-                  theme="snow"
-                  bounds=".quillBounds"
-                  placeholder="Start typing here and select to mark highlights"
-                  onChange={onEdit}
-                  onChangeSelection={onSelect}
-                  modules={{
-                    toolbar: [
-                      [{ header: [1, 2, false] }],
-                      ["bold", "italic", "underline", "strike", "blockquote"],
-                      [
-                        { list: "ordered" },
-                        { list: "bullet" },
-                        { indent: "-1" },
-                        { indent: "+1" },
-                      ],
-                      ["link", "image"],
-                      ["clean"],
-                    ],
-                  }}
-                />
+                              documentRef.set({ name: newName }, { merge: true });
+                            }
+                          }}
+                        />
+                      </Typography>
+                    </Grid>
+
+                    <Grid item xs={1}>
+                      <Button
+                        color="primary"
+                        title="Archive document"
+                        onClick={() => {
+                          console.debug("confirm archive doc");
+													setOpenDeleteDialog(true);
+                        }}
+                      >
+                        <Archive />
+                      </Button>
+                    </Grid>
+
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <ReactQuill
+                      ref={props.reactQuillRef}
+                      defaultValue={snapshotDelta}
+                      theme="snow"
+                      bounds=".quillBounds"
+                      placeholder="Start typing here and select to mark highlights"
+                      onChange={onEdit}
+                      onChangeSelection={onSelect}
+                      modules={{
+                        toolbar: [
+                          [{ header: [1, 2, false] }],
+                          ["bold", "italic", "underline", "strike", "blockquote"],
+                          [
+                            { list: "ordered" },
+                            { list: "bullet" },
+                            { indent: "-1" },
+                            { indent: "+1" },
+                          ],
+                          ["link", "image"],
+                          ["clean"],
+                        ],
+                      }}
+                    />
+                  </Grid>
+
+                </Grid>
               </Paper>
             </Grid>
           </Grid>
@@ -632,6 +662,8 @@ export default function ContentsPane(props) {
           onTagControlChange={onTagControlChange}
         />
       </Hidden>
+
+			<DocumentDeleteDialog open={openDeleteDialog} setOpen={setOpenDeleteDialog} document={props.document} />
     </>
   );
 }
