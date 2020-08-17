@@ -7,6 +7,10 @@ import { useParams, useNavigate } from "react-router-dom";
 import Badge from "react-bootstrap/Badge";
 import Button from "react-bootstrap/Button";
 import Card from "@material-ui/core/Card";
+import Grid from "@material-ui/core/Grid";
+
+import Typography from "@material-ui/core/Typography";
+
 import CardActionArea from "@material-ui/core/CardActionArea";
 import useFirestore from "../db/Firestore.js";
 
@@ -14,13 +18,15 @@ const useStyles = makeStyles({
   helpText: {
     margin: "1rem",
     padding: "1rem",
-    maxWidth: 500,
   },
   quoteCard: {
+    width: "100%",
     margin: "1rem",
     padding: "0.5rem",
     position: "relative",
-    maxWidth: 500,
+  },
+  highlightsContainer: {
+    margin: "1rem",
   },
 });
 
@@ -99,16 +105,25 @@ export default function PersonHighlightsPane(props) {
   }
 
   return (
-    <>
-      {pinnedHighlights.length > 0 && <b>Pinned</b>}
+    <Grid container className={classes.highlightsContainer}>
+      {pinnedHighlights.length > 0 && (
+        <Typography gutterBottom variant="body2" component="p">
+          PINNED
+        </Typography>
+      )}
       {pinnedHighlights.map((highlight) => (
         <HighlightCard tag={tags[highlight.tagID]} highlight={highlight} />
       ))}
-      {pinnedHighlights.length > 0 && <hr />}
+      {pinnedHighlights.length > 0 && (
+        <Typography gutterBottom variant="body2" component="p">
+          OTHERS
+        </Typography>
+      )}
+
       {highlights.map((highlight) => (
         <HighlightCard tag={tags[highlight.tagID]} highlight={highlight} />
       ))}
-    </>
+    </Grid>
   );
 }
 
@@ -124,60 +139,62 @@ function HighlightCard(props) {
   }
 
   return (
-    <Card
-      className={classes.quoteCard}
-      onClick={() => {
-        navigate(`/orgs/${orgID}/data/${props.highlight.documentID}`);
-      }}
-    >
-      <CardActionArea>
-        <p style={{ paddingRight: "2rem" }}>
-          <i>"{props.highlight.text}"</i>
-        </p>
-        <Button
-          title={props.highlight.pinned ? "Unpin" : "Pin"}
-          variant="link"
-          style={{
-            position: "absolute",
-            right: 0,
-            top: 0,
-            cursor: "default",
-          }}
-          onClick={(e) => {
-            // Stop event propagation up the DOM tree
-            e.stopPropagation();
-
-            if (!documentsRef) {
-              return;
-            }
-
-            documentsRef
-              .doc(props.highlight.documentID)
-              .collection("highlights")
-              .doc(props.highlight.ID)
-              .set(
-                {
-                  pinned: !props.highlight.pinned,
-                },
-                { merge: true }
-              );
-          }}
-        >
-          {props.highlight.pinned ? <BookmarkFill /> : <Bookmark />}
-        </Button>
-        <div>
-          <Badge
-            variant="secondary"
-            pill
+    <Grid container item xs={12}>
+      <Card
+        className={classes.quoteCard}
+        onClick={() => {
+          navigate(`/orgs/${orgID}/data/${props.highlight.documentID}`);
+        }}
+      >
+        <CardActionArea>
+          <p style={{ paddingRight: "2rem" }}>
+            <i>"{props.highlight.text}"</i>
+          </p>
+          <Button
+            title={props.highlight.pinned ? "Unpin" : "Pin"}
+            variant="link"
             style={{
-              color: props.tag.textColor,
-              backgroundColor: props.tag.color,
+              position: "absolute",
+              right: 0,
+              top: 0,
+              cursor: "default",
+            }}
+            onClick={(e) => {
+              // Stop event propagation up the DOM tree
+              e.stopPropagation();
+
+              if (!documentsRef) {
+                return;
+              }
+
+              documentsRef
+                .doc(props.highlight.documentID)
+                .collection("highlights")
+                .doc(props.highlight.ID)
+                .set(
+                  {
+                    pinned: !props.highlight.pinned,
+                  },
+                  { merge: true }
+                );
             }}
           >
-            {props.tag.name}
-          </Badge>
-        </div>
-      </CardActionArea>
-    </Card>
+            {props.highlight.pinned ? <BookmarkFill /> : <Bookmark />}
+          </Button>
+          <div>
+            <Badge
+              variant="secondary"
+              pill
+              style={{
+                color: props.tag.textColor,
+                backgroundColor: props.tag.color,
+              }}
+            >
+              {props.tag.name}
+            </Badge>
+          </div>
+        </CardActionArea>
+      </Card>
+    </Grid>
   );
 }

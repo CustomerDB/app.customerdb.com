@@ -13,9 +13,6 @@ import Create from "@material-ui/icons/Create";
 import Grid from "@material-ui/core/Grid";
 import IconButton from "@material-ui/core/IconButton";
 import Linkify from "react-linkify";
-import Paper from "@material-ui/core/Paper";
-import Tabs from "@material-ui/core/Tabs";
-import Tab from "@material-ui/core/Tab";
 import Row from "react-bootstrap/Row";
 import Scrollable from "../shell_obsolete/Scrollable.js";
 import Typography from "@material-ui/core/Typography";
@@ -28,14 +25,12 @@ import PersonDeleteModal from "./PersonDeleteModal.js";
 
 const useStyles = makeStyles({
   nameCard: {
-    maxWidth: 240,
     margin: "0.5rem",
     padding: "0.5rem",
     textAlign: "center",
     alignItems: "center",
   },
   contactCard: {
-    maxWidth: 240,
     overflowWrap: "break-word",
     margin: "0.5rem",
     padding: "0.5rem",
@@ -43,7 +38,6 @@ const useStyles = makeStyles({
   main: {
     margin: "0.5rem",
     padding: "0.5rem",
-    minWidth: 600,
   },
 });
 
@@ -57,8 +51,6 @@ export default function Person(props) {
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-
-  const [tabsValue, setTabsValue] = useState(0);
 
   const classes = useStyles();
 
@@ -115,109 +107,110 @@ export default function Person(props) {
 
   return (
     <>
-      <Grid container item md={9} style={{ position: "relative" }}>
-        <Scrollable>
-          <Grid container spacing={1}>
-            <Grid container item md={3} direction="column">
-              <Card className={classes.nameCard}>
-                <CardContent>
-                  <Avatar size={70} name={person.name} round={true} />
-                  <Typography gutterBottom variant="h5" component="h2">
-                    {person.name}
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    color="textSecondary"
-                    component="p"
-                  >
-                    {person.job}
-                    <br />
-                    {person.company}
-                  </Typography>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "center",
-                      marginTop: "0.5rem",
-                    }}
-                  >
-                    <IconButton
-                      color="primary"
-                      aria-label="Archive person"
-                      component="span"
-                      onClick={() => setShowDeleteModal(true)}
-                    >
-                      <Archive />
-                    </IconButton>
-                    <IconButton
-                      color="primary"
-                      aria-label="Edit person"
-                      component="span"
-                      onClick={() => setShowEditModal(true)}
-                    >
-                      <Create />
-                    </IconButton>
-                  </div>
-                </CardContent>
-              </Card>
-              {showContact && (
-                <Card className={classes.contactCard}>
-                  <Typography gutterBottom variant="h6" component="h2">
-                    Contact
-                  </Typography>
-                  {person.email && (
-                    <Field name="Email">
-                      {<Linkify>{person.email}</Linkify>}
-                    </Field>
-                  )}
-                  <Field name="Phone">{person.phone}</Field>
-                  <Field name="Country">{person.country}</Field>
-                  <Field name="State">{person.state}</Field>
-                  <Field name="City">{person.city}</Field>
-                  {person.customFields &&
-                    Object.values(person.customFields).map((field) => (
-                      <Field name={field.kind}>
-                        <Linkify>{field.value}</Linkify>
-                      </Field>
-                    ))}
-                </Card>
+      <Grid container item md={12} lg={9} xl={10} spacing={0}>
+        <Grid
+          container
+          item
+          md={4}
+          xl={3}
+          direction="column"
+          justify="flex-start"
+          alignItems="stretch"
+          spacing={0}
+          style={{
+            overflowX: "hidden",
+            paddingTop: "1rem",
+          }}
+        >
+          <Card className={classes.nameCard}>
+            <CardContent>
+              <Avatar size={70} name={person.name} round={true} />
+              <Typography gutterBottom variant="h5" component="h2">
+                {person.name}
+              </Typography>
+              <Typography variant="body2" color="textSecondary" component="p">
+                {person.job}
+                <br />
+                {person.company}
+              </Typography>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  marginTop: "0.5rem",
+                }}
+              >
+                <IconButton
+                  color="primary"
+                  aria-label="Archive person"
+                  component="span"
+                  onClick={() => setShowDeleteModal(true)}
+                >
+                  <Archive />
+                </IconButton>
+                <IconButton
+                  color="primary"
+                  aria-label="Edit person"
+                  component="span"
+                  onClick={() => setShowEditModal(true)}
+                >
+                  <Create />
+                </IconButton>
+              </div>
+            </CardContent>
+          </Card>
+          {showContact && (
+            <Card className={classes.contactCard}>
+              <Typography gutterBottom variant="h6" component="h2">
+                Contact
+              </Typography>
+              {person.email && (
+                <Field name="Email">{<Linkify>{person.email}</Linkify>}</Field>
               )}
-              {showLabels && (
-                <Card className={classes.contactCard}>
-                  <Typography gutterBottom variant="h6" component="h2">
-                    Labels
-                  </Typography>
-                  <Field>
-                    {Object.values(person.labels).map((label) => {
-                      return <Label name={label.name} />;
-                    })}
+              <Field name="Phone">{person.phone}</Field>
+              <Field name="Country">{person.country}</Field>
+              <Field name="State">{person.state}</Field>
+              <Field name="City">{person.city}</Field>
+              {person.customFields &&
+                Object.values(person.customFields).map((field) => (
+                  <Field name={field.kind}>
+                    <Linkify>{field.value}</Linkify>
                   </Field>
-                </Card>
-              )}
+                ))}
+            </Card>
+          )}
+          {showLabels && (
+            <Card className={classes.contactCard}>
+              <Typography gutterBottom variant="h6" component="h2">
+                Labels
+              </Typography>
+              <Field>
+                {Object.values(person.labels).map((label) => {
+                  return <Label name={label.name} />;
+                })}
+              </Field>
+            </Card>
+          )}
+          <PersonData person={person} />
+        </Grid>
+
+        <Grid
+          style={{ position: "relative", height: "100%" }}
+          container
+          item
+          sm={12}
+          md={8}
+          xl={9}
+        >
+          <Scrollable>
+            <Grid container item spacing={0} xs={12}>
+              <PersonHighlightsPane person={person} />
             </Grid>
-            <Grid container item md={9}>
-              <Paper className={classes.main}>
-                <div>
-                  <Tabs
-                    value={tabsValue}
-                    onChange={(event, newValue) => setTabsValue(newValue)}
-                    indicatorColor="secondary"
-                    textColor="primary"
-                    centered
-                  >
-                    <Tab label="Clips" />
-                    <Tab label="Data" />
-                  </Tabs>
-                  {tabsValue === 0 && <PersonHighlightsPane person={person} />}
-                  {tabsValue === 1 && <PersonData person={person} />}
-                </div>
-              </Paper>
-            </Grid>
-          </Grid>
-        </Scrollable>
+          </Scrollable>
+        </Grid>
+        {editModal}
+        {deleteModal}
       </Grid>
-      {editModal}
-      {deleteModal}
     </>
   );
 }

@@ -120,7 +120,7 @@ export default function People(props) {
         },
       }}
     >
-      <Grid container alignItems="stretch">
+      <Grid container className="fullHeight">
         <ListContainer>
           <Scrollable>
             {showResults ? (
