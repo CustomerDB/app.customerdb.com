@@ -52,6 +52,9 @@ const useStyles = makeStyles({
     width: "100%",
     maxWidth: "80rem",
   },
+  detailsParagraph: {
+    marginBottom: "0.35rem",
+  },
 });
 
 // ContentsPane is a React component that allows multiple users to edit
@@ -646,6 +649,7 @@ export default function ContentsPane(props) {
                         variant="body2"
                         color="textSecondary"
                         component="p"
+                        className={classes.detailsParagraph}
                       >
                         Created{" "}
                         <Moment
