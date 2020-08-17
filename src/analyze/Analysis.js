@@ -106,12 +106,9 @@ export default function Analysis(props) {
 
   return (
     <>
-      <Grid container item md={9}>
+      <Grid container item md={9} spacing={1}>
         <Paper
           style={{
-            width: "90%",
-            margin: "1rem",
-            padding: "1rem",
             display: "flex",
             flexDirection: "column",
           }}

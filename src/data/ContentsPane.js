@@ -10,6 +10,8 @@ import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
 import useFirestore from "../db/Firestore.js";
 
+import Moment from "react-moment";
+
 import ReactQuill from "react-quill";
 import Delta from "quill-delta";
 import Quill from "quill";
@@ -601,7 +603,6 @@ export default function ContentsPane(props) {
   return (
     <>
       <Grid
-        className="quillBounds"
         style={{ position: "relative", height: "100%" }}
         container
         item
@@ -641,6 +642,18 @@ export default function ContentsPane(props) {
                           }}
                         />
                       </Typography>
+                      <Typography
+                        variant="body2"
+                        color="textSecondary"
+                        component="p"
+                      >
+                        Created{" "}
+                        <Moment
+                          fromNow
+                          date={props.document.creationTimestamp.toDate()}
+                        />{" "}
+                        by {props.document.createdBy}
+                      </Typography>
                     </Grid>
 
                     <Grid item xs={1}>
@@ -662,7 +675,6 @@ export default function ContentsPane(props) {
                       ref={props.reactQuillRef}
                       defaultValue={snapshotDelta}
                       theme="snow"
-                      bounds=".quillBounds"
                       placeholder="Start typing here and select to mark highlights"
                       onChange={onEdit}
                       onChangeSelection={onSelect}

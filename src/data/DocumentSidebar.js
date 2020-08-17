@@ -9,7 +9,6 @@ import TagGroupSelector from "./TagGroupSelector.js";
 
 import SearchDropdown from "../search/Dropdown.js";
 
-import Moment from "react-moment";
 import Avatar from "react-avatar";
 
 import { useParams, useNavigate, Link } from "react-router-dom";
@@ -74,30 +73,6 @@ export default function DocumentSidebar(props) {
         paddingTop: "1rem",
       }}
     >
-      <Card elevation={2} className={classes.documentSidebarCard}>
-        <CardContent>
-          <Grid container>
-            <Grid item md={6}>
-              <Typography gutterBottom color="textSecondary">
-                Created
-              </Typography>
-            </Grid>
-            <Grid item xs>
-              <Typography variant="body2" color="textSecondary" component="p">
-                {props.document.createdBy}
-                <br />
-                <em>
-                  <Moment
-                    fromNow
-                    date={props.document.creationTimestamp.toDate()}
-                  />
-                </em>
-              </Typography>
-            </Grid>
-          </Grid>
-        </CardContent>
-      </Card>
-
       <Card elevation={2} className={classes.documentSidebarCard}>
         <CardActionArea
           onClick={() => {
