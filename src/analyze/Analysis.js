@@ -4,6 +4,8 @@ import Content from "../shell_obsolete/Content.js";
 
 import { useParams, useNavigate, Navigate } from "react-router-dom";
 
+import { makeStyles } from "@material-ui/core/styles";
+
 import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
 
@@ -16,9 +18,25 @@ import AnalysisDataTab from "./AnalysisDataTab.js";
 import AnalysisClusterTab from "./AnalysisClusterTab.js";
 import AnalysisSummaryTab from "./AnalysisSummaryTab.js";
 
+const useStyles = makeStyles({
+  paper: {
+    display: "flex",
+    flexDirection: "column",
+    width: "100%",
+    margin: "1rem",
+    padding: "1rem",
+  },
+  view: {
+    position: "relative",
+    flexGrow: 1,
+  },
+});
+
 export default function Analysis(props) {
   const { orgID, analysisID, tabID, tagID } = useParams();
   const navigate = useNavigate();
+
+  const classes = useStyles();
 
   // Give a hint if this analysis was deleted while in view.
   if (props.analysis.deletionTimestamp !== "") {
@@ -106,18 +124,13 @@ export default function Analysis(props) {
 
   return (
     <>
-      <Grid container item md={9} spacing={1}>
-        <Paper
-          style={{
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
+      <Grid container item md={12} lg={9} xl={10} spacing={0}>
+        <Paper className={classes.paper}>
           <Typography gutterBottom variant="h5" component="h2">
             {props.analysis.name}
           </Typography>
           {controls}
-          <div style={{ position: "relative", flexGrow: 1 }}>{view}</div>
+          <div className={classes.view}>{view}</div>
         </Paper>
       </Grid>
     </>

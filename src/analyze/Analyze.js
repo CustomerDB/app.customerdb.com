@@ -172,7 +172,7 @@ export default function Analyze(props) {
 
   return (
     <Shell title="Analysis">
-      <Grid container alignItems="stretch">
+      <Grid container className="fullHeight">
         <ListContainer>
           <Scrollable>
             <List>{listTotal > 0 ? listItems : <AnalyzeHelp />}</List>
