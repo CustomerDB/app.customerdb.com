@@ -9,7 +9,7 @@ import DeleteMemberModal from "./DeleteMemberModal.js";
 
 import Options from "../Options.js";
 
-import { Routes, Route, Navigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";

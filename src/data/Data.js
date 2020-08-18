@@ -13,18 +13,13 @@ import { nanoid } from "nanoid";
 
 import Moment from "react-moment";
 
-import Button from "react-bootstrap/Button";
-
 import { initialDelta } from "./delta.js";
 import Document from "./Document.js";
 import DocumentCreateModal from "./DocumentCreateModal.js";
-import DocumentRenameModal from "./DocumentRenameModal.js";
 
 import Shell from "../shell/Shell.js";
 import ListContainer from "../shell/ListContainer";
 
-import Modal from "../shell_obsolete/Modal.js";
-import Options from "../shell_obsolete/Options.js";
 import Scrollable from "../shell_obsolete/Scrollable.js";
 
 import AddIcon from "@material-ui/icons/Add";

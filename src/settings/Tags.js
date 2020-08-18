@@ -18,11 +18,21 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import { nanoid } from "nanoid";
 
+import Moment from "react-moment";
+
 import colorPair, { getTextColorForBackground } from "../util/color.js";
 import { Loading } from "../util/Utils.js";
 
-import List from "../List.js";
-import Options from "../Options.js";
+import ListContainer from "../shell/ListContainer";
+import Scrollable from "../shell_obsolete/Scrollable.js";
+import Options from "../shell_obsolete/Options.js";
+
+import AddIcon from "@material-ui/icons/Add";
+import List from "@material-ui/core/List";
+import ListItem from "@material-ui/core/ListItem";
+import ListItemText from "@material-ui/core/ListItemText";
+import Fab from "@material-ui/core/Fab";
+import Grid from "@material-ui/core/Grid";
 
 export default function Tags(props) {
   const { oauthClaims } = useContext(UserAuthContext);
@@ -72,24 +82,6 @@ export default function Tags(props) {
       // the deletion grace period expires and the GC sweep does a permanent delete.
       deletionTimestamp: "",
     });
-  };
-
-  const onClick = (ID) => {
-    navigate(`/orgs/${orgID}/settings/tags/${ID}`);
-  };
-
-  const itemLoad = (index) => {
-    let item = Object.assign({}, tagGroups[index]);
-    if (item.ID === defaultTagGroupID) {
-      item.name = (
-        <span>
-          {item.name}
-          <br />
-          <span style={{ fontWeight: "bold" }}>(default)</span>
-        </span>
-      );
-    }
-    return item;
   };
 
   const onRename = (ID, newName) => {
@@ -153,45 +145,58 @@ export default function Tags(props) {
     return <Loading />;
   }
 
-  let view;
-  if (tagGroupID !== undefined) {
+  let listItems =
+    tagGroups &&
+    tagGroups.map((tg) => (
+      <ListItem
+        button
+        key={tg.ID}
+        selected={tg.ID === tagGroupID}
+        onClick={() => {
+          navigate(`orgs/${orgID}/settings/tags/${tg.ID}`);
+        }}
+      >
+        <ListItemText
+          primary={tg.name}
+          secondary={
+            tg.creationTimestamp && (
+              <Moment fromNow date={tg.creationTimestamp.toDate()} />
+            )
+          }
+        />
+      </ListItem>
+    ));
+
+  let list = (
+    <ListContainer>
+      <Scrollable>
+        <List>{listItems}</List>
+      </Scrollable>
+      <Fab
+        style={{ position: "absolute", bottom: "15px", right: "15px" }}
+        color="secondary"
+        aria-label="add"
+        onClick={onAdd}
+      >
+        <AddIcon />
+      </Fab>
+    </ListContainer>
+  );
+
+  let content = undefined;
+
+  if (tagGroupID) {
     let tagGroupRef = tagGroupsRef.doc(tagGroupID);
-    view = (
+    content = (
       <TagGroup key={tagGroupID} tagGroupRef={tagGroupRef} options={options} />
     );
   }
 
   return (
-    <Row className="h-100 no-gutters">
-      <Col md={4} className="d-flex flex-column h-100">
-        <List
-          name="Tag groups"
-          currentID={tagGroupID}
-          itemLoad={itemLoad}
-          itemCount={tagGroups.length}
-          onAdd={onAdd}
-          options={options}
-          onClick={onClick}
-        />
-      </Col>
-      <Col md={4}>{view}</Col>
-      <RenameModal
-        show={showRenameModal}
-        tagGroup={modalTagGroup}
-        onRename={onRename}
-        onHide={() => {
-          setShowRenameModal(false);
-        }}
-      />
-      <DeleteModal
-        show={showDeleteModal}
-        tagGroup={modalTagGroup}
-        onDelete={onDelete}
-        onHide={() => {
-          setShowDeleteModal(false);
-        }}
-      />
-    </Row>
+    <Grid container item xs={12} style={{ height: "100%" }}>
+      {list}
+      {content}
+    </Grid>
   );
 }
 

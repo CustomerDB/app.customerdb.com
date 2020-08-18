@@ -1,8 +1,6 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext } from "react";
 
-import event from "../analytics/event.js";
 import UserAuthContext from "../auth/UserAuthContext";
-import useFirestore from "../db/Firestore.js";
 
 import Profile from "./Profile.js";
 import Tags from "./Tags.js";
@@ -10,21 +8,10 @@ import Templates from "./Templates.js";
 import Members from "./Members.js";
 import BulkImport from "./BulkImport.js";
 
-import {
-  Routes,
-  Route,
-  Navigate,
-  useParams,
-  useNavigate,
-} from "react-router-dom";
+import { Routes, Route, useParams, useNavigate } from "react-router-dom";
 
 import Shell from "../shell/Shell.js";
-import ListContainer from "../shell/ListContainer";
 
-import List from "@material-ui/core/List";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemText from "@material-ui/core/ListItemText";
-import ListItemAvatar from "@material-ui/core/ListItemAvatar";
 import Grid from "@material-ui/core/Grid";
 import Paper from "@material-ui/core/Paper";
 import Tabs from "@material-ui/core/Tabs";
@@ -95,16 +82,22 @@ export default function Settings(props) {
 
   return (
     <Shell title="Settings">
-      <Grid container>
-        <Grid container item xs={12}>
-          <Paper style={{ width: "100%" }}>
+      <Grid
+        container
+        direction="column"
+        justify="flex-start"
+        alignItems="flex-start"
+        style={{ height: "100%" }}
+      >
+        <Grid container item style={{ height: "3rem" }} alignItems="flex-start">
+          <Paper style={{ width: "100%", height: "3rem" }}>
             <Tabs value={currentTab} centered onChange={onTabChange}>
               {tabs}
             </Tabs>
           </Paper>
         </Grid>
 
-        <Grid container item xs={12} style={{ marginTop: "1rem" }}>
+        <Grid container item xs style={{ width: "100%" }}>
           {content}
         </Grid>
       </Grid>
