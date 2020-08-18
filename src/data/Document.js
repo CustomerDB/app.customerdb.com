@@ -55,7 +55,6 @@ export default function Document(props) {
         document={document}
         reactQuillRef={props.reactQuillRef}
         editor={props.editor}
-        options={props.options}
       />
     </Grid>
   );

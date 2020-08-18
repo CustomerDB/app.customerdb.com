@@ -88,61 +88,6 @@ export default function Data(props) {
       });
   }, [documentsRef]);
 
-  const options = (doc) => {
-    let documentRef = documentsRef.doc(doc.ID);
-
-    let renameOption = (
-      <Options.Item
-        name="Rename"
-        modal={<DocumentRenameModal documentRef={documentRef} />}
-      />
-    );
-
-    // onDelete is the delete confirm callback
-    let onDelete = () => {
-      event("delete_data", {
-        orgID: oauthClaims.orgID,
-        userID: oauthClaims.user_id,
-      });
-      documentRef.update({
-        deletedBy: oauthClaims.email,
-        deletionTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
-      });
-
-      // Remove focus from document if selected.
-      if (documentID === doc.ID) {
-        navigate(`/orgs/${orgID}/data`);
-      }
-    };
-
-    let deleteOption = (
-      <Options.Item
-        name="Delete"
-        modal={
-          <Modal
-            name="Delete document"
-            footer={[
-              <Button key="delete" variant="danger" onClick={onDelete}>
-                Delete
-              </Button>,
-            ]}
-          >
-            <p>
-              Are you sure you want to delete <b>{doc.name}</b>?
-            </p>
-          </Modal>
-        }
-      />
-    );
-
-    return (
-      <Options>
-        {renameOption}
-        {deleteOption}
-      </Options>
-    );
-  };
-
   const onAdd = () => {
     event("create_data", {
       orgID: oauthClaims.orgID,
@@ -258,7 +203,6 @@ export default function Data(props) {
         key={documentID}
         navigate={navigate}
         user={oauthClaims}
-        options={options}
         reactQuillRef={reactQuillRef}
         editor={editor}
       />

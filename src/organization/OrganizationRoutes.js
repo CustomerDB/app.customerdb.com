@@ -32,7 +32,10 @@ export default function OrganizationRoutes(props) {
           <Route path=":analysisID/:tabID/:tagID" element={<Analyze />} />
         </Route>
 
-        <Route path="settings/*" element={<Settings />} />
+        <Route path="settings/*">
+          <Route path="/" element={<Settings />} />
+          <Route path=":tabID/*" element={<Settings />} />
+        </Route>
 
         <Route path="*" element={<Navigate to="/404" />} />
       </Routes>
