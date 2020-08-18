@@ -1,15 +1,13 @@
-import React, { useState, useEffect, useContext } from "react";
+import React from "react";
 
 import Content from "../shell_obsolete/Content.js";
 
-import { useParams, useNavigate, Navigate } from "react-router-dom";
+import { useParams, Navigate } from "react-router-dom";
 
 import { makeStyles } from "@material-ui/core/styles";
 
 import Grid from "@material-ui/core/Grid";
 import Paper from "@material-ui/core/Paper";
-import Tabs from "@material-ui/core/Tabs";
-import Tab from "@material-ui/core/Tab";
 
 import AnalysisDataTab from "./AnalysisDataTab.js";
 import AnalysisClusterTab from "./AnalysisClusterTab.js";
@@ -31,7 +29,6 @@ const useStyles = makeStyles({
 
 export default function Analysis(props) {
   const { orgID, analysisID, tabID, tagID } = useParams();
-  const navigate = useNavigate();
 
   const classes = useStyles();
 

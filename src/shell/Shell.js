@@ -150,7 +150,11 @@ export default function Shell(props) {
           }}
         >
           <div className={classes.toolbar}>
-            <img style={{ width: "80%" }} src={logo} />
+            <img
+              style={{ width: "80%" }}
+              src={logo}
+              alt="CustomerDB product logo"
+            />
             <IconButton onClick={handleDrawerClose}>
               {theme.direction === "rtl" ? (
                 <ChevronRightIcon />

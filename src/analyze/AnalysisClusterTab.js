@@ -42,6 +42,7 @@ export default function AnalysisClusterTab(props) {
   const [showRenameGroupModal, setShowRenameGroupModal] = useState(false);
   const [modalGroupID, setModalGroupID] = useState();
   const [modalGroupNonce, setModalGroupNonce] = useState();
+  const [fullscreen, setFullscreen] = useState(false);
 
   useEffect(() => {
     if (!analysisID || !tagID) {
@@ -109,6 +110,8 @@ export default function AnalysisClusterTab(props) {
     arrows = <ArrowsAngleContract />;
   }
 
+  console.log(fullscreen);
+
   return (
     <Grid
       container
@@ -117,7 +120,20 @@ export default function AnalysisClusterTab(props) {
       style={{ display: "flex", flexDirection: "column" }}
     >
       <ClusterDropdown analysis={props.analysis} />
-      <div style={{ position: "relative", width: "100%", flexGrow: 1 }}>
+      <div
+        style={
+          fullscreen
+            ? {
+                position: "absolute",
+                top: "4rem",
+                left: "1rem",
+                zIndex: 10,
+                width: "calc(100% - 1rem)",
+                height: "calc(100% - 4rem)",
+              }
+            : { position: "relative", width: "100%", flexGrow: 1 }
+        }
+      >
         <Button
           variant="link"
           title="Toggle expand"
@@ -133,14 +149,7 @@ export default function AnalysisClusterTab(props) {
             opacity: 0.8,
           }}
           onClick={() => {
-            console.log("Expand clicked: ", focus);
-            if (focus.focus === "cluster") {
-              focus.setFocus();
-              return;
-            }
-            focus.setFocus("cluster");
-
-            console.log("After", focus);
+            setFullscreen(!fullscreen);
           }}
         >
           {arrows}

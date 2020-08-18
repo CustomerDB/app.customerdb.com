@@ -6,7 +6,6 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
-import ListItemText from "@material-ui/core/ListItemText";
 import MenuItem from "@material-ui/core/MenuItem";
 import Menu from "@material-ui/core/Menu";
 import Typography from "@material-ui/core/Typography";
@@ -28,7 +27,7 @@ export default function ClusterTabs(props) {
     if (
       !props.analysis ||
       !props.analysis.tagGroupIDs ||
-      props.analysis.tagGroupIDs.length == 0
+      props.analysis.tagGroupIDs.length === 0
     ) {
       return;
     }
@@ -48,7 +47,7 @@ export default function ClusterTabs(props) {
         setAllTagsList(newTagsList);
         setAllTagsMap(newTagsMap);
       });
-  }, [orgID, allTagsRef, props.analysis.tagGroupIDs]);
+  }, [orgID, allTagsRef, props.analysis, props.analysis.tagGroupIDs]);
 
   if (
     !props.analysis ||
@@ -85,7 +84,9 @@ export default function ClusterTabs(props) {
                 </Typography>
               ) : (
                 <p>
-                  <i>Select tag</i>
+                  <i>
+                    Select a tag to start forming clusters of customer quotes
+                  </i>
                 </p>
               )}
               {/* <ListItemText primary=> */}

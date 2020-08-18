@@ -5,7 +5,6 @@ import useFirestore from "../db/Firestore.js";
 import { Link } from "react-router-dom";
 
 import Scrollable from "../shell_obsolete/Scrollable.js";
-import Tabs from "../shell_obsolete/Tabs.js";
 
 import Button from "react-bootstrap/Button";
 import Container from "react-bootstrap/Container";
@@ -15,6 +14,10 @@ import Col from "react-bootstrap/Col";
 import Typography from "@material-ui/core/Typography";
 import ContentEditable from "react-contenteditable";
 import Grid from "@material-ui/core/Grid";
+import IconButton from "@material-ui/core/IconButton";
+import ArchiveIcon from "@material-ui/icons/Archive";
+
+import AnalysisDeleteModal from "./AnalysisDeleteModal.js";
 
 import { Download } from "react-bootstrap-icons";
 
@@ -39,6 +42,7 @@ export default function AnalysisSummaryTab(props) {
   const [documents, setDocuments] = useState();
   const [tags, setTags] = useState();
   const [people, setPeople] = useState();
+  const [showDeleteModal, setShowDeleteModal] = useState();
 
   // Group subscription
   useEffect(() => {
@@ -155,27 +159,53 @@ export default function AnalysisSummaryTab(props) {
   }
 
   let title = (
-    <Typography gutterBottom variant="h4" component="h2">
-      <ContentEditable
-        html={props.analysis.name}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            e.target.blur();
-          }
-        }}
-        onBlur={(e) => {
-          console.log("e", e, "props.analysisRef", props.analysisRef);
-          if (props.analysisRef) {
-            let newName = e.target.innerText
-              .replace(/(\r\n|\n|\r)/gm, " ")
-              .replace(/\s+/g, " ")
-              .trim();
+    <>
+      <Grid container>
+        <Grid container item xs={12} alignItems="flex-start">
+          <Grid item xs={11}>
+            <Typography gutterBottom variant="h4" component="h2">
+              <ContentEditable
+                html={props.analysis.name}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.target.blur();
+                  }
+                }}
+                onBlur={(e) => {
+                  console.log("e", e, "props.analysisRef", props.analysisRef);
+                  if (props.analysisRef) {
+                    let newName = e.target.innerText
+                      .replace(/(\r\n|\n|\r)/gm, " ")
+                      .replace(/\s+/g, " ")
+                      .trim();
 
-            props.analysisRef.set({ name: newName }, { merge: true });
-          }
+                    props.analysisRef.set({ name: newName }, { merge: true });
+                  }
+                }}
+              />
+            </Typography>
+          </Grid>
+          <Grid>
+            <IconButton
+              color="primary"
+              aria-label="Archive document"
+              onClick={() => {
+                setShowDeleteModal(true);
+              }}
+            >
+              <ArchiveIcon />
+            </IconButton>
+          </Grid>
+        </Grid>
+      </Grid>
+      <AnalysisDeleteModal
+        show={showDeleteModal}
+        onHide={() => {
+          setShowDeleteModal(false);
         }}
+        analysisRef={props.analysisRef}
       />
-    </Typography>
+    </>
   );
 
   // Builds a tree of tags -> groups -> documents -> people

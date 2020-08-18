@@ -9,7 +9,6 @@ import Shell from "../shell/Shell.js";
 import Scrollable from "../shell_obsolete/Scrollable.js";
 
 import Analysis from "./Analysis.js";
-import AnalysisDeleteModal from "./AnalysisDeleteModal.js";
 import AnalysisRenameModal from "./AnalysisRenameModal.js";
 import AnalyzeHelp from "./AnalyzeHelp.js";
 import Avatar from "@material-ui/core/Avatar";
@@ -81,28 +80,6 @@ export default function Analyze(props) {
   if (analysisList === undefined) {
     return <></>;
   }
-
-  // const options = (analysisID) => {
-  //   if (!analysisID) {
-  //     return <></>;
-  //   }
-
-  //   let analysisRef = analysesRef.doc(analysisID);
-
-  //   return (
-  //     <Options key={analysisID}>
-  //       <Options.Item
-  //         name="Rename"
-  //         modal={<AnalysisRenameModal analysisRef={analysisRef} />}
-  //       />
-
-  //       <Options.Item
-  //         name="Delete"
-  //         modal={<AnalysisDeleteModal analysisRef={analysisRef} />}
-  //       />
-  //     </Options>
-  //   );
-  // };
 
   let content;
   if (analysisID && analysisMap) {
