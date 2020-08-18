@@ -6,6 +6,8 @@ import useFirestore from "../db/Firestore.js";
 
 import Modal from "../shell_obsolete/Modal.js";
 
+import Grid from "@material-ui/core/Grid";
+
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
@@ -19,6 +21,8 @@ import { Loading } from "../util/Utils.js";
 
 import { nanoid } from "nanoid";
 import { ArrowsAngleExpand, ArrowsAngleContract } from "react-bootstrap-icons";
+
+import ClusterDropdown from "./ClusterDropdown.js";
 
 export default function AnalysisClusterTab(props) {
   const { oauthClaims } = useContext(UserAuthContext);
@@ -70,13 +74,9 @@ export default function AnalysisClusterTab(props) {
 
   if (!tagID) {
     return (
-      <Container className="p-3">
-        <Row>
-          <Col>
-            <p>Select tag to cluster using the cluster dropdown.</p>
-          </Col>
-        </Row>
-      </Container>
+      <>
+        <ClusterDropdown analysis={props.analysis} />
+      </>
     );
   }
 
@@ -110,58 +110,63 @@ export default function AnalysisClusterTab(props) {
   }
 
   return (
-    <>
-      <Container className="p-3 h-100" fluid>
-        <Row className="h-100">
-          <Col>
-            <Button
-              variant="link"
-              title="Toggle expand"
-              style={{
-                color: "black",
-                background: "#ddf",
-                border: "0",
-                borderRadius: "0.25rem",
-                position: "absolute",
-                top: "-2rem",
-                right: "0.25rem",
-                zIndex: 200,
-                opacity: 0.8,
-              }}
-              onClick={() => {
-                if (focus.focus === "cluster") {
-                  focus.setFocus();
-                  return;
-                }
-                focus.setFocus("cluster");
-              }}
-            >
-              {arrows}
-            </Button>
-            <AnalysisClusterBoard
-              analysisID={analysisID}
-              analysisName={props.analysis.name}
-              key={boardKey}
-              orgID={orgID}
-              userID={oauthClaims.user_id}
-              tagID={tagID}
-              documentsRef={analysisDocumentsRef}
-              highlightsRef={highlightsRef}
-              cardsRef={cardsRef}
-              groupsRef={groupsRef}
-              activeUsersRef={activeUsersRef}
-              renameGroupModalCallback={renameGroupModalCallback}
-            />
-          </Col>
-        </Row>
-      </Container>
+    <Grid
+      container
+      item
+      xs={12}
+      style={{ display: "flex", flexDirection: "column" }}
+    >
+      <ClusterDropdown analysis={props.analysis} />
+      <div style={{ position: "relative", width: "100%", flexGrow: 1 }}>
+        <Button
+          variant="link"
+          title="Toggle expand"
+          style={{
+            color: "black",
+            background: "#ddf",
+            border: "0",
+            borderRadius: "0.25rem",
+            position: "absolute",
+            right: "0.25rem",
+            top: "4rem",
+            zIndex: 200,
+            opacity: 0.8,
+          }}
+          onClick={() => {
+            console.log("Expand clicked: ", focus);
+            if (focus.focus === "cluster") {
+              focus.setFocus();
+              return;
+            }
+            focus.setFocus("cluster");
+
+            console.log("After", focus);
+          }}
+        >
+          {arrows}
+        </Button>
+        <AnalysisClusterBoard
+          analysisID={analysisID}
+          analysisName={props.analysis.name}
+          key={boardKey}
+          orgID={orgID}
+          userID={oauthClaims.user_id}
+          tagID={tagID}
+          documentsRef={analysisDocumentsRef}
+          highlightsRef={highlightsRef}
+          cardsRef={cardsRef}
+          groupsRef={groupsRef}
+          activeUsersRef={activeUsersRef}
+          renameGroupModalCallback={renameGroupModalCallback}
+        />
+      </div>
       <RenameGroupModal
         key={modalGroupNonce}
         groupID={modalGroupID}
         show={showRenameGroupModal}
         onHide={() => setShowRenameGroupModal(false)}
       />
-    </>
+    </Grid>
   );
 }
 

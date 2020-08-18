@@ -250,6 +250,7 @@ function TagGroup(props) {
       organizationID: orgID,
       color: color.background,
       textColor: color.foreground,
+      tagGroupID: props.tagGroupRef.id,
       createdBy: oauthClaims.email,
       creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
       deletionTimestamp: "",

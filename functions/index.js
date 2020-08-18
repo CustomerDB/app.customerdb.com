@@ -756,3 +756,55 @@ exports.highlightRepair = functions.pubsub
         );
       });
   });
+
+exports.tagRepair = functions.pubsub
+  .schedule("every 4 hours")
+  .onRun((context) => {
+    let db = admin.firestore();
+
+    // Per organization
+    return db
+      .collection("organizations")
+      .get()
+      .then((snapshot) => {
+        return Promise.all(
+          snapshot.docs.map((orgDoc) => {
+            // Go through each tag group
+            return orgDoc.ref
+              .collection("tagGroups")
+              .get()
+              .then((snapshot) => {
+                return Promise.all(
+                  snapshot.docs.map((tagGroupDoc) => {
+                    // Go through each tag
+                    const tagGroupID = tagGroupDoc.id;
+                    return tagGroupDoc.ref
+                      .collection("tags")
+                      .get()
+                      .then((snapshot) => {
+                        return Promise.all(
+                          snapshot.docs.map((tagDoc) => {
+                            // Set tag group id if not already set
+                            let tag = tagDoc.data();
+                            if (
+                              tag.tagGroupID !== tagGroupID ||
+                              tag.ID !== tagDoc.id
+                            ) {
+                              return tagDoc.ref.set(
+                                {
+                                  tagGroupID: tagGroupID,
+                                  ID: tagDoc.id,
+                                },
+                                { merge: true }
+                              );
+                            }
+                          })
+                        );
+                      });
+                  })
+                );
+              });
+          })
+        );
+      });
+  });

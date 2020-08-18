@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect, useContext } from "react";
 
 import Content from "../shell_obsolete/Content.js";
 
@@ -6,14 +6,11 @@ import { useParams, useNavigate, Navigate } from "react-router-dom";
 
 import { makeStyles } from "@material-ui/core/styles";
 
-import Row from "react-bootstrap/Row";
-import Button from "react-bootstrap/Button";
-
 import Grid from "@material-ui/core/Grid";
 import Paper from "@material-ui/core/Paper";
-import Typography from "@material-ui/core/Typography";
+import Tabs from "@material-ui/core/Tabs";
+import Tab from "@material-ui/core/Tab";
 
-import ClusterDropdown from "./ClusterDropdown.js";
 import AnalysisDataTab from "./AnalysisDataTab.js";
 import AnalysisClusterTab from "./AnalysisClusterTab.js";
 import AnalysisSummaryTab from "./AnalysisSummaryTab.js";
@@ -56,34 +53,6 @@ export default function Analysis(props) {
     return <Navigate to="/404" />;
   }
 
-  let controls = (
-    <Row noGutters={true}>
-      <Button
-        style={{ marginRight: "1em" }}
-        key="summary"
-        variant={!tabID || tabID === "summary" ? "primary" : "link"}
-        onClick={() => {
-          navigate(`/orgs/${orgID}/analyze/${analysisID}/summary`);
-        }}
-      >
-        Summary
-      </Button>
-
-      <ClusterDropdown analysis={props.analysis} />
-
-      <Button
-        style={{ marginRight: "1em" }}
-        key="data"
-        variant={tabID === "data" ? "primary" : "link"}
-        onClick={() => {
-          navigate(`/orgs/${orgID}/analyze/${analysisID}/data`);
-        }}
-      >
-        Data
-      </Button>
-    </Row>
-  );
-
   let view = <></>;
 
   if (!tabID || tabID === "summary") {
@@ -125,13 +94,7 @@ export default function Analysis(props) {
   return (
     <>
       <Grid container item md={12} lg={9} xl={10} spacing={0}>
-        <Paper className={classes.paper}>
-          <Typography gutterBottom variant="h5" component="h2">
-            {props.analysis.name}
-          </Typography>
-          {controls}
-          <div className={classes.view}>{view}</div>
-        </Paper>
+        <Paper className={classes.paper}>{view}</Paper>
       </Grid>
     </>
   );

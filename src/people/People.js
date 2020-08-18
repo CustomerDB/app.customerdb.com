@@ -28,6 +28,8 @@ import Person from "./Person.js";
 import PeopleHelp from "./PeopleHelp.js";
 import PersonHelp from "./PersonHelp.js";
 
+import Hidden from "@material-ui/core/Hidden";
+
 import { useParams, useNavigate } from "react-router-dom";
 
 const batchSize = 25;
@@ -110,6 +112,69 @@ export default function People(props) {
     );
   });
 
+  let list = (
+    <ListContainer>
+      <Scrollable>
+        {showResults ? (
+          <SearchResults />
+        ) : (
+          <List>
+            {listTotal > 0 ? (
+              <Infinite
+                hasMore={() => {
+                  if (!listTotal) {
+                    return true;
+                  }
+
+                  return listTotal < listLimit;
+                }}
+                onLoad={() => setListLimit(listLimit + batchSize)}
+              >
+                {peopleList
+                  .slice(0, listLimit)
+                  .map((person) =>
+                    personListItem(person.ID, person.name, person.company)
+                  )}
+              </Infinite>
+            ) : (
+              <PeopleHelp />
+            )}
+          </List>
+        )}
+      </Scrollable>
+      <Fab
+        style={{ position: "absolute", bottom: "15px", right: "15px" }}
+        color="secondary"
+        aria-label="add"
+        onClick={() => {
+          event("create_person", {
+            orgID: oauthClaims.orgID,
+            userID: oauthClaims.user_id,
+          });
+          peopleRef
+            .add({
+              name: "Unnamed person",
+              createdBy: oauthClaims.email,
+              creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+              deletionTimestamp: "",
+            })
+            .then((doc) => {
+              navigate(`/orgs/${orgID}/people/${doc.id}`);
+              setNewPersonRef(doc);
+              setAddModalShow(true);
+            });
+        }}
+      >
+        <AddIcon />
+      </Fab>
+    </ListContainer>
+  );
+
+  if (personID) {
+    // Optionally hide the list if the viewport is too small
+    list = <Hidden mdDown>{list}</Hidden>;
+  }
+
   return (
     <Shell
       title="Customers"
@@ -121,61 +186,7 @@ export default function People(props) {
       }}
     >
       <Grid container className="fullHeight">
-        <ListContainer>
-          <Scrollable>
-            {showResults ? (
-              <SearchResults />
-            ) : (
-              <List>
-                {listTotal > 0 ? (
-                  <Infinite
-                    hasMore={() => {
-                      if (!listTotal) {
-                        return true;
-                      }
-
-                      return listTotal < listLimit;
-                    }}
-                    onLoad={() => setListLimit(listLimit + batchSize)}
-                  >
-                    {peopleList
-                      .slice(0, listLimit)
-                      .map((person) =>
-                        personListItem(person.ID, person.name, person.company)
-                      )}
-                  </Infinite>
-                ) : (
-                  <PeopleHelp />
-                )}
-              </List>
-            )}
-          </Scrollable>
-          <Fab
-            style={{ position: "absolute", bottom: "15px", right: "15px" }}
-            color="secondary"
-            aria-label="add"
-            onClick={() => {
-              event("create_person", {
-                orgID: oauthClaims.orgID,
-                userID: oauthClaims.user_id,
-              });
-              peopleRef
-                .add({
-                  name: "Unnamed person",
-                  createdBy: oauthClaims.email,
-                  creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
-                  deletionTimestamp: "",
-                })
-                .then((doc) => {
-                  navigate(`/orgs/${orgID}/people/${doc.id}`);
-                  setNewPersonRef(doc);
-                  setAddModalShow(true);
-                });
-            }}
-          >
-            <AddIcon />
-          </Fab>
-        </ListContainer>
+        {list}
         {content}
         {addModal}
       </Grid>

@@ -27,6 +27,8 @@ import { Search, SearchInput } from "./Search.js";
 
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 
+import logo from "../assets/images/logo.svg";
+
 const drawerWidth = 240;
 
 const useStyles = makeStyles((theme) => ({
@@ -148,6 +150,7 @@ export default function Shell(props) {
           }}
         >
           <div className={classes.toolbar}>
+            <img style={{ width: "80%" }} src={logo} />
             <IconButton onClick={handleDrawerClose}>
               {theme.direction === "rtl" ? (
                 <ChevronRightIcon />
