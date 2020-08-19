@@ -1,18 +1,32 @@
 import React, { useEffect, useState } from "react";
 
-import Button from "react-bootstrap/Button";
-import Form from "react-bootstrap/Form";
-import Col from "react-bootstrap/Col";
+import { makeStyles } from "@material-ui/core/styles";
+import Grid from "@material-ui/core/Grid";
+import Card from "@material-ui/core/Card";
+import CardContent from "@material-ui/core/CardContent";
+import CardActions from "@material-ui/core/CardActions";
+import Button from "@material-ui/core/Button";
+import Table from "@material-ui/core/Table";
+import TableBody from "@material-ui/core/TableBody";
+import TableCell from "@material-ui/core/TableCell";
+import TableHead from "@material-ui/core/TableHead";
+import TableRow from "@material-ui/core/TableRow";
+
 import Row from "react-bootstrap/Row";
+import Col from "react-bootstrap/Col";
+import Form from "react-bootstrap/Form";
 
-import Shell from "../shell_obsolete/Shell.js";
-import Page from "../shell_obsolete/Page.js";
-import Navigation from "../shell_obsolete/Navigation.js";
-
-import List from "../shell_obsolete/List.js";
 import Modal from "../shell_obsolete/Modal.js";
 
-import { Globe } from "react-bootstrap-icons";
+const useStyles = makeStyles({
+  fullWidthCard: {
+    margin: "1rem",
+    padding: "1rem 2rem",
+    minHeight: "24rem",
+    width: "100%",
+    maxWidth: "80rem",
+  },
+});
 
 const createOrganization = window.firebase
   .functions()
@@ -23,6 +37,8 @@ export default function Admin(props) {
   const [name, setName] = useState();
   const [email, setEmail] = useState();
   const [organizations, setOrganizations] = useState();
+
+  const classes = useStyles();
 
   useEffect(() => {
     return window.firebase
@@ -51,83 +67,96 @@ export default function Admin(props) {
     return <></>;
   }
 
+  let organizationsTable = (
+    <Table
+      style={{ width: "100%", overflowX: "hidden" }}
+      aria-label="organization members"
+    >
+      <TableHead>
+        <TableRow>
+          <TableCell align="left">ID</TableCell>
+          <TableCell align="left">Name</TableCell>
+          <TableCell align="left">Join link</TableCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {organizations.map((row) => (
+          <TableRow key={row.ID}>
+            <TableCell align="left">{row.ID}</TableCell>
+            <TableCell align="left">{row.name}</TableCell>
+            <TableCell align="left">
+              <a href={`https://app.customerdb.com/join/${row.ID}`}>
+                join link
+              </a>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+
   return (
-    <Shell>
-      <Navigation>
-        <Navigation.Top>
-          <Navigation.Item
-            name="Admin"
-            icon={<Globe />}
-            path="/admin"
-            end={true}
-          />
-        </Navigation.Top>
-      </Navigation>
-      <Page>
-        <List>
-          <List.Title>
-            <List.Name>Organizations</List.Name>
-            <List.Add
+    <>
+      <Grid container justify="center">
+        <Card className={classes.fullWidthCard}>
+          <CardContent>
+            <Grid item xs>
+              {organizationsTable}
+            </Grid>
+          </CardContent>
+          <CardActions>
+            <Button
               onClick={() => {
                 setShow(true);
               }}
-            />
-          </List.Title>
-          <List.Items>
-            {organizations.map((item) => (
-              <List.Item
-                key={item.ID}
-                name={
-                  <span>
-                    {item.name}
-                    <br />
-                    <a href={`https://app.customerdb.com/join/${item.ID}`}>
-                      Join Link
-                    </a>
-                  </span>
-                }
+            >
+              Invite New Member
+            </Button>
+          </CardActions>
+        </Card>
+        <Modal
+          name="New organization"
+          show={show}
+          onHide={() => setShow(false)}
+          footer={[
+            <Button
+              key="createOrg"
+              onClick={createOrg}
+              variant="contained"
+              color="secondary"
+            >
+              Create
+            </Button>,
+          ]}
+        >
+          <Row className="mb-3">
+            <Col>
+              <Form.Label>Organization name</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Organization"
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value);
+                }}
               />
-            ))}
-          </List.Items>
-          <Modal
-            name="New organization"
-            show={show}
-            onHide={() => setShow(false)}
-            footer={[
-              <Button key="createOrg" onClick={createOrg}>
-                Create
-              </Button>,
-            ]}
-          >
-            <Row className="mb-3">
-              <Col>
-                <Form.Label>Organization name</Form.Label>
-                <Form.Control
-                  type="text"
-                  placeholder="Organization"
-                  value={name}
-                  onChange={(e) => {
-                    setName(e.target.value);
-                  }}
-                />
-              </Col>
-            </Row>
-            <Row className="mb-3">
-              <Col>
-                <Form.Label>Admin email address</Form.Label>
-                <Form.Control
-                  type="email"
-                  placeholder="Email"
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                  }}
-                />
-              </Col>
-            </Row>
-          </Modal>
-        </List>
-      </Page>
-    </Shell>
+            </Col>
+          </Row>
+          <Row className="mb-3">
+            <Col>
+              <Form.Label>Admin email address</Form.Label>
+              <Form.Control
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                }}
+              />
+            </Col>
+          </Row>
+        </Modal>
+      </Grid>
+    </>
   );
 }
