@@ -3,15 +3,16 @@ import React, { useState, useEffect } from "react";
 import useFirestore from "../db/Firestore.js";
 import TagGroupSelector from "./TagGroupSelector.js";
 import TemplateSelector from "./TemplateSelector.js";
-import Modal from "../shell_obsolete/Modal.js";
 
-import Row from "react-bootstrap/Row";
-import Col from "react-bootstrap/Col";
-import Button from "react-bootstrap/Button";
-import Form from "react-bootstrap/Form";
+import Dialog from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import TextField from "@material-ui/core/TextField";
+import Button from "@material-ui/core/Button";
 
-export default function DocumentCreateModal(props) {
-  const [doc, setDoc] = useState();
+export default function DocumentCreateModal({ show, onHide, editor }) {
   const [name, setName] = useState();
   const { documentRef } = useFirestore();
 
@@ -22,15 +23,14 @@ export default function DocumentCreateModal(props) {
       let data = snapshot.data();
       data.ID = snapshot.id;
       setName(data.name);
-      setDoc(data);
     });
-  }, [props.show, documentRef]);
-
-  if (!doc) {
-    return <></>;
-  }
+  }, [show, documentRef]);
 
   const onSave = () => {
+    if (!documentRef) {
+      return;
+    }
+
     documentRef.set(
       {
         name: name,
@@ -38,54 +38,41 @@ export default function DocumentCreateModal(props) {
       },
       { merge: true }
     );
-    props.onHide();
+    onHide();
   };
 
   return (
-    <Modal
-      show={props.show}
-      onHide={props.onHide}
-      name="New document"
-      footer={[
-        <Button key="save" onClick={onSave}>
-          Save
-        </Button>,
-      ]}
+    <Dialog
+      open={show}
+      onClose={onHide}
+      aria-labelledby="alert-dialog-title"
+      aria-describedby="alert-dialog-description"
     >
-      <Row key="name" className="mb-3">
-        <Col>
-          <p>
-            <b>Document name</b>
-          </p>
-          <Form.Control
-            type="text"
-            placeholder="Name"
-            value={name}
-            onChange={(e) => {
-              setName(e.target.value);
-            }}
-            onKeyUp={(e) => {
-              if (e.key === "Enter") onSave();
-            }}
-          />
-        </Col>
-      </Row>
-      <Row key="tagGroup" className="mb-3">
-        <Col>
-          <p>
-            <b>Tag group</b>
-          </p>
-          <TagGroupSelector />
-        </Col>
-      </Row>
-      <Row key="template" className="mb-3">
-        <Col>
-          <p>
-            <b>Template</b>
-          </p>
-          <TemplateSelector editor={props.editor} />
-        </Col>
-      </Row>
-    </Modal>
+      <DialogTitle id="alert-dialog-title">{`New document`}</DialogTitle>
+      <DialogContent>
+        <DialogContentText id="alert-dialog-description">
+          Set document name, tag group, and template.
+        </DialogContentText>
+        <TextField
+          autofocus
+          margin="dense"
+          id="name"
+          label="Document name"
+          fullWidth
+          value={name}
+          onChange={(e) => {
+            setName(e.target.value);
+          }}
+          onKeyUp={(e) => {
+            if (e.key === "Enter") onSave();
+          }}
+        />
+        <TagGroupSelector />
+        <TemplateSelector editor={editor} />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onSave}>Continue</Button>
+      </DialogActions>
+    </Dialog>
   );
 }
