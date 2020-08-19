@@ -29,6 +29,8 @@ import { useNavigate, useLocation, useParams } from "react-router-dom";
 
 import logo from "../assets/images/logo.svg";
 
+import "./style.css";
+
 const drawerWidth = 240;
 
 const useStyles = makeStyles((theme) => ({
