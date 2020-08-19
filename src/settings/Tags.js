@@ -5,14 +5,7 @@ import useFirestore from "../db/Firestore.js";
 import event from "../analytics/event.js";
 import { useOrganization } from "../organization/hooks.js";
 
-import Col from "react-bootstrap/Col";
-import Form from "react-bootstrap/Form";
-import Modal from "react-bootstrap/Modal";
-import Row from "react-bootstrap/Row";
-import Button from "react-bootstrap/Button";
-import { GithubPicker } from "react-color";
-
-import { XCircleFill } from "react-bootstrap-icons";
+import { SwatchesPicker } from "react-color";
 
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -25,18 +18,48 @@ import { Loading } from "../util/Utils.js";
 
 import ListContainer from "../shell/ListContainer";
 import Scrollable from "../shell_obsolete/Scrollable.js";
-import Options from "../shell_obsolete/Options.js";
 
+import { makeStyles } from "@material-ui/core/styles";
 import AddIcon from "@material-ui/icons/Add";
 import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemText from "@material-ui/core/ListItemText";
 import Fab from "@material-ui/core/Fab";
 import Grid from "@material-ui/core/Grid";
+import Hidden from "@material-ui/core/Hidden";
+import Card from "@material-ui/core/Card";
+import CardContent from "@material-ui/core/CardContent";
+import CardActions from "@material-ui/core/CardActions";
+import Typography from "@material-ui/core/Typography";
+import IconButton from "@material-ui/core/IconButton";
+import Archive from "@material-ui/icons/Archive";
+import Button from "@material-ui/core/Button";
+import TextField from "@material-ui/core/TextField";
+
+import Dialog from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import DialogTitle from "@material-ui/core/DialogTitle";
+
+import ContentEditable from "react-contenteditable";
+
+const useStyles = makeStyles({
+  tagGroupCard: {
+    margin: "1rem 1rem 1rem 2rem",
+    padding: "1rem 2rem 4rem 2rem",
+    minHeight: "48rem",
+    width: "100%",
+    maxWidth: "80rem",
+  },
+  detailsParagraph: {
+    marginBottom: "0.35rem",
+  },
+});
 
 export default function Tags(props) {
   const { oauthClaims } = useContext(UserAuthContext);
-  const { orgRef, tagGroupsRef } = useFirestore();
+  const { tagGroupsRef } = useFirestore();
   const navigate = useNavigate();
   const { orgID, tagGroupID } = useParams();
   const [tagGroups, setTagGroups] = useState([]);
@@ -84,63 +107,6 @@ export default function Tags(props) {
     });
   };
 
-  const onRename = (ID, newName) => {
-    tagGroupsRef.doc(ID).set(
-      {
-        name: newName,
-      },
-      { merge: true }
-    );
-  };
-
-  const onDelete = (ID) => {
-    event("delete_tag_group", {
-      orgID: orgID,
-      userID: oauthClaims.user_id,
-    });
-
-    tagGroupsRef.doc(ID).update({
-      deletedBy: oauthClaims.email,
-      deletionTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
-    });
-
-    if (tagGroupID === ID) {
-      navigate("..");
-    }
-  };
-
-  const [modalTagGroup, setModalTagGroup] = useState(undefined);
-  const [showRenameModal, setShowRenameModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  let options = [
-    {
-      name: "Set to default",
-      onClick: (item) => {
-        console.debug("set default tag group", item);
-        orgRef.set(
-          {
-            defaultTagGroupID: item.ID,
-          },
-          { merge: true }
-        );
-      },
-    },
-    {
-      name: "Rename",
-      onClick: (item) => {
-        setModalTagGroup(item);
-        setShowRenameModal(true);
-      },
-    },
-    {
-      name: "Delete",
-      onClick: (item) => {
-        setModalTagGroup(item);
-        setShowDeleteModal(true);
-      },
-    },
-  ];
-
   if (!tagGroupsRef || !defaultTagGroupID) {
     return <Loading />;
   }
@@ -153,7 +119,7 @@ export default function Tags(props) {
         key={tg.ID}
         selected={tg.ID === tagGroupID}
         onClick={() => {
-          navigate(`orgs/${orgID}/settings/tags/${tg.ID}`);
+          navigate(`/orgs/${orgID}/settings/tags/${tg.ID}`);
         }}
       >
         <ListItemText
@@ -183,13 +149,14 @@ export default function Tags(props) {
     </ListContainer>
   );
 
+  if (tagGroupID) {
+    list = <Hidden smDown>{list}</Hidden>;
+  }
+
   let content = undefined;
 
   if (tagGroupID) {
-    let tagGroupRef = tagGroupsRef.doc(tagGroupID);
-    content = (
-      <TagGroup key={tagGroupID} tagGroupRef={tagGroupRef} options={options} />
-    );
+    content = <TagGroup key={tagGroupID} />;
   }
 
   return (
@@ -202,23 +169,37 @@ export default function Tags(props) {
 
 function TagGroup(props) {
   const { oauthClaims } = useContext(UserAuthContext);
-  const { orgID } = useParams();
+  const { orgID, tagGroupID } = useParams();
+  const { tagGroupsRef } = useFirestore();
+  const [tagGroupRef, setTagGroupRef] = useState();
   const [tagGroup, setTagGroup] = useState();
   const [tags, setTags] = useState([]);
-
   const [tagNames, setTagNames] = useState({});
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+
+  const classes = useStyles();
 
   useEffect(() => {
-    let unsubscribe = props.tagGroupRef.onSnapshot((doc) => {
+    if (!tagGroupsRef || !tagGroupID) {
+      return;
+    }
+    setTagGroupRef(tagGroupsRef.doc(tagGroupID));
+  }, [tagGroupsRef, tagGroupID]);
+
+  useEffect(() => {
+    if (!tagGroupRef) return;
+
+    return tagGroupRef.onSnapshot((doc) => {
       let data = doc.data();
       data["ID"] = doc.id;
       setTagGroup(data);
     });
-    return unsubscribe;
-  }, [props.tagGroupRef]);
+  }, [tagGroupRef]);
 
   useEffect(() => {
-    let unsubscribe = props.tagGroupRef
+    if (!tagGroupRef) return;
+
+    let unsubscribe = tagGroupRef
       .collection("tags")
       .orderBy("creationTimestamp", "asc")
       .where("deletionTimestamp", "==", "")
@@ -238,9 +219,11 @@ function TagGroup(props) {
         setTagNames(newTagNames);
       });
     return unsubscribe;
-  }, [props.tagGroupRef]);
+  }, [tagGroupRef]);
 
-  const onAdd = () => {
+  const onAddTag = () => {
+    if (!tagGroupRef) return;
+
     event("create_tag", {
       orgID: orgID,
       userID: oauthClaims.user_id,
@@ -249,13 +232,12 @@ function TagGroup(props) {
     let color = colorPair();
     let newTagID = nanoid();
 
-    props.tagGroupRef.collection("tags").doc(newTagID).set({
+    tagGroupRef.collection("tags").doc(newTagID).set({
       ID: newTagID,
       name: "Untitled tag",
       organizationID: orgID,
       color: color.background,
       textColor: color.foreground,
-      tagGroupID: props.tagGroupRef.id,
       createdBy: oauthClaims.email,
       creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
       deletionTimestamp: "",
@@ -268,102 +250,178 @@ function TagGroup(props) {
     }
   };
 
-  if (props.tagGroupRef === undefined || tagGroup === undefined) {
-    console.log(props);
-    return <></>;
+  if (!tagGroupRef || !tagGroup) {
+    return <Loading />;
   }
+
+  let archiveDialog = (
+    <TagGroupDeleteDialog
+      tagGroupRef={props.tagGroupRef}
+      open={openDeleteDialog}
+      setOpen={setOpenDeleteDialog}
+      tagGroup={tagGroup}
+    />
+  );
+
+  let tagDetails = tags.map((tag) => (
+    <Grid
+      container
+      item
+      xs={12}
+      key={tag.ID}
+      alignItems="flex-start"
+      style={{ marginBottom: "1rem" }}
+    >
+      <Grid container item xs>
+        <ColorPicker tag={tag} tagGroupRef={props.tagGroupRef} />
+        <TextField
+          style={{ marginLeft: "0.5rem" }}
+          placeholder="Name"
+          value={tagNames[tag.ID]}
+          variant="outlined"
+          onChange={(e) => {
+            let tn = {};
+            Object.assign(tn, tagNames);
+            tn[tag.ID] = e.target.value;
+            setTagNames(tn);
+          }}
+          onBlur={(e) => {
+            if (tagNames[tag.ID] === undefined) {
+              return;
+            }
+
+            tagGroupRef.collection("tags").doc(tag.ID).set(
+              {
+                name: tagNames[tag.ID],
+              },
+              { merge: true }
+            );
+          }}
+          onKeyDown={checkReturn}
+        />
+        <Button
+          color="primary"
+          style={{ marginLeft: "0.5rem" }}
+          onClick={() => {
+            event("delete_tag", {
+              orgID: orgID,
+              userID: oauthClaims.user_id,
+            });
+
+            console.debug("TODO: use a modal for this instead");
+            let proceed = window.confirm(
+              `This will remove highlights associated with this tag.\nAre you sure you want to delete it?`
+            );
+
+            if (!proceed) {
+              console.debug("user declined to proceeed with deleting the tag");
+              return;
+            }
+
+            tagGroupRef.collection("tags").doc(tag.ID).set(
+              {
+                deletedBy: oauthClaims.email,
+                deletionTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+              },
+              { merge: true }
+            );
+          }}
+        >
+          <Archive />
+        </Button>
+      </Grid>
+    </Grid>
+  ));
 
   return (
     <>
-      <Row key="header" style={{ paddingBottom: "2rem" }}>
-        <Col className="d-flex align-self-center">
-          <h3 className="my-auto">{tagGroup.name}</h3>
-          <Button variant="link">
-            <Options item={tagGroup} options={props.options} />
-          </Button>
-        </Col>
-      </Row>
-      {tags.map((tag) => {
-        return (
-          <Row className="mb-2" key={tag.ID}>
-            <Col md={12}>
-              <Row noGutters={true}>
-                <Col md={11} className="d-flex">
-                  <ColorPicker tag={tag} tagGroupRef={props.tagGroupRef} />
-                  <Form.Control
-                    type="text"
-                    placeholder="Name"
-                    value={tagNames[tag.ID]}
-                    onChange={(e) => {
-                      let tn = {};
-                      Object.assign(tn, tagNames);
-                      tn[tag.ID] = e.target.value;
-                      setTagNames(tn);
-                    }}
-                    onBlur={(e) => {
-                      if (tagNames[tag.ID] === undefined) {
-                        return;
-                      }
+      <Grid
+        style={{ position: "relative", height: "100%" }}
+        container
+        item
+        sm={12}
+        md={9}
+        xl={10}
+      >
+        <Scrollable>
+          <Grid container item spacing={0} xs={12}>
+            <Grid container item justify="center">
+              <Card className={classes.tagGroupCard}>
+                <CardContent>
+                  <Grid container>
+                    <Grid container item xs={12} alignItems="flex-start">
+                      <Grid item xs={11}>
+                        <Typography gutterBottom variant="h4" component="h2">
+                          <ContentEditable
+                            html={tagGroup.name}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.target.blur();
+                              }
+                            }}
+                            onBlur={(e) => {
+                              if (tagGroupRef) {
+                                let newName = e.target.innerText
+                                  .replace(/(\r\n|\n|\r)/gm, " ")
+                                  .replace(/\s+/g, " ")
+                                  .trim();
 
-                      props.tagGroupRef.collection("tags").doc(tag.ID).set(
-                        {
-                          name: tagNames[tag.ID],
-                        },
-                        { merge: true }
-                      );
-                    }}
-                    onKeyDown={checkReturn}
-                  />
-                </Col>
-                <Col md={1} style={{ padding: 0 }}>
-                  <Button variant="link">
-                    <XCircleFill
-                      color="grey"
-                      onClick={() => {
-                        event("delete_tag", {
-                          orgID: orgID,
-                          userID: oauthClaims.user_id,
-                        });
+                                console.debug(
+                                  "setting tag group name",
+                                  newName
+                                );
 
-                        console.debug("TODO: use a modal for this instead");
-                        let proceed = window.confirm(
-                          `This will remove highlights associated with this tag.\nAre you sure you want to delete it?`
-                        );
+                                tagGroupRef.set(
+                                  { name: newName },
+                                  { merge: true }
+                                );
+                              }
+                            }}
+                          />
+                        </Typography>
+                        <Typography
+                          variant="body2"
+                          color="textSecondary"
+                          component="p"
+                          className={classes.detailsParagraph}
+                        >
+                          Created{" "}
+                          <Moment
+                            fromNow
+                            date={tagGroup.creationTimestamp.toDate()}
+                          />{" "}
+                          by {tagGroup.createdBy}
+                        </Typography>
+                      </Grid>
 
-                        if (!proceed) {
-                          console.debug(
-                            "user declined to proceeed with deleting the tag"
-                          );
-                          return;
-                        }
+                      <Grid item xs={1}>
+                        <IconButton
+                          color="primary"
+                          aria-label="Archive template"
+                          onClick={() => {
+                            console.debug("confirm archive template");
+                            setOpenDeleteDialog(true);
+                          }}
+                        >
+                          <Archive />
+                        </IconButton>
+                      </Grid>
+                    </Grid>
 
-                        props.tagGroupRef.collection("tags").doc(tag.ID).set(
-                          {
-                            deletedBy: oauthClaims.email,
-                            deletionTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
-                          },
-                          { merge: true }
-                        );
-                      }}
-                    />
-                  </Button>
-                </Col>
-              </Row>
-            </Col>
-          </Row>
-        );
-      })}
-      <Row className="mb-3">
-        <Col>
-          <Button
-            className="addButton"
-            style={{ width: "1.5rem", height: "1.5rem", fontSize: "0.75rem" }}
-            onClick={onAdd}
-          >
-            +
-          </Button>
-        </Col>
-      </Row>
+                    <Grid item xs={12}>
+                      {tagDetails}
+                    </Grid>
+                  </Grid>
+                </CardContent>
+                <CardActions>
+                  <Button onClick={onAddTag}>Add Tag</Button>
+                </CardActions>
+              </Card>
+            </Grid>
+          </Grid>
+        </Scrollable>
+      </Grid>
+      {archiveDialog}
     </>
   );
 }
@@ -402,7 +460,7 @@ function ColorPicker(props) {
       </div>
       {colorPickerOpen ? (
         <div style={{ position: "absolute", zIndex: 2 }}>
-          <GithubPicker
+          <SwatchesPicker
             color={props.tag.color}
             onChangeComplete={(color) => {
               props.tagGroupRef
@@ -427,74 +485,67 @@ function ColorPicker(props) {
   );
 }
 
-function RenameModal(props) {
-  const [name, setName] = useState();
+function TagGroupDeleteDialog({ tagGroupRef, open, setOpen, tagGroup }) {
+  const { oauthClaims } = useContext(UserAuthContext);
+  const { orgID } = useParams();
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    if (props.tagGroup !== undefined) {
-      setName(props.tagGroup.name);
+  const cancel = () => {
+    console.debug("user canceled tag group archive");
+    setOpen(false);
+  };
+
+  const archive = () => {
+    if (
+      !tagGroupRef ||
+      !oauthClaims ||
+      !oauthClaims.email ||
+      !tagGroup ||
+      !tagGroup.ID
+    ) {
+      setOpen(false);
+      return;
     }
-  }, [props.tagGroup]);
 
-  const onSubmit = () => {
-    props.onRename(props.tagGroup.ID, name);
-    props.onHide();
+    console.debug("archiving tag group");
+
+    event("delete_tag_group", {
+      orgID: oauthClaims.orgID,
+      userID: oauthClaims.user_id,
+    });
+    tagGroupRef.set(
+      {
+        deletedBy: oauthClaims.email,
+        deletionTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+
+    navigate(`/orgs/${orgID}/settings/tags`);
   };
 
   return (
-    <Modal show={props.show} onHide={props.onHide} centered>
-      <Modal.Header closeButton>
-        <Modal.Title>Rename tag group</Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        <Form.Control
-          type="text"
-          defaultValue={name}
-          onChange={(e) => {
-            setName(e.target.value);
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              onSubmit();
-            }
-          }}
-        />
-      </Modal.Body>
-      <Modal.Footer>
-        <Button variant="primary" onClick={onSubmit}>
-          Rename
+    <Dialog
+      open={open}
+      onClose={cancel}
+      aria-labelledby="alert-dialog-title"
+      aria-describedby="alert-dialog-description"
+    >
+      <DialogTitle id="alert-dialog-title">{`Archive this tag group?`}</DialogTitle>
+      <DialogContent>
+        <DialogContentText id="alert-dialog-description">
+          Mark this tag group for deletion. This tag group will no longer be
+          visible and will be permanently deleted after thirty days.
+        </DialogContentText>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={cancel} color="primary">
+          Cancel
         </Button>
-      </Modal.Footer>
-    </Modal>
-  );
-}
-
-function DeleteModal(props) {
-  const [name, setName] = useState();
-
-  useEffect(() => {
-    if (props.tagGroup !== undefined) {
-      setName(props.tagGroup.name);
-    }
-  }, [props.tagGroup]);
-
-  return (
-    <Modal show={props.show} onHide={props.onHide} centered>
-      <Modal.Header closeButton>
-        <Modal.Title>Delete tag group</Modal.Title>
-      </Modal.Header>
-      <Modal.Body>Are you sure you want to delete {name}?</Modal.Body>
-      <Modal.Footer>
-        <Button
-          variant="danger"
-          onClick={() => {
-            props.onDelete(props.tagGroup.ID);
-            props.onHide();
-          }}
-        >
-          Delete
+        <Button onClick={archive} color="primary" autoFocus>
+          Archive
         </Button>
-      </Modal.Footer>
-    </Modal>
+      </DialogActions>
+    </Dialog>
   );
 }

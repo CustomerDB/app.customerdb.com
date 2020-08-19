@@ -8,15 +8,32 @@ import InviteMemberModal from "./InviteMemberModal.js";
 import DeleteMemberModal from "./DeleteMemberModal.js";
 
 import Options from "../Options.js";
+import { Loading } from "../util/Utils.js";
 
 import { useParams } from "react-router-dom";
 
-import Container from "react-bootstrap/Container";
-import Row from "react-bootstrap/Row";
-import Col from "react-bootstrap/Col";
-import Table from "react-bootstrap/Table";
-import Button from "react-bootstrap/Button";
-import Image from "react-bootstrap/Image";
+import { makeStyles } from "@material-ui/core/styles";
+import Grid from "@material-ui/core/Grid";
+import Card from "@material-ui/core/Card";
+import CardContent from "@material-ui/core/CardContent";
+import CardActions from "@material-ui/core/CardActions";
+import Avatar from "@material-ui/core/Avatar";
+import Button from "@material-ui/core/Button";
+import Table from "@material-ui/core/Table";
+import TableBody from "@material-ui/core/TableBody";
+import TableCell from "@material-ui/core/TableCell";
+import TableHead from "@material-ui/core/TableHead";
+import TableRow from "@material-ui/core/TableRow";
+
+const useStyles = makeStyles({
+  fullWidthCard: {
+    margin: "1rem",
+    padding: "1rem 2rem",
+    minHeight: "24rem",
+    width: "100%",
+    maxWidth: "80rem",
+  },
+});
 
 export default function Members(props) {
   const { oauthClaims } = useContext(UserAuthContext);
@@ -26,6 +43,8 @@ export default function Members(props) {
   const [member, setMember] = useState();
   const [inviteModalShow, setInviteModalShow] = useState();
   const [deleteModalShow, setDeleteModalShow] = useState();
+
+  const classes = useStyles();
 
   useEffect(() => {
     if (!membersRef) {
@@ -104,144 +123,161 @@ export default function Members(props) {
     );
   };
 
+  const createData = (member) => {
+    let options = [];
+
+    let status;
+
+    if (member.invited) {
+      status = "Invited";
+      options.push({
+        name: "Redact invite",
+        onClick: (item) => {
+          onRedact(item.ID);
+        },
+      });
+    } else if (!member.active) {
+      status = "Inactive";
+      options.push({
+        name: "Activate",
+        onClick: (item) => {
+          onActivate(item.ID);
+        },
+      });
+    } else if (member.admin) {
+      status = "Administrator";
+
+      options.push({
+        name: "Disable account",
+        onClick: (item) => {
+          onDisable(item.ID);
+        },
+      });
+
+      options.push({
+        name: "Convert to member",
+        onClick: (item) => {
+          onAdminToUser(item.ID);
+        },
+      });
+    } else {
+      status = "Active";
+
+      options.push({
+        name: "Disable account",
+        onClick: (item) => {
+          onDisable(item.ID);
+        },
+      });
+
+      options.push({
+        name: "Convert to administrator",
+        onClick: (item) => {
+          onUserToAdmin(item.ID);
+        },
+      });
+    }
+
+    options.push({
+      name: "Delete",
+      onClick: (item) => {
+        setMember(item);
+        setDeleteModalShow(true);
+      },
+    });
+
+    let avatar =
+      member.photoURL !== undefined ? (
+        <Avatar
+          src={member.photoURL}
+          alt=""
+          style={{ width: "4rem", height: "4rem" }}
+        />
+      ) : (
+        <></>
+      );
+
+    return {
+      ID: member.ID,
+      avatar: avatar,
+      name: member.displayName,
+      email: member.email,
+      status: status,
+      options: <Options options={options} item={member} />,
+    };
+  };
+
+  if (!members) {
+    return <Loading />;
+  }
+
+  const rows = members.map(createData);
+
+  let memberTable = (
+    <Table
+      style={{ width: "100%", overflowX: "hidden" }}
+      aria-label="organization members"
+    >
+      <TableHead>
+        <TableRow>
+          <TableCell></TableCell>
+          <TableCell align="left">Name</TableCell>
+          <TableCell align="left">Email</TableCell>
+          <TableCell align="left">Status</TableCell>
+          <TableCell align="left">Actions</TableCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {rows.map((row) => (
+          <TableRow key={row.ID}>
+            <TableCell align="left">{row.avatar}</TableCell>
+            <TableCell component="th" scope="row">
+              {row.name}
+            </TableCell>
+            <TableCell align="left">{row.email}</TableCell>
+            <TableCell align="left">{row.status}</TableCell>
+            <TableCell align="left">{row.options}</TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+
   return (
     <>
-      <Container>
-        <Row style={{ paddingBottom: "2rem" }}>
-          <Col>
-            <h3>Members</h3>
-          </Col>
-        </Row>
-        <Row>
-          <Col>
-            <Table>
-              <thead>
-                <tr>
-                  <th></th>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Status</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {members !== undefined ? (
-                  members.map((member) => {
-                    let options = [];
-                    let status;
-                    if (member.invited) {
-                      status = "Invited";
-                      options.push({
-                        name: "Redact invite",
-                        onClick: (item) => {
-                          onRedact(item.ID);
-                        },
-                      });
-                    } else if (!member.active) {
-                      status = "Inactive";
-                      options.push({
-                        name: "Activate",
-                        onClick: (item) => {
-                          onActivate(item.ID);
-                        },
-                      });
-                    } else if (member.admin) {
-                      status = "Administrator";
-
-                      options.push({
-                        name: "Disable account",
-                        onClick: (item) => {
-                          onDisable(item.ID);
-                        },
-                      });
-
-                      options.push({
-                        name: "Convert to member",
-                        onClick: (item) => {
-                          onAdminToUser(item.ID);
-                        },
-                      });
-                    } else {
-                      status = "Active";
-
-                      options.push({
-                        name: "Disable account",
-                        onClick: (item) => {
-                          onDisable(item.ID);
-                        },
-                      });
-
-                      options.push({
-                        name: "Convert to administrator",
-                        onClick: (item) => {
-                          onUserToAdmin(item.ID);
-                        },
-                      });
-                    }
-
-                    options.push({
-                      name: "Delete",
-                      onClick: (item) => {
-                        setMember(item);
-                        setDeleteModalShow(true);
-                      },
-                    });
-
-                    return (
-                      <tr key={member.uid}>
-                        <td>
-                          {member.photoURL !== undefined ? (
-                            <Image
-                              roundedCircle
-                              className=""
-                              src={member.photoURL}
-                              alt="..."
-                              style={{ width: "5rem" }}
-                            />
-                          ) : (
-                            <></>
-                          )}
-                        </td>
-                        <td>{member.displayName}</td>
-                        <td>{member.email}</td>
-                        <td>{status}</td>
-                        <td>
-                          <Options options={options} item={member} />
-                        </td>
-                      </tr>
-                    );
-                  })
-                ) : (
-                  <></>
-                )}
-              </tbody>
-            </Table>
+      <Grid container item xs={12} spacing={0} justify="center">
+        <Card className={classes.fullWidthCard}>
+          <CardContent>
+            <Grid item xs>
+              {memberTable}
+            </Grid>
+          </CardContent>
+          <CardActions>
             <Button
-              className="float-right addButton"
               onClick={() => {
                 setInviteModalShow(true);
               }}
             >
-              +
+              Invite New Member
             </Button>
-          </Col>
-        </Row>
-      </Container>
-      <InviteMemberModal
-        show={inviteModalShow}
-        onInvite={onInvite}
-        onHide={() => {
-          setInviteModalShow(false);
-        }}
-      />
-      <DeleteMemberModal
-        show={deleteModalShow}
-        member={member}
-        onDelete={onDelete}
-        onHide={() => {
-          setDeleteModalShow(false);
-        }}
-      />
+          </CardActions>
+        </Card>
+        <InviteMemberModal
+          show={inviteModalShow}
+          onInvite={onInvite}
+          onHide={() => {
+            setInviteModalShow(false);
+          }}
+        />
+        <DeleteMemberModal
+          show={deleteModalShow}
+          member={member}
+          onDelete={onDelete}
+          onHide={() => {
+            setDeleteModalShow(false);
+          }}
+        />
+      </Grid>
     </>
   );
 }
