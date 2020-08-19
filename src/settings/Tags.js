@@ -256,7 +256,7 @@ function TagGroup(props) {
 
   let archiveDialog = (
     <TagGroupDeleteDialog
-      tagGroupRef={props.tagGroupRef}
+      tagGroupRef={tagGroupRef}
       open={openDeleteDialog}
       setOpen={setOpenDeleteDialog}
       tagGroup={tagGroup}
@@ -273,7 +273,7 @@ function TagGroup(props) {
       style={{ marginBottom: "1rem" }}
     >
       <Grid container item xs>
-        <ColorPicker tag={tag} tagGroupRef={props.tagGroupRef} />
+        <ColorPicker tag={tag} tagGroupRef={tagGroupRef} />
         <TextField
           style={{ marginLeft: "0.5rem" }}
           placeholder="Name"
