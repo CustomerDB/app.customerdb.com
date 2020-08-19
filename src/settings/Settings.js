@@ -29,14 +29,14 @@ export default function Settings(props) {
   const MEMBERS = "members";
 
   const tabs = [
-    <Tab value={PROFILE} label="Profile" />,
-    <Tab value={TAGS} label="Tags" />,
-    <Tab value={TEMPLATES} label="Templates" />,
-    <Tab value={IMPORT} label="Bulk Import" />,
+    <Tab key={PROFILE} value={PROFILE} label="Profile" />,
+    <Tab key={TAGS} value={TAGS} label="Tags" />,
+    <Tab key={TEMPLATES} value={TEMPLATES} label="Templates" />,
+    <Tab key={IMPORT} value={IMPORT} label="Bulk Import" />,
   ];
 
   if (auth.oauthClaims.admin === true) {
-    tabs.push(<Tab value={MEMBERS} label="Members" />);
+    tabs.push(<Tab key={MEMBERS} value={MEMBERS} label="Members" />);
   }
 
   const onTabChange = (e, newValue) => {
