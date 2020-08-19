@@ -160,8 +160,8 @@ export default function BulkImport(props) {
       {isDragActive ? (
         <p>Drop contact CSV files here...</p>
       ) : (
-          <p>Drag 'n' drop contact CSV files here, or click here to select</p>
-        )}
+        <p>Drag 'n' drop contact CSV files here, or click here to select</p>
+      )}
     </Grid>
   );
 
@@ -258,9 +258,7 @@ export default function BulkImport(props) {
             </Grid>
 
             <Grid container item>
-              <Grid item>
-                {okButton}
-              </Grid>
+              <Grid item>{okButton}</Grid>
             </Grid>
           </CardContent>
         </Card>
@@ -290,7 +288,7 @@ export default function BulkImport(props) {
                 onClick={chooseRandomRecord}
               >
                 Preview another random record
-            </Button>
+              </Button>
             </Grid>
           </Grid>
           <Grid container item>
@@ -302,7 +300,7 @@ export default function BulkImport(props) {
                 onClick={() => setRecords(undefined)}
               >
                 Cancel
-            </Button>
+              </Button>
             </Grid>
           </Grid>
 
@@ -318,7 +316,7 @@ export default function BulkImport(props) {
                 }}
               >
                 Import {records.length} records
-            </Button>
+              </Button>
             </Grid>
           </Grid>
         </CardContent>
