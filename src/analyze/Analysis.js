@@ -1,17 +1,20 @@
-import React from "react";
-
-import Content from "../shell_obsolete/Content.js";
+import React, { useEffect, useState } from "react";
 
 import { useParams, Navigate } from "react-router-dom";
 
 import { makeStyles } from "@material-ui/core/styles";
 
+import Typography from "@material-ui/core/Typography";
 import Grid from "@material-ui/core/Grid";
 import Paper from "@material-ui/core/Paper";
 
 import AnalysisDataTab from "./AnalysisDataTab.js";
 import AnalysisClusterTab from "./AnalysisClusterTab.js";
 import AnalysisSummaryTab from "./AnalysisSummaryTab.js";
+
+import Moment from "react-moment";
+
+import { Loading } from "../util/Utils.js";
 
 const useStyles = makeStyles({
   paper: {
@@ -30,18 +33,49 @@ const useStyles = makeStyles({
 export default function Analysis(props) {
   const { orgID, analysisID, tabID, tagID } = useParams();
 
+  const [analysis, setAnalysis] = useState();
+
   const classes = useStyles();
 
+  useEffect(() => {
+    if (!props.analysisRef) {
+      return;
+    }
+
+    return props.analysisRef.onSnapshot((doc) => {
+      let data = doc.data();
+      setAnalysis(data);
+    });
+  }, [props.analysisRef]);
+
+  if (!analysis) {
+    return <Loading />;
+  }
+
   // Give a hint if this analysis was deleted while in view.
-  if (props.analysis.deletionTimestamp !== "") {
-    let date = this.state.deletionTimestamp.toDate();
+  if (analysis.deletionTimestamp !== "") {
+    let relativeTime = (
+      <Moment fromNow date={analysis.deletionTimestamp.toDate()} />
+    );
 
     return (
-      <Content>
-        <Content.Title>
-          {props.analysis.name} was deleted on {date}
-        </Content.Title>
-      </Content>
+      <Grid container item md={12} lg={9} xl={10} spacing={0}>
+        <Paper className={classes.paper}>
+          <Grid container>
+            <Grid container item xs={12} alignItems="flex-start">
+              <Grid item xs={11}>
+                <Typography gutterBottom variant="h4" component="h2">
+                  {analysis.name}
+                </Typography>
+                <p>
+                  This analysis was deleted {relativeTime} by{" "}
+                  {analysis.deletedBy}
+                </p>
+              </Grid>
+            </Grid>
+          </Grid>
+        </Paper>
+      </Grid>
     );
   }
 
@@ -57,7 +91,7 @@ export default function Analysis(props) {
       <AnalysisSummaryTab
         key={`${analysisID}-${tagID}`}
         orgID={orgID}
-        analysis={props.analysis}
+        analysis={analysis}
         analysisRef={props.analysisRef}
         documentsRef={props.documentsRef}
         allHighlightsRef={props.allHighlightsRef}
@@ -68,7 +102,7 @@ export default function Analysis(props) {
   if (tabID === "data") {
     view = (
       <AnalysisDataTab
-        analysis={props.analysis}
+        analysis={analysis}
         analysisRef={props.analysisRef}
         documentsRef={props.documentsRef}
       />
@@ -80,7 +114,7 @@ export default function Analysis(props) {
       <AnalysisClusterTab
         key={`${analysisID}-${tagID}`}
         orgID={orgID}
-        analysis={props.analysis}
+        analysis={analysis}
         analysisRef={props.analysisRef}
         documentsRef={props.documentsRef}
         allHighlightsRef={props.allHighlightsRef}
