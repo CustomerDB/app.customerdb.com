@@ -7,7 +7,6 @@ import Row from "react-bootstrap/Row";
 
 import Shell from "../shell_obsolete/Shell.js";
 import Page from "../shell_obsolete/Page.js";
-import Content from "../shell_obsolete/Content.js";
 import Navigation from "../shell_obsolete/Navigation.js";
 
 import List from "../shell_obsolete/List.js";
@@ -128,7 +127,6 @@ export default function Admin(props) {
             </Row>
           </Modal>
         </List>
-        <Content></Content>
       </Page>
     </Shell>
   );

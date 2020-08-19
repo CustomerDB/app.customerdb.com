@@ -2,22 +2,23 @@ import React from "react";
 
 import { Link, useParams } from "react-router-dom";
 
-import { ArrowUp } from "react-bootstrap-icons";
-
 import dataGraphic from "../assets/images/data.svg";
+import arrowDown from "../assets/images/handdrawn-arrow-down.svg";
 
 export default function DataHelp(props) {
   const { orgID } = useParams();
 
   return (
-    <div className="roundedBorders" style={{ padding: "0.5rem" }}>
-      <div style={{ display: "flex" }}>
-        <div>
-          <b>Get started by adding a customer note or conversation.</b>
-        </div>
-        <div>
-          <ArrowUp size={40} />
-        </div>
+    <div style={{ padding: "0.5rem" }}>
+      <div>
+        <img
+          style={{ width: "100%" }}
+          src={dataGraphic}
+          alt="Data illustration"
+        />
+      </div>
+      <div>
+        <b>Get started by adding a customer note or conversation.</b>
       </div>
       <br />
       <div>
@@ -32,11 +33,11 @@ export default function DataHelp(props) {
           <Link to={`/orgs/${orgID}/settings/tags`}>settings</Link>.
         </p>
       </div>
-      <div>
+      <div style={{ textAlign: "right" }}>
         <img
-          style={{ width: "100%" }}
-          src={dataGraphic}
-          alt="Data illustration"
+          src={arrowDown}
+          style={{ width: "5rem", marginRight: "2rem", marginTop: "4rem" }}
+          alt="Arrow pointing to add button"
         />
       </div>
     </div>

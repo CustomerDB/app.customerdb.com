@@ -1,11 +1,10 @@
 import React from "react";
 
-import Content from "../shell_obsolete/Content.js";
 import dataGraphic from "../assets/images/data.svg";
 
 export default function ContentsHelp(props) {
   return (
-    <Content>
+    <div>
       <div className="d-flex flex-column w-100 h-100 justify-content-center align-self-center">
         <div
           className="d-flex flex-column justify-content-center align-self-center"
@@ -36,6 +35,6 @@ export default function ContentsHelp(props) {
           </div>
         </div>
       </div>
-    </Content>
+    </div>
   );
 }

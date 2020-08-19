@@ -8,7 +8,6 @@ import DocumentDeleted from "./DocumentDeleted.js";
 import ContentsPane from "./ContentsPane.js";
 
 import { Loading } from "../util/Utils.js";
-import Content from "../shell_obsolete/Content.js";
 
 import Grid from "@material-ui/core/Grid";
 
@@ -43,9 +42,9 @@ export default function Document(props) {
 
   if (document.deletionTimestamp !== "") {
     return (
-      <Content>
+      <div>
         <DocumentDeleted document={document} />
-      </Content>
+      </div>
     );
   }
 
