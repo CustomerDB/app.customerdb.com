@@ -1,6 +1,6 @@
 import React from "react";
 
-import Spinner from "react-bootstrap/Spinner";
+import CircularProgress from "@material-ui/core/CircularProgress";
 
 export function now() {
   let now = new Date();
@@ -11,7 +11,7 @@ export function Loading() {
   return (
     <div className="outerContainer">
       <div className="spinnerContainer">
-        <Spinner animation="grow" />
+        <CircularProgress color="primary" />
       </div>
     </div>
   );
