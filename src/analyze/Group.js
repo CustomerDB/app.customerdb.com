@@ -1,7 +1,9 @@
 import React from "react";
 
+import IconButton from "@material-ui/core/IconButton";
+import CreateIcon from "@material-ui/icons/Create";
+
 import { circumscribingCircle } from "./geom.js";
-import Options from "../shell_obsolete/Options.js";
 
 export function computeGroupBounds(cards) {
   let rect = {};
@@ -44,17 +46,6 @@ export default class Group extends React.Component {
     if (this.props.cards === undefined || this.props.cards.length === 0) {
       return <></>;
     }
-
-    let options = (
-      <Options>
-        <Options.Item
-          name="Rename"
-          onClick={() =>
-            this.props.renameGroupModalCallback(this.props.group.ID)
-          }
-        />
-      </Options>
-    );
 
     this.props.removeGroupLocationCallback(this.props.group);
 
@@ -115,7 +106,13 @@ export default class Group extends React.Component {
           <div className="d-flex justify-content-center">
             <div className="d-flex justify-content-center">
               <div className="align-self-center">{this.props.name}</div>{" "}
-              {options}
+              <IconButton
+                onClick={() =>
+                  this.props.renameGroupModalCallback(this.props.group.ID)
+                }
+              >
+                <CreateIcon />
+              </IconButton>
             </div>
           </div>
           <p>
