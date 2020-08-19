@@ -91,7 +91,7 @@ export default function AnalysisAnalysisTab(props) {
     );
 
     let newDocuments = {};
-    analysisDocumentsRef.onSnapshot((snapshot) => {
+    return analysisDocumentsRef.onSnapshot((snapshot) => {
       console.log("Received documents");
       snapshot.forEach((doc) => {
         newDocuments[doc.id] = doc.data();
@@ -105,7 +105,7 @@ export default function AnalysisAnalysisTab(props) {
       return;
     }
 
-    allTagsRef
+    return allTagsRef
       .where("organizationID", "==", props.orgID)
       .onSnapshot((snapshot) => {
         let newTags = {};

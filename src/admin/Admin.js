@@ -110,7 +110,7 @@ export default function Admin(props) {
                 setShow(true);
               }}
             >
-              Invite New Member
+              Create organization
             </Button>
           </CardActions>
         </Card>
