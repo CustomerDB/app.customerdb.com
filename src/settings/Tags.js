@@ -17,7 +17,7 @@ import colorPair, { getTextColorForBackground } from "../util/color.js";
 import { Loading } from "../util/Utils.js";
 
 import ListContainer from "../shell/ListContainer";
-import Scrollable from "../shell_obsolete/Scrollable.js";
+import Scrollable from "../shell/Scrollable.js";
 
 import { makeStyles } from "@material-ui/core/styles";
 import AddIcon from "@material-ui/icons/Add";

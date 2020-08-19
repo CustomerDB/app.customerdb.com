@@ -16,7 +16,7 @@ import { getSearchClient } from "../search/client.js";
 
 import { Loading } from "../util/Utils.js";
 
-import Scrollable from "../shell_obsolete/Scrollable.js";
+import Scrollable from "../shell/Scrollable.js";
 
 import { InstantSearch, SearchBox, connectHits } from "react-instantsearch-dom";
 

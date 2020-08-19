@@ -27,7 +27,7 @@ import DocumentSidebar from "./DocumentSidebar.js";
 import DocumentDeleteDialog from "./DocumentDeleteDialog.js";
 import { addTagStyles, removeTagStyles } from "./Tags.js";
 
-import Scrollable from "../shell_obsolete/Scrollable.js";
+import Scrollable from "../shell/Scrollable.js";
 
 import ContentEditable from "react-contenteditable";
 

@@ -6,7 +6,7 @@ import useFirestore from "../db/Firestore.js";
 
 import Shell from "../shell/Shell.js";
 
-import Scrollable from "../shell_obsolete/Scrollable.js";
+import Scrollable from "../shell/Scrollable.js";
 
 import Analysis from "./Analysis.js";
 import AnalysisRenameModal from "./AnalysisRenameModal.js";

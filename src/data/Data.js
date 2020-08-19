@@ -20,7 +20,7 @@ import DocumentCreateModal from "./DocumentCreateModal.js";
 import Shell from "../shell/Shell.js";
 import ListContainer from "../shell/ListContainer";
 
-import Scrollable from "../shell_obsolete/Scrollable.js";
+import Scrollable from "../shell/Scrollable.js";
 
 import AddIcon from "@material-ui/icons/Add";
 import List from "@material-ui/core/List";

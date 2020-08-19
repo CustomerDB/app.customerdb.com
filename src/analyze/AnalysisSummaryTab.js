@@ -4,7 +4,7 @@ import useFirestore from "../db/Firestore.js";
 
 import { Link } from "react-router-dom";
 
-import Scrollable from "../shell_obsolete/Scrollable.js";
+import Scrollable from "../shell/Scrollable.js";
 
 import Button from "react-bootstrap/Button";
 import Container from "react-bootstrap/Container";

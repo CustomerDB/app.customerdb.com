@@ -14,7 +14,7 @@ import Grid from "@material-ui/core/Grid";
 import IconButton from "@material-ui/core/IconButton";
 import Linkify from "react-linkify";
 import Row from "react-bootstrap/Row";
-import Scrollable from "../shell_obsolete/Scrollable.js";
+import Scrollable from "../shell/Scrollable.js";
 import Typography from "@material-ui/core/Typography";
 import useFirestore from "../db/Firestore.js";
 

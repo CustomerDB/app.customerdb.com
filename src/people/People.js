@@ -20,7 +20,7 @@ import Shell from "../shell/Shell.js";
 import ListContainer from "../shell/ListContainer";
 
 import Infinite from "../shell_obsolete/Infinite.js";
-import Scrollable from "../shell_obsolete/Scrollable.js";
+import Scrollable from "../shell/Scrollable.js";
 
 import PersonEditModal from "./PersonEditModal.js";
 import Person from "./Person.js";
