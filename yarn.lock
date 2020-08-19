@@ -9942,13 +9942,6 @@ react-avatar@^3.9.7:
     is-retina "^1.0.3"
     md5 "^2.0.0"
 
-react-bootstrap-icons@^1.0.3-alpha5:
-  version "1.0.3-alpha5"
-  resolved "https://registry.yarnpkg.com/react-bootstrap-icons/-/react-bootstrap-icons-1.0.3-alpha5.tgz#88f4427600d09a05fc4ef25b28847c3034e3c2af"
-  integrity sha512-bsa8Z/mu5e2NK0zSl4+M6GTUfdQSiFALkRn9XN8OlgXbFwlmKtrgR4ioTot27jZrmmdsKWHpdME22l1ukxEcUw==
-  dependencies:
-    prop-types "^15.7.2"
-
 react-bootstrap@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/react-bootstrap/-/react-bootstrap-1.0.1.tgz#044b51f34a9db8e17dbfb321a71267a8d6ad11b4"

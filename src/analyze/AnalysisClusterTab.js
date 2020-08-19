@@ -20,7 +20,9 @@ import AnalysisClusterBoard from "./AnalysisClusterBoard.js";
 import { Loading } from "../util/Utils.js";
 
 import { nanoid } from "nanoid";
-import { ArrowsAngleExpand, ArrowsAngleContract } from "react-bootstrap-icons";
+
+import FullscreenIcon from "@material-ui/icons/Fullscreen";
+import FullscreenExitIcon from "@material-ui/icons/FullscreenExit";
 
 import ClusterDropdown from "./ClusterDropdown.js";
 
@@ -105,12 +107,10 @@ export default function AnalysisClusterTab(props) {
     setShowRenameGroupModal(true);
   };
 
-  let arrows = <ArrowsAngleExpand />;
+  let arrows = <FullscreenIcon />;
   if (focus.focus === "cluster") {
-    arrows = <ArrowsAngleContract />;
+    arrows = <FullscreenExitIcon />;
   }
-
-  console.log(fullscreen);
 
   return (
     <Grid

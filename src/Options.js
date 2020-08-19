@@ -1,7 +1,7 @@
 import React from "react";
 
 import Dropdown from "react-bootstrap/Dropdown";
-import { ThreeDotsVertical } from "react-bootstrap-icons";
+import MoreVertIcon from "@material-ui/icons/MoreVert";
 
 /**
  * Creates a "three vertical dot" drop down.
@@ -10,9 +10,9 @@ import { ThreeDotsVertical } from "react-bootstrap-icons";
  *
  */
 export default function Options(props) {
-  let threedots = <ThreeDotsVertical />;
+  let threedots = <MoreVertIcon />;
   if (props.inverted === true) {
-    threedots = <ThreeDotsVertical color="white" />;
+    threedots = <MoreVertIcon color="white" />;
   }
 
   let list = props.options.map((option) => {
