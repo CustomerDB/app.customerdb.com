@@ -41,7 +41,7 @@ export default function PersonData(props) {
     if (!documentsRef || !personID) {
       return;
     }
-    documentsRef
+    return documentsRef
       .where("deletionTimestamp", "==", "")
       .where("personID", "==", personID)
       .orderBy("creationTimestamp", "desc")
