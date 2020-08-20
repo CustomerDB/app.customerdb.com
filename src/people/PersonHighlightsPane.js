@@ -1,21 +1,16 @@
 import React, { useEffect, useState } from "react";
-
-import { Loading } from "../util/Utils.js";
-import { makeStyles } from "@material-ui/core/styles";
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 import Badge from "react-bootstrap/Badge";
 import Button from "react-bootstrap/Button";
-
 import Card from "@material-ui/core/Card";
+import CardActionArea from "@material-ui/core/CardActionArea";
 import Grid from "@material-ui/core/Grid";
-
+import { Loading } from "../util/Utils.js";
 import TurnedInIcon from "@material-ui/icons/TurnedIn";
 import TurnedInNotIcon from "@material-ui/icons/TurnedInNot";
-
 import Typography from "@material-ui/core/Typography";
-
-import CardActionArea from "@material-ui/core/CardActionArea";
+import { makeStyles } from "@material-ui/core/styles";
 import useFirestore from "../db/Firestore.js";
 
 const useStyles = makeStyles({

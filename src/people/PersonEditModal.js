@@ -1,16 +1,13 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
 
+import Button from "react-bootstrap/Button";
+import Col from "react-bootstrap/Col";
+import DeleteIcon from "@material-ui/icons/Delete";
+import Form from "react-bootstrap/Form";
+import Modal from "../shell_obsolete/Modal.js";
+import Row from "react-bootstrap/Row";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
-import Modal from "../shell_obsolete/Modal.js";
-
-import Row from "react-bootstrap/Row";
-import Col from "react-bootstrap/Col";
-import Button from "react-bootstrap/Button";
-import Form from "react-bootstrap/Form";
-
-import DeleteIcon from "@material-ui/icons/Delete";
-
 import { nanoid } from "nanoid";
 
 export default function PersonEditModal(props) {

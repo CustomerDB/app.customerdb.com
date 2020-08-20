@@ -1,21 +1,18 @@
-import React, { useState, useEffect, useContext } from "react";
-
-import UserAuthContext from "../auth/UserAuthContext.js";
-
-import Row from "react-bootstrap/Row";
-import Col from "react-bootstrap/Col";
-import Form from "react-bootstrap/Form";
+import "./style.css";
 
 import {
   InstantSearch,
   connectHits,
   connectSearchBox,
 } from "react-instantsearch-dom";
+import React, { useContext, useEffect, useState } from "react";
 
-import { getSearchClient } from "./client.js";
+import Col from "react-bootstrap/Col";
+import Form from "react-bootstrap/Form";
 import { Loading } from "../util/Utils.js";
-
-import "./style.css";
+import Row from "react-bootstrap/Row";
+import UserAuthContext from "../auth/UserAuthContext.js";
+import { getSearchClient } from "./client.js";
 
 const SearchBox = ({
   currentRefinement,

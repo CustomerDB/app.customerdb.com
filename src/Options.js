@@ -1,7 +1,6 @@
-import React from "react";
-
 import Dropdown from "react-bootstrap/Dropdown";
 import MoreVertIcon from "@material-ui/icons/MoreVert";
+import React from "react";
 
 /**
  * Creates a "three vertical dot" drop down.
