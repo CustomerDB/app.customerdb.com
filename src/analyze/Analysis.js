@@ -1,15 +1,20 @@
-import { Navigate, useParams } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 
-import AnalysisClusterTab from "./AnalysisClusterTab.js";
-import AnalysisDataTab from "./AnalysisDataTab.js";
-import AnalysisSummaryTab from "./AnalysisSummaryTab.js";
-import Grid from "@material-ui/core/Grid";
-import { Loading } from "../util/Utils.js";
-import Moment from "react-moment";
-import Paper from "@material-ui/core/Paper";
-import Typography from "@material-ui/core/Typography";
+import { useParams, Navigate } from "react-router-dom";
+
 import { makeStyles } from "@material-ui/core/styles";
+
+import Typography from "@material-ui/core/Typography";
+import Grid from "@material-ui/core/Grid";
+import Paper from "@material-ui/core/Paper";
+
+import AnalysisDataTab from "./AnalysisDataTab.js";
+import AnalysisClusterTab from "./AnalysisClusterTab.js";
+import AnalysisSummaryTab from "./AnalysisSummaryTab.js";
+
+import Moment from "react-moment";
+
+import { Loading } from "../util/Utils.js";
 
 const useStyles = makeStyles({
   paper: {

@@ -1,6 +1,8 @@
-import CreateIcon from "@material-ui/icons/Create";
-import IconButton from "@material-ui/core/IconButton";
 import React from "react";
+
+import IconButton from "@material-ui/core/IconButton";
+import CreateIcon from "@material-ui/icons/Create";
+
 import { circumscribingCircle } from "./geom.js";
 
 export function computeGroupBounds(cards) {

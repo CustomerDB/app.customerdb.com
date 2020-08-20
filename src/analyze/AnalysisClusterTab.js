@@ -1,21 +1,28 @@
-import { ArrowsAngleContract, ArrowsAngleExpand } from "react-bootstrap-icons";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
+
+import UserAuthContext from "../auth/UserAuthContext.js";
+import FocusContext from "../util/FocusContext.js";
+import useFirestore from "../db/Firestore.js";
+
+import Modal from "../shell_obsolete/Modal.js";
+
+import Grid from "@material-ui/core/Grid";
+
+import Container from "react-bootstrap/Container";
+import Row from "react-bootstrap/Row";
+import Col from "react-bootstrap/Col";
+import Button from "react-bootstrap/Button";
+import Form from "react-bootstrap/Form";
+
+import { useParams } from "react-router-dom";
 
 import AnalysisClusterBoard from "./AnalysisClusterBoard.js";
-import Button from "react-bootstrap/Button";
-import ClusterDropdown from "./ClusterDropdown.js";
-import Col from "react-bootstrap/Col";
-import Container from "react-bootstrap/Container";
-import FocusContext from "../util/FocusContext.js";
-import Form from "react-bootstrap/Form";
-import Grid from "@material-ui/core/Grid";
 import { Loading } from "../util/Utils.js";
-import Modal from "../shell_obsolete/Modal.js";
-import Row from "react-bootstrap/Row";
-import UserAuthContext from "../auth/UserAuthContext.js";
+
 import { nanoid } from "nanoid";
-import useFirestore from "../db/Firestore.js";
-import { useParams } from "react-router-dom";
+import { ArrowsAngleExpand, ArrowsAngleContract } from "react-bootstrap-icons";
+
+import ClusterDropdown from "./ClusterDropdown.js";
 
 export default function AnalysisClusterTab(props) {
   const { oauthClaims } = useContext(UserAuthContext);

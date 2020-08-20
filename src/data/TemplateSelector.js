@@ -1,14 +1,17 @@
 import React, { useContext, useEffect, useState } from "react";
 
+import UserAuthContext from "../auth/UserAuthContext.js";
+import useFirestore from "../db/Firestore.js";
+import event from "../analytics/event.js";
+
+import { initialDelta } from "./delta.js";
+
 import Delta from "quill-delta";
-import FormControl from "@material-ui/core/FormControl";
+
 import InputLabel from "@material-ui/core/InputLabel";
 import MenuItem from "@material-ui/core/MenuItem";
+import FormControl from "@material-ui/core/FormControl";
 import Select from "@material-ui/core/Select";
-import UserAuthContext from "../auth/UserAuthContext.js";
-import event from "../analytics/event.js";
-import { initialDelta } from "./delta.js";
-import useFirestore from "../db/Firestore.js";
 
 export default function TemplateSelector(props) {
   const { oauthClaims } = useContext(UserAuthContext);

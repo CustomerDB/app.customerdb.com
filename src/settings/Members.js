@@ -1,25 +1,29 @@
 import React, { useContext, useEffect, useState } from "react";
 
+import event from "../analytics/event.js";
+import UserAuthContext from "../auth/UserAuthContext";
+import useFirestore from "../db/Firestore.js";
+
+import InviteMemberModal from "./InviteMemberModal.js";
+import DeleteMemberModal from "./DeleteMemberModal.js";
+
+import Options from "../Options.js";
+import { Loading } from "../util/Utils.js";
+
+import { useParams } from "react-router-dom";
+
+import { makeStyles } from "@material-ui/core/styles";
+import Grid from "@material-ui/core/Grid";
+import Card from "@material-ui/core/Card";
+import CardContent from "@material-ui/core/CardContent";
+import CardActions from "@material-ui/core/CardActions";
 import Avatar from "@material-ui/core/Avatar";
 import Button from "@material-ui/core/Button";
-import Card from "@material-ui/core/Card";
-import CardActions from "@material-ui/core/CardActions";
-import CardContent from "@material-ui/core/CardContent";
-import DeleteMemberModal from "./DeleteMemberModal.js";
-import Grid from "@material-ui/core/Grid";
-import InviteMemberModal from "./InviteMemberModal.js";
-import { Loading } from "../util/Utils.js";
-import Options from "../Options.js";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
-import UserAuthContext from "../auth/UserAuthContext";
-import event from "../analytics/event.js";
-import { makeStyles } from "@material-ui/core/styles";
-import useFirestore from "../db/Firestore.js";
-import { useParams } from "react-router-dom";
 
 const useStyles = makeStyles({
   fullWidthCard: {

@@ -1,36 +1,43 @@
-import "react-quill/dist/quill.snow.css";
-
 import React, {
   useCallback,
   useContext,
+  useState,
   useEffect,
   useRef,
-  useState,
 } from "react";
-import { addTagStyles, removeTagStyles } from "./Tags.js";
 
-import Archive from "@material-ui/icons/Archive";
-import ContentEditable from "react-contenteditable";
-import Delta from "quill-delta";
-import DocumentDeleteDialog from "./DocumentDeleteDialog.js";
-import DocumentSidebar from "./DocumentSidebar.js";
-import Grid from "@material-ui/core/Grid";
-import Hidden from "@material-ui/core/Hidden";
-import HighlightBlot from "./HighlightBlot.js";
-import IconButton from "@material-ui/core/IconButton";
-import Moment from "react-moment";
-import Paper from "@material-ui/core/Paper";
-import Quill from "quill";
-import ReactQuill from "react-quill";
-import Scrollable from "../shell/Scrollable.js";
-import Typography from "@material-ui/core/Typography";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
-import { initialDelta } from "./delta.js";
-import { makeStyles } from "@material-ui/core/styles";
-import { nanoid } from "nanoid";
 import useFirestore from "../db/Firestore.js";
+
+import Moment from "react-moment";
+
+import ReactQuill from "react-quill";
+import Delta from "quill-delta";
+import Quill from "quill";
+import { nanoid } from "nanoid";
+
 import { useParams } from "react-router-dom";
+
+import "react-quill/dist/quill.snow.css";
+
+import { initialDelta } from "./delta.js";
+import HighlightBlot from "./HighlightBlot.js";
+import DocumentSidebar from "./DocumentSidebar.js";
+import DocumentDeleteDialog from "./DocumentDeleteDialog.js";
+import { addTagStyles, removeTagStyles } from "./Tags.js";
+
+import Scrollable from "../shell/Scrollable.js";
+
+import ContentEditable from "react-contenteditable";
+
+import { makeStyles } from "@material-ui/core/styles";
+import Grid from "@material-ui/core/Grid";
+import Hidden from "@material-ui/core/Hidden";
+import Paper from "@material-ui/core/Paper";
+import Typography from "@material-ui/core/Typography";
+import IconButton from "@material-ui/core/IconButton";
+import Archive from "@material-ui/icons/Archive";
 
 Quill.register("formats/highlight", HighlightBlot);
 

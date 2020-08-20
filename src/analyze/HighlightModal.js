@@ -1,8 +1,8 @@
-import { Link, useParams } from "react-router-dom";
-
-import Button from "react-bootstrap/Button";
-import Modal from "react-bootstrap/Modal";
 import React from "react";
+import Modal from "react-bootstrap/Modal";
+import Button from "react-bootstrap/Button";
+
+import { Link, useParams } from "react-router-dom";
 
 export default function HighlightModal(props) {
   const { orgID } = useParams();

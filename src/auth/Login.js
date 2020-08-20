@@ -1,15 +1,18 @@
+import React from "react";
 import { useContext, useEffect, useState } from "react";
+
+import { useNavigate } from "react-router-dom";
 
 import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
-import Col from "react-bootstrap/Col";
 import Container from "react-bootstrap/Container";
-import React from "react";
 import Row from "react-bootstrap/Row";
+import Col from "react-bootstrap/Col";
+
 import UserAuthContext from "./UserAuthContext.js";
+
 import loginFigure from "../assets/images/login.svg";
 import logo from "../assets/images/logo.svg";
-import { useNavigate } from "react-router-dom";
 
 var provider = new window.firebase.auth.GoogleAuthProvider();
 var db = window.firebase.firestore();

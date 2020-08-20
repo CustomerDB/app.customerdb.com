@@ -1,6 +1,7 @@
-import FocusContext from "./FocusContext.js";
 import React from "react";
 import { useState } from "react";
+
+import FocusContext from "./FocusContext.js";
 
 export default function WithFocus(props) {
   const [focus, setFocus] = useState(null);

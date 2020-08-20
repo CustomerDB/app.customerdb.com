@@ -1,12 +1,14 @@
 import React, { useContext, useEffect, useState } from "react";
 
-import Col from "react-bootstrap/Col";
-import Container from "react-bootstrap/Container";
-import GridSelector from "../search/GridSelector.js";
-import Row from "react-bootstrap/Row";
-import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
+import UserAuthContext from "../auth/UserAuthContext.js";
 import useFirestore from "../db/Firestore.js";
+
+import Container from "react-bootstrap/Container";
+import Row from "react-bootstrap/Row";
+import Col from "react-bootstrap/Col";
+
+import GridSelector from "../search/GridSelector.js";
 
 export default function AnalysisDataTab(props) {
   const { oauthClaims } = useContext(UserAuthContext);

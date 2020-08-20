@@ -1,17 +1,18 @@
-import { AspectRatio, Download } from "react-bootstrap-icons";
-import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
+import React from "react";
 
-import Button from "react-bootstrap/Button";
 import Card from "./Card.js";
 import Group from "./Group.js";
 import HighlightModal from "./HighlightModal.js";
-import { Loading } from "../util/Utils.js";
-import RBush from "rbush";
-import React from "react";
 import colorPair from "../util/color.js";
-import domToImage from "dom-to-image";
+import { Loading } from "../util/Utils.js";
 import event from "../analytics/event.js";
+
+import RBush from "rbush";
 import { nanoid } from "nanoid";
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
+import Button from "react-bootstrap/Button";
+import { AspectRatio, Download } from "react-bootstrap-icons";
+import domToImage from "dom-to-image";
 
 export default class AnalysisClusterBoard extends React.Component {
   constructor(props) {

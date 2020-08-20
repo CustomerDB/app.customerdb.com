@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
-
 import React from "react";
+
 import useFirestore from "../db/Firestore.js";
+
+import { useEffect, useState } from "react";
 
 export default function OrganizationHome(props) {
   const [orgName, setOrgName] = useState();
