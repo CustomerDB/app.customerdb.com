@@ -1,10 +1,5 @@
 import React, { useContext } from "react";
-
-import UserAuthContext from "../auth/UserAuthContext.js";
-import useFirestore from "../db/Firestore.js";
-import event from "../analytics/event.js";
-
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 import Button from "@material-ui/core/Button";
 import Dialog from "@material-ui/core/Dialog";
@@ -12,6 +7,9 @@ import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
+import UserAuthContext from "../auth/UserAuthContext.js";
+import event from "../analytics/event.js";
+import useFirestore from "../db/Firestore.js";
 
 export default function AlertDialog({ open, setOpen, document }) {
   const { oauthClaims } = useContext(UserAuthContext);

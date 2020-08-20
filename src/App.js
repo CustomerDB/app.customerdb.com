@@ -1,22 +1,18 @@
-import React from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
-
 import "./util/firebaseConfig.js";
 
+import { Cookies, Privacy, Terms } from "./legal/Legal.js";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { ThemeProvider, createMuiTheme } from "@material-ui/core/styles";
 
-import WithOauthUser from "./auth/WithOauthUser.js";
+import Admin from "./admin/Admin.js";
+import Error404 from "./404.js";
+import ErrorBoundary from "./util/ErrorBoundary.js";
+import JoinOrg from "./auth/JoinOrg.js";
 import Login from "./auth/Login.js";
 import Logout from "./auth/Logout.js";
-import JoinOrg from "./auth/JoinOrg.js";
-import Error404 from "./404.js";
 import Organization from "./organization/Organization.js";
-
-import ErrorBoundary from "./util/ErrorBoundary.js";
-
-import Admin from "./admin/Admin.js";
-
-import { Terms, Privacy, Cookies } from "./legal/Legal.js";
+import React from "react";
+import WithOauthUser from "./auth/WithOauthUser.js";
 
 export default function App() {
   const appTheme = createMuiTheme({

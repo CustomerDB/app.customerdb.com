@@ -1,14 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
-import useFirestore from "../db/Firestore.js";
-
-import Container from "react-bootstrap/Container";
-import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
-
-import { ResponsiveBar } from "@nivo/bar";
-
+import Container from "react-bootstrap/Container";
 import { Loading } from "../util/Utils.js";
+import { ResponsiveBar } from "@nivo/bar";
+import Row from "react-bootstrap/Row";
+import useFirestore from "../db/Firestore.js";
 
 export default function AnalysisAnalysisTab(props) {
   const {

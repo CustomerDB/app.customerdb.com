@@ -1,21 +1,17 @@
 import React, { useContext } from "react";
+import { Route, Routes, useNavigate, useParams } from "react-router-dom";
 
-import UserAuthContext from "../auth/UserAuthContext";
-
+import BulkImport from "./BulkImport.js";
+import Grid from "@material-ui/core/Grid";
+import Members from "./Members.js";
+import Paper from "@material-ui/core/Paper";
 import Profile from "./Profile.js";
+import Shell from "../shell/Shell.js";
+import Tab from "@material-ui/core/Tab";
+import Tabs from "@material-ui/core/Tabs";
 import Tags from "./Tags.js";
 import Templates from "./Templates.js";
-import Members from "./Members.js";
-import BulkImport from "./BulkImport.js";
-
-import { Routes, Route, useParams, useNavigate } from "react-router-dom";
-
-import Shell from "../shell/Shell.js";
-
-import Grid from "@material-ui/core/Grid";
-import Paper from "@material-ui/core/Paper";
-import Tabs from "@material-ui/core/Tabs";
-import Tab from "@material-ui/core/Tab";
+import UserAuthContext from "../auth/UserAuthContext";
 
 export default function Settings(props) {
   const auth = useContext(UserAuthContext);
