@@ -25,6 +25,7 @@ import ListItemAvatar from "@material-ui/core/ListItemAvatar";
 import BarChartIcon from "@material-ui/icons/BarChart";
 import BubbleChartIcon from "@material-ui/icons/BubbleChart";
 import DescriptionIcon from "@material-ui/icons/Description";
+import Hidden from "@material-ui/core/Hidden";
 
 import Fab from "@material-ui/core/Fab";
 import AddIcon from "@material-ui/icons/Add";
@@ -94,7 +95,11 @@ export default function Analyze(props) {
       />
     );
   } else if (listTotal > 0) {
-    content = <AnalysisHelp />;
+    content = (
+      <Hidden mdDown>
+        <AnalysisHelp />
+      </Hidden>
+    );
   }
 
   let addModal = (
