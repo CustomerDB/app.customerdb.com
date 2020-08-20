@@ -9,7 +9,7 @@ import Col from "react-bootstrap/Col";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 
-import { XCircleFill } from "react-bootstrap-icons";
+import DeleteIcon from "@material-ui/icons/Delete";
 
 import { nanoid } from "nanoid";
 
@@ -219,7 +219,7 @@ export default function PersonEditModal(props) {
                 </Col>
                 <Col md={1} style={{ padding: 0 }}>
                   <Button variant="link">
-                    <XCircleFill
+                    <DeleteIcon
                       color="grey"
                       onClick={() => {
                         let fields = {};
@@ -271,7 +271,7 @@ export default function PersonEditModal(props) {
                 </Col>
                 <Col md={1} style={{ padding: 0 }}>
                   <Button variant="link">
-                    <XCircleFill
+                    <DeleteIcon
                       color="grey"
                       onClick={() => {
                         let l = {};

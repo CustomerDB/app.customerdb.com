@@ -1,13 +1,17 @@
 import React, { useEffect, useState } from "react";
 
-import { Bookmark, BookmarkFill } from "react-bootstrap-icons";
 import { Loading } from "../util/Utils.js";
 import { makeStyles } from "@material-ui/core/styles";
 import { useParams, useNavigate } from "react-router-dom";
+
 import Badge from "react-bootstrap/Badge";
 import Button from "react-bootstrap/Button";
+
 import Card from "@material-ui/core/Card";
 import Grid from "@material-ui/core/Grid";
+
+import TurnedInIcon from "@material-ui/icons/TurnedIn";
+import TurnedInNotIcon from "@material-ui/icons/TurnedInNot";
 
 import Typography from "@material-ui/core/Typography";
 
@@ -179,7 +183,7 @@ function HighlightCard(props) {
                 );
             }}
           >
-            {props.highlight.pinned ? <BookmarkFill /> : <Bookmark />}
+            {props.highlight.pinned ? <TurnedInIcon /> : <TurnedInNotIcon />}
           </Button>
           <div>
             <Badge

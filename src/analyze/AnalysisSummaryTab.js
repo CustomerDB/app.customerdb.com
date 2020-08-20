@@ -16,10 +16,9 @@ import ContentEditable from "react-contenteditable";
 import Grid from "@material-ui/core/Grid";
 import IconButton from "@material-ui/core/IconButton";
 import ArchiveIcon from "@material-ui/icons/Archive";
+import GetAppIcon from "@material-ui/icons/GetApp";
 
 import AnalysisDeleteModal from "./AnalysisDeleteModal.js";
-
-import { Download } from "react-bootstrap-icons";
 
 import domToImage from "dom-to-image";
 
@@ -353,7 +352,7 @@ export default function AnalysisSummaryTab(props) {
                               });
                           }}
                         >
-                          <Download />
+                          <GetAppIcon />
                         </Button>
                       </h4>
                     </Col>
