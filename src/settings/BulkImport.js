@@ -1,21 +1,26 @@
-import React, { useContext, useCallback, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 
+import Button from "@material-ui/core/Button";
+import Card from "@material-ui/core/Card";
+import CardContent from "@material-ui/core/CardContent";
+import Grid from "@material-ui/core/Grid";
+import { Loading } from "../util/Utils.js";
 import UserAuthContext from "../auth/UserAuthContext.js";
+import { makeStyles } from "@material-ui/core/styles";
+import { nanoid } from "nanoid";
+import papa from "papaparse";
+import { useDropzone } from "react-dropzone";
 import useFirestore from "../db/Firestore.js";
 
-import Scrollable from "../shell/Scrollable.js";
-import { Loading } from "../util/Utils.js";
-
-import { useDropzone } from "react-dropzone";
-
-import papa from "papaparse";
-
-import { nanoid } from "nanoid";
-
-import Container from "react-bootstrap/Container";
-import Row from "react-bootstrap/Row";
-import Col from "react-bootstrap/Row";
-import Button from "react-bootstrap/Button";
+const useStyles = makeStyles({
+  fullWidthCard: {
+    margin: "1rem",
+    padding: "1rem 2rem",
+    minHeight: "24rem",
+    width: "100%",
+    maxWidth: "80rem",
+  },
+});
 
 function recordToPerson(record, creatorEmail) {
   let filtered = {};
@@ -69,6 +74,8 @@ export default function BulkImport(props) {
   const [records, setRecords] = useState();
   const [randomRecord, setRandomRecord] = useState();
   const [importProgress, setImportProgress] = useState();
+
+  const classes = useStyles();
 
   const chooseRandomRecord = () => {
     if (!records || records.length === 0) {
@@ -132,9 +139,10 @@ export default function BulkImport(props) {
   }
 
   let contactZone = (
-    <Col
+    <Grid
+      container
+      item
       {...getRootProps()}
-      className="p-4"
       style={{
         background: "#dedede",
         borderRadius: "0.25rem",
@@ -148,15 +156,15 @@ export default function BulkImport(props) {
       ) : (
         <p>Drag 'n' drop contact CSV files here, or click here to select</p>
       )}
-    </Col>
+    </Grid>
   );
 
   let instructions = (
     <>
-      <Col md={4}>
+      <Grid item md={4}>
         <p>Standard columns</p>
-      </Col>
-      <Col md={8}>
+      </Grid>
+      <Grid item md={8}>
         <ul>
           <li>
             name <span className="text-primary">(required)</span>
@@ -171,18 +179,35 @@ export default function BulkImport(props) {
           <li>LinkedIn</li>
           <li>Twitter</li>
         </ul>
-      </Col>
+      </Grid>
     </>
   );
 
   let filePrompt = (
-    <Container fluid>
-      <Row className="mt-2 mb-4">
-        <h3>Import contacts</h3>
-      </Row>
-      <Row>{contactZone}</Row>
-      <Row className="pt-4">{instructions}</Row>
-    </Container>
+    <Grid container item xs={12} spacing={0} justify="center">
+      <Card className={classes.fullWidthCard}>
+        <CardContent>
+          <Grid
+            container
+            item
+            direction="column"
+            justify="flex-start"
+            alignItems="center"
+            spacing={2}
+          >
+            <Grid container item>
+              <h3>Import contacts</h3>
+            </Grid>
+            <Grid container item>
+              {contactZone}
+            </Grid>
+            <Grid container item>
+              {instructions}
+            </Grid>
+          </Grid>
+        </CardContent>
+      </Card>
+    </Grid>
   );
 
   if (!records) {
@@ -209,66 +234,88 @@ export default function BulkImport(props) {
     }
 
     return (
-      <Scrollable>
-        <Container fluid>
-          <Row className="mt-4 mb-4">
-            <h3>Import progress</h3>
-          </Row>
-          <Row>
-            <p>
-              {importProgress} of {records.length}
-            </p>
-          </Row>
+      <Grid container item xs={12} spacing={0} justify="center">
+        <Card className={classes.fullWidthCard}>
+          <CardContent>
+            <Grid container item>
+              <Grid item>
+                <h3>Import progress</h3>
+              </Grid>
+            </Grid>
 
-          <Row className="pt-3">{okButton}</Row>
-        </Container>
-      </Scrollable>
+            <Grid container item>
+              <Grid item>
+                <p>
+                  {importProgress} of {records.length}
+                </p>
+              </Grid>
+            </Grid>
+
+            <Grid container item>
+              <Grid item>{okButton}</Grid>
+            </Grid>
+          </CardContent>
+        </Card>
+      </Grid>
     );
   }
 
   return (
-    <Scrollable>
-      <Container fluid>
-        <Row className="mt-4 mb-4">
-          <h3>Import preview</h3>
-        </Row>
-        <Row>
-          <ContactPreview record={randomRecord} />
-        </Row>
-        <Row className="pt-3">
-          <Button
-            style={{ minWidth: "18rem" }}
-            key="random"
-            variant="link"
-            onClick={chooseRandomRecord}
-          >
-            Preview another random record
-          </Button>
-        </Row>
-        <Row className="pt-3">
-          <Button
-            style={{ minWidth: "18rem" }}
-            key="cancel"
-            variant="secondary"
-            onClick={() => setRecords(undefined)}
-          >
-            Cancel
-          </Button>
-        </Row>
-        <Row className="pt-3">
-          <Button
-            style={{ minWidth: "18rem" }}
-            key="import"
-            variant="success"
-            onClick={() => {
-              setImportProgress(0);
-            }}
-          >
-            Import {records.length} records
-          </Button>
-        </Row>
-      </Container>
-    </Scrollable>
+    <Grid container item xs={12} spacing={0} justify="center">
+      <Card className={classes.fullWidthCard}>
+        <CardContent>
+          <Grid container item>
+            <Grid item>
+              <h3>Import preview</h3>
+            </Grid>
+          </Grid>
+
+          <Grid container item>
+            <ContactPreview record={randomRecord} />
+          </Grid>
+
+          <Grid container item>
+            <Grid item>
+              <Button
+                style={{ minWidth: "18rem" }}
+                key="random"
+                onClick={chooseRandomRecord}
+              >
+                Preview another random record
+              </Button>
+            </Grid>
+          </Grid>
+          <Grid container item>
+            <Grid item>
+              <Button
+                style={{ minWidth: "18rem" }}
+                key="cancel"
+                variant="contained"
+                onClick={() => setRecords(undefined)}
+              >
+                Cancel
+              </Button>
+            </Grid>
+          </Grid>
+
+          <Grid container item>
+            <Grid item>
+              <Button
+                style={{ minWidth: "18rem" }}
+                key="import"
+                color="primary"
+                variant="contained"
+                onClick={() => {
+                  setImportProgress(0);
+                }}
+              >
+                Import {records.length} records
+              </Button>
+            </Grid>
+          </Grid>
+        </CardContent>
+      </Card>
+    </Grid>
   );
 }
 

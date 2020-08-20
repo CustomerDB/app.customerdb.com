@@ -1,10 +1,12 @@
 import React, { useContext, useEffect, useState } from "react";
 
+import FormControl from "@material-ui/core/FormControl";
+import InputLabel from "@material-ui/core/InputLabel";
+import MenuItem from "@material-ui/core/MenuItem";
+import Select from "@material-ui/core/Select";
 import UserAuthContext from "../auth/UserAuthContext.js";
-import useFirestore from "../db/Firestore.js";
 import event from "../analytics/event.js";
-
-import Form from "react-bootstrap/Form";
+import useFirestore from "../db/Firestore.js";
 
 export default function TagGroupSelector(props) {
   const { oauthClaims } = useContext(UserAuthContext);
@@ -140,22 +142,20 @@ export default function TagGroupSelector(props) {
   }
 
   return (
-    <Form.Control
-      as="select"
-      onChange={onTagGroupChange}
-      defaultValue={doc.tagGroupID}
-    >
-      <option key="none" value="">
-        None
-      </option>
-      {tagGroups &&
-        tagGroups.map((group) => {
-          return (
-            <option key={group.ID} value={group.ID}>
-              {group.name}
-            </option>
-          );
-        })}
-    </Form.Control>
+    <FormControl fullWidth>
+      <InputLabel id="tag-group-select-label">Tag group</InputLabel>
+      <Select
+        labelId="tag-group-select-label"
+        id="tag-group-select"
+        onChange={onTagGroupChange}
+        value={doc.tagGroupID}
+      >
+        <MenuItem value="">None</MenuItem>
+        {tagGroups &&
+          tagGroups.map((group) => (
+            <MenuItem value={group.ID}>{group.name}</MenuItem>
+          ))}
+      </Select>
+    </FormControl>
   );
 }

@@ -1,24 +1,22 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
-import useFirestore from "../db/Firestore.js";
-
-import { Link } from "react-router-dom";
-
-import Scrollable from "../shell/Scrollable.js";
-import Tabs from "../shell/Tabs.js";
-
+import AnalysisDeleteModal from "./AnalysisDeleteModal.js";
+import ArchiveIcon from "@material-ui/icons/Archive";
 import Button from "react-bootstrap/Button";
-import Container from "react-bootstrap/Container";
-import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
-
-import { Download } from "react-bootstrap-icons";
-
-import domToImage from "dom-to-image";
-
-import { ResponsiveBar } from "@nivo/bar";
-
+import Container from "react-bootstrap/Container";
+import ContentEditable from "react-contenteditable";
+import GetAppIcon from "@material-ui/icons/GetApp";
+import Grid from "@material-ui/core/Grid";
+import IconButton from "@material-ui/core/IconButton";
+import { Link } from "react-router-dom";
 import { Loading } from "../util/Utils.js";
+import { ResponsiveBar } from "@nivo/bar";
+import Row from "react-bootstrap/Row";
+import Scrollable from "../shell/Scrollable.js";
+import Typography from "@material-ui/core/Typography";
+import domToImage from "dom-to-image";
+import useFirestore from "../db/Firestore.js";
 
 export default function AnalysisSummaryTab(props) {
   const {
@@ -35,6 +33,7 @@ export default function AnalysisSummaryTab(props) {
   const [documents, setDocuments] = useState();
   const [tags, setTags] = useState();
   const [people, setPeople] = useState();
+  const [showDeleteModal, setShowDeleteModal] = useState();
 
   // Group subscription
   useEffect(() => {
@@ -83,11 +82,13 @@ export default function AnalysisSummaryTab(props) {
       return;
     }
 
-    let analysisDocumentsRef = documentsRef.where(
-      window.firebase.firestore.FieldPath.documentId(),
-      "in",
-      props.analysis.documentIDs
-    );
+    let analysisDocumentsRef = documentsRef
+      .where("deletionTimestamp", "==", "")
+      .where(
+        window.firebase.firestore.FieldPath.documentId(),
+        "in",
+        props.analysis.documentIDs
+      );
 
     return analysisDocumentsRef.onSnapshot((snapshot) => {
       let newDocuments = {};
@@ -150,6 +151,56 @@ export default function AnalysisSummaryTab(props) {
     return <Loading />;
   }
 
+  let title = (
+    <>
+      <Grid container>
+        <Grid container item xs={12} alignItems="flex-start">
+          <Grid item xs={11}>
+            <Typography gutterBottom variant="h4" component="h2">
+              <ContentEditable
+                html={props.analysis.name}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.target.blur();
+                  }
+                }}
+                onBlur={(e) => {
+                  console.log("e", e, "props.analysisRef", props.analysisRef);
+                  if (props.analysisRef) {
+                    let newName = e.target.innerText
+                      .replace(/(\r\n|\n|\r)/gm, " ")
+                      .replace(/\s+/g, " ")
+                      .trim();
+
+                    props.analysisRef.set({ name: newName }, { merge: true });
+                  }
+                }}
+              />
+            </Typography>
+          </Grid>
+          <Grid>
+            <IconButton
+              color="primary"
+              aria-label="Archive document"
+              onClick={() => {
+                setShowDeleteModal(true);
+              }}
+            >
+              <ArchiveIcon />
+            </IconButton>
+          </Grid>
+        </Grid>
+      </Grid>
+      <AnalysisDeleteModal
+        show={showDeleteModal}
+        onHide={() => {
+          setShowDeleteModal(false);
+        }}
+        analysisRef={props.analysisRef}
+      />
+    </>
+  );
+
   // Builds a tree of tags -> groups -> documents -> people
   // TODO: Replace with AlaSQL
   let analysis = {};
@@ -188,35 +239,34 @@ export default function AnalysisSummaryTab(props) {
 
   if (props.analysis.documentIDs.length === 0) {
     return (
-      <Tabs.Pane>
-        <Tabs.Content>
-          <p>
-            Start analysis by selecting documents in the{" "}
-            <Link to={`/orgs/${props.orgID}/analyze/${props.analysis.ID}/data`}>
-              data tab
-            </Link>
-          </p>
-        </Tabs.Content>
-      </Tabs.Pane>
+      <>
+        {title}
+        <p>
+          Start analysis by selecting documents in the{" "}
+          <Link to={`/orgs/${props.orgID}/analyze/${props.analysis.ID}/data`}>
+            data tab
+          </Link>
+        </p>
+      </>
     );
   }
 
   if (Object.values(analysis).length === 0) {
     return (
-      <Tabs.Pane>
-        <Tabs.Content>
-          <p>
-            See a summary of your data by creating clusters per tag, using the
-            tags drop down.
-          </p>
-        </Tabs.Content>
-      </Tabs.Pane>
+      <>
+        {title}
+        <p>
+          See a summary of your data by creating clusters per tag, using the
+          tags drop down.
+        </p>
+      </>
     );
   }
 
   return (
-    <Tabs.Pane>
-      <Tabs.Content wide>
+    <>
+      {title}
+      <Grid container style={{ position: "relative", flexGrow: 1 }}>
         <Scrollable>
           <Container className="p-3">
             {Object.keys(analysis).map((tagName) => {
@@ -294,7 +344,7 @@ export default function AnalysisSummaryTab(props) {
                               });
                           }}
                         >
-                          <Download />
+                          <GetAppIcon />
                         </Button>
                       </h4>
                     </Col>
@@ -432,7 +482,7 @@ export default function AnalysisSummaryTab(props) {
             })}
           </Container>
         </Scrollable>
-      </Tabs.Content>
-    </Tabs.Pane>
+      </Grid>
+    </>
   );
 }

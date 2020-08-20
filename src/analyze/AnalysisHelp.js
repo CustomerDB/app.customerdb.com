@@ -1,12 +1,9 @@
 import React from "react";
-
-import Content from "../shell/Content.js";
-
 import analyzeGraphic from "../assets/images/analyze.svg";
 
 export default function AnalysisHelp(props) {
   return (
-    <Content>
+    <div>
       <div className="d-flex flex-column w-100 h-100 justify-content-center align-self-center">
         <div
           className="d-flex flex-column justify-content-center align-self-center"
@@ -37,6 +34,6 @@ export default function AnalysisHelp(props) {
           </div>
         </div>
       </div>
-    </Content>
+    </div>
   );
 }

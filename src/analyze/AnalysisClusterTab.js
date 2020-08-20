@@ -1,24 +1,22 @@
-import React, { useContext, useState, useEffect } from "react";
-
-import UserAuthContext from "../auth/UserAuthContext.js";
-import FocusContext from "../util/FocusContext.js";
-import useFirestore from "../db/Firestore.js";
-
-import Modal from "../shell/Modal.js";
-
-import Container from "react-bootstrap/Container";
-import Row from "react-bootstrap/Row";
-import Col from "react-bootstrap/Col";
-import Button from "react-bootstrap/Button";
-import Form from "react-bootstrap/Form";
-
-import { useParams } from "react-router-dom";
+import React, { useContext, useEffect, useState } from "react";
 
 import AnalysisClusterBoard from "./AnalysisClusterBoard.js";
+import Button from "react-bootstrap/Button";
+import ClusterDropdown from "./ClusterDropdown.js";
+import Col from "react-bootstrap/Col";
+import Container from "react-bootstrap/Container";
+import FocusContext from "../util/FocusContext.js";
+import Form from "react-bootstrap/Form";
+import FullscreenExitIcon from "@material-ui/icons/FullscreenExit";
+import FullscreenIcon from "@material-ui/icons/Fullscreen";
+import Grid from "@material-ui/core/Grid";
 import { Loading } from "../util/Utils.js";
-
+import Modal from "../shell_obsolete/Modal.js";
+import Row from "react-bootstrap/Row";
+import UserAuthContext from "../auth/UserAuthContext.js";
 import { nanoid } from "nanoid";
-import { ArrowsAngleExpand, ArrowsAngleContract } from "react-bootstrap-icons";
+import useFirestore from "../db/Firestore.js";
+import { useParams } from "react-router-dom";
 
 export default function AnalysisClusterTab(props) {
   const { oauthClaims } = useContext(UserAuthContext);
@@ -38,6 +36,7 @@ export default function AnalysisClusterTab(props) {
   const [showRenameGroupModal, setShowRenameGroupModal] = useState(false);
   const [modalGroupID, setModalGroupID] = useState();
   const [modalGroupNonce, setModalGroupNonce] = useState();
+  const [fullscreen, setFullscreen] = useState(false);
 
   useEffect(() => {
     if (!analysisID || !tagID) {
@@ -70,13 +69,9 @@ export default function AnalysisClusterTab(props) {
 
   if (!tagID) {
     return (
-      <Container className="p-3">
-        <Row>
-          <Col>
-            <p>Select tag to cluster using the cluster dropdown.</p>
-          </Col>
-        </Row>
-      </Container>
+      <>
+        <ClusterDropdown analysis={props.analysis} />
+      </>
     );
   }
 
@@ -104,64 +99,75 @@ export default function AnalysisClusterTab(props) {
     setShowRenameGroupModal(true);
   };
 
-  let arrows = <ArrowsAngleExpand />;
+  let arrows = <FullscreenIcon />;
   if (focus.focus === "cluster") {
-    arrows = <ArrowsAngleContract />;
+    arrows = <FullscreenExitIcon />;
   }
 
   return (
-    <>
-      <Container className="p-3 h-100" fluid>
-        <Row className="h-100">
-          <Col>
-            <Button
-              variant="link"
-              title="Toggle expand"
-              style={{
-                color: "black",
-                background: "#ddf",
-                border: "0",
-                borderRadius: "0.25rem",
+    <Grid
+      container
+      item
+      xs={12}
+      style={{ display: "flex", flexDirection: "column" }}
+    >
+      <ClusterDropdown analysis={props.analysis} />
+      <div
+        style={
+          fullscreen
+            ? {
                 position: "absolute",
-                top: "-2rem",
-                right: "0.25rem",
-                zIndex: 200,
-                opacity: 0.8,
-              }}
-              onClick={() => {
-                if (focus.focus === "cluster") {
-                  focus.setFocus();
-                  return;
-                }
-                focus.setFocus("cluster");
-              }}
-            >
-              {arrows}
-            </Button>
-            <AnalysisClusterBoard
-              analysisID={analysisID}
-              analysisName={props.analysis.name}
-              key={boardKey}
-              orgID={orgID}
-              userID={oauthClaims.user_id}
-              tagID={tagID}
-              documentsRef={analysisDocumentsRef}
-              highlightsRef={highlightsRef}
-              cardsRef={cardsRef}
-              groupsRef={groupsRef}
-              activeUsersRef={activeUsersRef}
-              renameGroupModalCallback={renameGroupModalCallback}
-            />
-          </Col>
-        </Row>
-      </Container>
+                top: "4rem",
+                left: "1rem",
+                zIndex: 10,
+                width: "calc(100% - 1rem)",
+                height: "calc(100% - 4rem)",
+              }
+            : { position: "relative", width: "100%", flexGrow: 1 }
+        }
+      >
+        <Button
+          variant="link"
+          title="Toggle expand"
+          style={{
+            color: "black",
+            background: "#ddf",
+            border: "0",
+            borderRadius: "0.25rem",
+            position: "absolute",
+            right: "0.25rem",
+            top: "4rem",
+            zIndex: 200,
+            opacity: 0.8,
+          }}
+          onClick={() => {
+            setFullscreen(!fullscreen);
+          }}
+        >
+          {arrows}
+        </Button>
+        <AnalysisClusterBoard
+          analysisID={analysisID}
+          analysisName={props.analysis.name}
+          key={boardKey}
+          orgID={orgID}
+          userID={oauthClaims.user_id}
+          tagID={tagID}
+          documentsRef={analysisDocumentsRef}
+          highlightsRef={highlightsRef}
+          cardsRef={cardsRef}
+          groupsRef={groupsRef}
+          activeUsersRef={activeUsersRef}
+          renameGroupModalCallback={renameGroupModalCallback}
+        />
+      </div>
       <RenameGroupModal
         key={modalGroupNonce}
         groupID={modalGroupID}
         show={showRenameGroupModal}
         onHide={() => setShowRenameGroupModal(false)}
       />
-    </>
+    </Grid>
   );
 }
 

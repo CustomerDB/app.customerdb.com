@@ -1,11 +1,9 @@
 import React from "react";
-
-import Content from "../shell/Content.js";
 import personGraphic from "../assets/images/person.svg";
 
 export default function PersonHelp(props) {
   return (
-    <Content>
+    <div>
       <div className="d-flex flex-column w-100 h-100 justify-content-center align-self-center">
         <div
           className="d-flex flex-column justify-content-center align-self-center"
@@ -36,6 +34,6 @@ export default function PersonHelp(props) {
           </div>
         </div>
       </div>
-    </Content>
+    </div>
   );
 }

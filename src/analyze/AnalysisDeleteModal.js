@@ -1,13 +1,10 @@
-import React, { useContext, useState, useEffect } from "react";
-
-import event from "../analytics/event.js";
-import UserAuthContext from "../auth/UserAuthContext.js";
-
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useContext, useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
 import Button from "react-bootstrap/Button";
-
-import Modal from "../shell/Modal.js";
+import Modal from "../shell_obsolete/Modal.js";
+import UserAuthContext from "../auth/UserAuthContext.js";
+import event from "../analytics/event.js";
 
 export default function AnalysisDeleteModal(props) {
   const { oauthClaims } = useContext(UserAuthContext);

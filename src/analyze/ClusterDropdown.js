@@ -1,106 +1,118 @@
 import React, { useEffect, useState } from "react";
-
-import useFirestore from "../db/Firestore.js";
-
 import { useNavigate, useParams } from "react-router-dom";
 
-import DropdownButton from "react-bootstrap/DropdownButton";
-import Dropdown from "react-bootstrap/Dropdown";
+import List from "@material-ui/core/List";
+import ListItem from "@material-ui/core/ListItem";
+import Menu from "@material-ui/core/Menu";
+import MenuItem from "@material-ui/core/MenuItem";
+import Typography from "@material-ui/core/Typography";
+import useFirestore from "../db/Firestore.js";
 
-export default function ClusterDropdown(props) {
-  const { orgID, tabID, tagID } = useParams();
+export default function ClusterTabs(props) {
+  const { orgID, tabID, tagID, analysisID } = useParams();
   const { allTagsRef } = useFirestore();
-  const defaultButtonTitle = "Tags";
-  const [buttonTitle, setButtonTitle] = useState(defaultButtonTitle);
+  const [allTagsList, setAllTagsList] = useState();
+  const [allTagsMap, setAllTagsMap] = useState();
+  const [anchorEl, setAnchorEl] = useState(null);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
-    if (!tagID) {
-      setButtonTitle(defaultButtonTitle);
-      return;
-    }
-
     if (!allTagsRef) {
       return;
     }
 
+    if (
+      !props.analysis ||
+      !props.analysis.tagGroupIDs ||
+      props.analysis.tagGroupIDs.length === 0
+    ) {
+      return;
+    }
+
     return allTagsRef
+      .where("deletionTimestamp", "==", "")
       .where("organizationID", "==", orgID)
-      .where("ID", "==", tagID)
+      .where("tagGroupID", "in", props.analysis.tagGroupIDs)
       .onSnapshot((snapshot) => {
+        let newTagsList = [];
+        let newTagsMap = {};
         snapshot.forEach((doc) => {
           let tagData = doc.data();
-          setButtonTitle(tagData.name);
+          newTagsList.push(tagData);
+          newTagsMap[doc.id] = tagData;
         });
+        setAllTagsList(newTagsList);
+        setAllTagsMap(newTagsMap);
       });
-  }, [orgID, tagID, allTagsRef]);
+  }, [orgID, allTagsRef, props.analysis, props.analysis.tagGroupIDs]);
 
   if (
     !props.analysis ||
     !props.analysis.tagGroupIDs ||
-    props.analysis.tagGroupIDs.length === 0
+    props.analysis.tagGroupIDs.length === 0 ||
+    !allTagsMap
   ) {
     return <></>;
   }
 
+  const handleClickListItem = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
   return (
-    <DropdownButton
-      style={{ minWidth: "8rem" }}
-      title={buttonTitle}
-      variant={tabID === "cluster" ? "primary" : "link"}
-      drop="down"
-    >
-      {props.analysis.tagGroupIDs.map((tagGroupID) => (
-        <ItemsForTagGroup key={tagGroupID} tagGroupID={tagGroupID} />
-      ))}
-    </DropdownButton>
+    <>
+      {allTagsList && allTagsList.length > 0 && (
+        <>
+          <List component="nav" aria-label="Device settings">
+            <ListItem
+              button
+              aria-haspopup="true"
+              aria-controls="lock-menu"
+              aria-label="Select tag"
+              onClick={handleClickListItem}
+            >
+              {tagID ? (
+                <Typography gutterBottom variant="h4" component="h2">
+                  {allTagsMap[tagID].name}
+                </Typography>
+              ) : (
+                <p>
+                  <i>
+                    Select a tag to start forming clusters of customer quotes
+                  </i>
+                </p>
+              )}
+              {/* <ListItemText primary=> */}
+            </ListItem>
+          </List>
+          <Menu
+            id="tag-menu"
+            anchorEl={anchorEl}
+            keepMounted
+            open={Boolean(anchorEl)}
+            onClose={handleClose}
+          >
+            {allTagsList.map((option, index) => (
+              <MenuItem
+                key={option.ID}
+                selected={option.ID === tagID}
+                onClick={(event) => {
+                  navigate(
+                    `/orgs/${orgID}/analyze/${analysisID}/${tabID}/${option.ID}`
+                  );
+                }}
+              >
+                {option.name}
+              </MenuItem>
+            ))}
+          </Menu>
+        </>
+      )}
+    </>
   );
-}
-
-function ItemsForTagGroup(props) {
-  const { orgID, analysisID } = useParams();
-  const navigate = useNavigate();
-
-  let tags = useTagGroup(props.tagGroupID);
-
-  return Object.values(tags).map((tag) => (
-    <Dropdown.Item
-      key={tag.ID}
-      onClick={() => {
-        navigate(`/orgs/${orgID}/analyze/${analysisID}/cluster/${tag.ID}`);
-      }}
-    >
-      {tag.name}
-    </Dropdown.Item>
-  ));
-}
-
-function useTagGroup(tagGroupID) {
-  const [tags, setTags] = useState({});
-  const { tagGroupsRef } = useFirestore();
-
-  useEffect(() => {
-    if (!tagGroupsRef) {
-      return;
-    }
-
-    setTags({});
-
-    return tagGroupsRef
-      .doc(tagGroupID)
-      .collection("tags")
-      .where("deletionTimestamp", "==", "")
-      .onSnapshot((snapshot) => {
-        let newTags = {};
-        snapshot.forEach((tagDoc) => {
-          let tagData = tagDoc.data();
-          newTags[tagDoc.id] = {
-            ID: tagDoc.id,
-            name: tagData.name,
-          };
-        });
-        setTags(newTags);
-      });
-  }, [tagGroupID, tagGroupsRef]);
-
-  return tags;
 }

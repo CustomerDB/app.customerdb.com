@@ -1,19 +1,19 @@
 import React from "react";
-
-import { ArrowUp } from "react-bootstrap-icons";
-
+import arrowDown from "../assets/images/handdrawn-arrow-down.svg";
 import personGraphic from "../assets/images/person.svg";
 
 export default function PeopleHelp(props) {
   return (
-    <div className="roundedBorders" style={{ padding: "0.5rem" }}>
-      <div style={{ display: "flex" }}>
-        <div>
-          <b>Start by adding a customer or user you interact with.</b>
-        </div>
-        <div>
-          <ArrowUp size={40} />
-        </div>
+    <div style={{ padding: "0.5rem" }}>
+      <div>
+        <img
+          style={{ width: "100%" }}
+          src={personGraphic}
+          alt="Person illustration"
+        />
+      </div>
+      <div>
+        <b>Start by adding a customer or user you interact with.</b>
       </div>
       <br />
       <div>
@@ -31,11 +31,11 @@ export default function PeopleHelp(props) {
           during your analysis.
         </p>
       </div>
-      <div>
+      <div style={{ textAlign: "right" }}>
         <img
-          style={{ width: "100%" }}
-          src={personGraphic}
-          alt="Person illustration"
+          src={arrowDown}
+          style={{ width: "4rem", marginRight: "2rem" }}
+          alt="Arrow pointing to add button"
         />
       </div>
     </div>

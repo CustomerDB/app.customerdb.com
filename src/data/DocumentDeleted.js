@@ -1,13 +1,16 @@
-import React from "react";
-
-import Container from "react-bootstrap/Container";
-import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
-
+import Container from "react-bootstrap/Container";
 import Moment from "react-moment";
+import React from "react";
+import Row from "react-bootstrap/Row";
 
 export default function DocumentDeleted(props) {
-  let date = props.document.deletionTimestamp.toDate();
+  let relativeTime = undefined;
+  if (props.document.deletionTimestamp) {
+    relativeTime = (
+      <Moment fromNow date={props.document.deletionTimestamp.toDate()} />
+    );
+  }
 
   return (
     <Container>
@@ -19,7 +22,7 @@ export default function DocumentDeleted(props) {
       <Row noGutters={true}>
         <Col>
           <p>
-            This document was deleted <Moment fromNow date={date} /> by{" "}
+            This document was deleted {relativeTime} by{" "}
             {props.document.deletedBy}
           </p>
         </Col>

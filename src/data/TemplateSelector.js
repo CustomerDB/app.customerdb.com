@@ -1,14 +1,14 @@
 import React, { useContext, useEffect, useState } from "react";
 
-import UserAuthContext from "../auth/UserAuthContext.js";
-import useFirestore from "../db/Firestore.js";
-import event from "../analytics/event.js";
-
-import { initialDelta } from "./delta.js";
-
 import Delta from "quill-delta";
-
-import Form from "react-bootstrap/Form";
+import FormControl from "@material-ui/core/FormControl";
+import InputLabel from "@material-ui/core/InputLabel";
+import MenuItem from "@material-ui/core/MenuItem";
+import Select from "@material-ui/core/Select";
+import UserAuthContext from "../auth/UserAuthContext.js";
+import event from "../analytics/event.js";
+import { initialDelta } from "./delta.js";
+import useFirestore from "../db/Firestore.js";
 
 export default function TemplateSelector(props) {
   const { oauthClaims } = useContext(UserAuthContext);
@@ -21,7 +21,7 @@ export default function TemplateSelector(props) {
     if (!documentRef) {
       return;
     }
-    documentRef.onSnapshot((doc) => {
+    return documentRef.onSnapshot((doc) => {
       setDoc(doc.data());
     });
   }, [documentRef]);
@@ -86,22 +86,20 @@ export default function TemplateSelector(props) {
   }
 
   return (
-    <Form.Control
-      as="select"
-      onChange={onTemplateChange}
-      value={doc.templateID}
-    >
-      <option key="none" value="">
-        None
-      </option>
-      {templates &&
-        templates.map((template) => {
-          return (
-            <option key={template.ID} value={template.ID}>
-              {template.name}
-            </option>
-          );
-        })}
-    </Form.Control>
+    <FormControl fullWidth>
+      <InputLabel id="tag-group-select-label">Template</InputLabel>
+      <Select
+        labelId="tag-group-select-label"
+        id="tag-group-select"
+        onChange={onTemplateChange}
+        value={doc.templateID}
+      >
+        <MenuItem value="">None</MenuItem>
+        {templates &&
+          templates.map((template) => {
+            return <MenuItem value={template.ID}>{template.name}</MenuItem>;
+          })}
+      </Select>
+    </FormControl>
   );
 }

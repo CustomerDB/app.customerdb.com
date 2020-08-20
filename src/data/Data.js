@@ -1,39 +1,43 @@
-import React, { useCallback, useContext, useState, useEffect } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
+import AddIcon from "@material-ui/icons/Add";
+import Avatar from "@material-ui/core/Avatar";
+import ContentsHelp from "./ContentsHelp.js";
+import DataHelp from "./DataHelp.js";
+import DescriptionIcon from "@material-ui/icons/Description";
+import Document from "./Document.js";
+import DocumentCreateModal from "./DocumentCreateModal.js";
+import Fab from "@material-ui/core/Fab";
+import Grid from "@material-ui/core/Grid";
+import Hidden from "@material-ui/core/Hidden";
+import List from "@material-ui/core/List";
+import ListContainer from "../shell/ListContainer";
+import ListItem from "@material-ui/core/ListItem";
+import ListItemAvatar from "@material-ui/core/ListItemAvatar";
+import ListItemText from "@material-ui/core/ListItemText";
+import Moment from "react-moment";
+import Scrollable from "../shell/Scrollable.js";
+import Shell from "../shell/Shell.js";
 import UserAuthContext from "../auth/UserAuthContext.js";
+import { connectHits } from "react-instantsearch-dom";
 import event from "../analytics/event.js";
+import { initialDelta } from "./delta.js";
+import { nanoid } from "nanoid";
 import useFirestore from "../db/Firestore.js";
 import { useOrganization } from "../organization/hooks.js";
 
-import { useParams, useNavigate } from "react-router-dom";
-
-import { nanoid } from "nanoid";
-
-import Button from "react-bootstrap/Button";
-
-import { initialDelta } from "./delta.js";
-import Document from "./Document.js";
-import DocumentCreateModal from "./DocumentCreateModal.js";
-import DocumentRenameModal from "./DocumentRenameModal.js";
-
-import List from "../shell/List.js";
-import Modal from "../shell/Modal.js";
-import Options from "../shell/Options.js";
-import Page from "../shell/Page.js";
-import Scrollable from "../shell/Scrollable.js";
-
-import DataHelp from "./DataHelp.js";
-import ContentsHelp from "./ContentsHelp.js";
-
 export default function Data(props) {
-  let { oauthClaims } = useContext(UserAuthContext);
-  let { documentsRef } = useFirestore();
-  let navigate = useNavigate();
-  let { documentID, orgID } = useParams();
-  const [documents, setDocuments] = useState();
   const [addModalShow, setAddModalShow] = useState();
-
+  const [documents, setDocuments] = useState([]);
+  const [showResults, setShowResults] = useState();
   const { defaultTagGroupID } = useOrganization();
+
+  const navigate = useNavigate();
+
+  let { documentID, orgID } = useParams();
+  let { documentsRef } = useFirestore();
+  let { oauthClaims } = useContext(UserAuthContext);
 
   const [editor, setEditor] = useState();
   const reactQuillRef = useCallback(
@@ -69,61 +73,6 @@ export default function Data(props) {
         setDocuments(newDocuments);
       });
   }, [documentsRef]);
-
-  const options = (doc) => {
-    let documentRef = documentsRef.doc(doc.ID);
-
-    let renameOption = (
-      <Options.Item
-        name="Rename"
-        modal={<DocumentRenameModal documentRef={documentRef} />}
-      />
-    );
-
-    // onDelete is the delete confirm callback
-    let onDelete = () => {
-      event("delete_data", {
-        orgID: oauthClaims.orgID,
-        userID: oauthClaims.user_id,
-      });
-      documentRef.update({
-        deletedBy: oauthClaims.email,
-        deletionTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
-      });
-
-      // Remove focus from document if selected.
-      if (documentID === doc.ID) {
-        navigate(`/orgs/${orgID}/data`);
-      }
-    };
-
-    let deleteOption = (
-      <Options.Item
-        name="Delete"
-        modal={
-          <Modal
-            name="Delete document"
-            footer={[
-              <Button key="delete" variant="danger" onClick={onDelete}>
-                Delete
-              </Button>,
-            ]}
-          >
-            <p>
-              Are you sure you want to delete <b>{doc.name}</b>?
-            </p>
-          </Modal>
-        }
-      />
-    );
-
-    return (
-      <Options>
-        {renameOption}
-        {deleteOption}
-      </Options>
-    );
-  };
 
   const onAdd = () => {
     event("create_data", {
@@ -173,19 +122,65 @@ export default function Data(props) {
       });
   };
 
-  if (!documents) {
-    return <></>;
-  }
-
-  let documentItems =
-    documents &&
-    documents.map((doc) => (
-      <List.Item
-        key={doc.ID}
-        name={doc.name}
-        path={`/orgs/${orgID}/data/${doc.ID}`}
+  const dataListItem = (ID, name, timestamp) => (
+    <ListItem
+      button
+      key={ID}
+      selected={ID === documentID}
+      onClick={() => {
+        navigate(`/orgs/${orgID}/data/${ID}`);
+      }}
+    >
+      <ListItemAvatar>
+        <Avatar>
+          <DescriptionIcon />
+        </Avatar>
+      </ListItemAvatar>
+      <ListItemText
+        primary={name}
+        secondary={timestamp && <Moment fromNow date={timestamp} />}
       />
-    ));
+    </ListItem>
+  );
+
+  let documentItems = documents.map((doc) =>
+    dataListItem(
+      doc.ID,
+      doc.name,
+      doc.creationTimestamp && doc.creationTimestamp.toDate()
+    )
+  );
+
+  const SearchResults = connectHits((result) => {
+    return result.hits.map((hit) =>
+      dataListItem(hit.objectID, hit.name, hit.creationTimestamp)
+    );
+  });
+
+  let list = (
+    <ListContainer>
+      <Scrollable>
+        {showResults ? (
+          <SearchResults />
+        ) : (
+          <List>{documentItems.length > 0 ? documentItems : <DataHelp />}</List>
+        )}
+      </Scrollable>
+      <Fab
+        style={{ position: "absolute", bottom: "15px", right: "15px" }}
+        color="secondary"
+        aria-label="add"
+        onClick={onAdd}
+      >
+        <AddIcon />
+      </Fab>
+    </ListContainer>
+  );
+
+  if (documentID) {
+    // Optionally hide the list if the viewport is too small
+    list = <Hidden mdDown>{list}</Hidden>;
+  }
 
   let content = undefined;
   if (documentID) {
@@ -194,13 +189,16 @@ export default function Data(props) {
         key={documentID}
         navigate={navigate}
         user={oauthClaims}
-        options={options}
         reactQuillRef={reactQuillRef}
         editor={editor}
       />
     );
   } else if (documentItems.length > 0) {
-    content = <ContentsHelp />;
+    content = (
+      <Hidden mdDown>
+        <ContentsHelp />
+      </Hidden>
+    );
   }
 
   let addModal = (
@@ -214,26 +212,20 @@ export default function Data(props) {
   );
 
   return (
-    <Page>
-      <List>
-        <List.Search
-          index={process.env.REACT_APP_ALGOLIA_DOCUMENTS_INDEX}
-          path={(ID) => `/orgs/${orgID}/data/${ID}`}
-        >
-          <List.SearchBox placeholder="Search in data..." />
-          <List.Title>
-            <List.Name>Customer Data</List.Name>
-            <List.Add onClick={onAdd} />
-            {addModal}
-          </List.Title>
-          <List.Items>
-            <Scrollable>
-              {documentItems.length > 0 ? documentItems : <DataHelp />}
-            </Scrollable>
-          </List.Items>
-        </List.Search>
-      </List>
-      {content}
-    </Page>
+    <Shell
+      title="Data"
+      search={{
+        index: process.env.REACT_APP_ALGOLIA_DOCUMENTS_INDEX,
+        setShowResults: (value) => {
+          setShowResults(value);
+        },
+      }}
+    >
+      <Grid container className="fullHeight">
+        {list}
+        {content}
+        {addModal}
+      </Grid>
+    </Shell>
   );
 }

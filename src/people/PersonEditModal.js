@@ -1,16 +1,13 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
 
+import Button from "react-bootstrap/Button";
+import Col from "react-bootstrap/Col";
+import DeleteIcon from "@material-ui/icons/Delete";
+import Form from "react-bootstrap/Form";
+import Modal from "../shell_obsolete/Modal.js";
+import Row from "react-bootstrap/Row";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
-import Modal from "../shell/Modal.js";
-
-import Row from "react-bootstrap/Row";
-import Col from "react-bootstrap/Col";
-import Button from "react-bootstrap/Button";
-import Form from "react-bootstrap/Form";
-
-import { XCircleFill } from "react-bootstrap-icons";
-
 import { nanoid } from "nanoid";
 
 export default function PersonEditModal(props) {
@@ -219,7 +216,7 @@ export default function PersonEditModal(props) {
                 </Col>
                 <Col md={1} style={{ padding: 0 }}>
                   <Button variant="link">
-                    <XCircleFill
+                    <DeleteIcon
                       color="grey"
                       onClick={() => {
                         let fields = {};
@@ -265,19 +262,19 @@ export default function PersonEditModal(props) {
                       let l = {};
                       Object.assign(l, labels);
                       l[label.ID].name = e.target.value;
-                      // setLabels(l);
+                      setLabels(l);
                     }}
                   />
                 </Col>
                 <Col md={1} style={{ padding: 0 }}>
                   <Button variant="link">
-                    <XCircleFill
+                    <DeleteIcon
                       color="grey"
                       onClick={() => {
                         let l = {};
                         Object.assign(l, labels);
                         delete l[label.ID];
-                        // setLabels(l);
+                        setLabels(l);
                       }}
                     />
                   </Button>

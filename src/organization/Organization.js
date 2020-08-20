@@ -1,37 +1,23 @@
-import React from "react";
-import { useContext, useEffect, useState } from "react";
-
-import UserAuthContext from "../auth/UserAuthContext";
-
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../App.css";
 
-import { useNavigate, useLocation, useParams } from "react-router-dom";
+import React, { useContext, useEffect, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 import { Loading } from "../util/Utils.js";
-
-import {
-  DoorOpen,
-  People,
-  ChatLeftQuote,
-  GearWide,
-  Intersect,
-} from "react-bootstrap-icons";
-
 import OrganizationRoutes from "./OrganizationRoutes.js";
-import Shell from "../shell/Shell.js";
-import Navigation from "../shell/Navigation.js";
-
+import UserAuthContext from "../auth/UserAuthContext";
 import { loadIntercom } from "../util/intercom.js";
 
-export default function Organization(props) {
+export default function Organization() {
   const { oauthUser, oauthClaims } = useContext(UserAuthContext);
   const { orgID } = useParams();
+
   const navigate = useNavigate();
+  const location = useLocation();
+
   const [authorized, setAuthorized] = useState(false);
   const [intercomInit, setIntercomInit] = useState(false);
-
-  const location = useLocation();
 
   useEffect(() => {
     if (!oauthUser) {
@@ -80,46 +66,5 @@ export default function Organization(props) {
 
   if (!authorized) return <Loading />;
 
-  return (
-    <Shell>
-      <Navigation>
-        <Navigation.Top>
-          <Navigation.Item
-            name="People"
-            icon={<People />}
-            path={`/orgs/${orgID}/people`}
-            end={false}
-          />
-          <Navigation.Item
-            name="Data"
-            icon={<ChatLeftQuote />}
-            path={`/orgs/${orgID}/data`}
-            end={false}
-          />
-          <Navigation.Item
-            name="Analyze"
-            icon={<Intersect />}
-            path={`/orgs/${orgID}/analyze`}
-            end={false}
-          />
-        </Navigation.Top>
-        <Navigation.Bottom>
-          <Navigation.Item
-            name="Settings"
-            icon={<GearWide />}
-            path={`/orgs/${orgID}/settings`}
-            end={false}
-          />
-          <Navigation.Item
-            name="Logout"
-            icon={<DoorOpen />}
-            path={`/logout`}
-            end={true}
-          />
-        </Navigation.Bottom>
-      </Navigation>
-
-      <OrganizationRoutes />
-    </Shell>
-  );
+  return <OrganizationRoutes />;
 }

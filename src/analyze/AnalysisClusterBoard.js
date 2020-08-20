@@ -1,18 +1,18 @@
-import React from "react";
+import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 
+import AspectRatioIcon from "@material-ui/icons/AspectRatio";
+import Button from "react-bootstrap/Button";
 import Card from "./Card.js";
+import GetAppIcon from "@material-ui/icons/GetApp";
 import Group from "./Group.js";
 import HighlightModal from "./HighlightModal.js";
-import colorPair from "../util/color.js";
 import { Loading } from "../util/Utils.js";
-import event from "../analytics/event.js";
-
 import RBush from "rbush";
-import { nanoid } from "nanoid";
-import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
-import Button from "react-bootstrap/Button";
-import { AspectRatio, Download } from "react-bootstrap-icons";
+import React from "react";
+import colorPair from "../util/color.js";
 import domToImage from "dom-to-image";
+import event from "../analytics/event.js";
+import { nanoid } from "nanoid";
 
 export default class AnalysisClusterBoard extends React.Component {
   constructor(props) {
@@ -574,7 +574,7 @@ export default class AnalysisClusterBoard extends React.Component {
                 zIndex: 200,
               }}
             >
-              <AspectRatio />
+              <AspectRatioIcon />
             </Button>
             <Button
               title="Download board image"
@@ -641,7 +641,7 @@ export default class AnalysisClusterBoard extends React.Component {
                   });
               }}
             >
-              <Download />
+              <GetAppIcon />
             </Button>
             <div
               className="scrollContainer"

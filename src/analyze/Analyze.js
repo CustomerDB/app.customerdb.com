@@ -1,29 +1,38 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
+import AddIcon from "@material-ui/icons/Add";
+import Analysis from "./Analysis.js";
+import AnalysisHelp from "./AnalysisHelp.js";
+import AnalysisRenameModal from "./AnalysisRenameModal.js";
+import AnalyzeHelp from "./AnalyzeHelp.js";
+import Avatar from "@material-ui/core/Avatar";
+import BarChartIcon from "@material-ui/icons/BarChart";
+import BubbleChartIcon from "@material-ui/icons/BubbleChart";
+import DescriptionIcon from "@material-ui/icons/Description";
+import Fab from "@material-ui/core/Fab";
+import Grid from "@material-ui/core/Grid";
+import Hidden from "@material-ui/core/Hidden";
+import List from "@material-ui/core/List";
+import ListContainer from "../shell/ListContainer";
+import ListItem from "@material-ui/core/ListItem";
+import ListItemAvatar from "@material-ui/core/ListItemAvatar";
+import ListItemText from "@material-ui/core/ListItemText";
+import Moment from "react-moment";
+import Scrollable from "../shell/Scrollable.js";
+import Shell from "../shell/Shell.js";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
 import useFirestore from "../db/Firestore.js";
-
-import Page from "../shell/Page.js";
-import List from "../shell/List.js";
-import Scrollable from "../shell/Scrollable.js";
-import Options from "../shell/Options.js";
-
-import Analysis from "./Analysis.js";
-import AnalysisDeleteModal from "./AnalysisDeleteModal.js";
-import AnalysisRenameModal from "./AnalysisRenameModal.js";
-import AnalyzeHelp from "./AnalyzeHelp.js";
-import AnalysisHelp from "./AnalysisHelp.js";
-
-import { useParams } from "react-router-dom";
-import WithFocus from "../util/WithFocus.js";
 
 export default function Analyze(props) {
   const { oauthClaims } = useContext(UserAuthContext);
 
   let { analysesRef } = useFirestore();
 
-  let { orgID, analysisID } = useParams();
+  let { orgID, analysisID, tabID } = useParams();
+
+  const navigate = useNavigate();
 
   const [analysisList, setAnalysisList] = useState(undefined);
   const [analysisMap, setAnalysisMap] = useState(undefined);
@@ -61,40 +70,24 @@ export default function Analyze(props) {
     return <></>;
   }
 
-  const options = (analysisID) => {
-    if (!analysisID) {
-      return <></>;
-    }
-
-    let analysisRef = analysesRef.doc(analysisID);
-
-    return (
-      <Options key={analysisID}>
-        <Options.Item
-          name="Rename"
-          modal={<AnalysisRenameModal analysisRef={analysisRef} />}
-        />
-
-        <Options.Item
-          name="Delete"
-          modal={<AnalysisDeleteModal analysisRef={analysisRef} />}
-        />
-      </Options>
-    );
-  };
-
   let content;
   if (analysisID && analysisMap) {
     let analysis = analysisMap[analysisID];
+    let analysisRef = analysesRef.doc(analysisID);
+
     content = (
       <Analysis
         key={analysisID}
         analysis={analysis}
-        options={options(analysisID)}
+        analysisRef={analysisRef}
       />
     );
   } else if (listTotal > 0) {
-    content = <AnalysisHelp />;
+    content = (
+      <Hidden mdDown>
+        <AnalysisHelp />
+      </Hidden>
+    );
   }
 
   let addModal = (
@@ -107,51 +100,120 @@ export default function Analyze(props) {
     />
   );
 
-  let listItems = analysisList.map((analysis) => (
-    <List.Item
-      key={analysis.ID}
-      name={analysis.name}
-      path={`/orgs/${orgID}/analyze/${analysis.ID}`}
-    />
-  ));
+  const onAdd = () => {
+    event("create_analysis", {
+      orgID: oauthClaims.orgID,
+      userID: oauthClaims.user_id,
+    });
+
+    analysesRef
+      .add({
+        name: "Unnamed analysis",
+        documentIDs: [],
+        createdBy: oauthClaims.email,
+        creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+        deletionTimestamp: "",
+      })
+      .then((doc) => {
+        setNewAnalysisRef(doc);
+        setAddModalShow(true);
+      });
+  };
+
+  let list = (
+    <ListContainer>
+      <Scrollable>
+        {listTotal === 0 && <AnalyzeHelp />}
+        <List>
+          {analysisList.map((analysis) => (
+            <>
+              <ListItem
+                button
+                key={analysis.ID}
+                selected={analysis.ID === analysisID}
+                onClick={() => {
+                  navigate(`/orgs/${orgID}/analyze/${analysis.ID}`);
+                }}
+              >
+                <ListItemAvatar>
+                  <Avatar>
+                    <BarChartIcon />
+                  </Avatar>
+                </ListItemAvatar>
+                <ListItemText
+                  primary={analysis.name}
+                  secondary={
+                    <Moment
+                      fromNow
+                      date={
+                        analysis.creationTimestamp &&
+                        analysis.creationTimestamp.toDate()
+                      }
+                    />
+                  }
+                />
+              </ListItem>
+              {analysis.ID === analysisID && (
+                <List>
+                  <ListItem
+                    button
+                    style={{ paddingLeft: "4rem" }}
+                    selected={tabID === "data"}
+                    onClick={() => {
+                      navigate(`/orgs/${orgID}/analyze/${analysis.ID}/data`);
+                    }}
+                  >
+                    <ListItemAvatar>
+                      <Avatar>
+                        <DescriptionIcon />
+                      </Avatar>
+                    </ListItemAvatar>
+                    <ListItemText primary="Data" />
+                  </ListItem>
+                  <ListItem
+                    button
+                    style={{ paddingLeft: "4rem" }}
+                    selected={tabID === "cluster"}
+                    onClick={() => {
+                      navigate(`/orgs/${orgID}/analyze/${analysis.ID}/cluster`);
+                    }}
+                  >
+                    <ListItemAvatar>
+                      <Avatar>
+                        <BubbleChartIcon />
+                      </Avatar>
+                    </ListItemAvatar>
+                    <ListItemText primary="Clusters" />
+                  </ListItem>
+                </List>
+              )}
+            </>
+          ))}
+        </List>
+      </Scrollable>
+      <Fab
+        style={{ position: "absolute", bottom: "15px", right: "15px" }}
+        color="secondary"
+        aria-label="add"
+        onClick={onAdd}
+      >
+        <AddIcon />
+      </Fab>
+    </ListContainer>
+  );
+
+  if (analysisID) {
+    // Optionally hide the list if the viewport is too small
+    list = <Hidden mdDown>{list}</Hidden>;
+  }
 
   return (
-    <Page>
-      <WithFocus>
-        <List>
-          <List.Title>
-            <List.Name>Customer Analysis</List.Name>
-            <List.Add
-              onClick={() => {
-                event("create_analysis", {
-                  orgID: oauthClaims.orgID,
-                  userID: oauthClaims.user_id,
-                });
-
-                analysesRef
-                  .add({
-                    name: "Unnamed analysis",
-                    documentIDs: [],
-                    createdBy: oauthClaims.email,
-                    creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
-                    deletionTimestamp: "",
-                  })
-                  .then((doc) => {
-                    setNewAnalysisRef(doc);
-                    setAddModalShow(true);
-                  });
-              }}
-            />
-            {addModal}
-          </List.Title>
-          <List.Items>
-            <Scrollable>
-              {listTotal > 0 ? listItems : <AnalyzeHelp />}
-            </Scrollable>
-          </List.Items>
-        </List>
+    <Shell title="Analysis">
+      <Grid container className="fullHeight">
+        {list}
         {content}
-      </WithFocus>
-    </Page>
+        {addModal}
+      </Grid>
+    </Shell>
   );
 }

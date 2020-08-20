@@ -137,6 +137,9 @@ exports.createOrganization = functions.https.onCall((data, context) => {
 
   let db = admin.firestore();
 
+  const rawdata = fs.readFileSync("data/default_tags.json");
+  const defaultTags = JSON.parse(rawdata);
+
   // 1) Create organization.
   return db
     .collection("organizations")
@@ -161,92 +164,64 @@ exports.createOrganization = functions.https.onCall((data, context) => {
           orgID: orgID,
         })
         .then((doc) => {
-          console.debug("Creating tag group");
+          console.debug("Creating tag groups");
           // 3) Create default tag group
-          return orgRef
-            .collection("tagGroups")
-            .add({
-              createdBy: email,
-              creationTimestamp: admin.firestore.FieldValue.serverTimestamp(),
-              deletionTimestamp: "",
-              name: "Discovery",
+
+          return Promise.all(
+            defaultTags["tagGroups"].map((tagGroup) => {
+              return orgRef
+                .collection("tagGroups")
+                .add({
+                  createdBy: email,
+                  creationTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+                  deletionTimestamp: "",
+                  name: tagGroup["name"],
+                })
+                .then((doc) => {
+                  let tagGroupID = doc.id;
+                  let tagGroupRef = orgRef
+                    .collection("tagGroups")
+                    .doc(tagGroupID);
+
+                  console.debug("Creating tags");
+
+                  // 4) Create default tags.
+                  let tagPromises = tagGroup["tags"].map((tag) => {
+                    let tagDocument = {
+                      ID: nanoid(),
+                      color: tag.color,
+                      textColor: tag.textColor,
+                      name: tag.name,
+                      organizationID: orgID,
+                      createdBy: email,
+                      tagGroupID: tagGroupID,
+                      creationTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+                      deletionTimestamp: "",
+                    };
+                    tagGroupRef
+                      .collection("tags")
+                      .doc(tagDocument.ID)
+                      .set(tagDocument);
+                  });
+
+                  return Promise.all(tagPromises).then(() => {
+                    if (!tagGroup.default) {
+                      return;
+                    }
+
+                    console.debug("Set default tag group");
+
+                    // 5) After creating tag group. Set the default tag group.
+                    return orgRef.set(
+                      {
+                        defaultTagGroupID: tagGroupID,
+                      },
+                      { merge: true }
+                    );
+                  });
+                });
             })
-            .then((doc) => {
-              let tagGroupID = doc.id;
-              let tagGroupRef = orgRef.collection("tagGroups").doc(tagGroupID);
-
-              console.debug("Creating tags");
-
-              let tags = [
-                {
-                  ID: nanoid(),
-                  color: "#d4c4fb",
-                  textColor: "#000",
-                  name: "Emotion",
-                  organizationID: orgID,
-                  createdBy: email,
-                  creationTimestamp: admin.firestore.FieldValue.serverTimestamp(),
-                  deletionTimestamp: "",
-                },
-                {
-                  ID: nanoid(),
-                  color: "#bedadc",
-                  textColor: "#000",
-                  name: "Deficiency",
-                  organizationID: orgID,
-                  createdBy: email,
-                  creationTimestamp: admin.firestore.FieldValue.serverTimestamp(),
-                  deletionTimestamp: "",
-                },
-                {
-                  ID: nanoid(),
-                  color: "#fad0c3",
-                  textColor: "#000",
-                  name: "Problem",
-                  organizationID: orgID,
-                  createdBy: email,
-                  creationTimestamp: admin.firestore.FieldValue.serverTimestamp(),
-                  deletionTimestamp: "",
-                },
-                {
-                  ID: nanoid(),
-                  color: "#fef3bd",
-                  textColor: "#000",
-                  name: "Action",
-                  organizationID: orgID,
-                  createdBy: email,
-                  creationTimestamp: admin.firestore.FieldValue.serverTimestamp(),
-                  deletionTimestamp: "",
-                },
-                {
-                  ID: nanoid(),
-                  color: "#c4def6",
-                  textColor: "#000",
-                  name: "Cares about",
-                  organizationID: orgID,
-                  createdBy: email,
-                  creationTimestamp: admin.firestore.FieldValue.serverTimestamp(),
-                  deletionTimestamp: "",
-                },
-              ];
-
-              // 4) Create default tags.
-              let tagPromises = tags.map((tag) =>
-                tagGroupRef.collection("tags").doc(tag.ID).set(tag)
-              );
-
-              return Promise.all(tagPromises).then((doc) => {
-                console.debug("Set default tag group");
-
-                // 5) After creating tag group. Set the default tag group.
-                return orgRef.set(
-                  {
-                    defaultTagGroupID: tagGroupID,
-                  },
-                  { merge: true }
-                );
-              });
-            });
+          );
         });
     })
     .then(() => {
@@ -746,6 +721,58 @@ exports.highlightRepair = functions.pubsub
                             }
 
                             return doc.ref.set(partialUpdate, { merge: true });
+                          })
+                        );
+                      });
+                  })
+                );
+              });
+          })
+        );
+      });
+  });
+
+exports.tagRepair = functions.pubsub
+  .schedule("every 4 hours")
+  .onRun((context) => {
+    let db = admin.firestore();
+
+    // Per organization
+    return db
+      .collection("organizations")
+      .get()
+      .then((snapshot) => {
+        return Promise.all(
+          snapshot.docs.map((orgDoc) => {
+            // Go through each tag group
+            return orgDoc.ref
+              .collection("tagGroups")
+              .get()
+              .then((snapshot) => {
+                return Promise.all(
+                  snapshot.docs.map((tagGroupDoc) => {
+                    // Go through each tag
+                    const tagGroupID = tagGroupDoc.id;
+                    return tagGroupDoc.ref
+                      .collection("tags")
+                      .get()
+                      .then((snapshot) => {
+                        return Promise.all(
+                          snapshot.docs.map((tagDoc) => {
+                            // Set tag group id if not already set
+                            let tag = tagDoc.data();
+                            if (
+                              tag.tagGroupID !== tagGroupID ||
+                              tag.ID !== tagDoc.id
+                            ) {
+                              return tagDoc.ref.set(
+                                {
+                                  tagGroupID: tagGroupID,
+                                  ID: tagDoc.id,
+                                },
+                                { merge: true }
+                              );
+                            }
                           })
                         );
                       });

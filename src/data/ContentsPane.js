@@ -1,35 +1,54 @@
+import "react-quill/dist/quill.snow.css";
+
 import React, {
   useCallback,
   useContext,
-  useState,
   useEffect,
   useRef,
+  useState,
 } from "react";
+import { addTagStyles, removeTagStyles } from "./Tags.js";
 
+import Archive from "@material-ui/icons/Archive";
+import ContentEditable from "react-contenteditable";
+import Delta from "quill-delta";
+import DocumentDeleteDialog from "./DocumentDeleteDialog.js";
+import DocumentSidebar from "./DocumentSidebar.js";
+import Grid from "@material-ui/core/Grid";
+import Hidden from "@material-ui/core/Hidden";
+import HighlightBlot from "./HighlightBlot.js";
+import IconButton from "@material-ui/core/IconButton";
+import Moment from "react-moment";
+import Paper from "@material-ui/core/Paper";
+import Quill from "quill";
+import ReactQuill from "react-quill";
+import Scrollable from "../shell/Scrollable.js";
+import Typography from "@material-ui/core/Typography";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
-import useFirestore from "../db/Firestore.js";
-
-import ReactQuill from "react-quill";
-import Delta from "quill-delta";
-import Quill from "quill";
-import { nanoid } from "nanoid";
-
-import { useParams } from "react-router-dom";
-
-import "react-quill/dist/quill.snow.css";
-
 import { initialDelta } from "./delta.js";
-import HighlightBlot from "./HighlightBlot.js";
-import DocumentSidebar from "./DocumentSidebar.js";
-
-import Tabs from "../shell/Tabs.js";
-import Scrollable from "../shell/Scrollable.js";
+import { makeStyles } from "@material-ui/core/styles";
+import { nanoid } from "nanoid";
+import useFirestore from "../db/Firestore.js";
+import { useParams } from "react-router-dom";
 
 Quill.register("formats/highlight", HighlightBlot);
 
 // Synchronize every second (1000ms).
 const syncPeriod = 1000;
+
+const useStyles = makeStyles({
+  documentPaper: {
+    margin: "1rem 1rem 1rem 2rem",
+    padding: "1rem 2rem 4rem 2rem",
+    minHeight: "48rem",
+    width: "100%",
+    maxWidth: "80rem",
+  },
+  detailsParagraph: {
+    marginBottom: "0.35rem",
+  },
+});
 
 // ContentsPane is a React component that allows multiple users to edit
 // and highlight a text document simultaneously.
@@ -65,11 +84,20 @@ const syncPeriod = 1000;
 export default function ContentsPane(props) {
   const { oauthClaims } = useContext(UserAuthContext);
   const { orgID } = useParams();
-  const { snapshotsRef, highlightsRef, deltasRef } = useFirestore();
+  const {
+    tagGroupsRef,
+    documentRef,
+    snapshotsRef,
+    highlightsRef,
+    deltasRef,
+  } = useFirestore();
+
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
   const [editorID] = useState(nanoid());
   const [snapshotDelta, setSnapshotDelta] = useState();
   const [snapshotTimestamp, setSnapshotTimestamp] = useState();
+  const [tags, setTags] = useState();
 
   const [tagIDsInSelection, setTagIDsInSelection] = useState(new Set());
 
@@ -79,6 +107,8 @@ export default function ContentsPane(props) {
   let currentSelection = useRef();
 
   let highlights = useRef();
+
+  const classes = useStyles();
 
   // Returns the index and length of the highlight with the supplied ID
   // in the current editor.
@@ -202,6 +232,8 @@ export default function ContentsPane(props) {
         { highlightID: highlightID, tagID: tag.ID },
         "user"
       );
+
+      props.editor.setSelection(selection.index + selection.length);
     }
 
     if (!checked) {
@@ -229,13 +261,44 @@ export default function ContentsPane(props) {
     setTagIDsInSelection(tagIDs);
   };
 
+  // Subscribe to tags for the document's tag group.
+  useEffect(() => {
+    if (!tagGroupsRef) {
+      return;
+    }
+    if (!props.document.tagGroupID) {
+      setTags();
+      removeTagStyles();
+      return;
+    }
+
+    let unsubscribe = tagGroupsRef
+      .doc(props.document.tagGroupID)
+      .collection("tags")
+      .where("deletionTimestamp", "==", "")
+      .onSnapshot((snapshot) => {
+        let newTags = {};
+        snapshot.forEach((doc) => {
+          let data = doc.data();
+          data.ID = doc.id;
+          newTags[data.ID] = data;
+        });
+        setTags(newTags);
+        addTagStyles(newTags);
+      });
+    return () => {
+      removeTagStyles();
+      unsubscribe();
+    };
+  }, [props.document.tagGroupID, tagGroupsRef]);
+
   // Subscribe to the latest delta snapshot
   useEffect(() => {
     if (!snapshotsRef) {
       return;
     }
 
-    snapshotsRef
+    return snapshotsRef
       .orderBy("timestamp", "desc")
       .limit(1)
       .onSnapshot((snapshot) => {
@@ -535,38 +598,125 @@ export default function ContentsPane(props) {
 
   return (
     <>
-      <Tabs.Content className="quillBounds">
+      <Grid
+        style={{ position: "relative", height: "100%" }}
+        container
+        item
+        sm={12}
+        md={8}
+        xl={9}
+      >
         <Scrollable>
-          <ReactQuill
-            ref={props.reactQuillRef}
-            defaultValue={snapshotDelta}
-            theme="snow"
-            bounds=".quillBounds"
-            placeholder="Start typing here and select to mark highlights"
-            onChange={onEdit}
-            onChangeSelection={onSelect}
-            modules={{
-              toolbar: [
-                [{ header: [1, 2, false] }],
-                ["bold", "italic", "underline", "strike", "blockquote"],
-                [
-                  { list: "ordered" },
-                  { list: "bullet" },
-                  { indent: "-1" },
-                  { indent: "+1" },
-                ],
-                ["link", "image"],
-                ["clean"],
-              ],
-            }}
-          />
-        </Scrollable>
-      </Tabs.Content>
+          <Grid container item spacing={0} xs={12}>
+            <Grid container item justify="center">
+              <Paper elevation={5} className={classes.documentPaper}>
+                <Grid container>
+                  <Grid container item xs={12} alignItems="flex-start">
+                    <Grid item xs={11}>
+                      <Typography gutterBottom variant="h4" component="h2">
+                        <ContentEditable
+                          html={props.document.name}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.target.blur();
+                            }
+                          }}
+                          onBlur={(e) => {
+                            if (documentRef) {
+                              let newName = e.target.innerText
+                                .replace(/(\r\n|\n|\r)/gm, " ")
+                                .replace(/\s+/g, " ")
+                                .trim();
 
-      <DocumentSidebar
+                              console.debug("setting document name", newName);
+
+                              documentRef.set(
+                                { name: newName },
+                                { merge: true }
+                              );
+                            }
+                          }}
+                        />
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="textSecondary"
+                        component="p"
+                        className={classes.detailsParagraph}
+                      >
+                        Created{" "}
+                        <Moment
+                          fromNow
+                          date={props.document.creationTimestamp.toDate()}
+                        />{" "}
+                        by {props.document.createdBy}
+                      </Typography>
+                    </Grid>
+
+                    <Grid item xs={1}>
+                      <IconButton
+                        color="primary"
+                        aria-label="Archive document"
+                        onClick={() => {
+                          console.debug("confirm archive doc");
+                          setOpenDeleteDialog(true);
+                        }}
+                      >
+                        <Archive />
+                      </IconButton>
+                    </Grid>
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <ReactQuill
+                      ref={props.reactQuillRef}
+                      defaultValue={snapshotDelta}
+                      theme="snow"
+                      placeholder="Start typing here and select to mark highlights"
+                      onChange={onEdit}
+                      onChangeSelection={onSelect}
+                      modules={{
+                        toolbar: [
+                          [{ header: [1, 2, false] }],
+                          [
+                            "bold",
+                            "italic",
+                            "underline",
+                            "strike",
+                            "blockquote",
+                          ],
+                          [
+                            { list: "ordered" },
+                            { list: "bullet" },
+                            { indent: "-1" },
+                            { indent: "+1" },
+                          ],
+                          ["link", "image"],
+                          ["clean"],
+                        ],
+                      }}
+                    />
+                  </Grid>
+                </Grid>
+              </Paper>
+            </Grid>
+          </Grid>
+        </Scrollable>
+      </Grid>
+
+      <Hidden smDown>
+        <DocumentSidebar
+          document={props.document}
+          tags={tags}
+          tagIDsInSelection={tagIDsInSelection}
+          onTagControlChange={onTagControlChange}
+        />
+      </Hidden>
+
+      <DocumentDeleteDialog
+        open={openDeleteDialog}
+        setOpen={setOpenDeleteDialog}
         document={props.document}
-        tagIDsInSelection={tagIDsInSelection}
-        onTagControlChange={onTagControlChange}
       />
     </>
   );

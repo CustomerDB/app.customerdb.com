@@ -1,32 +1,41 @@
-import React, { useContext, useState, useEffect } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import React, { useContext, useEffect, useState } from "react";
 
+import Avatar from "react-avatar";
+import Button from "@material-ui/core/Button";
+import Card from "@material-ui/core/Card";
+import CardActionArea from "@material-ui/core/CardActionArea";
+import CardActions from "@material-ui/core/CardActions";
+import CardContent from "@material-ui/core/CardContent";
+import Grid from "@material-ui/core/Grid";
+import SearchDropdown from "../search/Dropdown.js";
+import TagGroupSelector from "./TagGroupSelector.js";
+import Tags from "./Tags.js";
+import Typography from "@material-ui/core/Typography";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
+import { makeStyles } from "@material-ui/core/styles";
 import useFirestore from "../db/Firestore.js";
-import Tags, { addTagStyles, removeTagStyles } from "./Tags.js";
 
-import TagGroupSelector from "./TagGroupSelector.js";
-
-import Tabs from "../shell/Tabs.js";
-import SearchDropdown from "../search/Dropdown.js";
-
-import Moment from "react-moment";
-import Avatar from "react-avatar";
-import Button from "react-bootstrap/Button";
-import { Pencil, X } from "react-bootstrap-icons";
-
-import { useParams, Link } from "react-router-dom";
+const useStyles = makeStyles({
+  documentSidebarCard: {
+    margin: "0rem 2rem 1rem 1rem",
+    padding: "1rem 1rem 0rem 1rem",
+  },
+});
 
 export default function DocumentSidebar(props) {
   const { oauthClaims } = useContext(UserAuthContext);
   const { orgID } = useParams();
-  const { documentRef, tagGroupsRef, peopleRef } = useFirestore();
+  const { documentRef, peopleRef } = useFirestore();
+
+  const navigate = useNavigate();
 
   const [person, setPerson] = useState();
-  const [tagGroupName, setTagGroupName] = useState("Tags");
-  const [tags, setTags] = useState();
   const [editPerson, setEditPerson] = useState(false);
   const [editTagGroup, setEditTagGroup] = useState(false);
+
+  const classes = useStyles();
 
   // Subscribe to person linked to this document.
   useEffect(() => {
@@ -44,124 +53,72 @@ export default function DocumentSidebar(props) {
     });
   }, [props.document, peopleRef]);
 
-  // Subscribe to document's tag group name.
-  useEffect(() => {
-    if (!props.document.tagGroupID || !tagGroupsRef) {
-      return;
-    }
-
-    return tagGroupsRef.doc(props.document.tagGroupID).onSnapshot((doc) => {
-      let tagGroupData = doc.data();
-      setTagGroupName(tagGroupData.name);
-    });
-  }, [props.document.tagGroupID, tagGroupsRef]);
-
-  // Subscribe to tags for the document's tag group.
-  useEffect(() => {
-    if (!tagGroupsRef) {
-      return;
-    }
-    if (!props.document.tagGroupID) {
-      setTags();
-      removeTagStyles();
-      return;
-    }
-
-    let unsubscribe = tagGroupsRef
-      .doc(props.document.tagGroupID)
-      .collection("tags")
-      .where("deletionTimestamp", "==", "")
-      .onSnapshot((snapshot) => {
-        let newTags = {};
-        snapshot.forEach((doc) => {
-          let data = doc.data();
-          data.ID = doc.id;
-          newTags[data.ID] = data;
-        });
-        setTags(newTags);
-        addTagStyles(newTags);
-      });
-    return () => {
-      removeTagStyles();
-      unsubscribe();
-    };
-  }, [props.document.tagGroupID, tagGroupsRef]);
-
   return (
-    <Tabs.SidePane>
-      <Tabs.SidePaneCard>
-        <p>
-          <b>Created by</b>
-        </p>
-        <p>
-          {props.document.createdBy}
-          <br />
-          <em>
-            <Moment fromNow date={props.document.creationTimestamp.toDate()} />
-          </em>
-        </p>
-      </Tabs.SidePaneCard>
-      <Tabs.SidePaneCard>
-        <div style={{ position: "relative", minHeight: "5rem" }}>
-          <p>
-            <b>Linked Person</b>
-          </p>
-          {person && !editPerson ? (
-            <>
-              <Button
-                onClick={() => {
-                  setEditPerson(true);
-                }}
-                style={{
-                  color: "black",
-                  background: "#e9e9e9",
-                  border: "0",
-                  borderRadius: "0.25rem",
-                  position: "absolute",
-                  right: "-1rem",
-                  top: "-1rem",
-                }}
-              >
-                <Pencil />
-              </Button>
-              <div className="d-flex">
-                <div>
-                  <Avatar size={50} name={person.name} round={true} />
-                </div>
-                <div className="pl-3">
-                  <b>
-                    <Link to={`/orgs/${orgID}/people/${person.ID}`}>
-                      {person.name}
-                    </Link>
-                  </b>
-                  <br />
-                  {person.company}
-                  <br />
-                  {person.job}
-                </div>
-              </div>
-            </>
-          ) : (
-            <>
-              {props.document.personID && (
-                <Button
-                  onClick={() => {
-                    setEditPerson(false);
-                  }}
-                  style={{
-                    color: "black",
-                    background: "#e9e9e9",
-                    border: "0",
-                    borderRadius: "0.25rem",
-                    position: "absolute",
-                    right: "-1rem",
-                    top: "-1rem",
-                  }}
+    <Grid
+      container
+      item
+      md={4}
+      xl={3}
+      direction="column"
+      justify="flex-start"
+      alignItems="stretch"
+      spacing={0}
+      style={{
+        overflowX: "hidden",
+        paddingTop: "1rem",
+      }}
+    >
+      <Card elevation={2} className={classes.documentSidebarCard}>
+        <CardActionArea
+          onClick={() => {
+            person &&
+              !editPerson &&
+              navigate(`/orgs/${orgID}/people/${person.ID}`);
+          }}
+        >
+          <CardContent>
+            {person && !editPerson ? (
+              <Grid container spacing={0}>
+                <Grid
+                  container
+                  item
+                  xs={12}
+                  direction="row"
+                  style={{ marginTop: "1rem" }}
                 >
-                  <X />
-                </Button>
-              )}
-              <div className="d-flex">
+                  <Grid
+                    item
+                    xl={3}
+                    md={12}
+                    style={{ marginBottom: "1rem", paddingRight: "1rem" }}
+                  >
+                    <Avatar size={70} name={person.name} round={true} />
+                  </Grid>
+                  <Grid item xl={9} md={12} style={{ marginBottom: "1rem" }}>
+                    <Typography gutterBottom variant="h5" component="h2">
+                      <Link to={`/orgs/${orgID}/people/${person.ID}`}>
+                        {person.name}
+                      </Link>
+                    </Typography>
+                  </Grid>
+                </Grid>
+                <Grid item xs={12}>
+                  <Typography
+                    variant="body2"
+                    color="textSecondary"
+                    component="p"
+                  >
+                    {person.job}
+                    <br />
+                    {person.company}
+                  </Typography>
+                </Grid>
+              </Grid>
+            ) : (
+              <>
+                <Typography gutterBottom color="textSecondary">
+                  Link customer
+                </Typography>
                 <SearchDropdown
                   index={process.env.REACT_APP_ALGOLIA_PEOPLE_INDEX}
                   default={person ? person.name : ""}
@@ -183,65 +140,53 @@ export default function DocumentSidebar(props) {
                       });
                   }}
                 />
-              </div>
-            </>
-          )}
-        </div>
-      </Tabs.SidePaneCard>
-      <Tabs.SidePaneCard>
-        <div style={{ position: "relative" }}>
-          {tags && !editTagGroup ? (
-            <>
-              <p>
-                <b>{tagGroupName}</b>
-              </p>
+              </>
+            )}
+          </CardContent>
+        </CardActionArea>
 
-              <Button
-                onClick={() => {
-                  setEditTagGroup(true);
-                }}
-                style={{
-                  color: "black",
-                  background: "#e9e9e9",
-                  border: "0",
-                  borderRadius: "0.25rem",
-                  position: "absolute",
-                  right: "-1rem",
-                  top: "-1rem",
-                }}
-              >
-                <Pencil />
-              </Button>
+        <CardActions>
+          {person && !editPerson && (
+            <Button
+              size="small"
+              color="primary"
+              onClick={() => {
+                setEditPerson(true);
+              }}
+            >
+              Change
+            </Button>
+          )}
+
+          {editPerson && (
+            <Button
+              size="small"
+              color="primary"
+              onClick={() => {
+                setEditPerson(false);
+              }}
+            >
+              Cancel
+            </Button>
+          )}
+        </CardActions>
+      </Card>
+
+      <Card elevation={2} className={classes.documentSidebarCard}>
+        <CardContent>
+          {props.tags && !editTagGroup ? (
+            <>
               <Tags
-                tagGroupName={tagGroupName}
-                tags={tags}
+                tags={props.tags}
                 tagIDsInSelection={props.tagIDsInSelection}
                 onChange={props.onTagControlChange}
               />
             </>
           ) : (
             <>
-              <p>
-                <b>Tag Group</b>
-              </p>
-              {props.document.tagGroupID && (
-                <Button
-                  onClick={() => {
-                    setEditTagGroup(false);
-                  }}
-                  style={{
-                    color: "black",
-                    background: "#e9e9e9",
-                    border: "0",
-                    borderRadius: "0.25rem",
-                    position: "absolute",
-                    right: "-1rem",
-                    top: "-1rem",
-                  }}
-                >
-                  <X />
-                </Button>
-              )}
+              <Typography gutterBottom color="textSecondary">
+                Tag Group
+              </Typography>
               <TagGroupSelector
                 onChange={() => {
                   setEditTagGroup(false);
@@ -249,8 +194,33 @@ export default function DocumentSidebar(props) {
               />
             </>
           )}
-        </div>
-      </Tabs.SidePaneCard>
-    </Tabs.SidePane>
+        </CardContent>
+        <CardActions>
+          {!editTagGroup && (
+            <Button
+              size="small"
+              color="primary"
+              onClick={() => {
+                setEditTagGroup(true);
+              }}
+            >
+              Change
+            </Button>
+          )}
+
+          {editTagGroup && (
+            <Button
+              size="small"
+              color="primary"
+              onClick={() => {
+                setEditTagGroup(false);
+              }}
+            >
+              Cancel
+            </Button>
+          )}
+        </CardActions>
+      </Card>
+    </Grid>
   );
 }
