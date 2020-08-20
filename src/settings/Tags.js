@@ -24,6 +24,9 @@ import AddIcon from "@material-ui/icons/Add";
 import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemText from "@material-ui/core/ListItemText";
+import ListItemAvatar from "@material-ui/core/ListItemAvatar";
+import StarIcon from "@material-ui/icons/Star";
+import StarBorderIcon from "@material-ui/icons/StarBorder";
 import Fab from "@material-ui/core/Fab";
 import Grid from "@material-ui/core/Grid";
 import Hidden from "@material-ui/core/Hidden";
@@ -122,6 +125,9 @@ export default function Tags(props) {
           navigate(`/orgs/${orgID}/settings/tags/${tg.ID}`);
         }}
       >
+        <ListItemAvatar>
+          {tg.ID === defaultTagGroupID && <StarIcon />}
+        </ListItemAvatar>
         <ListItemText
           primary={tg.name}
           secondary={
@@ -156,7 +162,9 @@ export default function Tags(props) {
   let content = undefined;
 
   if (tagGroupID) {
-    content = <TagGroup key={tagGroupID} />;
+    content = (
+      <TagGroup key={tagGroupID} defaultTagGroupID={defaultTagGroupID} />
+    );
   }
 
   return (
@@ -170,7 +178,7 @@ export default function Tags(props) {
 function TagGroup(props) {
   const { oauthClaims } = useContext(UserAuthContext);
   const { orgID, tagGroupID } = useParams();
-  const { tagGroupsRef } = useFirestore();
+  const { tagGroupsRef, orgRef } = useFirestore();
   const [tagGroupRef, setTagGroupRef] = useState();
   const [tagGroup, setTagGroup] = useState();
   const [tags, setTags] = useState([]);
@@ -350,7 +358,7 @@ function TagGroup(props) {
                 <CardContent>
                   <Grid container>
                     <Grid container item xs={12} alignItems="flex-start">
-                      <Grid item xs={11}>
+                      <Grid item xs={10}>
                         <Typography gutterBottom variant="h4" component="h2">
                           <ContentEditable
                             html={tagGroup.name}
@@ -394,7 +402,19 @@ function TagGroup(props) {
                         </Typography>
                       </Grid>
 
-                      <Grid item xs={1}>
+                      <Grid item xs={2}>
+                        <Button
+                          variant="contained"
+                          onClick={() => {
+                            orgRef.set(
+                              { defaultTagGroupID: tagGroup.ID },
+                              { merge: true }
+                            );
+                          }}
+                        >
+                          Make default
+                        </Button>
+
                         <IconButton
                           color="primary"
                           aria-label="Archive template"
