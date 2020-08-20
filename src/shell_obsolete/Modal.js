@@ -1,5 +1,5 @@
-import React from "react";
 import BootstrapModal from "react-bootstrap/Modal";
+import React from "react";
 
 export default class Modal extends React.Component {
   render() {

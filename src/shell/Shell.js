@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import "./style.css";
 
-import clsx from "clsx";
+import React, { useState } from "react";
+import { Search, SearchInput } from "./Search.js";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 import AppBar from "@material-ui/core/AppBar";
 import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
@@ -22,14 +24,8 @@ import RecordVoiceOverIcon from "@material-ui/icons/RecordVoiceOver";
 import SettingsIcon from "@material-ui/icons/Settings";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
-
-import { Search, SearchInput } from "./Search.js";
-
-import { useNavigate, useLocation, useParams } from "react-router-dom";
-
+import clsx from "clsx";
 import logo from "../assets/images/logo.svg";
-
-import "./style.css";
 
 const drawerWidth = 240;
 

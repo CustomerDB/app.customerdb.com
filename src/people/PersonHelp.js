@@ -1,5 +1,4 @@
 import React from "react";
-
 import personGraphic from "../assets/images/person.svg";
 
 export default function PersonHelp(props) {

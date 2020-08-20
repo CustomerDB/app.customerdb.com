@@ -1,36 +1,27 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
-import UserAuthContext from "../auth/UserAuthContext.js";
-import useFirestore from "../db/Firestore.js";
-import event from "../analytics/event.js";
-
-import { connectHits } from "react-instantsearch-dom";
-
+import AddIcon from "@material-ui/icons/Add";
 import Avatar from "react-avatar";
-
+import Fab from "@material-ui/core/Fab";
+import Grid from "@material-ui/core/Grid";
+import Hidden from "@material-ui/core/Hidden";
+import Infinite from "../shell/Infinite.js";
 import List from "@material-ui/core/List";
+import ListContainer from "../shell/ListContainer";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemAvatar from "@material-ui/core/ListItemAvatar";
 import ListItemText from "@material-ui/core/ListItemText";
-import AddIcon from "@material-ui/icons/Add";
-import Fab from "@material-ui/core/Fab";
-import Grid from "@material-ui/core/Grid";
-
-import Shell from "../shell/Shell.js";
-import ListContainer from "../shell/ListContainer";
-
-import Infinite from "../shell/Infinite.js";
-import Scrollable from "../shell/Scrollable.js";
-
-import PersonEditModal from "./PersonEditModal.js";
-import Person from "./Person.js";
-
 import PeopleHelp from "./PeopleHelp.js";
+import Person from "./Person.js";
+import PersonEditModal from "./PersonEditModal.js";
 import PersonHelp from "./PersonHelp.js";
-
-import Hidden from "@material-ui/core/Hidden";
-
-import { useParams, useNavigate } from "react-router-dom";
+import Scrollable from "../shell/Scrollable.js";
+import Shell from "../shell/Shell.js";
+import UserAuthContext from "../auth/UserAuthContext.js";
+import { connectHits } from "react-instantsearch-dom";
+import event from "../analytics/event.js";
+import useFirestore from "../db/Firestore.js";
 
 const batchSize = 25;
 

@@ -1,16 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
-import useFirestore from "../db/Firestore.js";
-import TagGroupSelector from "./TagGroupSelector.js";
-import TemplateSelector from "./TemplateSelector.js";
-
+import Button from "@material-ui/core/Button";
 import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
+import TagGroupSelector from "./TagGroupSelector.js";
+import TemplateSelector from "./TemplateSelector.js";
 import TextField from "@material-ui/core/TextField";
-import Button from "@material-ui/core/Button";
+import useFirestore from "../db/Firestore.js";
 
 export default function DocumentCreateModal({ show, onHide, editor }) {
   const [name, setName] = useState();

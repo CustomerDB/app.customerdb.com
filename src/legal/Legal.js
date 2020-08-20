@@ -1,12 +1,9 @@
-import React from "react";
-
-import Container from "react-bootstrap/Container";
-import Row from "react-bootstrap/Row";
-import Col from "react-bootstrap/Col";
 import Button from "react-bootstrap/Button";
-
+import Col from "react-bootstrap/Col";
+import Container from "react-bootstrap/Container";
 import { Link } from "react-router-dom";
-
+import React from "react";
+import Row from "react-bootstrap/Row";
 import logo from "../assets/images/logo.svg";
 
 function loadTermly() {
