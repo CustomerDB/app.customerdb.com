@@ -403,9 +403,8 @@ function TagGroup(props) {
                       </Grid>
 
                       <Grid item xs={2}>
-                        <IconButton
-                          color="primary"
-                          aria-label="Archive template"
+                        <Button
+                          variant="contained"
                           onClick={() => {
                             orgRef.set(
                               { defaultTagGroupID: tagGroup.ID },
@@ -413,12 +412,8 @@ function TagGroup(props) {
                             );
                           }}
                         >
-                          {tagGroup.ID === props.defaultTagGroupID ? (
-                            <StarIcon />
-                          ) : (
-                            <StarBorderIcon />
-                          )}
-                        </IconButton>
+                          Make default
+                        </Button>
 
                         <IconButton
                           color="primary"
