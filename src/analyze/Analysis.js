@@ -39,6 +39,7 @@ export default function Analysis(props) {
 
     return props.analysisRef.onSnapshot((doc) => {
       let data = doc.data();
+      data.ID = doc.id;
       setAnalysis(data);
     });
   }, [props.analysisRef]);
