@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import React from "react";
+import { useState, useEffect } from "react";
 
 import { Loading } from "../util/Utils.js";
-import React from "react";
 import UserAuthContext from "./UserAuthContext.js";
 
 export default function WithOauthUser(props) {

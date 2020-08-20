@@ -1,13 +1,15 @@
-import "react-virtualized/styles.css";
+import React from "react";
+
+import Container from "react-bootstrap/Container";
+import Button from "react-bootstrap/Button";
+import Col from "react-bootstrap/Col";
+import Row from "react-bootstrap/Row";
 
 import { AutoSizer, List as VirtList } from "react-virtualized";
 
-import Button from "react-bootstrap/Button";
-import Col from "react-bootstrap/Col";
-import Container from "react-bootstrap/Container";
 import Options from "./Options.js";
-import React from "react";
-import Row from "react-bootstrap/Row";
+
+import "react-virtualized/styles.css";
 
 /**
  * List wraps a firebase collection in a scrollable list.

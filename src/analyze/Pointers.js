@@ -1,6 +1,7 @@
 import React from "react";
-import colorPair from "../util/color.js";
+
 import { now } from "../util/Utils.js";
+import colorPair from "../util/color.js";
 
 function Pointer(props) {
   return (

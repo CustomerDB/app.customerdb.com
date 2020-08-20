@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from "react";
 
+import { Loading } from "../util/Utils.js";
+import { makeStyles } from "@material-ui/core/styles";
+import { useNavigate } from "react-router-dom";
 import Archive from "@material-ui/icons/Archive";
 import Avatar from "react-avatar";
 import Badge from "react-bootstrap/Badge";
@@ -10,17 +13,15 @@ import Create from "@material-ui/icons/Create";
 import Grid from "@material-ui/core/Grid";
 import IconButton from "@material-ui/core/IconButton";
 import Linkify from "react-linkify";
-import { Loading } from "../util/Utils.js";
-import PersonData from "./PersonData.js";
-import PersonDeleteModal from "./PersonDeleteModal.js";
-import PersonEditModal from "./PersonEditModal.js";
-import PersonHighlightsPane from "./PersonHighlightsPane.js";
 import Row from "react-bootstrap/Row";
 import Scrollable from "../shell/Scrollable.js";
 import Typography from "@material-ui/core/Typography";
-import { makeStyles } from "@material-ui/core/styles";
 import useFirestore from "../db/Firestore.js";
-import { useNavigate } from "react-router-dom";
+
+import PersonHighlightsPane from "./PersonHighlightsPane.js";
+import PersonData from "./PersonData.js";
+import PersonEditModal from "./PersonEditModal.js";
+import PersonDeleteModal from "./PersonDeleteModal.js";
 
 const useStyles = makeStyles({
   nameCard: {

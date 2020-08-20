@@ -1,8 +1,11 @@
-import Col from "react-bootstrap/Col";
-import Container from "react-bootstrap/Container";
 import React from "react";
+
+import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
+import Col from "react-bootstrap/Col";
+
 import StackdriverErrorReporter from "stackdriver-errors-js";
+
 import illustration from "../assets/images/crash.svg";
 
 const project_id = process.env.REACT_APP_FIREBASE_PROJECT_ID;

@@ -1,17 +1,20 @@
 import React, { useContext, useEffect, useState } from "react";
 
-import Avatar from "@material-ui/core/Avatar";
-import Button from "@material-ui/core/Button";
-import Card from "@material-ui/core/Card";
-import CardActions from "@material-ui/core/CardActions";
-import CardContent from "@material-ui/core/CardContent";
-import ContentEditable from "react-contenteditable";
-import Grid from "@material-ui/core/Grid";
-import Linkify from "react-linkify";
-import Typography from "@material-ui/core/Typography";
 import UserAuthContext from "../auth/UserAuthContext";
-import { makeStyles } from "@material-ui/core/styles";
 import useFirestore from "../db/Firestore.js";
+
+import { makeStyles } from "@material-ui/core/styles";
+import Grid from "@material-ui/core/Grid";
+import Card from "@material-ui/core/Card";
+import CardContent from "@material-ui/core/CardContent";
+import CardActions from "@material-ui/core/CardActions";
+import Avatar from "@material-ui/core/Avatar";
+import Typography from "@material-ui/core/Typography";
+import Button from "@material-ui/core/Button";
+
+import ContentEditable from "react-contenteditable";
+
+import Linkify from "react-linkify";
 
 const useStyles = makeStyles({
   fullWidthCard: {

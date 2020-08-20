@@ -1,6 +1,7 @@
 import React from "react";
-import arrowDown from "../assets/images/handdrawn-arrow-down.svg";
+
 import personGraphic from "../assets/images/person.svg";
+import arrowDown from "../assets/images/handdrawn-arrow-down.svg";
 
 export default function PeopleHelp(props) {
   return (
