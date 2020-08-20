@@ -1,5 +1,4 @@
 import React from "react";
-
 import analyzeGraphic from "../assets/images/analyze.svg";
 
 export default function AnalysisHelp(props) {

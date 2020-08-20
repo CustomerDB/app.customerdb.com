@@ -1,10 +1,8 @@
-import React, { useState, useEffect } from "react";
-
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
-
 import Modal from "../shell_obsolete/Modal.js";
 
 export default function AnalysisRenameModal(props) {

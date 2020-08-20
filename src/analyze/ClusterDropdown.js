@@ -1,14 +1,12 @@
 import React, { useEffect, useState } from "react";
-
-import useFirestore from "../db/Firestore.js";
-
 import { useNavigate, useParams } from "react-router-dom";
 
 import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
-import MenuItem from "@material-ui/core/MenuItem";
 import Menu from "@material-ui/core/Menu";
+import MenuItem from "@material-ui/core/MenuItem";
 import Typography from "@material-ui/core/Typography";
+import useFirestore from "../db/Firestore.js";
 
 export default function ClusterTabs(props) {
   const { orgID, tabID, tagID, analysisID } = useParams();

@@ -1,48 +1,39 @@
-import React, { useContext, useState, useEffect, useRef } from "react";
-
-import UserAuthContext from "../auth/UserAuthContext.js";
-import useFirestore from "../db/Firestore.js";
-import event from "../analytics/event.js";
-import { useOrganization } from "../organization/hooks.js";
-
-import { SwatchesPicker } from "react-color";
-
+import React, { useContext, useEffect, useRef, useState } from "react";
+import colorPair, { getTextColorForBackground } from "../util/color.js";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { nanoid } from "nanoid";
-
-import Moment from "react-moment";
-
-import colorPair, { getTextColorForBackground } from "../util/color.js";
-import { Loading } from "../util/Utils.js";
-
-import ListContainer from "../shell/ListContainer";
-import Scrollable from "../shell/Scrollable.js";
-
-import { makeStyles } from "@material-ui/core/styles";
 import AddIcon from "@material-ui/icons/Add";
-import List from "@material-ui/core/List";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemText from "@material-ui/core/ListItemText";
-import Fab from "@material-ui/core/Fab";
-import Grid from "@material-ui/core/Grid";
-import Hidden from "@material-ui/core/Hidden";
-import Card from "@material-ui/core/Card";
-import CardContent from "@material-ui/core/CardContent";
-import CardActions from "@material-ui/core/CardActions";
-import Typography from "@material-ui/core/Typography";
-import IconButton from "@material-ui/core/IconButton";
 import Archive from "@material-ui/icons/Archive";
 import Button from "@material-ui/core/Button";
-import TextField from "@material-ui/core/TextField";
-
+import Card from "@material-ui/core/Card";
+import CardActions from "@material-ui/core/CardActions";
+import CardContent from "@material-ui/core/CardContent";
+import ContentEditable from "react-contenteditable";
 import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
-
-import ContentEditable from "react-contenteditable";
+import Fab from "@material-ui/core/Fab";
+import Grid from "@material-ui/core/Grid";
+import Hidden from "@material-ui/core/Hidden";
+import IconButton from "@material-ui/core/IconButton";
+import List from "@material-ui/core/List";
+import ListContainer from "../shell/ListContainer";
+import ListItem from "@material-ui/core/ListItem";
+import ListItemText from "@material-ui/core/ListItemText";
+import { Loading } from "../util/Utils.js";
+import Moment from "react-moment";
+import Scrollable from "../shell/Scrollable.js";
+import { SwatchesPicker } from "react-color";
+import TextField from "@material-ui/core/TextField";
+import Typography from "@material-ui/core/Typography";
+import UserAuthContext from "../auth/UserAuthContext.js";
+import event from "../analytics/event.js";
+import { makeStyles } from "@material-ui/core/styles";
+import { nanoid } from "nanoid";
+import useFirestore from "../db/Firestore.js";
+import { useOrganization } from "../organization/hooks.js";
 
 const useStyles = makeStyles({
   tagGroupCard: {

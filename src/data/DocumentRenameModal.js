@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
-import Modal from "../shell_obsolete/Modal.js";
-
-import Row from "react-bootstrap/Row";
-import Col from "react-bootstrap/Col";
 import Button from "react-bootstrap/Button";
+import Col from "react-bootstrap/Col";
 import Form from "react-bootstrap/Form";
+import Modal from "../shell_obsolete/Modal.js";
+import Row from "react-bootstrap/Row";
 
 export default function DocumentRenameModal(props) {
   const [doc, setDoc] = useState();

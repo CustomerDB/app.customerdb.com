@@ -1,31 +1,22 @@
-import React, { useState, useEffect } from "react";
-
-import useFirestore from "../db/Firestore.js";
-
-import { Link } from "react-router-dom";
-
-import Scrollable from "../shell/Scrollable.js";
-
-import Button from "react-bootstrap/Button";
-import Container from "react-bootstrap/Container";
-import Row from "react-bootstrap/Row";
-import Col from "react-bootstrap/Col";
-
-import Typography from "@material-ui/core/Typography";
-import ContentEditable from "react-contenteditable";
-import Grid from "@material-ui/core/Grid";
-import IconButton from "@material-ui/core/IconButton";
-import ArchiveIcon from "@material-ui/icons/Archive";
+import React, { useEffect, useState } from "react";
 
 import AnalysisDeleteModal from "./AnalysisDeleteModal.js";
-
+import ArchiveIcon from "@material-ui/icons/Archive";
+import Button from "react-bootstrap/Button";
+import Col from "react-bootstrap/Col";
+import Container from "react-bootstrap/Container";
+import ContentEditable from "react-contenteditable";
 import { Download } from "react-bootstrap-icons";
-
-import domToImage from "dom-to-image";
-
-import { ResponsiveBar } from "@nivo/bar";
-
+import Grid from "@material-ui/core/Grid";
+import IconButton from "@material-ui/core/IconButton";
+import { Link } from "react-router-dom";
 import { Loading } from "../util/Utils.js";
+import { ResponsiveBar } from "@nivo/bar";
+import Row from "react-bootstrap/Row";
+import Scrollable from "../shell/Scrollable.js";
+import Typography from "@material-ui/core/Typography";
+import domToImage from "dom-to-image";
+import useFirestore from "../db/Firestore.js";
 
 export default function AnalysisSummaryTab(props) {
   const {

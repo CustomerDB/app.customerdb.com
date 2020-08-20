@@ -1,7 +1,7 @@
-import React from "react";
-import Draggable from "react-draggable";
-
 import { bboxToRect, circumscribingCircle } from "./geom.js";
+
+import Draggable from "react-draggable";
+import React from "react";
 
 export default class Card extends React.Component {
   constructor(props) {

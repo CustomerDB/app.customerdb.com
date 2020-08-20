@@ -1,5 +1,4 @@
 import React from "react";
-
 import analyzeGraphic from "../assets/images/analyze.svg";
 import arrowDown from "../assets/images/handdrawn-arrow-down.svg";
 

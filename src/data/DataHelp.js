@@ -1,9 +1,8 @@
-import React from "react";
-
 import { Link, useParams } from "react-router-dom";
 
-import dataGraphic from "../assets/images/data.svg";
+import React from "react";
 import arrowDown from "../assets/images/handdrawn-arrow-down.svg";
+import dataGraphic from "../assets/images/data.svg";
 
 export default function DataHelp(props) {
   const { orgID } = useParams();
