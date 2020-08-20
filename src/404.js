@@ -1,9 +1,7 @@
-import React from "react";
-
-import Container from "react-bootstrap/Container";
-import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
-
+import Container from "react-bootstrap/Container";
+import React from "react";
+import Row from "react-bootstrap/Row";
 import illustration from "./assets/images/404.svg";
 
 export default function Error404(props) {

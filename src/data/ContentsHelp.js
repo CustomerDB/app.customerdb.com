@@ -1,5 +1,4 @@
 import React from "react";
-
 import dataGraphic from "../assets/images/data.svg";
 
 export default function ContentsHelp(props) {

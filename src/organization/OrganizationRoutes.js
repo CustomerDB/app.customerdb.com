@@ -1,11 +1,10 @@
-import React from "react";
+import { Navigate, Outlet, Route, Routes } from "react-router-dom";
 
-import People from "../people/People.js";
-import Data from "../data/Data.js";
 import Analyze from "../analyze/Analyze.js";
+import Data from "../data/Data.js";
+import People from "../people/People.js";
+import React from "react";
 import Settings from "../settings/Settings.js";
-
-import { Routes, Route, Outlet, Navigate } from "react-router-dom";
 
 export default function OrganizationRoutes(props) {
   return (

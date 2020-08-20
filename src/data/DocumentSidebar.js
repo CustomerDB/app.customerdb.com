@@ -1,26 +1,21 @@
-import React, { useContext, useState, useEffect } from "react";
-
-import UserAuthContext from "../auth/UserAuthContext.js";
-import event from "../analytics/event.js";
-import useFirestore from "../db/Firestore.js";
-import Tags from "./Tags.js";
-
-import TagGroupSelector from "./TagGroupSelector.js";
-
-import SearchDropdown from "../search/Dropdown.js";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import React, { useContext, useEffect, useState } from "react";
 
 import Avatar from "react-avatar";
-
-import { useParams, useNavigate, Link } from "react-router-dom";
-
-import { makeStyles } from "@material-ui/core/styles";
-import Grid from "@material-ui/core/Grid";
-import Card from "@material-ui/core/Card";
-import CardActions from "@material-ui/core/CardActions";
-import CardActionArea from "@material-ui/core/CardActionArea";
-import CardContent from "@material-ui/core/CardContent";
-import Typography from "@material-ui/core/Typography";
 import Button from "@material-ui/core/Button";
+import Card from "@material-ui/core/Card";
+import CardActionArea from "@material-ui/core/CardActionArea";
+import CardActions from "@material-ui/core/CardActions";
+import CardContent from "@material-ui/core/CardContent";
+import Grid from "@material-ui/core/Grid";
+import SearchDropdown from "../search/Dropdown.js";
+import TagGroupSelector from "./TagGroupSelector.js";
+import Tags from "./Tags.js";
+import Typography from "@material-ui/core/Typography";
+import UserAuthContext from "../auth/UserAuthContext.js";
+import event from "../analytics/event.js";
+import { makeStyles } from "@material-ui/core/styles";
+import useFirestore from "../db/Firestore.js";
 
 const useStyles = makeStyles({
   documentSidebarCard: {

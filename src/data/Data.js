@@ -1,40 +1,31 @@
-import React, { useCallback, useContext, useState, useEffect } from "react";
-
-import UserAuthContext from "../auth/UserAuthContext.js";
-import event from "../analytics/event.js";
-import useFirestore from "../db/Firestore.js";
-import { useOrganization } from "../organization/hooks.js";
-
-import { useParams, useNavigate } from "react-router-dom";
-
-import { connectHits } from "react-instantsearch-dom";
-
-import { nanoid } from "nanoid";
-
-import Moment from "react-moment";
-
-import { initialDelta } from "./delta.js";
-import Document from "./Document.js";
-import DocumentCreateModal from "./DocumentCreateModal.js";
-
-import Shell from "../shell/Shell.js";
-import ListContainer from "../shell/ListContainer";
-
-import Scrollable from "../shell/Scrollable.js";
+import React, { useCallback, useContext, useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
 import AddIcon from "@material-ui/icons/Add";
-import List from "@material-ui/core/List";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemText from "@material-ui/core/ListItemText";
-import ListItemAvatar from "@material-ui/core/ListItemAvatar";
 import Avatar from "@material-ui/core/Avatar";
+import ContentsHelp from "./ContentsHelp.js";
+import DataHelp from "./DataHelp.js";
 import DescriptionIcon from "@material-ui/icons/Description";
+import Document from "./Document.js";
+import DocumentCreateModal from "./DocumentCreateModal.js";
 import Fab from "@material-ui/core/Fab";
 import Grid from "@material-ui/core/Grid";
 import Hidden from "@material-ui/core/Hidden";
-
-import DataHelp from "./DataHelp.js";
-import ContentsHelp from "./ContentsHelp.js";
+import List from "@material-ui/core/List";
+import ListContainer from "../shell/ListContainer";
+import ListItem from "@material-ui/core/ListItem";
+import ListItemAvatar from "@material-ui/core/ListItemAvatar";
+import ListItemText from "@material-ui/core/ListItemText";
+import Moment from "react-moment";
+import Scrollable from "../shell/Scrollable.js";
+import Shell from "../shell/Shell.js";
+import UserAuthContext from "../auth/UserAuthContext.js";
+import { connectHits } from "react-instantsearch-dom";
+import event from "../analytics/event.js";
+import { initialDelta } from "./delta.js";
+import { nanoid } from "nanoid";
+import useFirestore from "../db/Firestore.js";
+import { useOrganization } from "../organization/hooks.js";
 
 export default function Data(props) {
   const [addModalShow, setAddModalShow] = useState();

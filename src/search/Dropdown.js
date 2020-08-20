@@ -1,17 +1,15 @@
-import React, { useState, useRef, useEffect, useContext } from "react";
-
-import UserAuthContext from "../auth/UserAuthContext.js";
+import "./style.css";
 
 import {
   InstantSearch,
   connectHits,
   connectSearchBox,
 } from "react-instantsearch-dom";
+import React, { useContext, useEffect, useRef, useState } from "react";
 
-import { getSearchClient } from "./client.js";
 import { Loading } from "../util/Utils.js";
-
-import "./style.css";
+import UserAuthContext from "../auth/UserAuthContext.js";
+import { getSearchClient } from "./client.js";
 
 const SearchBox = ({ currentRefinement, isSearchStalled, refine, setShow }) => (
   <form>

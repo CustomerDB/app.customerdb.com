@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+
 import useFirestore from "../db/Firestore.js";
 
 export function useOrganization() {

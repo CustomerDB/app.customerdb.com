@@ -1,36 +1,29 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
-import UserAuthContext from "../auth/UserAuthContext.js";
-import event from "../analytics/event.js";
-import useFirestore from "../db/Firestore.js";
-
-import Shell from "../shell/Shell.js";
-
-import Scrollable from "../shell/Scrollable.js";
-
+import AddIcon from "@material-ui/icons/Add";
 import Analysis from "./Analysis.js";
+import AnalysisHelp from "./AnalysisHelp.js";
 import AnalysisRenameModal from "./AnalysisRenameModal.js";
 import AnalyzeHelp from "./AnalyzeHelp.js";
 import Avatar from "@material-ui/core/Avatar";
-import AnalysisHelp from "./AnalysisHelp.js";
-import Grid from "@material-ui/core/Grid";
-import ListContainer from "../shell/ListContainer";
-
-import List from "@material-ui/core/List";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemText from "@material-ui/core/ListItemText";
-import ListItemAvatar from "@material-ui/core/ListItemAvatar";
 import BarChartIcon from "@material-ui/icons/BarChart";
 import BubbleChartIcon from "@material-ui/icons/BubbleChart";
 import DescriptionIcon from "@material-ui/icons/Description";
-import Hidden from "@material-ui/core/Hidden";
-
 import Fab from "@material-ui/core/Fab";
-import AddIcon from "@material-ui/icons/Add";
-
+import Grid from "@material-ui/core/Grid";
+import Hidden from "@material-ui/core/Hidden";
+import List from "@material-ui/core/List";
+import ListContainer from "../shell/ListContainer";
+import ListItem from "@material-ui/core/ListItem";
+import ListItemAvatar from "@material-ui/core/ListItemAvatar";
+import ListItemText from "@material-ui/core/ListItemText";
 import Moment from "react-moment";
-
-import { useParams, useNavigate } from "react-router-dom";
+import Scrollable from "../shell/Scrollable.js";
+import Shell from "../shell/Shell.js";
+import UserAuthContext from "../auth/UserAuthContext.js";
+import event from "../analytics/event.js";
+import useFirestore from "../db/Firestore.js";
 
 export default function Analyze(props) {
   const { oauthClaims } = useContext(UserAuthContext);

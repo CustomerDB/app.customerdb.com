@@ -1,5 +1,4 @@
 import React from "react";
-
 import SearchDropdown from "./Dropdown.js";
 
 export default function ExampleDropdown(props) {

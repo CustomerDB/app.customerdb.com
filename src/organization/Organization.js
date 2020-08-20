@@ -1,16 +1,12 @@
-import React, { useContext, useEffect, useState } from "react";
-
-import UserAuthContext from "../auth/UserAuthContext";
-
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../App.css";
 
-import { useNavigate, useLocation, useParams } from "react-router-dom";
+import React, { useContext, useEffect, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 import { Loading } from "../util/Utils.js";
-
 import OrganizationRoutes from "./OrganizationRoutes.js";
-
+import UserAuthContext from "../auth/UserAuthContext";
 import { loadIntercom } from "../util/intercom.js";
 
 export default function Organization() {

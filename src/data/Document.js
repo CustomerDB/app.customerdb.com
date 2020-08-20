@@ -1,15 +1,11 @@
 import React, { useEffect, useState } from "react";
 
-import useFirestore from "../db/Firestore.js";
-
-import { useNavigate } from "react-router-dom";
-
-import DocumentDeleted from "./DocumentDeleted.js";
 import ContentsPane from "./ContentsPane.js";
-
-import { Loading } from "../util/Utils.js";
-
+import DocumentDeleted from "./DocumentDeleted.js";
 import Grid from "@material-ui/core/Grid";
+import { Loading } from "../util/Utils.js";
+import useFirestore from "../db/Firestore.js";
+import { useNavigate } from "react-router-dom";
 
 export default function Document(props) {
   const { documentRef } = useFirestore();
