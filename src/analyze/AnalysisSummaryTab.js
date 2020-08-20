@@ -91,11 +91,13 @@ export default function AnalysisSummaryTab(props) {
       return;
     }
 
-    let analysisDocumentsRef = documentsRef.where(
-      window.firebase.firestore.FieldPath.documentId(),
-      "in",
-      props.analysis.documentIDs
-    );
+    let analysisDocumentsRef = documentsRef
+      .where("deletionTimestamp", "==", "")
+      .where(
+        window.firebase.firestore.FieldPath.documentId(),
+        "in",
+        props.analysis.documentIDs
+      );
 
     return analysisDocumentsRef.onSnapshot((snapshot) => {
       let newDocuments = {};
