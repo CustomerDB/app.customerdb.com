@@ -9,7 +9,7 @@ import DeleteMemberModal from "./DeleteMemberModal.js";
 import Grid from "@material-ui/core/Grid";
 import InviteMemberModal from "./InviteMemberModal.js";
 import { Loading } from "../util/Utils.js";
-import Options from "../Options.js";
+import Options from "../shell/Options.js";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";

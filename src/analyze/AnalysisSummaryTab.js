@@ -2,9 +2,7 @@ import React, { useEffect, useState } from "react";
 
 import AnalysisDeleteModal from "./AnalysisDeleteModal.js";
 import ArchiveIcon from "@material-ui/icons/Archive";
-import Button from "react-bootstrap/Button";
-import Col from "react-bootstrap/Col";
-import Container from "react-bootstrap/Container";
+import Button from "@material-ui/core/Button";
 import ContentEditable from "react-contenteditable";
 import GetAppIcon from "@material-ui/icons/GetApp";
 import Grid from "@material-ui/core/Grid";
@@ -12,7 +10,6 @@ import IconButton from "@material-ui/core/IconButton";
 import { Link } from "react-router-dom";
 import { Loading } from "../util/Utils.js";
 import { ResponsiveBar } from "@nivo/bar";
-import Row from "react-bootstrap/Row";
 import Scrollable from "../shell/Scrollable.js";
 import Typography from "@material-ui/core/Typography";
 import domToImage from "dom-to-image";
@@ -268,7 +265,7 @@ export default function AnalysisSummaryTab(props) {
       {title}
       <Grid container style={{ position: "relative", flexGrow: 1 }}>
         <Scrollable>
-          <Container className="p-3">
+          <Grid container>
             {Object.keys(analysis).map((tagName) => {
               let groupNames = [];
               let groupColors = [];
@@ -319,168 +316,170 @@ export default function AnalysisSummaryTab(props) {
               let exportButtonID = `${exportID}-export-button`;
 
               return (
-                <div key={exportID} id={exportID}>
-                  <Row>
-                    <Col>
-                      <h4>
-                        {tagName}
-                        <Button
-                          id={exportButtonID}
-                          title="Download graph image"
-                          style={{ marginLeft: "1rem" }}
-                          variant="light"
-                          onClick={() => {
-                            let filter = (node) => {
-                              return node.id !== exportButtonID;
-                            };
-                            let domNode = document.getElementById(exportID);
-                            domToImage
-                              .toPng(domNode, { filter: filter })
-                              .then((dataURL) => {
-                                let link = document.createElement("a");
-                                link.download = `CustomerDB (${props.analysis.name}) - ${tagName}.png`;
-                                link.href = dataURL;
-                                link.click();
-                              });
-                          }}
-                        >
-                          <GetAppIcon />
-                        </Button>
-                      </h4>
-                    </Col>
-                  </Row>
-                  <Row>
-                    {groupNames.length > 0 && (
-                      <Col>
-                        <b>Total</b>
-                        <div style={{ height: "25rem" }}>
-                          <ResponsiveBar
-                            isInteractive={false}
-                            data={groupData}
-                            keys={groupNames}
-                            maxValue={props.analysis.documentIDs.length}
-                            indexBy="group"
-                            margin={{
-                              top: 50,
-                              right: 130,
-                              bottom: 150,
-                              left: 60,
+                <Grid container>
+                  <div key={exportID} id={exportID} style={{ width: "100%" }}>
+                    <Grid container item>
+                      <Grid item>
+                        <h4>
+                          {tagName}
+                          <Button
+                            id={exportButtonID}
+                            title="Download graph image"
+                            style={{ marginLeft: "1rem" }}
+                            variant="contained"
+                            onClick={() => {
+                              let filter = (node) => {
+                                return node.id !== exportButtonID;
+                              };
+                              let domNode = document.getElementById(exportID);
+                              domToImage
+                                .toPng(domNode, { filter: filter })
+                                .then((dataURL) => {
+                                  let link = document.createElement("a");
+                                  link.download = `CustomerDB (${props.analysis.name}) - ${tagName}.png`;
+                                  link.href = dataURL;
+                                  link.click();
+                                });
                             }}
-                            padding={0.3}
-                            colors={groupColors}
-                            borderColor={{
-                              from: "color",
-                              modifiers: [["darker", 1.6]],
-                            }}
-                            axisTop={null}
-                            axisRight={null}
-                            axisBottom={{
-                              tickSize: 5,
-                              tickPadding: 5,
-                              tickRotation: 45,
-                            }}
-                            axisLeft={{
-                              tickSize: 5,
-                              tickPadding: 5,
-                              tickRotation: 0,
-                              legend: "People represented",
-                              legendPosition: "middle",
-                              legendOffset: -40,
-                              tickValues: props.analysis.documentIDs.length,
-                            }}
-                            labelSkipWidth={12}
-                            labelSkipHeight={12}
-                            labelTextColor={{
-                              from: "color",
-                              modifiers: [["darker", 1.6]],
-                            }}
-                            animate={true}
-                            motionStiffness={90}
-                            motionDamping={15}
-                          />
-                        </div>
-                      </Col>
-                    )}
-                    {labelNames.length > 0 && (
-                      <Col>
-                        <b>Label distribution</b>
-                        <div style={{ height: "25rem" }}>
-                          <ResponsiveBar
-                            indexBy="group"
-                            data={labelData}
-                            keys={labelNames}
-                            maxValue={props.analysis.documentIDs.length}
-                            groupMode="grouped"
-                            margin={{
-                              top: 50,
-                              right: 130,
-                              bottom: 150,
-                              left: 60,
-                            }}
-                            padding={0.3}
-                            colors={{ scheme: "nivo" }}
-                            borderColor={{
-                              from: "color",
-                              modifiers: [["darker", 1.6]],
-                            }}
-                            axisTop={null}
-                            axisRight={null}
-                            axisBottom={{
-                              tickSize: 5,
-                              tickPadding: 5,
-                              tickRotation: 45,
-                            }}
-                            axisLeft={{
-                              tickSize: 5,
-                              tickPadding: 5,
-                              tickRotation: 0,
-                              legend: "People represented",
-                              legendPosition: "middle",
-                              legendOffset: -40,
-                              tickValues: props.analysis.documentIDs.length,
-                            }}
-                            legends={[
-                              {
-                                dataFrom: "keys",
-                                anchor: "bottom-right",
-                                direction: "column",
-                                justify: false,
-                                translateX: 120,
-                                translateY: 0,
-                                itemsSpacing: 2,
-                                itemWidth: 100,
-                                itemHeight: 20,
-                                itemDirection: "left-to-right",
-                                itemOpacity: 0.85,
-                                symbolSize: 20,
-                                effects: [
-                                  {
-                                    on: "hover",
-                                    style: {
-                                      itemOpacity: 1,
+                          >
+                            <GetAppIcon />
+                          </Button>
+                        </h4>
+                      </Grid>
+                    </Grid>
+                    <Grid container item>
+                      {groupNames.length > 0 && (
+                        <Grid item md={6} sm={12}>
+                          <b>Total</b>
+                          <div style={{ height: "25rem" }}>
+                            <ResponsiveBar
+                              isInteractive={false}
+                              data={groupData}
+                              keys={groupNames}
+                              maxValue={props.analysis.documentIDs.length}
+                              indexBy="group"
+                              margin={{
+                                top: 50,
+                                right: 130,
+                                bottom: 150,
+                                left: 60,
+                              }}
+                              padding={0.3}
+                              colors={groupColors}
+                              borderColor={{
+                                from: "color",
+                                modifiers: [["darker", 1.6]],
+                              }}
+                              axisTop={null}
+                              axisRight={null}
+                              axisBottom={{
+                                tickSize: 5,
+                                tickPadding: 5,
+                                tickRotation: 45,
+                              }}
+                              axisLeft={{
+                                tickSize: 5,
+                                tickPadding: 5,
+                                tickRotation: 0,
+                                legend: "People represented",
+                                legendPosition: "middle",
+                                legendOffset: -40,
+                                tickValues: props.analysis.documentIDs.length,
+                              }}
+                              labelSkipWidth={12}
+                              labelSkipHeight={12}
+                              labelTextColor={{
+                                from: "color",
+                                modifiers: [["darker", 1.6]],
+                              }}
+                              animate={true}
+                              motionStiffness={90}
+                              motionDamping={15}
+                            />
+                          </div>
+                        </Grid>
+                      )}
+                      {labelNames.length > 0 && (
+                        <Grid item md={6} sm={12}>
+                          <b>Label distribution</b>
+                          <div style={{ height: "25rem" }}>
+                            <ResponsiveBar
+                              indexBy="group"
+                              data={labelData}
+                              keys={labelNames}
+                              maxValue={props.analysis.documentIDs.length}
+                              groupMode="grouped"
+                              margin={{
+                                top: 50,
+                                right: 130,
+                                bottom: 150,
+                                left: 60,
+                              }}
+                              padding={0.3}
+                              colors={{ scheme: "nivo" }}
+                              borderColor={{
+                                from: "color",
+                                modifiers: [["darker", 1.6]],
+                              }}
+                              axisTop={null}
+                              axisRight={null}
+                              axisBottom={{
+                                tickSize: 5,
+                                tickPadding: 5,
+                                tickRotation: 45,
+                              }}
+                              axisLeft={{
+                                tickSize: 5,
+                                tickPadding: 5,
+                                tickRotation: 0,
+                                legend: "People represented",
+                                legendPosition: "middle",
+                                legendOffset: -40,
+                                tickValues: props.analysis.documentIDs.length,
+                              }}
+                              legends={[
+                                {
+                                  dataFrom: "keys",
+                                  anchor: "bottom-right",
+                                  direction: "column",
+                                  justify: false,
+                                  translateX: 120,
+                                  translateY: 0,
+                                  itemsSpacing: 2,
+                                  itemWidth: 100,
+                                  itemHeight: 20,
+                                  itemDirection: "left-to-right",
+                                  itemOpacity: 0.85,
+                                  symbolSize: 20,
+                                  effects: [
+                                    {
+                                      on: "hover",
+                                      style: {
+                                        itemOpacity: 1,
+                                      },
                                     },
-                                  },
-                                ],
-                              },
-                            ]}
-                            labelSkipWidth={12}
-                            labelSkipHeight={12}
-                            labelTextColor={{
-                              from: "color",
-                              modifiers: [["darker", 1.6]],
-                            }}
-                            animate={true}
-                            motionStiffness={90}
-                            motionDamping={15}
-                          />
-                        </div>
-                      </Col>
-                    )}
-                  </Row>
-                </div>
+                                  ],
+                                },
+                              ]}
+                              labelSkipWidth={12}
+                              labelSkipHeight={12}
+                              labelTextColor={{
+                                from: "color",
+                                modifiers: [["darker", 1.6]],
+                              }}
+                              animate={true}
+                              motionStiffness={90}
+                              motionDamping={15}
+                            />
+                          </div>
+                        </Grid>
+                      )}
+                    </Grid>
+                  </div>
+                </Grid>
               );
             })}
-          </Container>
+          </Grid>
         </Scrollable>
       </Grid>
     </>
