@@ -68,7 +68,11 @@ export default function People(props) {
   if (personID) {
     content = <Person key={personID} />;
   } else if (listTotal > 0) {
-    content = <PersonHelp />;
+    content = (
+      <Hidden mdDown>
+        <PersonHelp />
+      </Hidden>
+    );
   }
 
   let addModal = (

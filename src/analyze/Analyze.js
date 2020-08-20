@@ -1,30 +1,36 @@
-import React, { useContext, useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import React, { useState, useEffect, useContext } from "react";
 
-import AddIcon from "@material-ui/icons/Add";
+import UserAuthContext from "../auth/UserAuthContext.js";
+import event from "../analytics/event.js";
+import useFirestore from "../db/Firestore.js";
+
+import Shell from "../shell/Shell.js";
+
+import Scrollable from "../shell/Scrollable.js";
+
 import Analysis from "./Analysis.js";
-import AnalysisHelp from "./AnalysisHelp.js";
 import AnalysisRenameModal from "./AnalysisRenameModal.js";
 import AnalyzeHelp from "./AnalyzeHelp.js";
 import Avatar from "@material-ui/core/Avatar";
+import AnalysisHelp from "./AnalysisHelp.js";
+import Grid from "@material-ui/core/Grid";
+import ListContainer from "../shell/ListContainer";
+
+import List from "@material-ui/core/List";
+import ListItem from "@material-ui/core/ListItem";
+import ListItemText from "@material-ui/core/ListItemText";
+import ListItemAvatar from "@material-ui/core/ListItemAvatar";
 import BarChartIcon from "@material-ui/icons/BarChart";
 import BubbleChartIcon from "@material-ui/icons/BubbleChart";
 import DescriptionIcon from "@material-ui/icons/Description";
+import Hidden from "@material-ui/core/Hidden";
+
 import Fab from "@material-ui/core/Fab";
-import FocusContext from "../util/FocusContext.js";
-import Grid from "@material-ui/core/Grid";
-import List from "@material-ui/core/List";
-import ListContainer from "../shell/ListContainer";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemAvatar from "@material-ui/core/ListItemAvatar";
-import ListItemText from "@material-ui/core/ListItemText";
+import AddIcon from "@material-ui/icons/Add";
+
 import Moment from "react-moment";
-import Scrollable from "../shell/Scrollable.js";
-import Shell from "../shell/Shell.js";
-import UserAuthContext from "../auth/UserAuthContext.js";
-import WithFocus from "../util/WithFocus.js";
-import event from "../analytics/event.js";
-import useFirestore from "../db/Firestore.js";
+
+import { useParams, useNavigate } from "react-router-dom";
 
 export default function Analyze(props) {
   const { oauthClaims } = useContext(UserAuthContext);
@@ -40,8 +46,6 @@ export default function Analyze(props) {
   const [addModalShow, setAddModalShow] = useState();
   const [newAnalysisRef, setNewAnalysisRef] = useState();
   const [listTotal, setListTotal] = useState();
-
-  const focus = useContext(FocusContext);
 
   useEffect(() => {
     if (!analysesRef) {
@@ -86,7 +90,11 @@ export default function Analyze(props) {
       />
     );
   } else if (listTotal > 0) {
-    content = <AnalysisHelp />;
+    content = (
+      <Hidden mdDown>
+        <AnalysisHelp />
+      </Hidden>
+    );
   }
 
   let addModal = (
@@ -98,71 +106,6 @@ export default function Analyze(props) {
       analysisRef={newAnalysisRef}
     />
   );
-
-  let listItems = analysisList.map((analysis) => (
-    <>
-      <ListItem
-        button
-        key={analysis.ID}
-        selected={analysis.ID === analysisID}
-        onClick={() => {
-          navigate(`/orgs/${orgID}/analyze/${analysis.ID}`);
-        }}
-      >
-        <ListItemAvatar>
-          <Avatar>
-            <BarChartIcon />
-          </Avatar>
-        </ListItemAvatar>
-        <ListItemText
-          primary={analysis.name}
-          secondary={
-            <Moment
-              fromNow
-              date={
-                analysis.creationTimestamp &&
-                analysis.creationTimestamp.toDate()
-              }
-            />
-          }
-        />
-      </ListItem>
-      {analysis.ID === analysisID && (
-        <List>
-          <ListItem
-            button
-            style={{ paddingLeft: "4rem" }}
-            selected={tabID === "data"}
-            onClick={() => {
-              navigate(`/orgs/${orgID}/analyze/${analysis.ID}/data`);
-            }}
-          >
-            <ListItemAvatar>
-              <Avatar>
-                <DescriptionIcon />
-              </Avatar>
-            </ListItemAvatar>
-            <ListItemText primary="Data" />
-          </ListItem>
-          <ListItem
-            button
-            style={{ paddingLeft: "4rem" }}
-            selected={tabID === "cluster"}
-            onClick={() => {
-              navigate(`/orgs/${orgID}/analyze/${analysis.ID}/cluster`);
-            }}
-          >
-            <ListItemAvatar>
-              <Avatar>
-                <BubbleChartIcon />
-              </Avatar>
-            </ListItemAvatar>
-            <ListItemText primary="Clusters" />
-          </ListItem>
-        </List>
-      )}
-    </>
-  ));
 
   const onAdd = () => {
     event("create_analysis", {
@@ -184,28 +127,99 @@ export default function Analyze(props) {
       });
   };
 
+  let list = (
+    <ListContainer>
+      <Scrollable>
+        {listTotal === 0 && <AnalyzeHelp />}
+        <List>
+          {analysisList.map((analysis) => (
+            <>
+              <ListItem
+                button
+                key={analysis.ID}
+                selected={analysis.ID === analysisID}
+                onClick={() => {
+                  navigate(`/orgs/${orgID}/analyze/${analysis.ID}`);
+                }}
+              >
+                <ListItemAvatar>
+                  <Avatar>
+                    <BarChartIcon />
+                  </Avatar>
+                </ListItemAvatar>
+                <ListItemText
+                  primary={analysis.name}
+                  secondary={
+                    <Moment
+                      fromNow
+                      date={
+                        analysis.creationTimestamp &&
+                        analysis.creationTimestamp.toDate()
+                      }
+                    />
+                  }
+                />
+              </ListItem>
+              {analysis.ID === analysisID && (
+                <List>
+                  <ListItem
+                    button
+                    style={{ paddingLeft: "4rem" }}
+                    selected={tabID === "data"}
+                    onClick={() => {
+                      navigate(`/orgs/${orgID}/analyze/${analysis.ID}/data`);
+                    }}
+                  >
+                    <ListItemAvatar>
+                      <Avatar>
+                        <DescriptionIcon />
+                      </Avatar>
+                    </ListItemAvatar>
+                    <ListItemText primary="Data" />
+                  </ListItem>
+                  <ListItem
+                    button
+                    style={{ paddingLeft: "4rem" }}
+                    selected={tabID === "cluster"}
+                    onClick={() => {
+                      navigate(`/orgs/${orgID}/analyze/${analysis.ID}/cluster`);
+                    }}
+                  >
+                    <ListItemAvatar>
+                      <Avatar>
+                        <BubbleChartIcon />
+                      </Avatar>
+                    </ListItemAvatar>
+                    <ListItemText primary="Clusters" />
+                  </ListItem>
+                </List>
+              )}
+            </>
+          ))}
+        </List>
+      </Scrollable>
+      <Fab
+        style={{ position: "absolute", bottom: "15px", right: "15px" }}
+        color="secondary"
+        aria-label="add"
+        onClick={onAdd}
+      >
+        <AddIcon />
+      </Fab>
+    </ListContainer>
+  );
+
+  if (analysisID) {
+    // Optionally hide the list if the viewport is too small
+    list = <Hidden mdDown>{list}</Hidden>;
+  }
+
   return (
     <Shell title="Analysis">
       <Grid container className="fullHeight">
-        <WithFocus>
-          <ListContainer>
-            <Scrollable>
-              <List hidden={focus.focus}>
-                {listTotal > 0 ? listItems : <AnalyzeHelp />}
-              </List>
-            </Scrollable>
-            <Fab
-              style={{ position: "absolute", bottom: "15px", right: "15px" }}
-              color="secondary"
-              aria-label="add"
-              onClick={onAdd}
-            >
-              <AddIcon />
-            </Fab>
-          </ListContainer>
-          {content}
-          {addModal}
-        </WithFocus>
+        {list}
+        {content}
+        {addModal}
       </Grid>
     </Shell>
   );

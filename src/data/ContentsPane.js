@@ -298,7 +298,7 @@ export default function ContentsPane(props) {
       return;
     }
 
-    snapshotsRef
+    return snapshotsRef
       .orderBy("timestamp", "desc")
       .limit(1)
       .onSnapshot((snapshot) => {

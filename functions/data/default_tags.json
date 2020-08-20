@@ -1,0 +1,46 @@
+{
+  "tagGroups": [
+    {
+      "name": "Basic",
+      "default": true,
+      "tags": [
+        {
+          "color": "#ffa000",
+          "textColor": "#000",
+          "name": "Important"
+        }
+      ]
+    },
+    {
+      "name": "Discovery",
+      "default": false,
+      "tags": [
+        {
+          "color": "#d4c4fb",
+          "textColor": "#000",
+          "name": "Emotion"
+        },
+        {
+          "color": "#bedadc",
+          "textColor": "#000",
+          "name": "Deficiency"
+        },
+        {
+          "color": "#fad0c3",
+          "textColor": "#000",
+          "name": "Problem"
+        },
+        {
+          "color": "#fef3bd",
+          "textColor": "#000",
+          "name": "Action"
+        },
+        {
+          "color": "#c4def6",
+          "textColor": "#000",
+          "name": "Cares about"
+        }
+      ]
+    }
+  ]
+}

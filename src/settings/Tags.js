@@ -1,39 +1,51 @@
-import React, { useContext, useEffect, useRef, useState } from "react";
-import colorPair, { getTextColorForBackground } from "../util/color.js";
+import React, { useContext, useState, useEffect, useRef } from "react";
+
+import UserAuthContext from "../auth/UserAuthContext.js";
+import useFirestore from "../db/Firestore.js";
+import event from "../analytics/event.js";
+import { useOrganization } from "../organization/hooks.js";
+
+import { SwatchesPicker } from "react-color";
+
 import { useNavigate, useParams } from "react-router-dom";
 
+import { nanoid } from "nanoid";
+
+import Moment from "react-moment";
+
+import colorPair, { getTextColorForBackground } from "../util/color.js";
+import { Loading } from "../util/Utils.js";
+
+import ListContainer from "../shell/ListContainer";
+import Scrollable from "../shell/Scrollable.js";
+
+import { makeStyles } from "@material-ui/core/styles";
 import AddIcon from "@material-ui/icons/Add";
+import List from "@material-ui/core/List";
+import ListItem from "@material-ui/core/ListItem";
+import ListItemText from "@material-ui/core/ListItemText";
+import ListItemAvatar from "@material-ui/core/ListItemAvatar";
+import StarIcon from "@material-ui/icons/Star";
+import StarBorderIcon from "@material-ui/icons/StarBorder";
+import Fab from "@material-ui/core/Fab";
+import Grid from "@material-ui/core/Grid";
+import Hidden from "@material-ui/core/Hidden";
+import Card from "@material-ui/core/Card";
+import CardContent from "@material-ui/core/CardContent";
+import CardActions from "@material-ui/core/CardActions";
+import Typography from "@material-ui/core/Typography";
+import IconButton from "@material-ui/core/IconButton";
 import Archive from "@material-ui/icons/Archive";
 import Button from "@material-ui/core/Button";
-import Card from "@material-ui/core/Card";
-import CardActions from "@material-ui/core/CardActions";
-import CardContent from "@material-ui/core/CardContent";
-import ContentEditable from "react-contenteditable";
+import TextField from "@material-ui/core/TextField";
+
 import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
-import Fab from "@material-ui/core/Fab";
-import Grid from "@material-ui/core/Grid";
-import Hidden from "@material-ui/core/Hidden";
-import IconButton from "@material-ui/core/IconButton";
-import List from "@material-ui/core/List";
-import ListContainer from "../shell/ListContainer";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemText from "@material-ui/core/ListItemText";
-import { Loading } from "../util/Utils.js";
-import Moment from "react-moment";
-import Scrollable from "../shell/Scrollable.js";
-import { SwatchesPicker } from "react-color";
-import TextField from "@material-ui/core/TextField";
-import Typography from "@material-ui/core/Typography";
-import UserAuthContext from "../auth/UserAuthContext.js";
-import event from "../analytics/event.js";
-import { makeStyles } from "@material-ui/core/styles";
-import { nanoid } from "nanoid";
-import useFirestore from "../db/Firestore.js";
-import { useOrganization } from "../organization/hooks.js";
+
+import ContentEditable from "react-contenteditable";
 
 const useStyles = makeStyles({
   tagGroupCard: {
@@ -113,6 +125,9 @@ export default function Tags(props) {
           navigate(`/orgs/${orgID}/settings/tags/${tg.ID}`);
         }}
       >
+        <ListItemAvatar>
+          {tg.ID === defaultTagGroupID && <StarIcon />}
+        </ListItemAvatar>
         <ListItemText
           primary={tg.name}
           secondary={
@@ -147,7 +162,9 @@ export default function Tags(props) {
   let content = undefined;
 
   if (tagGroupID) {
-    content = <TagGroup key={tagGroupID} />;
+    content = (
+      <TagGroup key={tagGroupID} defaultTagGroupID={defaultTagGroupID} />
+    );
   }
 
   return (
@@ -161,7 +178,7 @@ export default function Tags(props) {
 function TagGroup(props) {
   const { oauthClaims } = useContext(UserAuthContext);
   const { orgID, tagGroupID } = useParams();
-  const { tagGroupsRef } = useFirestore();
+  const { tagGroupsRef, orgRef } = useFirestore();
   const [tagGroupRef, setTagGroupRef] = useState();
   const [tagGroup, setTagGroup] = useState();
   const [tags, setTags] = useState([]);
@@ -341,7 +358,7 @@ function TagGroup(props) {
                 <CardContent>
                   <Grid container>
                     <Grid container item xs={12} alignItems="flex-start">
-                      <Grid item xs={11}>
+                      <Grid item xs={10}>
                         <Typography gutterBottom variant="h4" component="h2">
                           <ContentEditable
                             html={tagGroup.name}
@@ -385,7 +402,19 @@ function TagGroup(props) {
                         </Typography>
                       </Grid>
 
-                      <Grid item xs={1}>
+                      <Grid item xs={2}>
+                        <Button
+                          variant="contained"
+                          onClick={() => {
+                            orgRef.set(
+                              { defaultTagGroupID: tagGroup.ID },
+                              { merge: true }
+                            );
+                          }}
+                        >
+                          Make default
+                        </Button>
+
                         <IconButton
                           color="primary"
                           aria-label="Archive template"

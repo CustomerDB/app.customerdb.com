@@ -21,7 +21,7 @@ export default function TemplateSelector(props) {
     if (!documentRef) {
       return;
     }
-    documentRef.onSnapshot((doc) => {
+    return documentRef.onSnapshot((doc) => {
       setDoc(doc.data());
     });
   }, [documentRef]);
@@ -87,7 +87,7 @@ export default function TemplateSelector(props) {
 
   return (
     <FormControl fullWidth>
-      <InputLabel id="tag-group-select-label">Tag group</InputLabel>
+      <InputLabel id="tag-group-select-label">Template</InputLabel>
       <Select
         labelId="tag-group-select-label"
         id="tag-group-select"

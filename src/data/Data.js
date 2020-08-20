@@ -194,7 +194,11 @@ export default function Data(props) {
       />
     );
   } else if (documentItems.length > 0) {
-    content = <ContentsHelp />;
+    content = (
+      <Hidden mdDown>
+        <ContentsHelp />
+      </Hidden>
+    );
   }
 
   let addModal = (
