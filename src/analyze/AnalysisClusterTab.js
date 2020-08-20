@@ -1,10 +1,9 @@
 import React, { useContext, useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
 import AnalysisClusterBoard from "./AnalysisClusterBoard.js";
 import Button from "react-bootstrap/Button";
 import ClusterDropdown from "./ClusterDropdown.js";
-import Col from "react-bootstrap/Col";
-import Container from "react-bootstrap/Container";
 import FocusContext from "../util/FocusContext.js";
 import Form from "react-bootstrap/Form";
 import FullscreenExitIcon from "@material-ui/icons/FullscreenExit";
@@ -12,16 +11,15 @@ import FullscreenIcon from "@material-ui/icons/Fullscreen";
 import Grid from "@material-ui/core/Grid";
 import { Loading } from "../util/Utils.js";
 import Modal from "../shell_obsolete/Modal.js";
-import Row from "react-bootstrap/Row";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import { nanoid } from "nanoid";
 import useFirestore from "../db/Firestore.js";
-import { useParams } from "react-router-dom";
 
 export default function AnalysisClusterTab(props) {
   const { oauthClaims } = useContext(UserAuthContext);
   const focus = useContext(FocusContext);
   const [boardKey, setBoardKey] = useState();
+  const navigate = useNavigate();
 
   const {
     documentsRef,
@@ -56,15 +54,7 @@ export default function AnalysisClusterTab(props) {
   }
 
   if (!props.analysis.documentIDs || props.analysis.documentIDs.length === 0) {
-    return (
-      <Container className="p-3">
-        <Row>
-          <Col>
-            <p>Select data to cluster on the data tab.</p>
-          </Col>
-        </Row>
-      </Container>
-    );
+    navigate(`/orgs/${orgID}/analyze/${analysisID}/data`);
   }
 
   if (!tagID) {
