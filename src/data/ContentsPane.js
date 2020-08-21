@@ -99,6 +99,7 @@ export default function ContentsPane(props) {
   const [editorID] = useState(nanoid());
   const [snapshotDelta, setSnapshotDelta] = useState();
   const [snapshotTimestamp, setSnapshotTimestamp] = useState();
+  const [tagGroupName, setTagGroupName] = useState();
   const [tags, setTags] = useState();
 
   const [tagIDsInSelection, setTagIDsInSelection] = useState(new Set());
@@ -270,12 +271,20 @@ export default function ContentsPane(props) {
       return;
     }
     if (!props.document.tagGroupID) {
+      setTagGroupName();
       setTags();
       removeTagStyles();
       return;
     }
 
-    let unsubscribe = tagGroupsRef
+    let tagGroupRef = tagGroupsRef.doc(props.document.tagGroupID);
+
+    let unsubscribeTagGroup = tagGroupRef.onSnapshot((doc) => {
+      let tagGroupData = doc.data();
+      setTagGroupName(tagGroupData.name);
+    });
+
+    let unsubscribeTags = tagGroupsRef
       .doc(props.document.tagGroupID)
       .collection("tags")
       .where("deletionTimestamp", "==", "")
@@ -291,7 +300,8 @@ export default function ContentsPane(props) {
       });
     return () => {
       removeTagStyles();
-      unsubscribe();
+      unsubscribeTagGroup();
+      unsubscribeTags();
     };
   }, [props.document.tagGroupID, tagGroupsRef]);
 
@@ -676,6 +686,7 @@ export default function ContentsPane(props) {
                     item
                     xs={12}
                     style={{ position: "relative" }}
+                    spacing={0}
                   >
                     <ReactQuill
                       ref={props.reactQuillRef}
@@ -707,9 +718,11 @@ export default function ContentsPane(props) {
                     />
 
                     <SelectionFAB
-                      editor={props.editor}
                       selection={currentSelection.current}
                       quillContainerRef={quillContainerRef}
+                      tags={tags}
+                      tagIDsInSelection={tagIDsInSelection}
+                      onTagControlChange={onTagControlChange}
                     />
                   </Grid>
                 </Grid>
@@ -722,9 +735,7 @@ export default function ContentsPane(props) {
       <Hidden smDown>
         <DocumentSidebar
           document={props.document}
-          tags={tags}
-          tagIDsInSelection={tagIDsInSelection}
-          onTagControlChange={onTagControlChange}
+          tagGroupName={tagGroupName}
         />
       </Hidden>
 
