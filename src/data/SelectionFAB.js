@@ -43,7 +43,7 @@ export default function SelectionFAB({
   }, []);
 
   useEffect(() => {
-    if (!browserSelection) return;
+    if (!browserSelection || !selection) return;
 
     let range = browserSelection.getRangeAt(0).cloneRange();
     range.collapse(false);
@@ -55,10 +55,13 @@ export default function SelectionFAB({
     tempSpan.remove();
 
     setOffsetTop(tempSpanOffset);
-  }, [browserSelection]);
+  }, [browserSelection, selection]);
 
   useEffect(() => {
-    console.log("tagIDsInSelection", tagIDsInSelection);
+    if (selection) {
+      setBrowserSelection(document.getSelection());
+    }
+
     if (selection && selection.length > 0) {
       setShowFab(true);
       return;
