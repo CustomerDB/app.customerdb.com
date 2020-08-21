@@ -107,6 +107,7 @@ export default function ContentsPane(props) {
   let latestDeltaTimestamp = useRef();
 
   let currentSelection = useRef();
+  let quillContainerRef = useRef();
 
   let highlights = useRef();
 
@@ -670,7 +671,12 @@ export default function ContentsPane(props) {
                     </Grid>
                   </Grid>
 
-                  <Grid item xs={12} style={{ position: "relative" }}>
+                  <Grid
+                    ref={quillContainerRef}
+                    item
+                    xs={12}
+                    style={{ position: "relative" }}
+                  >
                     <ReactQuill
                       ref={props.reactQuillRef}
                       defaultValue={snapshotDelta}
@@ -703,6 +709,7 @@ export default function ContentsPane(props) {
                     <SelectionFAB
                       editor={props.editor}
                       selection={currentSelection.current}
+                      quillContainerRef={quillContainerRef}
                     />
                   </Grid>
                 </Grid>

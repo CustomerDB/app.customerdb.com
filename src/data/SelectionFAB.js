@@ -1,12 +1,13 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import Fab from "@material-ui/core/Fab";
 import InsertCommentIcon from "@material-ui/icons/InsertComment";
 import Zoom from "@material-ui/core/Zoom";
 import { useTheme } from "@material-ui/core/styles";
 
-export default function SelectionFAB({ editor, selection }) {
-  const [offsetTop, setOffsetTop] = useState(0);
+export default function SelectionFAB({ editor, selection, quillContainerRef }) {
+  const [show, setShow] = useState();
+  const [offsetTop, setOffsetTop] = useState();
 
   const toolbarHeightPx = 40;
   const halfToolbarHeightPx = toolbarHeightPx / 2;
@@ -14,15 +15,40 @@ export default function SelectionFAB({ editor, selection }) {
   const theme = useTheme();
 
   useEffect(() => {
-    if (!editor || !selection) return;
+    const onEditorBlur = () => {
+      console.debug("editor blurred");
+      if (document.getSelection().isCollapsed) {
+        setShow(false);
+      }
+    };
 
-    let [lineBlot, offset] = editor.getLine(selection.index);
-    console.log("selection at line number: ", offset);
-    console.log("line blot domNode: ", lineBlot.domNode);
-    setOffsetTop(lineBlot.domNode.offsetTop);
+    document.addEventListener("selectionchange", onEditorBlur);
+
+    return () => {
+      document.removeEventListener("selectionchange", onEditorBlur);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!editor || !selection || selection.length === 0) {
+      setShow(false);
+      return;
+    }
+
+    let browserSelection = document.getSelection();
+
+    let range = browserSelection.getRangeAt(0).cloneRange();
+    range.collapse(false);
+
+    let tempSpan = document.createElement("span");
+
+    range.insertNode(tempSpan);
+    const tempSpanOffset = tempSpan.offsetTop;
+    tempSpan.remove();
+
+    setOffsetTop(tempSpanOffset);
+    setShow(true);
   }, [editor, selection]);
-
-  const show = selection && selection.length > 0;
 
   if (!show) {
     return <></>;
@@ -44,7 +70,7 @@ export default function SelectionFAB({ editor, selection }) {
       in={show}
       timeout={transitionDuration}
       style={{
-        transitionDelay: `${show ? transitionDuration.exit : 0}ms`,
+        transitionDelay: "0ms",
       }}
       unmountOnExit
     >
@@ -57,7 +83,7 @@ export default function SelectionFAB({ editor, selection }) {
         color="primary"
         aria-label="expand tag controls"
         onClick={expandTagControls}
-        size="small"
+        size="medium"
       >
         <InsertCommentIcon />
       </Fab>
