@@ -128,7 +128,7 @@ export default function SelectionFAB({
           style={{
             position: "absolute",
             top: `${totalOffset}px`,
-            right: "-2.5rem",
+            left: "-3.5rem",
           }}
           color="primary"
           aria-label="expand tag controls"
@@ -155,7 +155,7 @@ export default function SelectionFAB({
           style={{
             position: "absolute",
             top: `${totalOffset}px`,
-            right: "-2.5rem",
+            left: "-3.5rem",
           }}
           color="primary"
           aria-label="expand tag controls"
@@ -177,7 +177,7 @@ export default function SelectionFAB({
             style={{
               position: "absolute",
               top: `${totalOffset}px`,
-              right: "-2.5rem",
+              left: "-3rem",
               minWidth: "12rem",
               zIndex: 250,
             }}
