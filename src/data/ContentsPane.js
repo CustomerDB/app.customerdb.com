@@ -24,6 +24,7 @@ import Paper from "@material-ui/core/Paper";
 import Quill from "quill";
 import ReactQuill from "react-quill";
 import Scrollable from "../shell/Scrollable.js";
+import SelectionFAB from "./SelectionFAB.js";
 import Typography from "@material-ui/core/Typography";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
@@ -98,6 +99,7 @@ export default function ContentsPane(props) {
   const [editorID] = useState(nanoid());
   const [snapshotDelta, setSnapshotDelta] = useState();
   const [snapshotTimestamp, setSnapshotTimestamp] = useState();
+  const [tagGroupName, setTagGroupName] = useState();
   const [tags, setTags] = useState();
 
   const [tagIDsInSelection, setTagIDsInSelection] = useState(new Set());
@@ -106,6 +108,7 @@ export default function ContentsPane(props) {
   let latestDeltaTimestamp = useRef();
 
   let currentSelection = useRef();
+  let quillContainerRef = useRef();
 
   let highlights = useRef();
 
@@ -233,8 +236,6 @@ export default function ContentsPane(props) {
         { highlightID: highlightID, tagID: tag.ID },
         "user"
       );
-
-      props.editor.setSelection(selection.index + selection.length);
     }
 
     if (!checked) {
@@ -258,8 +259,13 @@ export default function ContentsPane(props) {
       });
     }
 
-    let tagIDs = computeTagIDsInSelection(selection);
-    setTagIDsInSelection(tagIDs);
+    let newRange = {
+      index: selection.index + selection.length,
+      length: 0,
+    };
+    props.editor.setSelection(newRange, "user");
+    currentSelection.current = newRange;
+    setTagIDsInSelection(computeTagIDsInSelection(newRange));
   };
 
   // Subscribe to tags for the document's tag group.
@@ -268,12 +274,20 @@ export default function ContentsPane(props) {
       return;
     }
     if (!props.document.tagGroupID) {
+      setTagGroupName();
       setTags();
       removeTagStyles();
       return;
     }
 
-    let unsubscribe = tagGroupsRef
+    let tagGroupRef = tagGroupsRef.doc(props.document.tagGroupID);
+
+    let unsubscribeTagGroup = tagGroupRef.onSnapshot((doc) => {
+      let tagGroupData = doc.data();
+      setTagGroupName(tagGroupData.name);
+    });
+
+    let unsubscribeTags = tagGroupsRef
       .doc(props.document.tagGroupID)
       .collection("tags")
       .where("deletionTimestamp", "==", "")
@@ -289,7 +303,8 @@ export default function ContentsPane(props) {
       });
     return () => {
       removeTagStyles();
-      unsubscribe();
+      unsubscribeTagGroup();
+      unsubscribeTags();
     };
   }, [props.document.tagGroupID, tagGroupsRef]);
 
@@ -669,7 +684,13 @@ export default function ContentsPane(props) {
                     </Grid>
                   </Grid>
 
-                  <Grid item xs={12}>
+                  <Grid
+                    ref={quillContainerRef}
+                    item
+                    xs={12}
+                    style={{ position: "relative" }}
+                    spacing={0}
+                  >
                     <ReactQuill
                       ref={props.reactQuillRef}
                       defaultValue={snapshotDelta}
@@ -698,6 +719,14 @@ export default function ContentsPane(props) {
                         ],
                       }}
                     />
+
+                    <SelectionFAB
+                      selection={currentSelection.current}
+                      quillContainerRef={quillContainerRef}
+                      tags={tags}
+                      tagIDsInSelection={tagIDsInSelection}
+                      onTagControlChange={onTagControlChange}
+                    />
                   </Grid>
                 </Grid>
               </Paper>
@@ -709,9 +738,7 @@ export default function ContentsPane(props) {
       <Hidden smDown>
         <DocumentSidebar
           document={props.document}
-          tags={tags}
-          tagIDsInSelection={tagIDsInSelection}
-          onTagControlChange={onTagControlChange}
+          tagGroupName={tagGroupName}
         />
       </Hidden>
 
