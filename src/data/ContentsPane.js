@@ -10,6 +10,7 @@ import React, {
 import { addTagStyles, removeTagStyles } from "./Tags.js";
 
 import Archive from "@material-ui/icons/Archive";
+import Collaborators from "../util/Collaborators.js";
 import ContentEditable from "react-contenteditable";
 import Delta from "quill-delta";
 import DocumentDeleteDialog from "./DocumentDeleteDialog.js";
@@ -664,6 +665,7 @@ export default function ContentsPane(props) {
                       >
                         <Archive />
                       </IconButton>
+                      <Collaborators dbRef={documentRef} />
                     </Grid>
                   </Grid>
 
