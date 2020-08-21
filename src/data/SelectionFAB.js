@@ -25,7 +25,7 @@ export default function SelectionFAB({
   const [showMenu, setShowMenu] = useState();
 
   const toolbarHeightPx = 40;
-  const halfToolbarHeightPx = toolbarHeightPx / 2;
+  const halfFabHeightPx = 20;
 
   const theme = useTheme();
 
@@ -50,6 +50,17 @@ export default function SelectionFAB({
     let range = browserSelection.getRangeAt(0).cloneRange();
     range.collapse(false);
 
+    // Quilljs provides experimental API to get the "line blot"
+    // for a given selection index. However, this may refer to
+    // a block level element such as a <p> with significant vertical
+    // height, which is not sufficient to align our floating control
+    // with the user's actual selection.
+    //
+    // To measure the height of the user's selected text from the top
+    // of the scrollable element, we temporarily insert an anonymous
+    // DOM node in front of the selection, measure it's offsetTop
+    // (which is relative to the nearest enclosing node with
+    // position:relative), and then remove it from the DOM again.
     let tempSpan = document.createElement("span");
 
     range.insertNode(tempSpan);
@@ -112,7 +123,7 @@ export default function SelectionFAB({
     exit: theme.transitions.duration.leavingScreen,
   };
 
-  let totalOffset = halfToolbarHeightPx + offsetTop;
+  let totalOffset = toolbarHeightPx - halfFabHeightPx + offsetTop;
 
   if (showFabAdd) {
     return (
