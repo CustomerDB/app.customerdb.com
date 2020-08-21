@@ -3,7 +3,8 @@ import React, { useEffect, useState } from "react";
 import Fab from "@material-ui/core/Fab";
 import Fade from "@material-ui/core/Fade";
 import Grid from "@material-ui/core/Grid";
-import InsertCommentIcon from "@material-ui/icons/InsertComment";
+import Label from "@material-ui/icons/Label";
+import LabelOff from "@material-ui/icons/LabelOff";
 import Paper from "@material-ui/core/Paper";
 import Tags from "./Tags.js";
 import Zoom from "@material-ui/core/Zoom";
@@ -19,7 +20,8 @@ export default function SelectionFAB({
   const [browserSelection, setBrowserSelection] = useState();
   const [offsetTop, setOffsetTop] = useState();
 
-  const [showFab, setShowFab] = useState();
+  const [showFabAdd, setShowFabAdd] = useState();
+  const [showFabClear, setShowFabClear] = useState();
   const [showMenu, setShowMenu] = useState();
 
   const toolbarHeightPx = 40;
@@ -62,32 +64,47 @@ export default function SelectionFAB({
       setBrowserSelection(document.getSelection());
     }
 
-    if (selection && selection.length > 0) {
-      setShowFab(true);
+    if (tagIDsInSelection.size > 0) {
+      setShowFabAdd(false);
+      setShowFabClear(true);
       return;
     }
 
-    if (tagIDsInSelection.size > 0) {
-      setShowFab(true);
+    setShowFabClear(false);
+
+    if (selection && selection.length > 0) {
+      setShowFabAdd(true);
       return;
     }
 
     if (!selection || selection.length === 0) {
-      setShowFab(false);
+      setShowFabAdd(false);
       setShowMenu(false);
       return;
     }
 
     if (browserSelection && browserSelection.isCollapsed) {
-      setShowFab(false);
+      setShowFabAdd(false);
       setShowMenu(false);
     }
   }, [tagIDsInSelection, selection, browserSelection]);
 
   const expandTagControls = () => {
     console.log("fab clicked");
-    setShowFab(false);
+    setShowFabAdd(false);
     setShowMenu(true);
+  };
+
+  const onClear = () => {
+    console.debug("clearing highlights in selection");
+    tagIDsInSelection.forEach((tagID) => {
+      let tag = tags[tagID];
+      if (tag) {
+        onTagControlChange(tag, false);
+      }
+    });
+    setShowFabAdd(false);
+    setShowFabClear(false);
   };
 
   const transitionDuration = {
@@ -97,12 +114,10 @@ export default function SelectionFAB({
 
   let totalOffset = halfToolbarHeightPx + offsetTop;
 
-  if (showFab) {
-    console.log("FAB totalOffset", totalOffset);
-
+  if (showFabAdd) {
     return (
       <Zoom
-        in={showFab}
+        in={showFabAdd}
         timeout={transitionDuration}
         style={{
           transitionDelay: "0ms",
@@ -120,7 +135,34 @@ export default function SelectionFAB({
           onMouseOver={expandTagControls}
           size="medium"
         >
-          <InsertCommentIcon />
+          <Label />
+        </Fab>
+      </Zoom>
+    );
+  }
+
+  if (showFabClear) {
+    return (
+      <Zoom
+        in={showFabClear}
+        timeout={transitionDuration}
+        style={{
+          transitionDelay: "0ms",
+        }}
+        unmountOnExit
+      >
+        <Fab
+          style={{
+            position: "absolute",
+            top: `${totalOffset}px`,
+            right: "-2.5rem",
+          }}
+          color="primary"
+          aria-label="expand tag controls"
+          onClick={onClear}
+          size="medium"
+        >
+          <LabelOff />
         </Fab>
       </Zoom>
     );

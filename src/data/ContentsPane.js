@@ -236,8 +236,6 @@ export default function ContentsPane(props) {
         { highlightID: highlightID, tagID: tag.ID },
         "user"
       );
-
-      props.editor.setSelection(selection.index + selection.length);
     }
 
     if (!checked) {
@@ -261,8 +259,13 @@ export default function ContentsPane(props) {
       });
     }
 
-    let tagIDs = computeTagIDsInSelection(selection);
-    setTagIDsInSelection(tagIDs);
+    let newRange = {
+      index: selection.index + selection.length,
+      length: 0,
+    };
+    props.editor.setSelection(newRange, "user");
+    currentSelection.current = newRange;
+    setTagIDsInSelection(computeTagIDsInSelection(newRange));
   };
 
   // Subscribe to tags for the document's tag group.
