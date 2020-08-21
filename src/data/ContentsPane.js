@@ -24,6 +24,7 @@ import Paper from "@material-ui/core/Paper";
 import Quill from "quill";
 import ReactQuill from "react-quill";
 import Scrollable from "../shell/Scrollable.js";
+import SelectionFAB from "./SelectionFAB.js";
 import Typography from "@material-ui/core/Typography";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
@@ -669,7 +670,7 @@ export default function ContentsPane(props) {
                     </Grid>
                   </Grid>
 
-                  <Grid item xs={12}>
+                  <Grid item xs={12} style={{ position: "relative" }}>
                     <ReactQuill
                       ref={props.reactQuillRef}
                       defaultValue={snapshotDelta}
@@ -697,6 +698,11 @@ export default function ContentsPane(props) {
                           ["clean"],
                         ],
                       }}
+                    />
+
+                    <SelectionFAB
+                      editor={props.editor}
+                      selection={currentSelection.current}
                     />
                   </Grid>
                 </Grid>
