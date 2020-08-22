@@ -12,53 +12,53 @@ export default function Collaborators(props) {
 
   const [collaborators, setCollaborators] = useState();
 
-  const updateCollaborators = () => {
-    let collaboratorRef = props.dbRef
-      .collection("collaborators")
-      .doc(oauthUser.email);
-
-    let collaborator = {
-      expires: window.firebase.firestore.Timestamp.now().toMillis() + 5000,
-    };
-
-    if (oauthUser.email) {
-      collaborator.email = oauthUser.email;
-    }
-
-    if (oauthUser.displayName) {
-      collaborator.name = oauthUser.displayName;
-    }
-
-    if (oauthUser.photoURL) {
-      collaborator.photoURL = oauthUser.photoURL;
-    }
-
-    collaboratorRef.set(collaborator).then(() => {
-      props.dbRef
-        .collection("collaborators")
-        .get()
-        .then((snapshot) => {
-          let newCollaborators = [];
-          let now = window.firebase.firestore.Timestamp.now().toMillis();
-          snapshot.forEach((doc) => {
-            let collaborator = doc.data();
-            if (collaborator.expires < now) {
-              doc.ref.delete();
-              return;
-            }
-
-            newCollaborators.push(doc.data());
-          });
-
-          setCollaborators(newCollaborators);
-        });
-    });
-  };
-
   useEffect(() => {
     if (!props.dbRef) {
       return;
     }
+
+    const updateCollaborators = () => {
+      let collaboratorRef = props.dbRef
+        .collection("collaborators")
+        .doc(oauthUser.email);
+
+      let collaborator = {
+        expires: window.firebase.firestore.Timestamp.now().toMillis() + 5000,
+      };
+
+      if (oauthUser.email) {
+        collaborator.email = oauthUser.email;
+      }
+
+      if (oauthUser.displayName) {
+        collaborator.name = oauthUser.displayName;
+      }
+
+      if (oauthUser.photoURL) {
+        collaborator.photoURL = oauthUser.photoURL;
+      }
+
+      collaboratorRef.set(collaborator).then(() => {
+        props.dbRef
+          .collection("collaborators")
+          .get()
+          .then((snapshot) => {
+            let newCollaborators = [];
+            let now = window.firebase.firestore.Timestamp.now().toMillis();
+            snapshot.forEach((doc) => {
+              let collaborator = doc.data();
+              if (collaborator.expires < now) {
+                doc.ref.delete();
+                return;
+              }
+
+              newCollaborators.push(doc.data());
+            });
+
+            setCollaborators(newCollaborators);
+          });
+      });
+    };
 
     updateCollaborators();
 
