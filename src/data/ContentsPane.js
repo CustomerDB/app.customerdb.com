@@ -18,6 +18,7 @@ import DocumentSidebar from "./DocumentSidebar.js";
 import Grid from "@material-ui/core/Grid";
 import Hidden from "@material-ui/core/Hidden";
 import HighlightBlot from "./HighlightBlot.js";
+import HighlightHints from "./HighlightHints.js";
 import IconButton from "@material-ui/core/IconButton";
 import Moment from "react-moment";
 import Paper from "@material-ui/core/Paper";
@@ -101,6 +102,7 @@ export default function ContentsPane(props) {
   const [snapshotTimestamp, setSnapshotTimestamp] = useState();
   const [tagGroupName, setTagGroupName] = useState();
   const [tags, setTags] = useState();
+  const [reflowHints, setReflowHints] = useState(nanoid());
 
   const [tagIDsInSelection, setTagIDsInSelection] = useState(new Set());
 
@@ -113,6 +115,10 @@ export default function ContentsPane(props) {
   let highlights = useRef();
 
   const classes = useStyles();
+
+  const updateHints = () => {
+    setReflowHints(nanoid());
+  };
 
   // Returns the index and length of the highlight with the supplied ID
   // in the current editor.
@@ -193,6 +199,8 @@ export default function ContentsPane(props) {
   // which are sent to the server and reset to [] periodically
   // in `syncDeltas()`.
   const onEdit = (content, delta, source, editor) => {
+    updateHints();
+
     if (source !== "user") {
       console.debug("onEdit: skipping non-user change", delta, source);
       return;
@@ -500,6 +508,8 @@ export default function ContentsPane(props) {
           });
 
           highlightsRef.doc(h.ID).delete();
+
+          updateHints();
           return;
         }
 
@@ -561,6 +571,8 @@ export default function ContentsPane(props) {
           });
 
           highlightsRef.doc(highlightID).set(newHighlight);
+
+          updateHints();
         }
       });
     };
@@ -593,6 +605,8 @@ export default function ContentsPane(props) {
       return;
     }
 
+    let hintsNeedReflow = highlights.current === undefined;
+
     return highlightsRef.onSnapshot((snapshot) => {
       let newHighlights = {};
 
@@ -600,11 +614,23 @@ export default function ContentsPane(props) {
         let data = highlightDoc.data();
         data["ID"] = highlightDoc.id;
         newHighlights[data.ID] = data;
+
+        if (
+          !hintsNeedReflow &&
+          highlights.current &&
+          !highlights.current[data.ID]
+        ) {
+          hintsNeedReflow = true;
+        }
       });
 
       console.debug("Received newHighlights ", newHighlights);
 
       highlights.current = newHighlights;
+
+      if (hintsNeedReflow) {
+        updateHints();
+      }
     });
   }, [highlightsRef]);
 
@@ -726,6 +752,12 @@ export default function ContentsPane(props) {
                       tags={tags}
                       tagIDsInSelection={tagIDsInSelection}
                       onTagControlChange={onTagControlChange}
+                    />
+
+                    <HighlightHints
+                      key={reflowHints}
+                      highlights={highlights.current}
+                      tags={tags}
                     />
                   </Grid>
                 </Grid>
