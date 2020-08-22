@@ -1,25 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 import Chip from "@material-ui/core/Chip";
 
 export default function HighlightHints({ highlights, tags }) {
   console.log("render HighlightHints");
-
-  const [area, setArea] = useState(0);
-
-  // Subscribe to window resize events because hint offsets need to be
-  // recomputed if the browser zoom level changes.
-  useEffect(() => {
-    const onResize = () => {
-      setArea(window.innerWidth * window.innerHeight);
-    };
-
-    window.addEventListener("resize", onResize);
-
-    return () => {
-      window.removeEventListener("resize", onResize);
-    };
-  }, []);
 
   if (!highlights || !tags) {
     return <></>;
@@ -40,7 +24,7 @@ export default function HighlightHints({ highlights, tags }) {
     return (
       <Hint
         id={hintDomID}
-        key={`${hintDomID}-${area}`}
+        key={hintDomID}
         tag={tag}
         offsetTop={highlightNode.offsetTop + 32}
       />

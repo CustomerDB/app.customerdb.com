@@ -120,6 +120,20 @@ export default function ContentsPane(props) {
     setReflowHints(nanoid());
   };
 
+  // Subscribe to window resize events because hint offsets need to be
+  // recomputed if the browser zoom level changes.
+  useEffect(() => {
+    const onResize = () => {
+      updateHints();
+    };
+
+    window.addEventListener("resize", onResize);
+
+    return () => {
+      window.removeEventListener("resize", onResize);
+    };
+  }, []);
+
   // Returns the index and length of the highlight with the supplied ID
   // in the current editor.
   const getHighlightIDsFromEditor = () => {
