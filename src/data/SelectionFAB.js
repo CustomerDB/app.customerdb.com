@@ -11,6 +11,7 @@ import Zoom from "@material-ui/core/Zoom";
 import { useTheme } from "@material-ui/core/styles";
 
 export default function SelectionFAB({
+  toolbarHeight,
   selection,
   quillContainerRef,
   tags,
@@ -24,8 +25,7 @@ export default function SelectionFAB({
   const [showFabClear, setShowFabClear] = useState();
   const [showMenu, setShowMenu] = useState();
 
-  const toolbarHeightPx = 40;
-  const halfFabHeightPx = 20;
+  const halfFabHeight = 20;
 
   const theme = useTheme();
 
@@ -123,7 +123,7 @@ export default function SelectionFAB({
     exit: theme.transitions.duration.leavingScreen,
   };
 
-  let totalOffset = toolbarHeightPx - halfFabHeightPx + offsetTop;
+  let totalOffset = toolbarHeight - halfFabHeight + offsetTop;
 
   if (showFabAdd) {
     return (
