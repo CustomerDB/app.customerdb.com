@@ -106,13 +106,13 @@ export default function ContentsPane(props) {
 
   const [tagIDsInSelection, setTagIDsInSelection] = useState(new Set());
 
-  let localDelta = useRef(new Delta([]));
-  let latestDeltaTimestamp = useRef();
+  const localDelta = useRef(new Delta([]));
+  const latestDeltaTimestamp = useRef();
 
-  let currentSelection = useRef();
-  let quillContainerRef = useRef();
+  const currentSelection = useRef();
+  const quillContainerRef = useRef();
 
-  let highlights = useRef();
+  const highlights = useRef();
 
   const classes = useStyles();
 
@@ -202,7 +202,7 @@ export default function ContentsPane(props) {
     updateHints();
 
     if (source !== "user") {
-      console.debug("onEdit: skipping non-user change", delta, source);
+      // console.debug("onEdit: skipping non-user change", delta, source);
       return;
     }
 
@@ -250,20 +250,18 @@ export default function ContentsPane(props) {
       let intersectingHighlights = computeHighlightsInSelection(selection);
 
       intersectingHighlights.forEach((h) => {
-        if (h.tagID === tag.ID) {
-          console.debug(
-            "deleting highlight format in current selection with tag ",
-            tag
-          );
+        console.debug(
+          "deleting highlight format in current selection with tag ",
+          tag
+        );
 
-          props.editor.formatText(
-            h.selection.index,
-            h.selection.length,
-            "highlight",
-            false, // unsets the target format
-            "user"
-          );
-        }
+        props.editor.formatText(
+          h.selection.index,
+          h.selection.length,
+          "highlight",
+          false, // unsets the target format
+          "user"
+        );
       });
     }
 
@@ -357,16 +355,16 @@ export default function ContentsPane(props) {
       latestDeltaTimestamp.current = snapshotTimestamp;
     }
 
-    console.debug(
-      "latestDeltaTimestamp.current: ",
-      latestDeltaTimestamp.current
-    );
+    //console.debug(
+    //  "latestDeltaTimestamp.current: ",
+    //  latestDeltaTimestamp.current
+    //);
 
     return deltasRef
       .orderBy("timestamp", "asc")
       .where("timestamp", ">", latestDeltaTimestamp.current)
       .onSnapshot((snapshot) => {
-        console.debug("Delta snapshot received");
+        // console.debug("Delta snapshot received");
 
         let newDeltas = [];
         snapshot.forEach((delta) => {
@@ -374,7 +372,7 @@ export default function ContentsPane(props) {
 
           // Skip deltas with no timestamp
           if (data.timestamp === null) {
-            console.debug("skipping delta with no timestamp");
+            // console.debug("skipping delta with no timestamp");
             return;
           }
 
@@ -383,7 +381,7 @@ export default function ContentsPane(props) {
             data.timestamp.valueOf() <= latestDeltaTimestamp.current.valueOf();
 
           if (haveSeenBefore) {
-            console.debug("Dropping delta with timestamp ", data.timestamp);
+            // console.debug("Dropping delta with timestamp ", data.timestamp);
             return;
           }
 
@@ -394,7 +392,7 @@ export default function ContentsPane(props) {
 
           // Skip deltas from this client
           if (data.editorID === editorID) {
-            console.debug("skipping delta from this client");
+            // console.debug("skipping delta from this client");
             return;
           }
 
@@ -403,7 +401,7 @@ export default function ContentsPane(props) {
         });
 
         if (newDeltas.length === 0) {
-          console.debug("no new deltas to apply");
+          // console.debug("no new deltas to apply");
           return;
         }
 
@@ -605,10 +603,10 @@ export default function ContentsPane(props) {
       return;
     }
 
-    let hintsNeedReflow = highlights.current === undefined;
-
     return highlightsRef.onSnapshot((snapshot) => {
       let newHighlights = {};
+
+      let hintsNeedReflow = highlights.current === undefined;
 
       snapshot.forEach((highlightDoc) => {
         let data = highlightDoc.data();

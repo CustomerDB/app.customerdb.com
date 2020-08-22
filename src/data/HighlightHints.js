@@ -7,7 +7,7 @@ export default function HighlightHints({ highlights, tags }) {
 
   const [area, setArea] = useState(0);
 
-  // Subscribe to window resize events because offsets need to be
+  // Subscribe to window resize events because hint offsets need to be
   // recomputed if the browser zoom level changes.
   useEffect(() => {
     const onResize = () => {
@@ -42,7 +42,7 @@ export default function HighlightHints({ highlights, tags }) {
         id={hintDomID}
         key={`${hintDomID}-${area}`}
         tag={tag}
-        offsetTop={highlightNode.offsetTop + 30}
+        offsetTop={highlightNode.offsetTop + 32}
       />
     );
   });
