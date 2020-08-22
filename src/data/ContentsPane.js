@@ -18,6 +18,7 @@ import DocumentSidebar from "./DocumentSidebar.js";
 import Grid from "@material-ui/core/Grid";
 import Hidden from "@material-ui/core/Hidden";
 import HighlightBlot from "./HighlightBlot.js";
+import HighlightHints from "./HighlightHints.js";
 import IconButton from "@material-ui/core/IconButton";
 import Moment from "react-moment";
 import Paper from "@material-ui/core/Paper";
@@ -101,18 +102,23 @@ export default function ContentsPane(props) {
   const [snapshotTimestamp, setSnapshotTimestamp] = useState();
   const [tagGroupName, setTagGroupName] = useState();
   const [tags, setTags] = useState();
+  const [reflowHints, setReflowHints] = useState(nanoid());
 
   const [tagIDsInSelection, setTagIDsInSelection] = useState(new Set());
 
-  let localDelta = useRef(new Delta([]));
-  let latestDeltaTimestamp = useRef();
+  const localDelta = useRef(new Delta([]));
+  const latestDeltaTimestamp = useRef();
 
-  let currentSelection = useRef();
-  let quillContainerRef = useRef();
+  const currentSelection = useRef();
+  const quillContainerRef = useRef();
 
-  let highlights = useRef();
+  const highlights = useRef();
 
   const classes = useStyles();
+
+  const updateHints = () => {
+    setReflowHints(nanoid());
+  };
 
   // Returns the index and length of the highlight with the supplied ID
   // in the current editor.
@@ -193,8 +199,10 @@ export default function ContentsPane(props) {
   // which are sent to the server and reset to [] periodically
   // in `syncDeltas()`.
   const onEdit = (content, delta, source, editor) => {
+    updateHints();
+
     if (source !== "user") {
-      console.debug("onEdit: skipping non-user change", delta, source);
+      // console.debug("onEdit: skipping non-user change", delta, source);
       return;
     }
 
@@ -242,20 +250,18 @@ export default function ContentsPane(props) {
       let intersectingHighlights = computeHighlightsInSelection(selection);
 
       intersectingHighlights.forEach((h) => {
-        if (h.tagID === tag.ID) {
-          console.debug(
-            "deleting highlight format in current selection with tag ",
-            tag
-          );
+        console.debug(
+          "deleting highlight format in current selection with tag ",
+          tag
+        );
 
-          props.editor.formatText(
-            h.selection.index,
-            h.selection.length,
-            "highlight",
-            false, // unsets the target format
-            "user"
-          );
-        }
+        props.editor.formatText(
+          h.selection.index,
+          h.selection.length,
+          "highlight",
+          false, // unsets the target format
+          "user"
+        );
       });
     }
 
@@ -349,16 +355,16 @@ export default function ContentsPane(props) {
       latestDeltaTimestamp.current = snapshotTimestamp;
     }
 
-    console.debug(
-      "latestDeltaTimestamp.current: ",
-      latestDeltaTimestamp.current
-    );
+    //console.debug(
+    //  "latestDeltaTimestamp.current: ",
+    //  latestDeltaTimestamp.current
+    //);
 
     return deltasRef
       .orderBy("timestamp", "asc")
       .where("timestamp", ">", latestDeltaTimestamp.current)
       .onSnapshot((snapshot) => {
-        console.debug("Delta snapshot received");
+        // console.debug("Delta snapshot received");
 
         let newDeltas = [];
         snapshot.forEach((delta) => {
@@ -366,7 +372,7 @@ export default function ContentsPane(props) {
 
           // Skip deltas with no timestamp
           if (data.timestamp === null) {
-            console.debug("skipping delta with no timestamp");
+            // console.debug("skipping delta with no timestamp");
             return;
           }
 
@@ -375,7 +381,7 @@ export default function ContentsPane(props) {
             data.timestamp.valueOf() <= latestDeltaTimestamp.current.valueOf();
 
           if (haveSeenBefore) {
-            console.debug("Dropping delta with timestamp ", data.timestamp);
+            // console.debug("Dropping delta with timestamp ", data.timestamp);
             return;
           }
 
@@ -386,7 +392,7 @@ export default function ContentsPane(props) {
 
           // Skip deltas from this client
           if (data.editorID === editorID) {
-            console.debug("skipping delta from this client");
+            // console.debug("skipping delta from this client");
             return;
           }
 
@@ -395,7 +401,7 @@ export default function ContentsPane(props) {
         });
 
         if (newDeltas.length === 0) {
-          console.debug("no new deltas to apply");
+          // console.debug("no new deltas to apply");
           return;
         }
 
@@ -500,6 +506,8 @@ export default function ContentsPane(props) {
           });
 
           highlightsRef.doc(h.ID).delete();
+
+          updateHints();
           return;
         }
 
@@ -561,6 +569,8 @@ export default function ContentsPane(props) {
           });
 
           highlightsRef.doc(highlightID).set(newHighlight);
+
+          updateHints();
         }
       });
     };
@@ -596,15 +606,29 @@ export default function ContentsPane(props) {
     return highlightsRef.onSnapshot((snapshot) => {
       let newHighlights = {};
 
+      let hintsNeedReflow = highlights.current === undefined;
+
       snapshot.forEach((highlightDoc) => {
         let data = highlightDoc.data();
         data["ID"] = highlightDoc.id;
         newHighlights[data.ID] = data;
+
+        if (
+          !hintsNeedReflow &&
+          highlights.current &&
+          !highlights.current[data.ID]
+        ) {
+          hintsNeedReflow = true;
+        }
       });
 
       console.debug("Received newHighlights ", newHighlights);
 
       highlights.current = newHighlights;
+
+      if (hintsNeedReflow) {
+        updateHints();
+      }
     });
   }, [highlightsRef]);
 
@@ -726,6 +750,12 @@ export default function ContentsPane(props) {
                       tags={tags}
                       tagIDsInSelection={tagIDsInSelection}
                       onTagControlChange={onTagControlChange}
+                    />
+
+                    <HighlightHints
+                      key={reflowHints}
+                      highlights={highlights.current}
+                      tags={tags}
                     />
                   </Grid>
                 </Grid>
