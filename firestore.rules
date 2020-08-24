@@ -144,6 +144,12 @@ service cloud.firestore {
                    && activeOrgMember(orgID);
     }
 
+    // Active non-admin users can write **TRANSCRIPTIONS** in the org.
+    match /organizations/{orgID}/transcriptions/{document=**} {
+      allow write: if signedInAndVerified()
+                   && activeOrgMember(orgID);
+    }
+
     // Active non-admin users can write **ANALYSES** in the org.
     match /organizations/{orgID}/analyses/{document=**} {
       allow write: if signedInAndVerified()
