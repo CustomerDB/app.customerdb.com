@@ -43,6 +43,7 @@ div.scrollContainer {
 
 div.scroll {
   overflow-y: auto;
+  overflow-x: hidden;
   width: 100%;
 }
 

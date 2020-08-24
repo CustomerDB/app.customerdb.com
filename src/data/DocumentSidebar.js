@@ -10,7 +10,6 @@ import CardContent from "@material-ui/core/CardContent";
 import Grid from "@material-ui/core/Grid";
 import SearchDropdown from "../search/Dropdown.js";
 import TagGroupSelector from "./TagGroupSelector.js";
-import Tags from "./Tags.js";
 import Typography from "@material-ui/core/Typography";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
@@ -174,18 +173,19 @@ export default function DocumentSidebar(props) {
 
       <Card elevation={2} className={classes.documentSidebarCard}>
         <CardContent>
-          {props.tags && !editTagGroup ? (
+          {props.tagGroupName && !editTagGroup ? (
             <>
-              <Tags
-                tags={props.tags}
-                tagIDsInSelection={props.tagIDsInSelection}
-                onChange={props.onTagControlChange}
-              />
+              <Typography gutterBottom color="textSecondary">
+                Tags
+              </Typography>
+              <Typography gutterBottom variant="h5" component="h2">
+                {props.tagGroupName}
+              </Typography>
             </>
           ) : (
             <>
               <Typography gutterBottom color="textSecondary">
-                Tag Group
+                Tags
               </Typography>
               <TagGroupSelector
                 onChange={() => {

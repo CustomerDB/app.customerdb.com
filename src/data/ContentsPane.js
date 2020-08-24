@@ -10,6 +10,7 @@ import React, {
 import { addTagStyles, removeTagStyles } from "./Tags.js";
 
 import Archive from "@material-ui/icons/Archive";
+import Collaborators from "../util/Collaborators.js";
 import ContentEditable from "react-contenteditable";
 import Delta from "quill-delta";
 import DocumentDeleteDialog from "./DocumentDeleteDialog.js";
@@ -17,12 +18,14 @@ import DocumentSidebar from "./DocumentSidebar.js";
 import Grid from "@material-ui/core/Grid";
 import Hidden from "@material-ui/core/Hidden";
 import HighlightBlot from "./HighlightBlot.js";
+import HighlightHints from "./HighlightHints.js";
 import IconButton from "@material-ui/core/IconButton";
 import Moment from "react-moment";
 import Paper from "@material-ui/core/Paper";
 import Quill from "quill";
 import ReactQuill from "react-quill";
 import Scrollable from "../shell/Scrollable.js";
+import SelectionFAB from "./SelectionFAB.js";
 import Typography from "@material-ui/core/Typography";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
@@ -97,18 +100,50 @@ export default function ContentsPane(props) {
   const [editorID] = useState(nanoid());
   const [snapshotDelta, setSnapshotDelta] = useState();
   const [snapshotTimestamp, setSnapshotTimestamp] = useState();
+  const [tagGroupName, setTagGroupName] = useState();
   const [tags, setTags] = useState();
+  const [reflowHints, setReflowHints] = useState(nanoid());
+  const [toolbarHeight, setToolbarHeight] = useState(40);
 
   const [tagIDsInSelection, setTagIDsInSelection] = useState(new Set());
 
-  let localDelta = useRef(new Delta([]));
-  let latestDeltaTimestamp = useRef();
+  const localDelta = useRef(new Delta([]));
+  const latestDeltaTimestamp = useRef();
 
-  let currentSelection = useRef();
+  const currentSelection = useRef();
+  const quillContainerRef = useRef();
 
-  let highlights = useRef();
+  const highlights = useRef();
 
   const classes = useStyles();
+
+  const updateHints = () => {
+    setReflowHints(nanoid());
+  };
+
+  // Subscribe to window resize events because hint offsets need to be
+  // recomputed if the browser zoom level changes.
+  useEffect(() => {
+    const onResize = () => {
+      let editorNode = document.getElementById("quill-editor");
+      if (editorNode) {
+        let toolbarNodes = editorNode.getElementsByClassName("ql-toolbar");
+        if (toolbarNodes.length > 0) {
+          let rects = toolbarNodes[0].getClientRects();
+          if (rects.length > 0) {
+            setToolbarHeight(Math.round(rects[0].height));
+          }
+        }
+      }
+      updateHints();
+    };
+
+    window.addEventListener("resize", onResize);
+
+    return () => {
+      window.removeEventListener("resize", onResize);
+    };
+  }, []);
 
   // Returns the index and length of the highlight with the supplied ID
   // in the current editor.
@@ -189,8 +224,10 @@ export default function ContentsPane(props) {
   // which are sent to the server and reset to [] periodically
   // in `syncDeltas()`.
   const onEdit = (content, delta, source, editor) => {
+    updateHints();
+
     if (source !== "user") {
-      console.debug("onEdit: skipping non-user change", delta, source);
+      // console.debug("onEdit: skipping non-user change", delta, source);
       return;
     }
 
@@ -232,33 +269,34 @@ export default function ContentsPane(props) {
         { highlightID: highlightID, tagID: tag.ID },
         "user"
       );
-
-      props.editor.setSelection(selection.index + selection.length);
     }
 
     if (!checked) {
       let intersectingHighlights = computeHighlightsInSelection(selection);
 
       intersectingHighlights.forEach((h) => {
-        if (h.tagID === tag.ID) {
-          console.debug(
-            "deleting highlight format in current selection with tag ",
-            tag
-          );
+        console.debug(
+          "deleting highlight format in current selection with tag ",
+          tag
+        );
 
-          props.editor.formatText(
-            h.selection.index,
-            h.selection.length,
-            "highlight",
-            false, // unsets the target format
-            "user"
-          );
-        }
+        props.editor.formatText(
+          h.selection.index,
+          h.selection.length,
+          "highlight",
+          false, // unsets the target format
+          "user"
+        );
       });
     }
 
-    let tagIDs = computeTagIDsInSelection(selection);
-    setTagIDsInSelection(tagIDs);
+    let newRange = {
+      index: selection.index + selection.length,
+      length: 0,
+    };
+    props.editor.setSelection(newRange, "user");
+    currentSelection.current = newRange;
+    setTagIDsInSelection(computeTagIDsInSelection(newRange));
   };
 
   // Subscribe to tags for the document's tag group.
@@ -267,12 +305,20 @@ export default function ContentsPane(props) {
       return;
     }
     if (!props.document.tagGroupID) {
+      setTagGroupName();
       setTags();
       removeTagStyles();
       return;
     }
 
-    let unsubscribe = tagGroupsRef
+    let tagGroupRef = tagGroupsRef.doc(props.document.tagGroupID);
+
+    let unsubscribeTagGroup = tagGroupRef.onSnapshot((doc) => {
+      let tagGroupData = doc.data();
+      setTagGroupName(tagGroupData.name);
+    });
+
+    let unsubscribeTags = tagGroupsRef
       .doc(props.document.tagGroupID)
       .collection("tags")
       .where("deletionTimestamp", "==", "")
@@ -288,7 +334,8 @@ export default function ContentsPane(props) {
       });
     return () => {
       removeTagStyles();
-      unsubscribe();
+      unsubscribeTagGroup();
+      unsubscribeTags();
     };
   }, [props.document.tagGroupID, tagGroupsRef]);
 
@@ -333,16 +380,16 @@ export default function ContentsPane(props) {
       latestDeltaTimestamp.current = snapshotTimestamp;
     }
 
-    console.debug(
-      "latestDeltaTimestamp.current: ",
-      latestDeltaTimestamp.current
-    );
+    //console.debug(
+    //  "latestDeltaTimestamp.current: ",
+    //  latestDeltaTimestamp.current
+    //);
 
     return deltasRef
       .orderBy("timestamp", "asc")
       .where("timestamp", ">", latestDeltaTimestamp.current)
       .onSnapshot((snapshot) => {
-        console.debug("Delta snapshot received");
+        // console.debug("Delta snapshot received");
 
         let newDeltas = [];
         snapshot.forEach((delta) => {
@@ -350,7 +397,7 @@ export default function ContentsPane(props) {
 
           // Skip deltas with no timestamp
           if (data.timestamp === null) {
-            console.debug("skipping delta with no timestamp");
+            // console.debug("skipping delta with no timestamp");
             return;
           }
 
@@ -359,7 +406,7 @@ export default function ContentsPane(props) {
             data.timestamp.valueOf() <= latestDeltaTimestamp.current.valueOf();
 
           if (haveSeenBefore) {
-            console.debug("Dropping delta with timestamp ", data.timestamp);
+            // console.debug("Dropping delta with timestamp ", data.timestamp);
             return;
           }
 
@@ -370,7 +417,7 @@ export default function ContentsPane(props) {
 
           // Skip deltas from this client
           if (data.editorID === editorID) {
-            console.debug("skipping delta from this client");
+            // console.debug("skipping delta from this client");
             return;
           }
 
@@ -379,7 +426,7 @@ export default function ContentsPane(props) {
         });
 
         if (newDeltas.length === 0) {
-          console.debug("no new deltas to apply");
+          // console.debug("no new deltas to apply");
           return;
         }
 
@@ -484,6 +531,8 @@ export default function ContentsPane(props) {
           });
 
           highlightsRef.doc(h.ID).delete();
+
+          updateHints();
           return;
         }
 
@@ -545,6 +594,8 @@ export default function ContentsPane(props) {
           });
 
           highlightsRef.doc(highlightID).set(newHighlight);
+
+          updateHints();
         }
       });
     };
@@ -580,15 +631,29 @@ export default function ContentsPane(props) {
     return highlightsRef.onSnapshot((snapshot) => {
       let newHighlights = {};
 
+      let hintsNeedReflow = highlights.current === undefined;
+
       snapshot.forEach((highlightDoc) => {
         let data = highlightDoc.data();
         data["ID"] = highlightDoc.id;
         newHighlights[data.ID] = data;
+
+        if (
+          !hintsNeedReflow &&
+          highlights.current &&
+          !highlights.current[data.ID]
+        ) {
+          hintsNeedReflow = true;
+        }
       });
 
       console.debug("Received newHighlights ", newHighlights);
 
       highlights.current = newHighlights;
+
+      if (hintsNeedReflow) {
+        updateHints();
+      }
     });
   }, [highlightsRef]);
 
@@ -664,11 +729,19 @@ export default function ContentsPane(props) {
                       >
                         <Archive />
                       </IconButton>
+                      <Collaborators dbRef={documentRef} />
                     </Grid>
                   </Grid>
 
-                  <Grid item xs={12}>
+                  <Grid
+                    ref={quillContainerRef}
+                    item
+                    xs={12}
+                    style={{ position: "relative" }}
+                    spacing={0}
+                  >
                     <ReactQuill
+                      id="quill-editor"
                       ref={props.reactQuillRef}
                       defaultValue={snapshotDelta}
                       theme="snow"
@@ -696,6 +769,22 @@ export default function ContentsPane(props) {
                         ],
                       }}
                     />
+
+                    <SelectionFAB
+                      toolbarHeight={toolbarHeight}
+                      selection={currentSelection.current}
+                      quillContainerRef={quillContainerRef}
+                      tags={tags}
+                      tagIDsInSelection={tagIDsInSelection}
+                      onTagControlChange={onTagControlChange}
+                    />
+
+                    <HighlightHints
+                      key={reflowHints}
+                      toolbarHeight={toolbarHeight}
+                      highlights={highlights.current}
+                      tags={tags}
+                    />
                   </Grid>
                 </Grid>
               </Paper>
@@ -707,9 +796,7 @@ export default function ContentsPane(props) {
       <Hidden smDown>
         <DocumentSidebar
           document={props.document}
-          tags={tags}
-          tagIDsInSelection={tagIDsInSelection}
-          onTagControlChange={onTagControlChange}
+          tagGroupName={tagGroupName}
         />
       </Hidden>
 
