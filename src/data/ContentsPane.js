@@ -349,29 +349,21 @@ export default function ContentsPane(props) {
       .orderBy("timestamp", "desc")
       .limit(1)
       .onSnapshot((snapshot) => {
-        console.log("revision snapshot received", snapshot);
-
         if (snapshot.size === 0) {
-          console.log("snapshot.size is 0");
-
           setRevisionDelta(initialDelta());
-          setRevisionTimestamp(window.firebase.firestore.Timestamp(0, 0));
+          setRevisionTimestamp(new window.firebase.firestore.Timestamp(0, 0));
           return;
         }
 
         // hint: limit 1 -- iterating over a list of exactly 1
         snapshot.forEach((doc) => {
-          let data = doc.data();
-
-          console.log("snapshot.data()", data);
-
-          setRevisionDelta(new Delta(data.delta.ops));
-          console.log("found data timestamp", data.timestamp);
-          if (!data.timestamp) {
-            setRevisionTimestamp(window.firebase.firestore.Timestamp(0, 0));
+          let revision = doc.data();
+          setRevisionDelta(new Delta(revision.delta.ops));
+          if (!revision.timestamp) {
+            setRevisionTimestamp(new window.firebase.firestore.Timestamp(0, 0));
             return;
           }
-          setRevisionTimestamp(data.timestamp);
+          setRevisionTimestamp(revision.timestamp);
         });
       });
   }, [revisionsRef]);
@@ -379,12 +371,6 @@ export default function ContentsPane(props) {
   // Document will contain the latest cached and compressed version of the delta document.
   // Subscribe to deltas from other remote clients.
   useEffect(() => {
-    console.log("deltas useEffect", {
-      editorID: editorID,
-      editor: props.editor,
-      deltasRef: deltasRef,
-      revisionTimestamp: revisionTimestamp,
-    });
     if (!editorID || !props.editor || !deltasRef || !revisionTimestamp) {
       return;
     }
@@ -392,8 +378,6 @@ export default function ContentsPane(props) {
     if (!latestDeltaTimestamp.current) {
       latestDeltaTimestamp.current = revisionTimestamp;
     }
-
-    console.log("latestDeltaTimestamp.current", latestDeltaTimestamp.current);
 
     return deltasRef
       .orderBy("timestamp", "asc")
