@@ -22,6 +22,7 @@ import SpeedDial from "@material-ui/lab/SpeedDial";
 import SpeedDialAction from "@material-ui/lab/SpeedDialAction";
 import SpeedDialIcon from "@material-ui/lab/SpeedDialIcon";
 import TheatersIcon from "@material-ui/icons/Theaters";
+import UploadVideoDialog from "./UploadVideoDialog.js";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import { connectHits } from "react-instantsearch-dom";
 import event from "../analytics/event.js";
@@ -54,6 +55,7 @@ const useStyles = makeStyles((theme) => ({
 
 export default function Data(props) {
   const [addModalShow, setAddModalShow] = useState();
+  const [uploadModalShow, setUploadModalShow] = useState();
   const [documents, setDocuments] = useState([]);
   const [showResults, setShowResults] = useState();
   const [openDial, setOpenDial] = useState(false);
@@ -103,7 +105,7 @@ export default function Data(props) {
       });
   }, [documentsRef]);
 
-  const onAdd = () => {
+  const onAddDocument = () => {
     event("create_data", {
       orgID: oauthClaims.orgID,
       userID: oauthClaims.user_id,
@@ -149,6 +151,10 @@ export default function Data(props) {
         navigate(`/orgs/${orgID}/data/${documentID}`);
         setAddModalShow(true);
       });
+  };
+
+  const onUploadVideo = () => {
+    setUploadModalShow(true);
   };
 
   const dataListItem = (ID, name, timestamp) => (
@@ -212,7 +218,7 @@ export default function Data(props) {
             icon={<DescriptionIcon />}
             tooltipTitle="Create document"
             onClick={() => {
-              onAdd();
+              onAddDocument();
               setOpenDial(false);
             }}
           />
@@ -221,6 +227,7 @@ export default function Data(props) {
             icon={<TheatersIcon />}
             tooltipTitle="Upload video"
             onClick={() => {
+              onUploadVideo();
               setOpenDial(false);
             }}
           />
@@ -263,6 +270,15 @@ export default function Data(props) {
     />
   );
 
+  let uploadModal = (
+    <UploadVideoDialog
+      open={uploadModalShow}
+      setOpen={(value) => {
+        setUploadModalShow(value);
+      }}
+    />
+  );
+
   return (
     <Shell
       title="Data"
@@ -277,6 +293,7 @@ export default function Data(props) {
         {list}
         {content}
         {addModal}
+        {uploadModal}
       </Grid>
     </Shell>
   );
