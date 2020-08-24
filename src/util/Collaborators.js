@@ -10,7 +10,7 @@ const syncPeriod = 5000;
 export default function Collaborators(props) {
   const { oauthUser } = useContext(UserAuthContext);
 
-  const [collaborators, setCollaborators] = useState();
+  const [collaborators, setCollaborators] = useState([]);
 
   useEffect(() => {
     if (!props.dbRef) {
@@ -71,12 +71,8 @@ export default function Collaborators(props) {
     };
   }, [props.dbRef, oauthUser.displayName, oauthUser.email, oauthUser.photoURL]);
 
-  if (!collaborators) {
-    return <></>;
-  }
-
   return (
-    <AvatarGroup max={4}>
+    <AvatarGroup max={4} style={{ minHeight: "2.5rem" }}>
       {collaborators.map((collaborator) => (
         <Tooltip title={collaborator.name}>
           <Avatar
