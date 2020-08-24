@@ -67,7 +67,12 @@ export default function AlertDialog({ open, setOpen, document }) {
         <Button onClick={cancel} color="primary">
           Cancel
         </Button>
-        <Button onClick={archive} color="primary" autoFocus>
+        <Button
+          onClick={archive}
+          variant="contained"
+          color="secondary"
+          autoFocus
+        >
           Archive
         </Button>
       </DialogActions>

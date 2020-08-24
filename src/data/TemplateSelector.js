@@ -86,11 +86,11 @@ export default function TemplateSelector(props) {
   }
 
   return (
-    <FormControl fullWidth>
-      <InputLabel id="tag-group-select-label">Template</InputLabel>
+    <FormControl fullWidth variant="outlined">
+      <InputLabel id="template-select-label">Template</InputLabel>
       <Select
-        labelId="tag-group-select-label"
-        id="tag-group-select"
+        labelId="template-select-label"
+        id="template-select"
         onChange={onTemplateChange}
         value={doc.templateID}
       >
