@@ -1,14 +1,13 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import AddIcon from "@material-ui/icons/Add";
 import Avatar from "@material-ui/core/Avatar";
 import ContentsHelp from "./ContentsHelp.js";
 import DataHelp from "./DataHelp.js";
 import DescriptionIcon from "@material-ui/icons/Description";
 import Document from "./Document.js";
 import DocumentCreateModal from "./DocumentCreateModal.js";
-import Fab from "@material-ui/core/Fab";
+import EditIcon from "@material-ui/icons/Edit";
 import Grid from "@material-ui/core/Grid";
 import Hidden from "@material-ui/core/Hidden";
 import List from "@material-ui/core/List";
@@ -19,19 +18,49 @@ import ListItemText from "@material-ui/core/ListItemText";
 import Moment from "react-moment";
 import Scrollable from "../shell/Scrollable.js";
 import Shell from "../shell/Shell.js";
+import SpeedDial from "@material-ui/lab/SpeedDial";
+import SpeedDialAction from "@material-ui/lab/SpeedDialAction";
+import SpeedDialIcon from "@material-ui/lab/SpeedDialIcon";
+import TheatersIcon from "@material-ui/icons/Theaters";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import { connectHits } from "react-instantsearch-dom";
 import event from "../analytics/event.js";
 import { initialDelta } from "./delta.js";
+import { makeStyles } from "@material-ui/core/styles";
 import { nanoid } from "nanoid";
 import useFirestore from "../db/Firestore.js";
 import { useOrganization } from "../organization/hooks.js";
+
+const useStyles = makeStyles((theme) => ({
+  root: {
+    transform: "translateZ(0px)",
+    flexGrow: 1,
+  },
+  dialWrapper: {
+    position: "absolute",
+    bottom: "15px",
+    right: "15px",
+    marginTop: theme.spacing(3),
+    height: 380,
+  },
+  speedDial: {
+    position: "absolute",
+    "&.MuiSpeedDial-directionUp": {
+      bottom: theme.spacing(2),
+      right: theme.spacing(2),
+    },
+  },
+}));
 
 export default function Data(props) {
   const [addModalShow, setAddModalShow] = useState();
   const [documents, setDocuments] = useState([]);
   const [showResults, setShowResults] = useState();
+  const [openDial, setOpenDial] = useState(false);
+
   const { defaultTagGroupID } = useOrganization();
+
+  const classes = useStyles();
 
   const navigate = useNavigate();
 
@@ -166,14 +195,37 @@ export default function Data(props) {
           <List>{documentItems.length > 0 ? documentItems : <DataHelp />}</List>
         )}
       </Scrollable>
-      <Fab
-        style={{ position: "absolute", bottom: "15px", right: "15px" }}
-        color="secondary"
-        aria-label="add"
-        onClick={onAdd}
-      >
-        <AddIcon />
-      </Fab>
+
+      <div className={classes.dialWrapper}>
+        <SpeedDial
+          ariaLabel="SpeedDial example"
+          className={classes.speedDial}
+          icon={<SpeedDialIcon openIcon={<EditIcon />} />}
+          onClose={() => setOpenDial(false)}
+          FabProps={{ color: "secondary" }}
+          onOpen={() => setOpenDial(true)}
+          open={openDial}
+          direction="up"
+        >
+          <SpeedDialAction
+            key="Create document"
+            icon={<DescriptionIcon />}
+            tooltipTitle="Create document"
+            onClick={() => {
+              onAdd();
+              setOpenDial(false);
+            }}
+          />
+          <SpeedDialAction
+            key="Upload video"
+            icon={<TheatersIcon />}
+            tooltipTitle="Upload video"
+            onClick={() => {
+              setOpenDial(false);
+            }}
+          />
+        </SpeedDial>
+      </div>
     </ListContainer>
   );
 
