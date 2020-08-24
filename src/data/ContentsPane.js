@@ -103,6 +103,7 @@ export default function ContentsPane(props) {
   const [tagGroupName, setTagGroupName] = useState();
   const [tags, setTags] = useState();
   const [reflowHints, setReflowHints] = useState(nanoid());
+  const [toolbarHeight, setToolbarHeight] = useState(40);
 
   const [tagIDsInSelection, setTagIDsInSelection] = useState(new Set());
 
@@ -124,6 +125,16 @@ export default function ContentsPane(props) {
   // recomputed if the browser zoom level changes.
   useEffect(() => {
     const onResize = () => {
+      let editorNode = document.getElementById("quill-editor");
+      if (editorNode) {
+        let toolbarNodes = editorNode.getElementsByClassName("ql-toolbar");
+        if (toolbarNodes.length > 0) {
+          let rects = toolbarNodes[0].getClientRects();
+          if (rects.length > 0) {
+            setToolbarHeight(Math.round(rects[0].height));
+          }
+        }
+      }
       updateHints();
     };
 
@@ -730,6 +741,7 @@ export default function ContentsPane(props) {
                     spacing={0}
                   >
                     <ReactQuill
+                      id="quill-editor"
                       ref={props.reactQuillRef}
                       defaultValue={snapshotDelta}
                       theme="snow"
@@ -759,6 +771,7 @@ export default function ContentsPane(props) {
                     />
 
                     <SelectionFAB
+                      toolbarHeight={toolbarHeight}
                       selection={currentSelection.current}
                       quillContainerRef={quillContainerRef}
                       tags={tags}
@@ -768,6 +781,7 @@ export default function ContentsPane(props) {
 
                     <HighlightHints
                       key={reflowHints}
+                      toolbarHeight={toolbarHeight}
                       highlights={highlights.current}
                       tags={tags}
                     />

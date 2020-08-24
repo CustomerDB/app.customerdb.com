@@ -2,12 +2,14 @@ import React, { useState } from "react";
 
 import Chip from "@material-ui/core/Chip";
 
-export default function HighlightHints({ highlights, tags }) {
+export default function HighlightHints({ toolbarHeight, highlights, tags }) {
   console.log("render HighlightHints");
 
   if (!highlights || !tags) {
     return <></>;
   }
+
+  let toolbarOffset = toolbarHeight - 8;
 
   let hints = Object.values(highlights).map((highlight) => {
     let highlightDomID = `highlight-${highlight.ID}`;
@@ -26,7 +28,7 @@ export default function HighlightHints({ highlights, tags }) {
         id={hintDomID}
         key={hintDomID}
         tag={tag}
-        offsetTop={highlightNode.offsetTop + 32}
+        offsetTop={highlightNode.offsetTop + toolbarOffset}
       />
     );
   });
