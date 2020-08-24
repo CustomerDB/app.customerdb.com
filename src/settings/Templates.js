@@ -100,7 +100,7 @@ export default function Templates(props) {
       .then(() => {
         return templatesRef
           .doc(newTemplateID)
-          .collection("snapshots")
+          .collection("revisions")
           .doc()
           .set({
             delta: { ops: initialDelta().ops },
@@ -171,7 +171,7 @@ function Template({ templateRef }) {
   const { templatesRef } = useFirestore();
 
   const [template, setTemplate] = useState();
-  const [templateSnapshot, setTemplateSnapshot] = useState();
+  const [templateRevision, setTemplateRevision] = useState();
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const dirty = useRef(false);
 
@@ -195,7 +195,7 @@ function Template({ templateRef }) {
 
     return templatesRef
       .doc(templateID)
-      .collection("snapshots")
+      .collection("revisions")
       .orderBy("timestamp", "desc")
       .limit(1)
       .onSnapshot((snapshot) => {
@@ -203,7 +203,7 @@ function Template({ templateRef }) {
         snapshot.forEach((snapshotDoc) => {
           let data = snapshotDoc.data();
           let delta = new Delta(data.delta.ops);
-          setTemplateSnapshot(delta);
+          setTemplateRevision(delta);
         });
       });
   }, [templatesRef, templateID]);
@@ -231,7 +231,7 @@ function Template({ templateRef }) {
 
       return templatesRef
         .doc(templateID)
-        .collection("snapshots")
+        .collection("revisions")
         .doc()
         .set({
           delta: { ops: currentDelta.ops },
@@ -274,7 +274,7 @@ function Template({ templateRef }) {
     />
   );
 
-  if (!template || !templateSnapshot) {
+  if (!template || !templateRevision) {
     return <Loading />;
   }
 
@@ -352,7 +352,7 @@ function Template({ templateRef }) {
                   <Grid item xs={12}>
                     <ReactQuill
                       ref={reactQuillRef}
-                      defaultValue={templateSnapshot}
+                      defaultValue={templateRevision}
                       theme="snow"
                       placeholder="Start typing here"
                       onChange={onEdit}

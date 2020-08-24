@@ -90,7 +90,7 @@ export default function ContentsPane(props) {
   const {
     tagGroupsRef,
     documentRef,
-    snapshotsRef,
+    revisionsRef,
     highlightsRef,
     deltasRef,
   } = useFirestore();
@@ -98,8 +98,8 @@ export default function ContentsPane(props) {
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
   const [editorID] = useState(nanoid());
-  const [snapshotDelta, setSnapshotDelta] = useState();
-  const [snapshotTimestamp, setSnapshotTimestamp] = useState();
+  const [revisionDelta, setRevisionDelta] = useState();
+  const [revisionTimestamp, setRevisionTimestamp] = useState();
   const [tagGroupName, setTagGroupName] = useState();
   const [tags, setTags] = useState();
   const [reflowHints, setReflowHints] = useState(nanoid());
@@ -339,51 +339,61 @@ export default function ContentsPane(props) {
     };
   }, [props.document.tagGroupID, tagGroupsRef]);
 
-  // Subscribe to the latest delta snapshot
+  // Subscribe to the latest revision
   useEffect(() => {
-    if (!snapshotsRef) {
+    if (!revisionsRef) {
       return;
     }
 
-    return snapshotsRef
+    return revisionsRef
       .orderBy("timestamp", "desc")
       .limit(1)
       .onSnapshot((snapshot) => {
+        console.log("revision snapshot received", snapshot);
+
         if (snapshot.size === 0) {
-          setSnapshotDelta(initialDelta());
-          setSnapshotTimestamp(window.firebase.firestore.Timestamp(0, 0));
+          console.log("snapshot.size is 0");
+
+          setRevisionDelta(initialDelta());
+          setRevisionTimestamp(window.firebase.firestore.Timestamp(0, 0));
           return;
         }
 
         // hint: limit 1 -- iterating over a list of exactly 1
-        snapshot.forEach((snapshotDoc) => {
-          let data = snapshotDoc.data();
-          setSnapshotDelta(new Delta(data.delta.ops));
+        snapshot.forEach((doc) => {
+          let data = doc.data();
+
+          console.log("snapshot.data()", data);
+
+          setRevisionDelta(new Delta(data.delta.ops));
           console.log("found data timestamp", data.timestamp);
           if (!data.timestamp) {
-            setSnapshotTimestamp(window.firebase.firestore.Timestamp(0, 0));
+            setRevisionTimestamp(window.firebase.firestore.Timestamp(0, 0));
             return;
           }
-          setSnapshotTimestamp(data.timestamp);
+          setRevisionTimestamp(data.timestamp);
         });
       });
-  }, [snapshotsRef]);
+  }, [revisionsRef]);
 
   // Document will contain the latest cached and compressed version of the delta document.
   // Subscribe to deltas from other remote clients.
   useEffect(() => {
-    if (!props.editor || !deltasRef || !snapshotTimestamp) {
+    console.log("deltas useEffect", {
+      editorID: editorID,
+      editor: props.editor,
+      deltasRef: deltasRef,
+      revisionTimestamp: revisionTimestamp,
+    });
+    if (!editorID || !props.editor || !deltasRef || !revisionTimestamp) {
       return;
     }
 
     if (!latestDeltaTimestamp.current) {
-      latestDeltaTimestamp.current = snapshotTimestamp;
+      latestDeltaTimestamp.current = revisionTimestamp;
     }
 
-    //console.debug(
-    //  "latestDeltaTimestamp.current: ",
-    //  latestDeltaTimestamp.current
-    //);
+    console.log("latestDeltaTimestamp.current", latestDeltaTimestamp.current);
 
     return deltasRef
       .orderBy("timestamp", "asc")
@@ -471,7 +481,7 @@ export default function ContentsPane(props) {
           props.editor.setSelection(selectionIndex, selection.length);
         }
       });
-  }, [editorID, props.editor, snapshotTimestamp, deltasRef]);
+  }, [editorID, props.editor, revisionTimestamp, deltasRef]);
 
   // Register timers to periodically sync local changes with firestore.
   useEffect(() => {
@@ -647,7 +657,7 @@ export default function ContentsPane(props) {
         }
       });
 
-      console.debug("Received newHighlights ", newHighlights);
+      // console.debug("Received newHighlights ", newHighlights);
 
       highlights.current = newHighlights;
 
@@ -657,7 +667,7 @@ export default function ContentsPane(props) {
     });
   }, [highlightsRef]);
 
-  if (!snapshotDelta) {
+  if (!revisionDelta) {
     return <></>;
   }
 
@@ -743,7 +753,7 @@ export default function ContentsPane(props) {
                     <ReactQuill
                       id="quill-editor"
                       ref={props.reactQuillRef}
-                      defaultValue={snapshotDelta}
+                      defaultValue={revisionDelta}
                       theme="snow"
                       placeholder="Start typing here and select to mark highlights"
                       onChange={onEdit}

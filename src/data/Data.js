@@ -97,7 +97,7 @@ export default function Data(props) {
         // This initial value is required.
         // Search indexing and compression are done as a pair of operations:
         // 1) Mark documents with needsIndex == false and
-        //    deltas newer than latestSnapshotTimestamp
+        //    deltas newer than latest revision timestamp
         // 2) Index documents with needsIndex == true.
         needsIndex: false,
 
@@ -110,7 +110,7 @@ export default function Data(props) {
       .then(() => {
         documentsRef
           .doc(documentID)
-          .collection("snapshots")
+          .collection("revisions")
           .add({
             delta: { ops: initialDelta().ops },
             timestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
