@@ -208,7 +208,10 @@ export default function Data(props) {
           className={classes.speedDial}
           icon={<SpeedDialIcon openIcon={<EditIcon />} />}
           onClose={() => setOpenDial(false)}
-          FabProps={{ color: "secondary" }}
+          FabProps={{
+            color: "secondary",
+            onClick: () => onAddDocument(),
+          }}
           onOpen={() => setOpenDial(true)}
           open={openDial}
           direction="up"
