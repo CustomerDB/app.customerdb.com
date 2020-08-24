@@ -3,8 +3,6 @@ import React, { useState } from "react";
 import Chip from "@material-ui/core/Chip";
 
 export default function HighlightHints({ toolbarHeight, highlights, tags }) {
-  console.log("render HighlightHints");
-
   if (!highlights || !tags) {
     return <></>;
   }
