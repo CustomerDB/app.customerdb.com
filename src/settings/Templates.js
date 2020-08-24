@@ -100,7 +100,7 @@ export default function Templates(props) {
       .then(() => {
         return templatesRef
           .doc(newTemplateID)
-          .collection("revisions")
+          .collection("snapshots")
           .doc()
           .set({
             delta: { ops: initialDelta().ops },
@@ -195,7 +195,7 @@ function Template({ templateRef }) {
 
     return templatesRef
       .doc(templateID)
-      .collection("revisions")
+      .collection("snapshots") // TODO: Migrate this collection to "revisions"
       .orderBy("timestamp", "desc")
       .limit(1)
       .onSnapshot((snapshot) => {
@@ -231,7 +231,7 @@ function Template({ templateRef }) {
 
       return templatesRef
         .doc(templateID)
-        .collection("revisions")
+        .collection("snapshots")
         .doc()
         .set({
           delta: { ops: currentDelta.ops },
