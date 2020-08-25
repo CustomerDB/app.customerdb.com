@@ -15,7 +15,6 @@ import MenuItem from "@material-ui/core/MenuItem";
 import Select from "@material-ui/core/Select";
 import TextField from "@material-ui/core/TextField";
 import UserAuthContext from "../auth/UserAuthContext.js";
-import clsx from "clsx";
 import { green } from "@material-ui/core/colors";
 import { makeStyles } from "@material-ui/core/styles";
 import { nanoid } from "nanoid";
@@ -97,7 +96,7 @@ export default function UploadVideoDialog({ open, setOpen }) {
     let transcriptionID = nanoid();
 
     // TODO: Find official google storage rules for allowed object names.
-    let fileName = file.name.replace(/[\ !@#$%^&*()+\[\]\{\}\<\>]/g, "-");
+    let fileName = file.name.replace(/[ !@#$%^&*()+[]{}<>]/g, "-");
 
     let storagePath = `${orgID}/transcriptions/${transcriptionID}/input/${fileName}`;
     transcriptionsRef
@@ -110,6 +109,7 @@ export default function UploadVideoDialog({ open, setOpen }) {
         creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
         deletionTimestamp: "",
         destination: storagePath,
+        orgID: orgID,
       })
       .then(() => {
         uploadTask.current = storageRef.child(storagePath).put(file, {});

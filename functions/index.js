@@ -6,6 +6,7 @@ const algoliasearch = require("algoliasearch");
 const Delta = require("quill-delta");
 const toPlaintext = require("quill-delta-to-plaintext");
 const { nanoid } = require("nanoid");
+const Video = require("@google-cloud/video-intelligence").v1p3beta1;
 
 const firestore = require("@google-cloud/firestore");
 const adminClient = new firestore.v1.FirestoreAdminClient();
@@ -780,6 +781,130 @@ exports.tagRepair = functions.pubsub
                       });
                   })
                 );
+              });
+          })
+        );
+      });
+  });
+
+//////////////////////////////////////////////////////////////////////////////
+//
+//   Transcription functions
+//
+//////////////////////////////////////////////////////////////////////////////
+
+exports.startTranscription = functions.storage
+  .object()
+  .onFinalize(async (object) => {
+    const fileBucket = object.bucket;
+    const filePath = object.name;
+    const contentType = object.contentType;
+
+    console.log(`bucket ${fileBucket} path ${filePath} type ${contentType}`);
+    const video = new Video.VideoIntelligenceServiceClient();
+
+    let matches = filePath.match(/(.+)\/transcriptions\/(.+)\/input\/(.+)/);
+
+    if (matches.length != 4) {
+      console.log(
+        "File path doesn't match pattern for starting transcription: ",
+        filePath
+      );
+      return;
+    }
+
+    let orgID = matches[1];
+    let transcriptionID = matches[2];
+    let fileName = matches[3];
+
+    // Get transcription operation.
+    let db = admin.firestore();
+    let transcriptionsRef = db
+      .collection("organizations")
+      .doc(orgID)
+      .collection("transcriptions");
+    let transcriptionRef = transcriptionsRef.doc(transcriptionID);
+
+    return transcriptionRef.get().then(async (doc) => {
+      if (!doc.exists) {
+        console.log(
+          `Couldn't find transcription operation for organization ${orgID} transcription ${transcriptionID} file ${fileName}`
+        );
+        return;
+      }
+
+      let transcriptionOperation = doc.data();
+
+      const request = {
+        inputUri: "gs://" + fileBucket + "/" + filePath,
+        features: ["SPEECH_TRANSCRIPTION"],
+        videoContext: {
+          speechTranscriptionConfig: {
+            languageCode: "en-US",
+            enableAutomaticPunctuation: true,
+            enableSpeakerDiarization: true,
+            diarizationSpeakerCount: transcriptionOperation.speakers,
+          },
+        },
+      };
+
+      const [operation] = await video.annotateVideo(request);
+
+      return doc.ref.set({
+        status: "pending",
+        gcpOperationName: operation.name,
+      });
+    });
+  });
+
+// Check every minute for videos in progress
+exports.transcriptionProgress = functions.pubsub
+  .schedule("every 1 minutes")
+  .onRun((context) => {
+    const video = new Video.VideoIntelligenceServiceClient();
+    const db = admin.firestore();
+
+    // TODO: Make transcriptions collection group.
+
+    let transcriptionsRef = db.collectionGroup("transcriptions");
+
+    return transcriptionsRef
+      .where("deletionTimestamp", "==", "")
+      .where("status", "==", "pending")
+      .get()
+      .then((snapshot) => {
+        return Promise.all(
+          snapshot.docs.map((doc) => {
+            let operation = doc.data();
+
+            return video
+              .checkAnnotateVideoProgress(operation.gcpOperationName)
+              .then((operation) => {
+                if (operation.done) {
+                  let result = operation.result.annotationResults[0].toJSON();
+                  let bucket = admin.storage().bucket();
+
+                  const destination = `${orgID}/transcriptions/${doc.id}/output/transcript.json`;
+                  const tmpobj = tmp.fileSync();
+
+                  fs.writeFileSync(tmpobj.name, JSON.stringify(result));
+
+                  return bucket
+                    .upload(tmpobj.name, {
+                      destination: destination,
+                    })
+                    .then(() => {
+                      return doc.ref.set(
+                        {
+                          status: "done",
+                          resultPath: `gs://${defaultBucket}/${destination}`,
+                        },
+                        { merge: true }
+                      );
+                    });
+                } else {
+                  console.log(operation);
+                }
               });
           })
         );

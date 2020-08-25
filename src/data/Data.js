@@ -157,7 +157,7 @@ export default function Data(props) {
     setUploadModalShow(true);
   };
 
-  const dataListItem = (ID, name, date) => (
+  const dataListItem = (ID, name, date, transcript) => (
     <ListItem
       button
       key={ID}
@@ -167,9 +167,7 @@ export default function Data(props) {
       }}
     >
       <ListItemAvatar>
-        <Avatar>
-          <DescriptionIcon />
-        </Avatar>
+        <Avatar>{transcript ? <TheatersIcon /> : <DescriptionIcon />}</Avatar>
       </ListItemAvatar>
       <ListItemText
         primary={name}
@@ -182,7 +180,8 @@ export default function Data(props) {
     dataListItem(
       doc.ID,
       doc.name,
-      doc.creationTimestamp && doc.creationTimestamp.toDate()
+      doc.creationTimestamp && doc.creationTimestamp.toDate(),
+      doc.transcription
     )
   );
 
@@ -190,7 +189,9 @@ export default function Data(props) {
     return result.hits.map((hit) => {
       // creationTimestamp is indexed as seconds since unix epoch
       let creationDate = new Date(hit.creationTimestamp * 1000);
-      return dataListItem(hit.objectID, hit.name, creationDate);
+
+      // TODO: Get content type from index object.
+      return dataListItem(hit.objectID, hit.name, creationDate, false);
     });
   });
 

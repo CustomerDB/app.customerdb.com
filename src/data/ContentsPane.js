@@ -20,6 +20,7 @@ import Hidden from "@material-ui/core/Hidden";
 import HighlightBlot from "./HighlightBlot.js";
 import HighlightHints from "./HighlightHints.js";
 import IconButton from "@material-ui/core/IconButton";
+import LinearProgress from "@material-ui/core/LinearProgress";
 import Moment from "react-moment";
 import Paper from "@material-ui/core/Paper";
 import Quill from "quill";
@@ -615,6 +616,7 @@ export default function ContentsPane(props) {
     props.document.deletionTimestamp,
     props.document.personID,
     props.editor,
+    props.document.pending,
   ]);
 
   // Subscribe to highlight changes
@@ -729,7 +731,12 @@ export default function ContentsPane(props) {
                   </Grid>
 
                   {props.document.pending ? (
-                    <p>Pending</p>
+                    <Grid item xs={12} style={{ position: "relative" }}>
+                      <p>
+                        <i>Transcribing video</i>
+                      </p>
+                      <LinearProgress />
+                    </Grid>
                   ) : (
                     <Grid
                       ref={quillContainerRef}
