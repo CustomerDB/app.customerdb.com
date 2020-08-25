@@ -172,7 +172,8 @@ service cloud.firestore {
     match /organizations/{orgID}/transcriptions/{document=**} {
       allow write: if signedInAndVerified()
                    && activeOrgMember(orgID)
-                   && !('status' in request.resource.data);
+                   && !('status' in request.resource.data)
+                   && request.resource.data.orgID == orgID;
     }
 
     // Active non-admin users can write **ANALYSES** in the org.
