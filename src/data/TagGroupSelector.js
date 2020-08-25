@@ -142,7 +142,7 @@ export default function TagGroupSelector(props) {
   }
 
   return (
-    <FormControl fullWidth>
+    <FormControl fullWidth variant="outlined">
       <InputLabel id="tag-group-select-label">Tag group</InputLabel>
       <Select
         labelId="tag-group-select-label"

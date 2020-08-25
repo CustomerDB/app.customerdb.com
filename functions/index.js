@@ -6,6 +6,8 @@ const algoliasearch = require("algoliasearch");
 const Delta = require("quill-delta");
 const toPlaintext = require("quill-delta-to-plaintext");
 const { nanoid } = require("nanoid");
+const Video = require("@google-cloud/video-intelligence").v1p3beta1;
+const tmp = require("tmp");
 
 const firestore = require("@google-cloud/firestore");
 const adminClient = new firestore.v1.FirestoreAdminClient();
@@ -387,7 +389,7 @@ exports.indexUpdatedDocument = functions.firestore
         snapshot.forEach((latestRevisionDoc) => {
           let revisionData = latestRevisionDoc.data();
           latestRevisionDelta = new Delta(revisionData.delta.ops);
-          ts = snapshotData.timestamp;
+          ts = revisionData.timestamp;
         });
 
         if (data.needsIndex === true) {
@@ -783,5 +785,222 @@ exports.tagRepair = functions.pubsub
               });
           })
         );
+      });
+  });
+
+//////////////////////////////////////////////////////////////////////////////
+//
+//   Transcription functions
+//
+//////////////////////////////////////////////////////////////////////////////
+
+exports.startTranscription = functions.storage
+  .object()
+  .onFinalize(async (object) => {
+    const fileBucket = object.bucket;
+    const filePath = object.name;
+    const contentType = object.contentType;
+
+    console.log(`bucket ${fileBucket} path ${filePath} type ${contentType}`);
+    const video = new Video.VideoIntelligenceServiceClient();
+
+    let matches = filePath.match(/(.+)\/transcriptions\/(.+)\/input\/(.+)/);
+
+    if (!matches || matches.length != 4) {
+      console.log(
+        "File path doesn't match pattern for starting transcription: ",
+        filePath
+      );
+      return;
+    }
+
+    let orgID = matches[1];
+    let transcriptionID = matches[2];
+    let fileName = matches[3];
+
+    // Get transcription operation to get metadata for the transcription request.
+    let db = admin.firestore();
+    let transcriptionsRef = db
+      .collection("organizations")
+      .doc(orgID)
+      .collection("transcriptions");
+    let transcriptionRef = transcriptionsRef.doc(transcriptionID);
+
+    return transcriptionRef.get().then(async (doc) => {
+      if (!doc.exists) {
+        console.log(
+          `Couldn't find transcription operation for organization ${orgID} transcription ${transcriptionID} file ${fileName}`
+        );
+        return;
+      }
+
+      let transcriptionOperation = doc.data();
+
+      const request = {
+        inputUri: "gs://" + fileBucket + "/" + filePath,
+        features: ["SPEECH_TRANSCRIPTION"],
+        videoContext: {
+          speechTranscriptionConfig: {
+            languageCode: "en-US",
+            enableAutomaticPunctuation: true,
+            enableSpeakerDiarization: true,
+            diarizationSpeakerCount: transcriptionOperation.speakers,
+          },
+        },
+      };
+
+      const [operation] = await video.annotateVideo(request);
+
+      return doc.ref.set(
+        {
+          status: "pending",
+          gcpOperationName: operation.name,
+        },
+        { merge: true }
+      );
+    });
+  });
+
+// Check every minute for videos in progress
+// We have to do this on a schedule as a transcription may take a long time to process.
+exports.transcriptionProgress = functions.pubsub
+  .schedule("every 1 minutes")
+  .onRun((context) => {
+    const video = new Video.VideoIntelligenceServiceClient();
+    const db = admin.firestore();
+
+    let transcriptionsRef = db.collectionGroup("transcriptions");
+    return transcriptionsRef
+      .where("deletionTimestamp", "==", "")
+      .where("status", "==", "pending")
+      .get()
+      .then((snapshot) => {
+        return Promise.all(
+          snapshot.docs.map((doc) => {
+            let operation = doc.data();
+
+            return video
+              .checkAnnotateVideoProgress(operation.gcpOperationName)
+              .then((gcpOperation) => {
+                if (gcpOperation.done) {
+                  let result = gcpOperation.result.annotationResults[0].toJSON();
+                  let bucket = admin.storage().bucket();
+
+                  const outputPath = `${operation.orgID}/transcriptions/${doc.id}/output/transcript.json`;
+                  const tmpobj = tmp.fileSync();
+
+                  fs.writeFileSync(tmpobj.name, JSON.stringify(result));
+
+                  return bucket
+                    .upload(tmpobj.name, {
+                      destination: outputPath,
+                    })
+                    .then(() => {
+                      return doc.ref.set(
+                        {
+                          status: "finished",
+                          outputPath: outputPath,
+                        },
+                        { merge: true }
+                      );
+                    });
+                } else {
+                  let progress = gcpOperation.metadata.annotationProgress[0].toJSON();
+                  if (progress.progressPercent) {
+                    return doc.ref.set(
+                      {
+                        status: "pending",
+                        progress: progress.progressPercent,
+                      },
+                      { merge: true }
+                    );
+                  }
+                }
+              });
+          })
+        );
+      });
+  });
+
+// Create delta for completed transcription
+exports.deltaForTranscript = functions.firestore
+  .document("organizations/{orgID}/transcriptions/{transcriptionID}")
+  .onUpdate((change, context) => {
+    // If operation changed from pending to finished.
+    let before = change.before.data();
+    let after = change.after.data();
+    if (!(before.status == "pending" && after.status == "finished")) {
+      return;
+    }
+
+    let operation = after;
+
+    const tmpobj = tmp.fileSync();
+    return admin
+      .storage()
+      .bucket()
+      .file(operation.outputPath)
+      .download({
+        destination: tmpobj.name,
+      })
+      .then(() => {
+        let transcriptionJson = JSON.parse(fs.readFileSync(tmpobj.name));
+
+        let alternatives = transcriptionJson["speechTranscriptions"];
+        let lastSpeaker;
+
+        let ops = [];
+
+        alternatives.forEach((alternative) => {
+          let words = alternative["alternatives"][0]["words"];
+          if (!words) {
+            return;
+          }
+
+          words.forEach((word) => {
+            if (!Object.keys(word).includes("speakerTag")) {
+              return;
+            }
+
+            let speakerTag = word["speakerTag"];
+            if (speakerTag != lastSpeaker) {
+              lastSpeaker = speakerTag;
+              ops.push({
+                insert: `\nSpeaker ${lastSpeaker} `,
+                attributes: { bold: true },
+              });
+            }
+
+            ops.push({ insert: word["word"] + " " });
+          });
+        });
+
+        // Write to document.
+        const db = admin.firestore();
+        let documentsRef = db
+          .collection("organizations")
+          .doc(context.params.orgID)
+          .collection("documents");
+        let documentRef = documentsRef.doc(operation.documentID);
+        let revisionsRef = documentRef.collection("revisions");
+
+        let revisionID = nanoid();
+        revisionsRef
+          .doc(revisionID)
+          .set({
+            delta: {
+              ops: ops,
+            },
+            timestamp: admin.firestore.FieldValue.serverTimestamp(),
+          })
+          .then(() => {
+            // Lastly, unlock the document.
+            return documentRef.set(
+              {
+                pending: false,
+              },
+              { merge: true }
+            );
+          });
       });
   });

@@ -14,7 +14,7 @@ import ListItemAvatar from "@material-ui/core/ListItemAvatar";
 import ListItemText from "@material-ui/core/ListItemText";
 import PeopleHelp from "./PeopleHelp.js";
 import Person from "./Person.js";
-import PersonEditModal from "./PersonEditModal.js";
+import PersonEditDialog from "./PersonEditDialog.js";
 import PersonHelp from "./PersonHelp.js";
 import Scrollable from "../shell/Scrollable.js";
 import Shell from "../shell/Shell.js";
@@ -35,7 +35,7 @@ export default function People(props) {
   const { personID, orgID } = useParams();
 
   const [peopleList, setPeopleList] = useState([]);
-  const [addModalShow, setAddModalShow] = useState();
+  const [addDialogShow, setAddDialogShow] = useState();
   const [newPersonRef, setNewPersonRef] = useState();
   const [listLimit, setListLimit] = useState(batchSize);
   const [listTotal, setListTotal] = useState();
@@ -76,10 +76,10 @@ export default function People(props) {
   }
 
   let addModal = (
-    <PersonEditModal
-      show={addModalShow}
+    <PersonEditDialog
+      show={addDialogShow}
       onHide={() => {
-        setAddModalShow(false);
+        setAddDialogShow(false);
       }}
       personRef={newPersonRef}
     />
@@ -156,7 +156,7 @@ export default function People(props) {
             .then((doc) => {
               navigate(`/orgs/${orgID}/people/${doc.id}`);
               setNewPersonRef(doc);
-              setAddModalShow(true);
+              setAddDialogShow(true);
             });
         }}
       >

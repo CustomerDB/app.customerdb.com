@@ -20,6 +20,7 @@ import Hidden from "@material-ui/core/Hidden";
 import HighlightBlot from "./HighlightBlot.js";
 import HighlightHints from "./HighlightHints.js";
 import IconButton from "@material-ui/core/IconButton";
+import LinearProgress from "@material-ui/core/LinearProgress";
 import Moment from "react-moment";
 import Paper from "@material-ui/core/Paper";
 import Quill from "quill";
@@ -93,6 +94,7 @@ export default function ContentsPane(props) {
     revisionsRef,
     highlightsRef,
     deltasRef,
+    transcriptionsRef,
   } = useFirestore();
 
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
@@ -104,6 +106,7 @@ export default function ContentsPane(props) {
   const [tags, setTags] = useState();
   const [reflowHints, setReflowHints] = useState(nanoid());
   const [toolbarHeight, setToolbarHeight] = useState(40);
+  const [transcriptionProgress, setTranscriptionProgress] = useState();
 
   const [tagIDsInSelection, setTagIDsInSelection] = useState(new Set());
 
@@ -299,6 +302,26 @@ export default function ContentsPane(props) {
     setTagIDsInSelection(computeTagIDsInSelection(newRange));
   };
 
+  useEffect(() => {
+    if (
+      !transcriptionsRef ||
+      !props.document.pending ||
+      !props.document.transcription
+    ) {
+      return;
+    }
+
+    return transcriptionsRef
+      .doc(props.document.transcription)
+      .onSnapshot((doc) => {
+        let operation = doc.data();
+        console.log("Transcript operation: ", operation);
+        if (operation.progress) {
+          setTranscriptionProgress(operation.progress);
+        }
+      });
+  }, [props.document.pending, transcriptionsRef, props.document.transcription]);
+
   // Subscribe to tags for the document's tag group.
   useEffect(() => {
     if (!tagGroupsRef) {
@@ -473,7 +496,8 @@ export default function ContentsPane(props) {
       !highlightsRef ||
       !deltasRef ||
       !props.document.ID ||
-      !oauthClaims.email
+      !oauthClaims.email ||
+      props.document.pending
     ) {
       return;
     }
@@ -614,6 +638,7 @@ export default function ContentsPane(props) {
     props.document.deletionTimestamp,
     props.document.personID,
     props.editor,
+    props.document.pending,
   ]);
 
   // Subscribe to highlight changes
@@ -727,59 +752,75 @@ export default function ContentsPane(props) {
                     </Grid>
                   </Grid>
 
-                  <Grid
-                    ref={quillContainerRef}
-                    item
-                    xs={12}
-                    style={{ position: "relative" }}
-                    spacing={0}
-                  >
-                    <ReactQuill
-                      id="quill-editor"
-                      ref={props.reactQuillRef}
-                      defaultValue={revisionDelta}
-                      theme="snow"
-                      placeholder="Start typing here and select to mark highlights"
-                      onChange={onEdit}
-                      onChangeSelection={onSelect}
-                      modules={{
-                        toolbar: [
-                          [{ header: [1, 2, false] }],
-                          [
-                            "bold",
-                            "italic",
-                            "underline",
-                            "strike",
-                            "blockquote",
+                  {props.document.pending ? (
+                    <Grid item xs={12} style={{ position: "relative" }}>
+                      <p>
+                        <i>Transcribing video</i>
+                      </p>
+                      {transcriptionProgress ? (
+                        <LinearProgress
+                          variant="determinate"
+                          value={transcriptionProgress}
+                        />
+                      ) : (
+                        <LinearProgress />
+                      )}
+                    </Grid>
+                  ) : (
+                    <Grid
+                      ref={quillContainerRef}
+                      item
+                      xs={12}
+                      style={{ position: "relative" }}
+                      spacing={0}
+                    >
+                      <ReactQuill
+                        id="quill-editor"
+                        ref={props.reactQuillRef}
+                        defaultValue={revisionDelta}
+                        theme="snow"
+                        placeholder="Start typing here and select to mark highlights"
+                        onChange={onEdit}
+                        onChangeSelection={onSelect}
+                        modules={{
+                          toolbar: [
+                            [{ header: [1, 2, false] }],
+                            [
+                              "bold",
+                              "italic",
+                              "underline",
+                              "strike",
+                              "blockquote",
+                            ],
+                            [
+                              { list: "ordered" },
+                              { list: "bullet" },
+                              { indent: "-1" },
+                              { indent: "+1" },
+                            ],
+                            ["link", "image"],
+                            ["clean"],
                           ],
-                          [
-                            { list: "ordered" },
-                            { list: "bullet" },
-                            { indent: "-1" },
-                            { indent: "+1" },
-                          ],
-                          ["link", "image"],
-                          ["clean"],
-                        ],
-                      }}
-                    />
+                        }}
+                      />
 
-                    <SelectionFAB
-                      toolbarHeight={toolbarHeight}
-                      selection={currentSelection.current}
-                      quillContainerRef={quillContainerRef}
-                      tags={tags}
-                      tagIDsInSelection={tagIDsInSelection}
-                      onTagControlChange={onTagControlChange}
-                    />
+                      <SelectionFAB
+                        toolbarHeight={toolbarHeight}
+                        selection={currentSelection.current}
+                        quillContainerRef={quillContainerRef}
+                        tags={tags}
+                        tagIDsInSelection={tagIDsInSelection}
+                        onTagControlChange={onTagControlChange}
+                      />
 
-                    <HighlightHints
-                      key={reflowHints}
-                      toolbarHeight={toolbarHeight}
-                      highlights={highlights.current}
-                      tags={tags}
-                    />
-                  </Grid>
+                      <HighlightHints
+                        key={reflowHints}
+                        toolbarHeight={toolbarHeight}
+                        highlights={highlights.current}
+                        tags={tags}
+                      />
+                    </Grid>
+                  )}
                 </Grid>
               </Paper>
             </Grid>

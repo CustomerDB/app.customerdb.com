@@ -12,8 +12,8 @@ import IconButton from "@material-ui/core/IconButton";
 import Linkify from "react-linkify";
 import { Loading } from "../util/Utils.js";
 import PersonData from "./PersonData.js";
-import PersonDeleteModal from "./PersonDeleteModal.js";
-import PersonEditModal from "./PersonEditModal.js";
+import PersonDeleteDialog from "./PersonDeleteDialog.js";
+import PersonEditDialog from "./PersonEditDialog.js";
 import PersonHighlightsPane from "./PersonHighlightsPane.js";
 import Row from "react-bootstrap/Row";
 import Scrollable from "../shell/Scrollable.js";
@@ -48,8 +48,8 @@ export default function Person(props) {
   const [showLabels, setShowLabels] = useState(false);
   const [showContact, setShowContact] = useState(false);
 
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
 
   const classes = useStyles();
 
@@ -89,17 +89,17 @@ export default function Person(props) {
     return <Loading />;
   }
 
-  let editModal = (
-    <PersonEditModal
-      show={showEditModal}
-      onHide={() => setShowEditModal(false)}
+  let editDialog = (
+    <PersonEditDialog
+      show={showEditDialog}
+      onHide={() => setShowEditDialog(false)}
       personRef={personRef}
     />
   );
-  let deleteModal = (
-    <PersonDeleteModal
-      show={showDeleteModal}
-      onHide={() => setShowDeleteModal(false)}
+  let deleteDialog = (
+    <PersonDeleteDialog
+      show={showDeleteDialog}
+      onHide={() => setShowDeleteDialog(false)}
       personRef={personRef}
     />
   );
@@ -143,7 +143,7 @@ export default function Person(props) {
                   color="primary"
                   aria-label="Archive person"
                   component="span"
-                  onClick={() => setShowDeleteModal(true)}
+                  onClick={() => setShowDeleteDialog(true)}
                 >
                   <Archive />
                 </IconButton>
@@ -151,7 +151,7 @@ export default function Person(props) {
                   color="primary"
                   aria-label="Edit person"
                   component="span"
-                  onClick={() => setShowEditModal(true)}
+                  onClick={() => setShowEditDialog(true)}
                 >
                   <Create />
                 </IconButton>
@@ -207,8 +207,8 @@ export default function Person(props) {
             </Grid>
           </Scrollable>
         </Grid>
-        {editModal}
-        {deleteModal}
+        {editDialog}
+        {deleteDialog}
       </Grid>
     </>
   );
