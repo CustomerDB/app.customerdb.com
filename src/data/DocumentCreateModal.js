@@ -6,6 +6,7 @@ import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
+import Grid from "@material-ui/core/Grid";
 import TagGroupSelector from "./TagGroupSelector.js";
 import TemplateSelector from "./TemplateSelector.js";
 import TextField from "@material-ui/core/TextField";
@@ -52,22 +53,37 @@ export default function DocumentCreateModal({ show, onHide, editor }) {
         <DialogContentText id="alert-dialog-description">
           Set document name, tag group, and template.
         </DialogContentText>
-        <TextField
-          autofocus
-          margin="dense"
-          id="name"
-          label="Document name"
-          fullWidth
-          value={name}
-          onChange={(e) => {
-            setName(e.target.value);
-          }}
-          onKeyUp={(e) => {
-            if (e.key === "Enter") onSave();
-          }}
-        />
-        <TagGroupSelector />
-        <TemplateSelector editor={editor} />
+        <Grid container spacing={2}>
+          <Grid container item>
+            <Grid item xs={12}>
+              <TextField
+                autofocus
+                margin="dense"
+                variant="outlined"
+                id="name"
+                label="Document name"
+                fullWidth
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value);
+                }}
+                onKeyUp={(e) => {
+                  if (e.key === "Enter") onSave();
+                }}
+              />
+            </Grid>
+          </Grid>
+          <Grid container item>
+            <Grid item xs={12}>
+              <TagGroupSelector />
+            </Grid>
+          </Grid>
+          <Grid container item>
+            <Grid item xs={12}>
+              <TemplateSelector editor={editor} />
+            </Grid>
+          </Grid>
+        </Grid>
       </DialogContent>
       <DialogActions>
         <Button onClick={onSave}>Continue</Button>

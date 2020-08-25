@@ -5,9 +5,9 @@ import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import CardActions from "@material-ui/core/CardActions";
 import CardContent from "@material-ui/core/CardContent";
-import DeleteMemberModal from "./DeleteMemberModal.js";
+import DeleteMemberDialog from "./DeleteMemberDialog.js";
 import Grid from "@material-ui/core/Grid";
-import InviteMemberModal from "./InviteMemberModal.js";
+import InviteMemberDialog from "./InviteMemberDialog.js";
 import { Loading } from "../util/Utils.js";
 import Options from "../shell/Options.js";
 import Table from "@material-ui/core/Table";
@@ -258,14 +258,14 @@ export default function Members(props) {
             </Button>
           </CardActions>
         </Card>
-        <InviteMemberModal
+        <InviteMemberDialog
           show={inviteModalShow}
           onInvite={onInvite}
           onHide={() => {
             setInviteModalShow(false);
           }}
         />
-        <DeleteMemberModal
+        <DeleteMemberDialog
           show={deleteModalShow}
           member={member}
           onDelete={onDelete}

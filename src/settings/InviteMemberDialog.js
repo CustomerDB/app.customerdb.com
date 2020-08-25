@@ -4,7 +4,7 @@ import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Modal from "react-bootstrap/Modal";
 
-export default function InviteMemberModal(props) {
+export default function InviteMemberDialog(props) {
   const [email, setEmail] = useState();
 
   const onSubmit = () => {
