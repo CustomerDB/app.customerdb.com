@@ -6,8 +6,8 @@ service firebase.storage {
     }
 
     match /{orgID}/transcriptions/{transcriptionID}/input/{media} {
-      allow write: if signedInAndVerified()
-                   && request.auth.token.orgID == orgID;
+      allow read, write: if signedInAndVerified()
+                         && request.auth.token.orgID == orgID;
     }
 
     match /{orgID}/transcriptions/{transcriptionID}/output/{media} {
