@@ -10,7 +10,7 @@ import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
 import { nanoid } from "nanoid";
 
-export default function PersonEditModal(props) {
+export default function PersonEditDialog(props) {
   const { oauthClaims } = useContext(UserAuthContext);
   const [person, setPerson] = useState();
   const [name, setName] = useState();
