@@ -94,6 +94,7 @@ export default function ContentsPane(props) {
     revisionsRef,
     highlightsRef,
     deltasRef,
+    transcriptionsRef,
   } = useFirestore();
 
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
@@ -105,6 +106,7 @@ export default function ContentsPane(props) {
   const [tags, setTags] = useState();
   const [reflowHints, setReflowHints] = useState(nanoid());
   const [toolbarHeight, setToolbarHeight] = useState(40);
+  const [transcriptionProgress, setTranscriptionProgress] = useState();
 
   const [tagIDsInSelection, setTagIDsInSelection] = useState(new Set());
 
@@ -299,6 +301,26 @@ export default function ContentsPane(props) {
     currentSelection.current = newRange;
     setTagIDsInSelection(computeTagIDsInSelection(newRange));
   };
+
+  useEffect(() => {
+    if (
+      !transcriptionsRef ||
+      !props.document.pending ||
+      !props.document.transcription
+    ) {
+      return;
+    }
+
+    return transcriptionsRef
+      .doc(props.document.transcription)
+      .onSnapshot((doc) => {
+        let operation = doc.data();
+        console.log("Transcript operation: ", operation);
+        if (operation.progress) {
+          setTranscriptionProgress(operation.progress);
+        }
+      });
+  }, [props.document.pending, transcriptionsRef, props.document.transcription]);
 
   // Subscribe to tags for the document's tag group.
   useEffect(() => {
@@ -735,7 +757,14 @@ export default function ContentsPane(props) {
                       <p>
                         <i>Transcribing video</i>
                       </p>
-                      <LinearProgress />
+                      {transcriptionProgress ? (
+                        <LinearProgress
+                          variant="determinate"
+                          value={transcriptionProgress}
+                        />
+                      ) : (
+                        <LinearProgress />
+                      )}
                     </Grid>
                   ) : (
                     <Grid

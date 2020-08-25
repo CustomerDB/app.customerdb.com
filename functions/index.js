@@ -7,6 +7,7 @@ const Delta = require("quill-delta");
 const toPlaintext = require("quill-delta-to-plaintext");
 const { nanoid } = require("nanoid");
 const Video = require("@google-cloud/video-intelligence").v1p3beta1;
+const tmp = require("tmp");
 
 const firestore = require("@google-cloud/firestore");
 const adminClient = new firestore.v1.FirestoreAdminClient();
@@ -805,7 +806,7 @@ exports.startTranscription = functions.storage
 
     let matches = filePath.match(/(.+)\/transcriptions\/(.+)\/input\/(.+)/);
 
-    if (matches.length != 4) {
+    if (!matches || matches.length != 4) {
       console.log(
         "File path doesn't match pattern for starting transcription: ",
         filePath
@@ -817,7 +818,7 @@ exports.startTranscription = functions.storage
     let transcriptionID = matches[2];
     let fileName = matches[3];
 
-    // Get transcription operation.
+    // Get transcription operation to get metadata for the transcription request.
     let db = admin.firestore();
     let transcriptionsRef = db
       .collection("organizations")
@@ -861,8 +862,9 @@ exports.startTranscription = functions.storage
   });
 
 // Check every minute for videos in progress
+// We have to do this on a schedule as a transcription may take a long time to process.
 exports.transcriptionProgress = functions.pubsub
-  .schedule("every 5 minutes")
+  .schedule("every 1 minutes")
   .onRun((context) => {
     const video = new Video.VideoIntelligenceServiceClient();
     const db = admin.firestore();
@@ -879,47 +881,126 @@ exports.transcriptionProgress = functions.pubsub
 
             return video
               .checkAnnotateVideoProgress(operation.gcpOperationName)
-              .then((operation) => {
-                if (operation.done) {
-                  let result = operation.result.annotationResults[0].toJSON();
+              .then((gcpOperation) => {
+                if (gcpOperation.done) {
+                  let result = gcpOperation.result.annotationResults[0].toJSON();
                   let bucket = admin.storage().bucket();
 
-                  const destination = `${operation.orgID}/transcriptions/${doc.id}/output/transcript.json`;
+                  const outputPath = `${operation.orgID}/transcriptions/${doc.id}/output/transcript.json`;
                   const tmpobj = tmp.fileSync();
 
                   fs.writeFileSync(tmpobj.name, JSON.stringify(result));
 
                   return bucket
                     .upload(tmpobj.name, {
-                      destination: destination,
+                      destination: outputPath,
                     })
                     .then(() => {
-                      return doc.ref
-                        .set(
-                          {
-                            status: "finished",
-                            resultPath: `${destination}`,
-                          },
-                          { merge: true }
-                        )
-                        .then(() => {
-                          db.collection("organizations")
-                            .doc(orgID)
-                            .collection("documents")
-                            .doc(operation.documentID)
-                            .set(
-                              {
-                                pending: false,
-                              },
-                              { merge: true }
-                            );
-                        });
+                      return doc.ref.set(
+                        {
+                          status: "finished",
+                          outputPath: outputPath,
+                        },
+                        { merge: true }
+                      );
                     });
                 } else {
-                  console.log(operation);
+                  let progress = gcpOperation.metadata.annotationProgress[0].toJSON();
+                  if (progress.progressPercent) {
+                    return doc.ref.set(
+                      {
+                        status: "pending",
+                        progress: progress.progressPercent,
+                      },
+                      { merge: true }
+                    );
+                  }
                 }
               });
           })
         );
+      });
+  });
+
+// Create delta for completed transcription
+exports.deltaForTranscript = functions.firestore
+  .document("organizations/{orgID}/transcriptions/{transcriptionID}")
+  .onUpdate((change, context) => {
+    // If operation changed from pending to finished.
+    let before = change.before.data();
+    let after = change.after.data();
+    if (!(before.status == "pending" && after.status == "finished")) {
+      return;
+    }
+
+    let operation = after;
+
+    const tmpobj = tmp.fileSync();
+    return admin
+      .storage()
+      .bucket()
+      .file(operation.outputPath)
+      .download({
+        destination: tmpobj.name,
+      })
+      .then(() => {
+        let transcriptionJson = JSON.parse(fs.readFileSync(tmpobj.name));
+
+        let alternatives = transcriptionJson["speechTranscriptions"];
+        let lastSpeaker;
+
+        let ops = [];
+
+        alternatives.forEach((alternative) => {
+          let words = alternative["alternatives"][0]["words"];
+          if (!words) {
+            return;
+          }
+
+          words.forEach((word) => {
+            if (!Object.keys(word).includes("speakerTag")) {
+              return;
+            }
+
+            let speakerTag = word["speakerTag"];
+            if (speakerTag != lastSpeaker) {
+              lastSpeaker = speakerTag;
+              ops.push({
+                insert: `\nSpeaker ${lastSpeaker} `,
+                attributes: { bold: true },
+              });
+            }
+
+            ops.push({ insert: word["word"] + " " });
+          });
+        });
+
+        // Write to document.
+        const db = admin.firestore();
+        let documentsRef = db
+          .collection("organizations")
+          .doc(context.params.orgID)
+          .collection("documents");
+        let documentRef = documentsRef.doc(operation.documentID);
+        let revisionsRef = documentRef.collection("revisions");
+
+        let revisionID = nanoid();
+        revisionsRef
+          .doc(revisionID)
+          .set({
+            delta: {
+              ops: ops,
+            },
+            timestamp: admin.firestore.FieldValue.serverTimestamp(),
+          })
+          .then(() => {
+            // Lastly, unlock the document.
+            return documentRef.set(
+              {
+                pending: false,
+              },
+              { merge: true }
+            );
+          });
       });
   });

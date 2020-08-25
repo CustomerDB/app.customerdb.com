@@ -109,7 +109,7 @@ export default function UploadVideoDialog({ open, setOpen }) {
         createdBy: oauthClaims.email,
         creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
         deletionTimestamp: "",
-        destination: storagePath,
+        inputPath: storagePath,
         orgID: orgID,
         documentID: documentID,
       })
