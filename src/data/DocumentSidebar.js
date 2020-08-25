@@ -97,7 +97,7 @@ export default function DocumentSidebar(props) {
               url={transcriptionVideo}
               controls
               width="100%"
-              height="300px"
+              height="100%"
             />
           </CardContent>
         </Card>
