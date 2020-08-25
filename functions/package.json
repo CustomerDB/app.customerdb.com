@@ -12,6 +12,7 @@
     "node": "10"
   },
   "dependencies": {
+    "@google-cloud/video-intelligence": "^3.0.1",
     "@sendgrid/mail": "^7.2.1",
     "algoliasearch": "^4.3.1",
     "csv-parser": "^2.3.3",
@@ -19,7 +20,8 @@
     "firebase-functions": "^3.8.0",
     "nanoid": "^3.1.11",
     "quill-delta": "^4.2.2",
-    "quill-delta-to-plaintext": "^1.0.0"
+    "quill-delta-to-plaintext": "^1.0.0",
+    "tmp": "^0.2.1"
   },
   "private": true
 }

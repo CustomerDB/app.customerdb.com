@@ -1,14 +1,13 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import AddIcon from "@material-ui/icons/Add";
 import Avatar from "@material-ui/core/Avatar";
 import ContentsHelp from "./ContentsHelp.js";
 import DataHelp from "./DataHelp.js";
 import DescriptionIcon from "@material-ui/icons/Description";
 import Document from "./Document.js";
 import DocumentCreateModal from "./DocumentCreateModal.js";
-import Fab from "@material-ui/core/Fab";
+import EditIcon from "@material-ui/icons/Edit";
 import Grid from "@material-ui/core/Grid";
 import Hidden from "@material-ui/core/Hidden";
 import List from "@material-ui/core/List";
@@ -19,19 +18,51 @@ import ListItemText from "@material-ui/core/ListItemText";
 import Moment from "react-moment";
 import Scrollable from "../shell/Scrollable.js";
 import Shell from "../shell/Shell.js";
+import SpeedDial from "@material-ui/lab/SpeedDial";
+import SpeedDialAction from "@material-ui/lab/SpeedDialAction";
+import SpeedDialIcon from "@material-ui/lab/SpeedDialIcon";
+import TheatersIcon from "@material-ui/icons/Theaters";
+import UploadVideoDialog from "./UploadVideoDialog.js";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import { connectHits } from "react-instantsearch-dom";
 import event from "../analytics/event.js";
 import { initialDelta } from "./delta.js";
+import { makeStyles } from "@material-ui/core/styles";
 import { nanoid } from "nanoid";
 import useFirestore from "../db/Firestore.js";
 import { useOrganization } from "../organization/hooks.js";
 
+const useStyles = makeStyles((theme) => ({
+  root: {
+    transform: "translateZ(0px)",
+    flexGrow: 1,
+  },
+  dialWrapper: {
+    position: "absolute",
+    bottom: "15px",
+    right: "15px",
+    marginTop: theme.spacing(3),
+    height: 380,
+  },
+  speedDial: {
+    position: "absolute",
+    "&.MuiSpeedDial-directionUp": {
+      bottom: theme.spacing(2),
+      right: theme.spacing(2),
+    },
+  },
+}));
+
 export default function Data(props) {
   const [addModalShow, setAddModalShow] = useState();
+  const [uploadModalShow, setUploadModalShow] = useState();
   const [documents, setDocuments] = useState([]);
   const [showResults, setShowResults] = useState();
+  const [openDial, setOpenDial] = useState(false);
+
   const { defaultTagGroupID } = useOrganization();
+
+  const classes = useStyles();
 
   const navigate = useNavigate();
 
@@ -74,7 +105,7 @@ export default function Data(props) {
       });
   }, [documentsRef]);
 
-  const onAdd = () => {
+  const onAddDocument = () => {
     event("create_data", {
       orgID: oauthClaims.orgID,
       userID: oauthClaims.user_id,
@@ -122,7 +153,11 @@ export default function Data(props) {
       });
   };
 
-  const dataListItem = (ID, name, date) => (
+  const onUploadVideo = () => {
+    setUploadModalShow(true);
+  };
+
+  const dataListItem = (ID, name, date, transcript) => (
     <ListItem
       button
       key={ID}
@@ -132,9 +167,7 @@ export default function Data(props) {
       }}
     >
       <ListItemAvatar>
-        <Avatar>
-          <DescriptionIcon />
-        </Avatar>
+        <Avatar>{transcript ? <TheatersIcon /> : <DescriptionIcon />}</Avatar>
       </ListItemAvatar>
       <ListItemText
         primary={name}
@@ -147,7 +180,8 @@ export default function Data(props) {
     dataListItem(
       doc.ID,
       doc.name,
-      doc.creationTimestamp && doc.creationTimestamp.toDate()
+      doc.creationTimestamp && doc.creationTimestamp.toDate(),
+      doc.transcription
     )
   );
 
@@ -155,7 +189,9 @@ export default function Data(props) {
     return result.hits.map((hit) => {
       // creationTimestamp is indexed as seconds since unix epoch
       let creationDate = new Date(hit.creationTimestamp * 1000);
-      return dataListItem(hit.objectID, hit.name, creationDate);
+
+      // TODO: Get content type from index object.
+      return dataListItem(hit.objectID, hit.name, creationDate, false);
     });
   });
 
@@ -168,14 +204,41 @@ export default function Data(props) {
           <List>{documentItems.length > 0 ? documentItems : <DataHelp />}</List>
         )}
       </Scrollable>
-      <Fab
-        style={{ position: "absolute", bottom: "15px", right: "15px" }}
-        color="secondary"
-        aria-label="add"
-        onClick={onAdd}
-      >
-        <AddIcon />
-      </Fab>
+
+      <div className={classes.dialWrapper}>
+        <SpeedDial
+          ariaLabel="SpeedDial example"
+          className={classes.speedDial}
+          icon={<SpeedDialIcon openIcon={<EditIcon />} />}
+          onClose={() => setOpenDial(false)}
+          FabProps={{
+            color: "secondary",
+            onClick: () => onAddDocument(),
+          }}
+          onOpen={() => setOpenDial(true)}
+          open={openDial}
+          direction="up"
+        >
+          <SpeedDialAction
+            key="Create document"
+            icon={<DescriptionIcon />}
+            tooltipTitle="Create document"
+            onClick={() => {
+              onAddDocument();
+              setOpenDial(false);
+            }}
+          />
+          <SpeedDialAction
+            key="Upload video"
+            icon={<TheatersIcon />}
+            tooltipTitle="Upload video"
+            onClick={() => {
+              onUploadVideo();
+              setOpenDial(false);
+            }}
+          />
+        </SpeedDial>
+      </div>
     </ListContainer>
   );
 
@@ -213,6 +276,15 @@ export default function Data(props) {
     />
   );
 
+  let uploadModal = (
+    <UploadVideoDialog
+      open={uploadModalShow}
+      setOpen={(value) => {
+        setUploadModalShow(value);
+      }}
+    />
+  );
+
   return (
     <Shell
       title="Data"
@@ -227,6 +299,7 @@ export default function Data(props) {
         {list}
         {content}
         {addModal}
+        {uploadModal}
       </Grid>
     </Shell>
   );
