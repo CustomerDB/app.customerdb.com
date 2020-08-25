@@ -26,7 +26,7 @@ export default function useFirestore() {
     r.peopleRef = r.orgRef.collection("people");
     r.tagGroupsRef = r.orgRef.collection("tagGroups");
     r.templatesRef = r.orgRef.collection("templates");
-    r.transcriptions = r.orgRef.collection("transcriptions");
+    r.transcriptionsRef = r.orgRef.collection("transcriptions");
     setOrgRefs(r);
   }, [db, orgID]);
 

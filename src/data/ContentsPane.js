@@ -473,7 +473,8 @@ export default function ContentsPane(props) {
       !highlightsRef ||
       !deltasRef ||
       !props.document.ID ||
-      !oauthClaims.email
+      !oauthClaims.email ||
+      props.document.pending
     ) {
       return;
     }
@@ -727,59 +728,63 @@ export default function ContentsPane(props) {
                     </Grid>
                   </Grid>
 
-                  <Grid
-                    ref={quillContainerRef}
-                    item
-                    xs={12}
-                    style={{ position: "relative" }}
-                    spacing={0}
-                  >
-                    <ReactQuill
-                      id="quill-editor"
-                      ref={props.reactQuillRef}
-                      defaultValue={revisionDelta}
-                      theme="snow"
-                      placeholder="Start typing here and select to mark highlights"
-                      onChange={onEdit}
-                      onChangeSelection={onSelect}
-                      modules={{
-                        toolbar: [
-                          [{ header: [1, 2, false] }],
-                          [
-                            "bold",
-                            "italic",
-                            "underline",
-                            "strike",
-                            "blockquote",
+                  {props.document.pending ? (
+                    <p>Pending</p>
+                  ) : (
+                    <Grid
+                      ref={quillContainerRef}
+                      item
+                      xs={12}
+                      style={{ position: "relative" }}
+                      spacing={0}
+                    >
+                      <ReactQuill
+                        id="quill-editor"
+                        ref={props.reactQuillRef}
+                        defaultValue={revisionDelta}
+                        theme="snow"
+                        placeholder="Start typing here and select to mark highlights"
+                        onChange={onEdit}
+                        onChangeSelection={onSelect}
+                        modules={{
+                          toolbar: [
+                            [{ header: [1, 2, false] }],
+                            [
+                              "bold",
+                              "italic",
+                              "underline",
+                              "strike",
+                              "blockquote",
+                            ],
+                            [
+                              { list: "ordered" },
+                              { list: "bullet" },
+                              { indent: "-1" },
+                              { indent: "+1" },
+                            ],
+                            ["link", "image"],
+                            ["clean"],
                           ],
-                          [
-                            { list: "ordered" },
-                            { list: "bullet" },
-                            { indent: "-1" },
-                            { indent: "+1" },
-                          ],
-                          ["link", "image"],
-                          ["clean"],
-                        ],
-                      }}
-                    />
+                        }}
+                      />
 
-                    <SelectionFAB
-                      toolbarHeight={toolbarHeight}
-                      selection={currentSelection.current}
-                      quillContainerRef={quillContainerRef}
-                      tags={tags}
-                      tagIDsInSelection={tagIDsInSelection}
-                      onTagControlChange={onTagControlChange}
-                    />
+                      <SelectionFAB
+                        toolbarHeight={toolbarHeight}
+                        selection={currentSelection.current}
+                        quillContainerRef={quillContainerRef}
+                        tags={tags}
+                        tagIDsInSelection={tagIDsInSelection}
+                        onTagControlChange={onTagControlChange}
+                      />
 
-                    <HighlightHints
-                      key={reflowHints}
-                      toolbarHeight={toolbarHeight}
-                      highlights={highlights.current}
-                      tags={tags}
-                    />
-                  </Grid>
+                      <HighlightHints
+                        key={reflowHints}
+                        toolbarHeight={toolbarHeight}
+                        highlights={highlights.current}
+                        tags={tags}
+                      />
+                    </Grid>
+                  )}
                 </Grid>
               </Paper>
             </Grid>

@@ -44,6 +44,10 @@ export default function Document(props) {
     );
   }
 
+  if (document.pending) {
+    return <Grid container item md={12} lg={9} xl={10} spacing={0}></Grid>;
+  }
+
   return (
     <Grid container item md={12} lg={9} xl={10} spacing={0}>
       <ContentsPane
