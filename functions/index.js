@@ -370,23 +370,23 @@ exports.indexUpdatedDocument = functions.firestore
     let data = change.after.data();
 
     return change.after.ref
-      .collection("snapshots")
+      .collection("revisions")
       .orderBy("timestamp", "desc")
       .limit(1)
       .get()
       .then((snapshot) => {
-        let latestSnapshot;
+        let latestRevisionDelta;
         let ts;
 
         if (snapshot.size === 0) {
-          latestSnapshot = new Delta([{ insert: "\n" }]);
+          latestRevisionDelta = new Delta([{ insert: "\n" }]);
           ts = new admin.firestore.Timestamp(0, 0);
         }
 
         // nb: limit(1) -- iterating over list of 1
-        snapshot.forEach((latestSnapshotDoc) => {
-          let snapshotData = latestSnapshotDoc.data();
-          latestSnapshot = new Delta(snapshotData.delta.ops);
+        snapshot.forEach((latestRevisionDoc) => {
+          let revisionData = latestRevisionDoc.data();
+          latestRevisionDelta = new Delta(revisionData.delta.ops);
           ts = snapshotData.timestamp;
         });
 
@@ -399,12 +399,14 @@ exports.indexUpdatedDocument = functions.firestore
               deltasSnapshot.forEach((deltaDoc) => {
                 let delta = deltaDoc.data();
                 let ops = delta.ops;
-                latestSnapshot = latestSnapshot.compose(new Delta(ops));
+                latestRevisionDelta = latestRevisionDelta.compose(
+                  new Delta(ops)
+                );
                 ts = delta.timestamp;
               });
 
               // Convert the consolidated document delta snapshot to text.
-              let docText = toPlaintext(latestSnapshot);
+              let docText = toPlaintext(latestRevisionDelta);
 
               // Index the new content
               let docToIndex = {
@@ -422,9 +424,9 @@ exports.indexUpdatedDocument = functions.firestore
                 // Write the snapshot, timestamp and index state back to document
 
                 return change.after.ref
-                  .collection("snapshots")
+                  .collection("revisions")
                   .add({
-                    delta: { ops: latestSnapshot.ops },
+                    delta: { ops: latestRevisionDelta.ops },
                     timestamp: ts,
                   })
                   .then(() => {
@@ -447,7 +449,7 @@ exports.indexUpdatedDocument = functions.firestore
           createdBy: data.createdBy,
           creationTimestamp: data.creationTimestamp.seconds,
           latestSnapshotTimestamp: ts.seconds,
-          text: toPlaintext(latestSnapshot),
+          text: toPlaintext(latestRevisionDelta),
         });
       });
   });
@@ -479,7 +481,7 @@ exports.markDocumentsForIndexing = functions.pubsub
                     // Look for any deltas that were written after the
                     // last indexed timestamp.
                     return doc.ref
-                      .collection("snapshots")
+                      .collection("revisions")
                       .orderBy("timestamp", "desc")
                       .limit(1)
                       .get()
@@ -491,11 +493,11 @@ exports.markDocumentsForIndexing = functions.pubsub
                           );
                         }
 
-                        snapshot.forEach((latestSnapshotDoc) => {
-                          let latestSnapshot = latestSnapshotDoc.data();
+                        snapshot.forEach((latestRevisionDoc) => {
+                          let latestRevision = latestRevisionDoc.data();
                           return doc.ref
                             .collection("deltas")
-                            .where("timestamp", ">", latestSnapshot.timestamp)
+                            .where("timestamp", ">", latestRevision.timestamp)
                             .get()
                             .then((deltas) => {
                               if (deltas.size > 0) {

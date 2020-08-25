@@ -97,7 +97,7 @@ export default function Data(props) {
         // This initial value is required.
         // Search indexing and compression are done as a pair of operations:
         // 1) Mark documents with needsIndex == false and
-        //    deltas newer than latestSnapshotTimestamp
+        //    deltas newer than latest revision timestamp
         // 2) Index documents with needsIndex == true.
         needsIndex: false,
 
@@ -110,7 +110,7 @@ export default function Data(props) {
       .then(() => {
         documentsRef
           .doc(documentID)
-          .collection("snapshots")
+          .collection("revisions")
           .add({
             delta: { ops: initialDelta().ops },
             timestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
@@ -122,7 +122,7 @@ export default function Data(props) {
       });
   };
 
-  const dataListItem = (ID, name, timestamp) => (
+  const dataListItem = (ID, name, date) => (
     <ListItem
       button
       key={ID}
@@ -138,7 +138,7 @@ export default function Data(props) {
       </ListItemAvatar>
       <ListItemText
         primary={name}
-        secondary={timestamp && <Moment fromNow date={timestamp} />}
+        secondary={date && <Moment fromNow date={date} />}
       />
     </ListItem>
   );
@@ -152,9 +152,11 @@ export default function Data(props) {
   );
 
   const SearchResults = connectHits((result) => {
-    return result.hits.map((hit) =>
-      dataListItem(hit.objectID, hit.name, hit.creationTimestamp)
-    );
+    return result.hits.map((hit) => {
+      // creationTimestamp is indexed as seconds since unix epoch
+      let creationDate = new Date(hit.creationTimestamp * 1000);
+      return dataListItem(hit.objectID, hit.name, creationDate);
+    });
   });
 
   let list = (
