@@ -542,7 +542,7 @@ export default function ContentsPane(props) {
           highlightsRef.doc(h.ID).set(
             {
               tagID: current.tagID,
-              personID: props.document.personID,
+              personID: props.document.personID || "",
               selection: {
                 index: current.selection.index,
                 length: current.selection.length,
@@ -568,7 +568,7 @@ export default function ContentsPane(props) {
             organizationID: orgID,
             documentID: props.document.ID,
             tagID: current.tagID,
-            personID: props.document.personID,
+            personID: props.document.personID || "",
             selection: {
               index: current.selection.index,
               length: current.selection.length,
