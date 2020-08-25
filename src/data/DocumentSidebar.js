@@ -8,6 +8,7 @@ import CardActionArea from "@material-ui/core/CardActionArea";
 import CardActions from "@material-ui/core/CardActions";
 import CardContent from "@material-ui/core/CardContent";
 import Grid from "@material-ui/core/Grid";
+import ReactPlayer from "react-player";
 import SearchDropdown from "../search/Dropdown.js";
 import TagGroupSelector from "./TagGroupSelector.js";
 import Typography from "@material-ui/core/Typography";
@@ -26,13 +27,15 @@ const useStyles = makeStyles({
 export default function DocumentSidebar(props) {
   const { oauthClaims } = useContext(UserAuthContext);
   const { orgID } = useParams();
-  const { documentRef, peopleRef } = useFirestore();
+  const { documentRef, peopleRef, transcriptionsRef } = useFirestore();
 
   const navigate = useNavigate();
 
   const [person, setPerson] = useState();
   const [editPerson, setEditPerson] = useState(false);
   const [editTagGroup, setEditTagGroup] = useState(false);
+
+  const [transcriptionVideo, setTranscriptionVideo] = useState();
 
   const classes = useStyles();
 
@@ -52,6 +55,26 @@ export default function DocumentSidebar(props) {
     });
   }, [props.document, peopleRef]);
 
+  useEffect(() => {
+    if (!props.document.transcription || !transcriptionsRef) {
+      return;
+    }
+
+    return transcriptionsRef
+      .doc(props.document.transcription)
+      .onSnapshot((doc) => {
+        let transcriptionData = doc.data();
+
+        let storageRef = window.firebase.storage().ref();
+        storageRef
+          .child(transcriptionData.inputPath)
+          .getDownloadURL()
+          .then((url) => {
+            setTranscriptionVideo(url);
+          });
+      });
+  }, [props.document.transcription, transcriptionsRef, props.document]);
+
   return (
     <Grid
       container
@@ -67,6 +90,21 @@ export default function DocumentSidebar(props) {
         paddingTop: "1rem",
       }}
     >
+      {transcriptionVideo ? (
+        <Card elevation={2} className={classes.documentSidebarCard}>
+          <CardContent>
+            <ReactPlayer
+              url={transcriptionVideo}
+              controls
+              width="100%"
+              height="300px"
+            />
+          </CardContent>
+        </Card>
+      ) : (
+        <></>
+      )}
+
       <Card elevation={2} className={classes.documentSidebarCard}>
         <CardActionArea
           onClick={() => {
