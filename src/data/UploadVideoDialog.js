@@ -94,6 +94,7 @@ export default function UploadVideoDialog({ open, setOpen }) {
 
     // Store name, speaker count and path in operation document.
     let transcriptionID = nanoid();
+    let documentID = nanoid();
 
     // TODO: Find official google storage rules for allowed object names.
     let fileName = file.name.replace(/[ !@#$%^&*()+[]{}<>]/g, "-");
@@ -110,6 +111,7 @@ export default function UploadVideoDialog({ open, setOpen }) {
         deletionTimestamp: "",
         destination: storagePath,
         orgID: orgID,
+        documentID: documentID,
       })
       .then(() => {
         uploadTask.current = storageRef.child(storagePath).put(file, {});
@@ -135,7 +137,6 @@ export default function UploadVideoDialog({ open, setOpen }) {
             setSuccess(true);
 
             // Create pending document
-            let documentID = nanoid();
             documentsRef
               .doc(documentID)
               .set({

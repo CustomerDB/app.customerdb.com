@@ -388,7 +388,7 @@ exports.indexUpdatedDocument = functions.firestore
         snapshot.forEach((latestRevisionDoc) => {
           let revisionData = latestRevisionDoc.data();
           latestRevisionDelta = new Delta(revisionData.delta.ops);
-          ts = snapshotData.timestamp;
+          ts = revisionData.timestamp;
         });
 
         if (data.needsIndex === true) {
@@ -850,24 +850,24 @@ exports.startTranscription = functions.storage
 
       const [operation] = await video.annotateVideo(request);
 
-      return doc.ref.set({
-        status: "pending",
-        gcpOperationName: operation.name,
-      });
+      return doc.ref.set(
+        {
+          status: "pending",
+          gcpOperationName: operation.name,
+        },
+        { merge: true }
+      );
     });
   });
 
 // Check every minute for videos in progress
 exports.transcriptionProgress = functions.pubsub
-  .schedule("every 1 minutes")
+  .schedule("every 5 minutes")
   .onRun((context) => {
     const video = new Video.VideoIntelligenceServiceClient();
     const db = admin.firestore();
 
-    // TODO: Make transcriptions collection group.
-
     let transcriptionsRef = db.collectionGroup("transcriptions");
-
     return transcriptionsRef
       .where("deletionTimestamp", "==", "")
       .where("status", "==", "pending")
@@ -884,7 +884,7 @@ exports.transcriptionProgress = functions.pubsub
                   let result = operation.result.annotationResults[0].toJSON();
                   let bucket = admin.storage().bucket();
 
-                  const destination = `${orgID}/transcriptions/${doc.id}/output/transcript.json`;
+                  const destination = `${operation.orgID}/transcriptions/${doc.id}/output/transcript.json`;
                   const tmpobj = tmp.fileSync();
 
                   fs.writeFileSync(tmpobj.name, JSON.stringify(result));
@@ -894,13 +894,26 @@ exports.transcriptionProgress = functions.pubsub
                       destination: destination,
                     })
                     .then(() => {
-                      return doc.ref.set(
-                        {
-                          status: "done",
-                          resultPath: `gs://${defaultBucket}/${destination}`,
-                        },
-                        { merge: true }
-                      );
+                      return doc.ref
+                        .set(
+                          {
+                            status: "finished",
+                            resultPath: `${destination}`,
+                          },
+                          { merge: true }
+                        )
+                        .then(() => {
+                          db.collection("organizations")
+                            .doc(orgID)
+                            .collection("documents")
+                            .doc(operation.documentID)
+                            .set(
+                              {
+                                pending: false,
+                              },
+                              { merge: true }
+                            );
+                        });
                     });
                 } else {
                   console.log(operation);
