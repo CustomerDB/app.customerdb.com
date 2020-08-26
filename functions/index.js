@@ -245,7 +245,7 @@ const ALGOLIA_PEOPLE_INDEX_NAME = functions.config().algolia.people_index;
 const ALGOLIA_DOCUMENTS_INDEX_NAME = functions.config().algolia.documents_index;
 const ALGOLIA_SNAPSHOTS_INDEX_NAME = functions.config().algolia.snapshots_index;
 const ALGOLIA_HIGHLIGHTS_INDEX_NAME = functions.config().algolia
-  .highlithts_index;
+  .highlights_index;
 
 const client = algoliasearch(ALGOLIA_ID, ALGOLIA_ADMIN_KEY);
 
