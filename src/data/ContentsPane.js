@@ -207,7 +207,7 @@ export default function ContentsPane(props) {
 
       let index = Number.MAX_VALUE;
       let end = 0;
-      let text = "";
+      let textSegments = [];
       let tagID = "";
 
       for (let i = 0; i < domNodes.length; i++) {
@@ -220,10 +220,12 @@ export default function ContentsPane(props) {
         let blotIndex = props.editor.getIndex(blot);
         index = Math.min(index, blotIndex);
         end = Math.max(end, blotIndex + blot.length());
-        text += props.editor.getText(index, blot.length());
+        textSegments.push(props.editor.getText(blotIndex, blot.length()));
       }
 
-      if (text === "") return undefined;
+      if (textSegments.length === 0) return undefined;
+
+      let text = textSegments.join(" ");
 
       let length = end - index;
 
@@ -417,6 +419,11 @@ export default function ContentsPane(props) {
     if (!latestDeltaTimestamp.current) {
       latestDeltaTimestamp.current = revisionTimestamp;
     }
+
+    console.log(
+      "Subscribing to deltas since",
+      latestDeltaTimestamp.current.toDate()
+    );
 
     return deltasRef
       .orderBy("timestamp", "asc")

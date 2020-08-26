@@ -73,8 +73,6 @@ export default function UploadVideoDialog({ open, setOpen }) {
     setOpen(false);
   };
 
-  console.log("Upload video dialog", open);
-
   const onChange = (e) => {
     setFile(e.target.files[0]);
   };
@@ -82,8 +80,6 @@ export default function UploadVideoDialog({ open, setOpen }) {
   const handleSpeakerChange = (e) => {
     setSpeakers(e.target.value);
   };
-
-  console.log(file);
 
   const startUpload = () => {
     if (!file) {
@@ -132,7 +128,7 @@ export default function UploadVideoDialog({ open, setOpen }) {
           },
           () => {
             // 100% Done
-            console.log("Completed");
+            console.debug("Completed");
             setUploading(false);
             setSuccess(true);
 
