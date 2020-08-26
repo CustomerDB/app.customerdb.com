@@ -27,6 +27,7 @@ import Quill from "quill";
 import ReactQuill from "react-quill";
 import Scrollable from "../shell/Scrollable.js";
 import SelectionFAB from "./SelectionFAB.js";
+import TimecodeBlot from "./TimecodeBlot.js";
 import Typography from "@material-ui/core/Typography";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
@@ -37,6 +38,7 @@ import useFirestore from "../db/Firestore.js";
 import { useParams } from "react-router-dom";
 
 Quill.register("formats/highlight", HighlightBlot);
+Quill.register("formats/timecode", TimecodeBlot);
 
 // Synchronize every second (1000ms).
 const syncPeriod = 1000;
@@ -112,6 +114,8 @@ export default function ContentsPane(props) {
 
   const localDelta = useRef(new Delta([]));
   const latestDeltaTimestamp = useRef();
+
+  const [playerLocation, setPlayerLocation] = useState();
 
   const currentSelection = useRef();
   const quillContainerRef = useRef();
@@ -247,6 +251,13 @@ export default function ContentsPane(props) {
     console.debug("current selection range", range);
     currentSelection.current = range;
     setTagIDsInSelection(computeTagIDsInSelection(range));
+
+    // If in transcription, may have to set the player position.
+    let blot = props.editor.getLeaf(currentSelection.current.index);
+    if (blot[0].parent instanceof TimecodeBlot) {
+      let timecode = blot[0].parent;
+      setPlayerLocation(timecode.domNode.dataset.start);
+    }
   };
 
   // onTagControlChange is invoked when the user checks or unchecks one of the
@@ -832,6 +843,7 @@ export default function ContentsPane(props) {
         <DocumentSidebar
           document={props.document}
           tagGroupName={tagGroupName}
+          currentPlayerLocation={playerLocation}
         />
       </Hidden>
 

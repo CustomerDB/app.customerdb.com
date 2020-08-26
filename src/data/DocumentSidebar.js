@@ -77,6 +77,14 @@ export default function DocumentSidebar(props) {
       });
   }, [props.document.transcription, transcriptionsRef, props.document]);
 
+  useEffect(() => {
+    if (!props.currentPlayerLocation) {
+      return;
+    }
+
+    playerRef.current.seekTo(props.currentPlayerLocation, "seconds");
+  }, [props.currentPlayerLocation]);
+
   return (
     <Grid
       container
