@@ -992,7 +992,32 @@ exports.deltaForTranscript = functions.firestore
               });
             }
 
-            ops.push({ insert: word["word"] + " " });
+            const insert = word["word"] + " ";
+
+            let op = {
+              insert: insert,
+            };
+
+            if (word.startTime && word.endTime) {
+              let startSeconds = parseInt(word.startTime.seconds || 0);
+              if (word.startTime.nanos) {
+                startSeconds += +word.startTime.nanos / 1e9;
+              }
+
+              let endSeconds = parseInt(word.endTime.seconds || 0);
+              if (word.endTime.nanos) {
+                endSeconds += word.endTime.nanos / 1e9;
+              }
+
+              op.attributes = {
+                timecode: {
+                  start: startSeconds,
+                  end: endSeconds,
+                },
+              };
+            }
+
+            ops.push(op);
           });
         });
 
