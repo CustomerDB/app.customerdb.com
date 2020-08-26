@@ -198,7 +198,6 @@ export default function ContentsPane(props) {
 
   const getHighlightFromEditor = useCallback(
     (highlightID) => {
-      // let domNode = document.getElementById(`highlight-${highlightID}`);
       let domNodes = document.getElementsByClassName(
         `highlight-${highlightID}`
       );
@@ -333,7 +332,7 @@ export default function ContentsPane(props) {
       .doc(props.document.transcription)
       .onSnapshot((doc) => {
         let operation = doc.data();
-        console.log("Transcript operation: ", operation);
+        console.debug("Transcript operation: ", operation);
         if (operation.progress) {
           setTranscriptionProgress(operation.progress);
         }
@@ -420,7 +419,7 @@ export default function ContentsPane(props) {
       latestDeltaTimestamp.current = revisionTimestamp;
     }
 
-    console.log(
+    console.debug(
       "Subscribing to deltas since",
       latestDeltaTimestamp.current.toDate()
     );
