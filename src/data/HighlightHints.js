@@ -12,9 +12,11 @@ export default function HighlightHints({ toolbarHeight, highlights, tags }) {
   let hints = Object.values(highlights).map((highlight) => {
     let highlightDomID = `highlight-${highlight.ID}`;
     let hintDomID = `${highlightDomID}-hint`;
-    let highlightNode = document.getElementById(highlightDomID);
+    let highlightNodes = document.getElementsByClassName(highlightDomID);
 
-    if (!highlightNode) return undefined;
+    if (!highlightNodes || highlightNodes.length === 0) return undefined;
+
+    let highlightNode = highlightNodes[0];
 
     let tagID = highlight.tagID;
     let tag = tags[tagID];

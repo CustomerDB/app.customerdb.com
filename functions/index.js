@@ -243,6 +243,9 @@ const ALGOLIA_SEARCH_KEY = functions.config().algolia.search_key;
 
 const ALGOLIA_PEOPLE_INDEX_NAME = functions.config().algolia.people_index;
 const ALGOLIA_DOCUMENTS_INDEX_NAME = functions.config().algolia.documents_index;
+const ALGOLIA_SNAPSHOTS_INDEX_NAME = functions.config().algolia.snapshots_index;
+const ALGOLIA_HIGHLIGHTS_INDEX_NAME = functions.config().algolia
+  .highlights_index;
 
 const client = algoliasearch(ALGOLIA_ID, ALGOLIA_ADMIN_KEY);
 
@@ -356,13 +359,8 @@ exports.updateHighlightsForUpdatedDocument = functions.firestore
     }
   });
 
-// Add document records to the search index when created or
-// when marked for re-index.
-exports.indexUpdatedDocument = functions.firestore
-  .document("organizations/{orgID}/documents/{documentID}")
-  .onWrite((change, context) => {
-    const index = client.initIndex(ALGOLIA_DOCUMENTS_INDEX_NAME);
-
+const indexUpdated = (index) => {
+  return (change, context) => {
     if (!change.after.exists || change.after.data().deletionTimestamp != "") {
       // Delete document from index;
       console.log("deleting document from index", context.params.documentID);
@@ -454,13 +452,25 @@ exports.indexUpdatedDocument = functions.firestore
           text: toPlaintext(latestRevisionDelta),
         });
       });
-  });
+  };
+};
+
+// Add document records to the search index when created or
+// when marked for re-index.
+exports.indexUpdatedDocument = functions.firestore
+  .document("organizations/{orgID}/documents/{documentID}")
+  .onWrite(indexUpdated(client.initIndex(ALGOLIA_DOCUMENTS_INDEX_NAME)));
+
+// Add document records to the search index when created or
+// when marked for re-index.
+exports.indexUpdatedSnapshot = functions.firestore
+  .document("organizations/{orgID}/snapshots/{documentID}")
+  .onWrite(indexUpdated(client.initIndex(ALGOLIA_SNAPSHOTS_INDEX_NAME)));
 
 // Mark documents with edits more recent than the last indexing operation
 // for re-indexing.
-exports.markDocumentsForIndexing = functions.pubsub
-  .schedule("every 2 minutes")
-  .onRun((context) => {
+const markForIndexing = (collectionName) => {
+  return (context) => {
     let db = admin.firestore();
 
     return db
@@ -473,7 +483,7 @@ exports.markDocumentsForIndexing = functions.pubsub
             // Look at documents not currently marked for indexing
             // that have not been marked for deletion.
             return orgsSnapshot.ref
-              .collection("documents")
+              .collection(collectionName)
               .where("needsIndex", "==", false)
               .where("deletionTimestamp", "==", "")
               .get()
@@ -518,7 +528,18 @@ exports.markDocumentsForIndexing = functions.pubsub
           })
         );
       });
-  });
+  };
+};
+
+// Mark documents
+exports.markDocumentsForIndexing = functions.pubsub
+  .schedule("every 2 minutes")
+  .onRun(markForIndexing("documents"));
+
+// Mark snapshots
+exports.markSnapshotsForIndexing = functions.pubsub
+  .schedule("every 2 minutes")
+  .onRun(markForIndexing("snapshots"));
 
 //////////////////////////////////////////////////////////////////////////////
 //
