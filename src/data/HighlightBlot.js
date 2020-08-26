@@ -15,10 +15,10 @@ export default class HighlightBlot extends Inline {
   static create(value) {
     const node = super.create(value);
     let { highlightID, tagID } = value;
-    node.setAttribute("id", `highlight-${highlightID}`);
     node.dataset.highlightID = highlightID;
     node.dataset.tagID = tagID;
     node.classList.add(HighlightBlot.styleClass(tagID));
+    node.classList.add(`highlight-${highlightID}`);
 
     return node;
   }

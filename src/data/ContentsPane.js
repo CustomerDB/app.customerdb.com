@@ -198,18 +198,35 @@ export default function ContentsPane(props) {
 
   const getHighlightFromEditor = useCallback(
     (highlightID) => {
-      let domNode = document.getElementById(`highlight-${highlightID}`);
+      let domNodes = document.getElementsByClassName(
+        `highlight-${highlightID}`
+      );
 
-      if (!domNode) return undefined;
+      if (!domNodes || domNodes.length === 0) return undefined;
 
-      let tagID = domNode.dataset.tagID;
-      let blot = Quill.find(domNode, false);
+      let index = Number.MAX_VALUE;
+      let end = 0;
+      let textSegments = [];
+      let tagID = "";
 
-      if (!blot) return undefined;
+      for (let i = 0; i < domNodes.length; i++) {
+        let domNode = domNodes[i];
+        tagID = domNode.dataset.tagID;
 
-      let index = props.editor.getIndex(blot);
-      let length = blot.length();
-      let text = props.editor.getText(index, length);
+        let blot = Quill.find(domNode, false);
+        if (!blot) continue;
+
+        let blotIndex = props.editor.getIndex(blot);
+        index = Math.min(index, blotIndex);
+        end = Math.max(end, blotIndex + blot.length());
+        textSegments.push(props.editor.getText(blotIndex, blot.length()));
+      }
+
+      if (textSegments.length === 0) return undefined;
+
+      let text = textSegments.join(" ");
+
+      let length = end - index;
 
       return {
         tagID: tagID,
@@ -315,7 +332,7 @@ export default function ContentsPane(props) {
       .doc(props.document.transcription)
       .onSnapshot((doc) => {
         let operation = doc.data();
-        console.log("Transcript operation: ", operation);
+        console.debug("Transcript operation: ", operation);
         if (operation.progress) {
           setTranscriptionProgress(operation.progress);
         }
@@ -401,6 +418,11 @@ export default function ContentsPane(props) {
     if (!latestDeltaTimestamp.current) {
       latestDeltaTimestamp.current = revisionTimestamp;
     }
+
+    console.debug(
+      "Subscribing to deltas since",
+      latestDeltaTimestamp.current.toDate()
+    );
 
     return deltasRef
       .orderBy("timestamp", "asc")
