@@ -253,10 +253,16 @@ export default function ContentsPane(props) {
     setTagIDsInSelection(computeTagIDsInSelection(range));
 
     // If in transcription, may have to set the player position.
-    let blot = props.editor.getLeaf(currentSelection.current.index);
-    if (blot[0].parent instanceof TimecodeBlot) {
-      let timecode = blot[0].parent;
-      setPlayerLocation(timecode.domNode.dataset.start);
+    let [line] = props.editor.getLine(currentSelection.current.index);
+    let [leaf] = props.editor.getLeaf(currentSelection.current.index);
+    let parent = leaf.parent;
+    while (parent && !parent.domNode.isSameNode(line.domNode)) {
+      if (parent instanceof TimecodeBlot) {
+        setPlayerLocation(parent.domNode.dataset.start);
+        break;
+      }
+
+      parent = parent.parent;
     }
   };
 
