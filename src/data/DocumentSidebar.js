@@ -1,5 +1,5 @@
 import { Link, useNavigate, useParams } from "react-router-dom";
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 
 import Avatar from "react-avatar";
 import Button from "@material-ui/core/Button";
@@ -30,8 +30,6 @@ export default function DocumentSidebar(props) {
   const { documentRef, peopleRef, transcriptionsRef } = useFirestore();
 
   const navigate = useNavigate();
-
-  let playerRef = useRef();
 
   const [person, setPerson] = useState();
   const [editPerson, setEditPerson] = useState(false);
@@ -77,14 +75,6 @@ export default function DocumentSidebar(props) {
       });
   }, [props.document.transcription, transcriptionsRef, props.document]);
 
-  useEffect(() => {
-    if (!props.currentPlayerLocation) {
-      return;
-    }
-
-    playerRef.current.seekTo(props.currentPlayerLocation, "seconds");
-  }, [props.currentPlayerLocation]);
-
   return (
     <Grid
       container
@@ -104,7 +94,6 @@ export default function DocumentSidebar(props) {
         <Card elevation={2} className={classes.documentSidebarCard}>
           <CardContent>
             <ReactPlayer
-              ref={playerRef}
               url={transcriptionVideo}
               controls
               width="100%"
