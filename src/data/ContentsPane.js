@@ -198,18 +198,34 @@ export default function ContentsPane(props) {
 
   const getHighlightFromEditor = useCallback(
     (highlightID) => {
-      let domNode = document.getElementById(`highlight-${highlightID}`);
+      // let domNode = document.getElementById(`highlight-${highlightID}`);
+      let domNodes = document.getElementsByClassName(
+        `highlight-${highlightID}`
+      );
 
-      if (!domNode) return undefined;
+      if (!domNodes || domNodes.length === 0) return undefined;
 
-      let tagID = domNode.dataset.tagID;
-      let blot = Quill.find(domNode, false);
+      let index = Number.MAX_VALUE;
+      let end = 0;
+      let text = "";
+      let tagID = "";
 
-      if (!blot) return undefined;
+      for (let i = 0; i < domNodes.length; i++) {
+        let domNode = domNodes[i];
+        tagID = domNode.dataset.tagID;
 
-      let index = props.editor.getIndex(blot);
-      let length = blot.length();
-      let text = props.editor.getText(index, length);
+        let blot = Quill.find(domNode, false);
+        if (!blot) continue;
+
+        let blotIndex = props.editor.getIndex(blot);
+        index = Math.min(index, blotIndex);
+        end = Math.max(end, blotIndex + blot.length());
+        text += props.editor.getText(index, blot.length());
+      }
+
+      if (text === "") return undefined;
+
+      let length = end - index;
 
       return {
         tagID: tagID,
