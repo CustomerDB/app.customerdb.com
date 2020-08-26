@@ -8,17 +8,11 @@ export default class TimecodeBlot extends Inline {
   static className = "inline-timecode";
   static tagName = "span";
 
-  // static styleClass(tagID) {
-  //   return `tag-${tagID}`;
-  // }
-
   static create(value) {
     const node = super.create(value);
     let { start, end } = value;
-    // node.setAttribute("id", `timecode-${start}-${end}`);
     node.dataset.start = start;
     node.dataset.end = end;
-    // node.classList.add(TimecodeBlot.styleClass(tagID));
 
     return node;
   }
