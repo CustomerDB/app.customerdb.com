@@ -458,13 +458,13 @@ const indexUpdated = (index) => {
 // Add document records to the search index when created or
 // when marked for re-index.
 exports.indexUpdatedDocument = functions.firestore
-  .document("organizations/{orgID}/documents/{documentIDID}")
+  .document("organizations/{orgID}/documents/{documentID}")
   .onWrite(indexUpdated(client.initIndex(ALGOLIA_DOCUMENTS_INDEX_NAME)));
 
 // Add document records to the search index when created or
 // when marked for re-index.
 exports.indexUpdatedSnapshot = functions.firestore
-  .document("organizations/{orgID}/snapshots/{snapshotID}")
+  .document("organizations/{orgID}/snapshots/{documentID}")
   .onWrite(indexUpdated(client.initIndex(ALGOLIA_SNAPSHOTS_INDEX_NAME)));
 
 // Mark documents with edits more recent than the last indexing operation
