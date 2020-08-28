@@ -54,8 +54,8 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function Data(props) {
-  const [addModalShow, setAddModalShow] = useState();
-  const [uploadModalShow, setUploadModalShow] = useState();
+  const [addModalShow, setAddModalShow] = useState(false);
+  const [uploadModalShow, setUploadModalShow] = useState(false);
   const [documents, setDocuments] = useState([]);
   const [showResults, setShowResults] = useState();
   const [openDial, setOpenDial] = useState(false);
