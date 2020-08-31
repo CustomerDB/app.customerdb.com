@@ -170,16 +170,18 @@ export default function People(props) {
     list = <Hidden mdDown>{list}</Hidden>;
   }
 
+  let searchConfig;
+  if (process.env.REACT_APP_ALGOLIA_PEOPLE_INDEX) {
+    searchConfig = {
+      index: process.env.REACT_APP_ALGOLIA_PEOPLE_INDEX,
+      setShowResults: (value) => {
+        setShowResults(value);
+      },
+    };
+  }
+
   return (
-    <Shell
-      title="Customers"
-      search={{
-        index: process.env.REACT_APP_ALGOLIA_PEOPLE_INDEX,
-        setShowResults: (value) => {
-          setShowResults(value);
-        },
-      }}
-    >
+    <Shell title="Customers" search={searchConfig}>
       <Grid container className="fullHeight">
         {list}
         {content}

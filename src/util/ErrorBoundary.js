@@ -9,17 +9,20 @@ const project_id = process.env.REACT_APP_FIREBASE_PROJECT_ID;
 const api_key = process.env.REACT_APP_ERROR_API_KEY;
 const version = process.env.REACT_APP_VERSION;
 
-export const errorHandler = new StackdriverErrorReporter();
-errorHandler.start({
-  key: api_key,
-  projectId: project_id,
-  version: version,
-});
-
 export default class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
     this.state = { hasError: false };
+
+    if (api_key) {
+      this.errorHandler = new StackdriverErrorReporter();
+
+      this.errorHandler.start({
+        key: api_key,
+        projectId: project_id,
+        version: version,
+      });
+    }
   }
 
   static getDerivedStateFromError(error) {
@@ -28,7 +31,9 @@ export default class ErrorBoundary extends React.Component {
 
   componentDidCatch(error, errorInfo) {
     console.debug("Error Boundary", error, errorInfo);
-    errorHandler.report(error, errorInfo);
+    if (this.errorHandler) {
+      this.errorHandler.report(error, errorInfo);
+    }
   }
 
   render() {

@@ -24,6 +24,37 @@ $ make install-git-hooks
 
 ### Run locally
 
+#### Testing frontend, functions and firestore changes locally
+
+You should include the staging environment variables:
+
+```
+export REACT_APP_FIREBASE_API_KEY="AIzaSyDPw9IjG4BQ4uEWLkFyFSncyJUj3UIi_BM"
+export REACT_APP_FIREBASE_AUTH_DOMAIN="customerdb-local.firebaseapp.com"
+export REACT_APP_FIREBASE_DATABASE_URL="https://customerdb-local.firebaseio.com"
+export REACT_APP_FIREBASE_PROJECT_ID="customerdb-local"
+export REACT_APP_FIREBASE_STORAGE_BUCKET="customerdb-local.appspot.com"
+export REACT_APP_FIREBASE_MESSAGING_SENDER_ID="555668636001"
+export REACT_APP_FIREBASE_APP_ID="1:555668636001:web:53afb06802e973db8d4520"
+export REACT_APP_FIREBASE_MEASUREMENT_ID="G-34Q20QC5V6"
+export REACT_APP_VERSION="<local build>"
+export GCLOUD_CLIENT_ID="555668636001-ff075aeus6gata7oj5bchq37amgv4ltj.apps.googleusercontent.com"
+export GCLOUD_API_KEY="_oev7fe7RB4OvApK1KJt_dbH"
+export FIRESTORE_EMULATOR_HOST="localhost:8080"
+export GOOGLE_APPLICATION_CREDENTIALS="${HOME}/.quantap/customerdb-local-secret.json"
+```
+
+Then, run `./scripts/emulators.sh` to bring up a bare customerdb instance.
+You need to have your credentials added by another member to the fixture data before being able to log in.
+
+When getting your credntials added, the `onMemberWritten` will write oauth claims into your profile. Therefore, you may not be able to switch between the staging instance and a local instance without rerunning this function. This can be done by changing the `active` bit off and on.
+
+Changes you make will not be saved automatically to the emulated database. If you want to overwrite the data on exit, run `./scripts/emulators.sh -w`.
+
+#### Testing frontend changes against staging data.
+
+To run locally, but use staging services. Run:
+
 ```
 $ make local
 ```
