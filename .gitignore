@@ -27,3 +27,6 @@ firestore-debug.log
 
 # firebase cache
 /.firebase
+
+pubsub-debug.log
+ui-debug.log
