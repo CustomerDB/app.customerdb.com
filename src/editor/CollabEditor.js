@@ -5,7 +5,6 @@ import ReactQuill from "react-quill";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import { initialDelta } from "./delta.js";
 import { nanoid } from "nanoid";
-import useFirestore from "../db/Firestore.js";
 
 // Synchronize every second by default (1000ms).
 const defaultSyncPeriod = 1000;
@@ -41,6 +40,7 @@ const defaultSyncPeriod = 1000;
 // deltas are applied to the local document snapshot, followed by any locally
 // cached edits that haven't been sent back to firestore yet.
 export default function CollabEditor({
+  quillRef,
   objectRef,
   editor,
   onLoad,
@@ -256,6 +256,7 @@ export default function CollabEditor({
 
   return (
     <ReactQuill
+      ref={quillRef}
       onChange={onChange}
       defaultValue={revisionDelta}
       {...otherProps}

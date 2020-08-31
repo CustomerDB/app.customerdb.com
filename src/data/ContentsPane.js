@@ -615,7 +615,7 @@ export default function ContentsPane(props) {
                     >
                       <CollabEditor
                         objectRef={documentRef}
-                        ref={props.reactQuillRef}
+                        quillRef={props.reactQuillRef}
                         editor={props.editor}
                         id="quill-editor"
                         theme="snow"
