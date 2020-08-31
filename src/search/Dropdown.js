@@ -7,6 +7,7 @@ import {
 } from "react-instantsearch-dom";
 import React, { useContext, useEffect, useRef, useState } from "react";
 
+import FirebaseContext from "../util/FirebaseContext.js";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import { getSearchClient } from "./client.js";
 
@@ -36,6 +37,7 @@ const CustomSearchBox = connectSearchBox(SearchBox);
 export default function SearchDropdown(props) {
   const ref = useRef(null);
   const auth = useContext(UserAuthContext);
+  const firebase = useContext(FirebaseContext);
 
   const [show, setShow] = useState(false);
 
@@ -63,7 +65,7 @@ export default function SearchDropdown(props) {
       return;
     }
 
-    getSearchClient(auth.oauthClaims.orgID, auth.oauthUser.uid).then(
+    getSearchClient(firebase, auth.oauthClaims.orgID, auth.oauthUser.uid).then(
       (client) => {
         setSearchClient(client);
       }

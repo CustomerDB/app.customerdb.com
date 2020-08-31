@@ -5,20 +5,23 @@ import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
 import Col from "react-bootstrap/Col";
 import Container from "react-bootstrap/Container";
+import FirebaseContext from "../util/FirebaseContext.js";
 import Row from "react-bootstrap/Row";
 import UserAuthContext from "./UserAuthContext.js";
 import event from "../analytics/event.js";
 import loginFigure from "../assets/images/login.svg";
 import logo from "../assets/images/logo.svg";
 
-var provider = new window.firebase.auth.GoogleAuthProvider();
-var db = window.firebase.firestore();
-
 export default function JoinOrg(props) {
   const auth = useContext(UserAuthContext);
 
   const [inviteFailed, setInviteFailed] = useState(false);
   const [reason, setReason] = useState(undefined);
+
+  const firebase = useContext(FirebaseContext);
+
+  var provider = new firebase.auth.GoogleAuthProvider();
+  var db = firebase.firestore();
 
   let navigate = useNavigate();
 

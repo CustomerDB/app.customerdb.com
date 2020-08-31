@@ -1,9 +1,9 @@
 import algoliasearch from "algoliasearch/lite";
 
-const db = window.firebase.firestore();
-const getSearchKey = window.firebase.functions().httpsCallable("getSearchKey");
+export function getSearchClient(firebase, orgID, userID) {
+  const db = firebase.firestore();
+  const getSearchKey = firebase.functions().httpsCallable("getSearchKey");
 
-export function getSearchClient(orgID, userID) {
   return db
     .collection("organizations")
     .doc(orgID)

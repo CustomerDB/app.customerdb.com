@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import CardActions from "@material-ui/core/CardActions";
 import CardContent from "@material-ui/core/CardContent";
 import Col from "react-bootstrap/Col";
+import FirebaseContext from "../util/FirebaseContext.js";
 import Form from "react-bootstrap/Form";
 import Grid from "@material-ui/core/Grid";
 import Modal from "../shell_obsolete/Modal.js";
@@ -26,20 +27,22 @@ const useStyles = makeStyles({
   },
 });
 
-const createOrganization = window.firebase
-  .functions()
-  .httpsCallable("createOrganization");
-
 export default function Admin(props) {
   const [show, setShow] = useState();
   const [name, setName] = useState();
   const [email, setEmail] = useState();
   const [organizations, setOrganizations] = useState();
 
+  const { firebase } = useContext(FirebaseContext);
+
   const classes = useStyles();
 
+  const createOrganization = firebase
+    .functions()
+    .httpsCallable("createOrganization");
+
   useEffect(() => {
-    return window.firebase
+    return firebase
       .firestore()
       .collection("organizations")
       .onSnapshot((snapshot) => {

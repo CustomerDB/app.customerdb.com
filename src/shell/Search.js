@@ -2,6 +2,7 @@ import { InstantSearch, connectSearchBox } from "react-instantsearch-dom";
 import React, { useContext, useEffect, useState } from "react";
 import { fade, makeStyles } from "@material-ui/core/styles";
 
+import FirebaseContext from "../util/FirebaseContext.js";
 import InputBase from "@material-ui/core/InputBase";
 import SearchIcon from "@material-ui/icons/Search";
 import UserAuthContext from "../auth/UserAuthContext.js";
@@ -9,6 +10,7 @@ import { getSearchClient } from "../search/client.js";
 
 export function Search(props) {
   const auth = useContext(UserAuthContext);
+  const firebase = useContext(FirebaseContext);
 
   const [searchState, setSearchState] = useState({});
 
@@ -19,7 +21,7 @@ export function Search(props) {
       return;
     }
 
-    getSearchClient(auth.oauthClaims.orgID, auth.oauthUser.uid).then(
+    getSearchClient(firebase, auth.oauthClaims.orgID, auth.oauthUser.uid).then(
       (client) => {
         setSearchClient(client);
       }

@@ -1,14 +1,17 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 
+import FirebaseContext from "../util/FirebaseContext.js";
 import { useParams } from "react-router-dom";
 
 export default function useFirestore() {
-  const db = window.firebase.firestore();
   const { orgID, personID, documentID, analysisID } = useParams();
   const [orgRefs, setOrgRefs] = useState({});
   const [analysisRefs, setAnalysisRefs] = useState({});
   const [documentRefs, setDocumentRefs] = useState({});
   const [personRefs, setPersonRefs] = useState({});
+
+  const firebase = useContext(FirebaseContext);
+  const db = firebase.firestore();
 
   useEffect(() => {
     if (!orgID) {

@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from "react";
 
 import Alert from "@material-ui/lab/Alert";
 import Button from "@material-ui/core/Button";
+import FirebaseContext from "../util/FirebaseContext.js";
 import Grid from "@material-ui/core/Grid";
 import Hidden from "@material-ui/core/Hidden";
 import Link from "@material-ui/core/Link";
@@ -11,9 +12,6 @@ import loginFigure from "../assets/images/login.svg";
 import logo from "../assets/images/logo.svg";
 import { makeStyles } from "@material-ui/core/styles";
 import { useNavigate } from "react-router-dom";
-
-var provider = new window.firebase.auth.GoogleAuthProvider();
-var db = window.firebase.firestore();
 
 const useStyles = makeStyles({
   loginText: {
@@ -44,6 +42,11 @@ export default function Login(props) {
   const [loginSuccess, setLoginSuccess] = useState(undefined);
 
   const auth = useContext(UserAuthContext);
+
+  const firebase = useContext(FirebaseContext);
+
+  var provider = new firebase.auth.GoogleAuthProvider();
+  var db = firebase.firestore();
 
   const classes = useStyles();
 

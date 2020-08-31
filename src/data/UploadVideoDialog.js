@@ -8,6 +8,7 @@ import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
+import FirebaseContext from "../util/FirebaseContext.js";
 import FormControl from "@material-ui/core/FormControl";
 import Grid from "@material-ui/core/Grid";
 import InputLabel from "@material-ui/core/InputLabel";
@@ -39,15 +40,16 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-let storageRef = window.firebase.storage().ref();
-
 export default function UploadVideoDialog({ open, setOpen }) {
   const classes = useStyles();
 
   let { oauthClaims } = useContext(UserAuthContext);
   let { orgID } = useParams();
+  const firebase = useContext(FirebaseContext);
 
   let uploadTask = useRef();
+
+  let storageRef = firebase.storage().ref();
 
   const navigate = useNavigate();
   const { transcriptionsRef, documentsRef } = useFirestore();
