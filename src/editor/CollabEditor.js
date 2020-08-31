@@ -22,9 +22,13 @@ const defaultSyncPeriod = 1000;
 // This component manages the bidirectional synchronization necessary to
 // construct the illusion of simultaneous editing by distributed clients.
 //
-// On page load, this component loads all of the existing deltas ordered by
-// server timestamp, and iteratively applies them to construct an initial
-// document snapshot. This component also keeps track of the latest delta
+// On page load, this component loads the latest cached revision (an
+// insert-only quill delta object, as JSON) from the database.
+//
+// Next, this component loads all of the existing deltas since the latest
+// revision timestamp (or all deltas if no cached revision exists), ordered by
+// server timestamp, and iteratively applies them to construct the latest version
+// of the document. This component also keeps track of the latest delta
 // timestamp seen from the server.
 //
 // The first synchronization operation is to upload local changes to the
