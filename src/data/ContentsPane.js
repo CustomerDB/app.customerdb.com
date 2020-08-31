@@ -28,7 +28,7 @@ import LinearProgress from "@material-ui/core/LinearProgress";
 import Moment from "react-moment";
 import Paper from "@material-ui/core/Paper";
 import Quill from "quill";
-import ReactQuill from "react-quill";
+import CollabEditor from "../editor/CollabEditor.js";
 import Scrollable from "../shell/Scrollable.js";
 import SelectionFAB from "./SelectionFAB.js";
 import Typography from "@material-ui/core/Typography";
@@ -829,7 +829,7 @@ export default function ContentsPane(props) {
                       style={{ position: "relative" }}
                       spacing={0}
                     >
-                      <ReactQuill
+                      <CollabEditor
                         id="quill-editor"
                         ref={props.reactQuillRef}
                         defaultValue={revisionDelta}
