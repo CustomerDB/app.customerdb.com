@@ -44,6 +44,7 @@ export default function CollabEditor({
   objectRef,
   editor,
   onLoad,
+  onChange,
   syncPeriod,
   ...otherProps
 }) {
@@ -232,6 +233,7 @@ export default function CollabEditor({
     let syncDeltaInterval = setInterval(syncDeltas, deltaSyncPeriod);
 
     return () => {
+      console.debug("stopping delta sync");
       clearInterval(syncDeltaInterval);
     };
   }, [deltasRef, editorID, oauthClaims.email, deltaSyncPeriod]);
@@ -239,7 +241,7 @@ export default function CollabEditor({
   // onEdit builds a batch of local edits in `localDelta`
   // which are sent to the server and reset to [] periodically
   // in `syncDeltas()`.
-  const onChange = (content, delta, source, editor) => {
+  const onEdit = (content, delta, source, editor) => {
     if (source !== "user") {
       console.debug("onChange: skipping non-user change", delta, source);
       return;
@@ -247,8 +249,8 @@ export default function CollabEditor({
 
     localDelta.current = localDelta.current.compose(delta);
 
-    if (otherProps.onChange) {
-      otherProps.onChange(content, delta, source, editor);
+    if (onChange) {
+      onChange(content, delta, source, editor);
     }
   };
 
@@ -257,7 +259,7 @@ export default function CollabEditor({
   return (
     <ReactQuill
       ref={quillRef}
-      onChange={onChange}
+      onChange={onEdit}
       defaultValue={revisionDelta}
       {...otherProps}
     />
