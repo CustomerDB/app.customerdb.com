@@ -3,7 +3,7 @@ export FIREBASE_CREDENTIALS_FILE="$HOME/.quantap/customerdb-staging-secret.json"
 export GOOGLE_APPLICATION_CREDENTIALS=$FIREBASE_CREDENTIALS_FILE
 
 export EXPORT_ON_EXIT="" 
-while getopts ":a" opt; do
+while getopts ":w" opt; do
   case $opt in
     w)
       EXPORT_ON_EXIT="--export-on-exit"
