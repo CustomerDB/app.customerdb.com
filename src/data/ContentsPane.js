@@ -546,9 +546,60 @@ export default function ContentsPane(props) {
       deltasRef.doc().set(deltaDoc);
     };
 
+    // This function sends any new highlights to the database.
+    const syncHighlightsCreate = () => {
+      if (!props.editor) {
+        return;
+      }
+
+      if (!highlights.current) {
+        return;
+      }
+
+      let editorHighlightIDs = getHighlightIDsFromEditor();
+      editorHighlightIDs.forEach((highlightID) => {
+        if (!highlights.current.hasOwnProperty(highlightID)) {
+          let current = getHighlightFromEditor(highlightID);
+
+          if (!current) return;
+
+          let newHighlight = {
+            ID: highlightID,
+            organizationID: orgID,
+            documentID: props.document.ID,
+            tagID: current.tagID,
+            personID: props.document.personID || "",
+            selection: {
+              index: current.selection.index,
+              length: current.selection.length,
+            },
+            text: current.text,
+            createdBy: oauthClaims.email,
+            creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+            deletionTimestamp: props.document.deletionTimestamp,
+            lastUpdateTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+          };
+
+          console.debug(
+            "syncHighlightsCreate: creating highlight",
+            newHighlight
+          );
+
+          event("create_highlight", {
+            orgID: oauthClaims.orgID,
+            userID: oauthClaims.user_id,
+          });
+
+          highlightsRef.doc(highlightID).set(newHighlight);
+
+          updateHints();
+        }
+      });
+    };
+
     // This function sends any local updates to highlight content relative
     // to the local editor to the database.
-    const syncHighlights = () => {
+    const syncHighlightsUpdate = () => {
       if (!props.editor) {
         return;
       }
@@ -563,7 +614,7 @@ export default function ContentsPane(props) {
 
         if (current === undefined) {
           // highlight is not present; delete it in the database.
-          console.debug("syncHighlights: deleting highlight", h);
+          console.debug("syncHighlightsUpdate: deleting highlight", h);
 
           event("delete_highlight", {
             orgID: oauthClaims.orgID,
@@ -582,7 +633,7 @@ export default function ContentsPane(props) {
           current.selection.length !== h.selection.length ||
           current.text !== h.text
         ) {
-          console.debug("syncHighlights: updating highlight", h, current);
+          console.debug("syncHighlightsUpdate: updating highlight", h, current);
 
           // upload diff
           highlightsRef.doc(h.ID).set(
@@ -601,53 +652,24 @@ export default function ContentsPane(props) {
           );
         }
       });
-
-      let editorHighlightIDs = getHighlightIDsFromEditor();
-      editorHighlightIDs.forEach((highlightID) => {
-        let current = getHighlightFromEditor(highlightID);
-        if (
-          current !== undefined &&
-          !highlights.current.hasOwnProperty(highlightID)
-        ) {
-          let newHighlight = {
-            ID: highlightID,
-            organizationID: orgID,
-            documentID: props.document.ID,
-            tagID: current.tagID,
-            personID: props.document.personID || "",
-            selection: {
-              index: current.selection.index,
-              length: current.selection.length,
-            },
-            text: current.text,
-            createdBy: oauthClaims.email,
-            creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
-            deletionTimestamp: props.document.deletionTimestamp,
-            lastUpdateTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
-          };
-
-          console.debug("syncHighlights: creating highlight", newHighlight);
-
-          event("create_highlight", {
-            orgID: oauthClaims.orgID,
-            userID: oauthClaims.user_id,
-          });
-
-          highlightsRef.doc(highlightID).set(newHighlight);
-
-          updateHints();
-        }
-      });
     };
 
     console.debug(`starting periodic syncDeltas every ${syncPeriod}ms`);
     let syncDeltaInterval = setInterval(syncDeltas, syncPeriod);
 
     console.debug(`starting periodic syncHighlights every ${syncPeriod}ms`);
-    let syncHighlightsInterval = setInterval(syncHighlights, syncPeriod);
+    let syncHighlightsCreateInterval = setInterval(
+      syncHighlightsCreate,
+      syncPeriod
+    );
+    let syncHighlightsUpdateInterval = setInterval(
+      syncHighlightsUpdate,
+      syncPeriod
+    );
     return () => {
       clearInterval(syncDeltaInterval);
-      clearInterval(syncHighlightsInterval);
+      clearInterval(syncHighlightsCreateInterval);
+      clearInterval(syncHighlightsUpdateInterval);
     };
   }, [
     oauthClaims,

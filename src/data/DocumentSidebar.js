@@ -22,6 +22,9 @@ const useStyles = makeStyles({
     margin: "0rem 2rem 1rem 1rem",
     padding: "1rem 1rem 0rem 1rem",
   },
+  videoCard: {
+    margin: "0rem 2rem 1rem 1rem",
+  },
 });
 
 export default function DocumentSidebar(props) {
@@ -91,15 +94,13 @@ export default function DocumentSidebar(props) {
       }}
     >
       {transcriptionVideo ? (
-        <Card elevation={2} className={classes.documentSidebarCard}>
-          <CardContent>
-            <ReactPlayer
-              url={transcriptionVideo}
-              controls
-              width="100%"
-              height="100%"
-            />
-          </CardContent>
+        <Card elevation={2} className={classes.videoCard}>
+          <ReactPlayer
+            url={transcriptionVideo}
+            controls
+            width="100%"
+            height="100%"
+          />
         </Card>
       ) : (
         <></>
