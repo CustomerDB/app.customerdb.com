@@ -1,16 +1,16 @@
 .PHONY: deploy runtimeconfig credentials
 
-FIREBASE_PROJECT=customerdb-staging
-FIREBASE_CREDENTIALS_FILE="$(HOME)/.quantap/customerdb-staging-secret.json"
+FIREBASE_PROJECT=customerdb-local
+FIREBASE_CREDENTIALS_FILE="$(HOME)/.quantap/customerdb-local-secret.json"
 
-# Requires `gcloud config set project customerdb-staging`
+# Requires `gcloud config set project customerdb-local`
 credentials:
 	gcloud iam service-accounts keys create \
 		$(FIREBASE_CREDENTIALS_FILE) \
-		--iam-account=customerdb-staging@appspot.gserviceaccount.com
+		--iam-account=customerdb-local@appspot.gserviceaccount.com
 
 runtimeconfig:
-	firebase --project=customerdb-staging \
+	firebase --project=customerdb-local \
 	functions:config:get \
 	> functions/.runtimeconfig.json
 
@@ -25,7 +25,7 @@ deploy-functions:
 
 local:
 	GOOGLE_APPLICATION_CREDENTIALS=$(FIREBASE_CREDENTIALS_FILE) \
-		firebase emulators:exec --project=customerdb-staging --only functions,firestore,ui "yarn start"
+		firebase emulators:exec --project=customerdb-local --only functions,firestore,ui "yarn start"
 
 apply-format:
 	./node_modules/.bin/import-sort --write `find src -name \*.js|tr '\n' ' '`
