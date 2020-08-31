@@ -13,9 +13,9 @@ import React, {
 import { addTagStyles, removeTagStyles } from "./Tags.js";
 
 import Archive from "@material-ui/icons/Archive";
+import CollabEditor from "../editor/CollabEditor.js";
 import Collaborators from "../util/Collaborators.js";
 import ContentEditable from "react-contenteditable";
-import Delta from "quill-delta";
 import DocumentDeleteDialog from "./DocumentDeleteDialog.js";
 import DocumentSidebar from "./DocumentSidebar.js";
 import FirebaseContext from "../util/FirebaseContext.js";
@@ -28,13 +28,11 @@ import LinearProgress from "@material-ui/core/LinearProgress";
 import Moment from "react-moment";
 import Paper from "@material-ui/core/Paper";
 import Quill from "quill";
-import CollabEditor from "../editor/CollabEditor.js";
 import Scrollable from "../shell/Scrollable.js";
 import SelectionFAB from "./SelectionFAB.js";
 import Typography from "@material-ui/core/Typography";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
-import { initialDelta } from "./delta.js";
 import { makeStyles } from "@material-ui/core/styles";
 import useFirestore from "../db/Firestore.js";
 import { useParams } from "react-router-dom";
@@ -96,17 +94,12 @@ export default function ContentsPane(props) {
   const {
     tagGroupsRef,
     documentRef,
-    revisionsRef,
     highlightsRef,
-    deltasRef,
     transcriptionsRef,
   } = useFirestore();
 
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
-  const [editorID] = useState(uuidv4());
-  const [revisionDelta, setRevisionDelta] = useState();
-  const [revisionTimestamp, setRevisionTimestamp] = useState();
   const [tagGroupName, setTagGroupName] = useState();
   const [tags, setTags] = useState();
   const [reflowHints, setReflowHints] = useState(uuidv4());
@@ -114,9 +107,6 @@ export default function ContentsPane(props) {
   const [transcriptionProgress, setTranscriptionProgress] = useState();
 
   const [tagIDsInSelection, setTagIDsInSelection] = useState(new Set());
-
-  const localDelta = useRef(new Delta([]));
-  const latestDeltaTimestamp = useRef();
 
   const currentSelection = useRef();
   const quillContainerRef = useRef();
@@ -245,23 +235,13 @@ export default function ContentsPane(props) {
     [props.editor]
   );
 
-  // onEdit builds a batch of local edits in `localDelta`
-  // which are sent to the server and reset to [] periodically
-  // in `syncDeltas()`.
-  const onEdit = (content, delta, source, editor) => {
+  const onChange = (content, delta, source, editor) => {
     updateHints();
-
-    if (source !== "user") {
-      // console.debug("onEdit: skipping non-user change", delta, source);
-      return;
-    }
-
-    localDelta.current = localDelta.current.compose(delta);
   };
 
-  // onSelect is invoked when the content selection changes, including
+  // onChangeSelection is invoked when the content selection changes, including
   // whenever the cursor changes position.
-  const onSelect = (range, source, editor) => {
+  const onChangeSelection = (range, source, editor) => {
     if (source !== "user" || range === null) {
       return;
     }
@@ -384,172 +364,16 @@ export default function ContentsPane(props) {
     };
   }, [props.document.tagGroupID, tagGroupsRef]);
 
-  // Subscribe to the latest revision
-  useEffect(() => {
-    if (!revisionsRef) {
-      return;
-    }
-
-    return revisionsRef
-      .orderBy("timestamp", "desc")
-      .limit(1)
-      .onSnapshot((snapshot) => {
-        if (snapshot.size === 0) {
-          setRevisionDelta(initialDelta());
-          setRevisionTimestamp(new firebaseClient.firestore.Timestamp(0, 0));
-          return;
-        }
-
-        // hint: limit 1 -- iterating over a list of exactly 1
-        snapshot.forEach((doc) => {
-          let revision = doc.data();
-          setRevisionDelta(new Delta(revision.delta.ops));
-          if (!revision.timestamp) {
-            setRevisionTimestamp(new firebaseClient.firestore.Timestamp(0, 0));
-            return;
-          }
-          setRevisionTimestamp(revision.timestamp);
-        });
-      });
-  }, [revisionsRef]);
-
-  // Document will contain the latest cached and compressed version of the delta document.
-  // Subscribe to deltas from other remote clients.
-  useEffect(() => {
-    if (!editorID || !props.editor || !deltasRef || !revisionTimestamp) {
-      return;
-    }
-
-    if (!latestDeltaTimestamp.current) {
-      latestDeltaTimestamp.current = revisionTimestamp;
-    }
-
-    console.debug(
-      "Subscribing to deltas since",
-      latestDeltaTimestamp.current.toDate()
-    );
-
-    return deltasRef
-      .orderBy("timestamp", "asc")
-      .where("timestamp", ">", latestDeltaTimestamp.current)
-      .onSnapshot((snapshot) => {
-        // console.debug("Delta snapshot received");
-
-        let newDeltas = [];
-        snapshot.forEach((delta) => {
-          let data = delta.data();
-
-          // Skip deltas with no timestamp
-          if (data.timestamp === null) {
-            // console.debug("skipping delta with no timestamp");
-            return;
-          }
-
-          // Skip deltas older than the latest timestamp we have applied already
-          let haveSeenBefore =
-            data.timestamp.valueOf() <= latestDeltaTimestamp.current.valueOf();
-
-          if (haveSeenBefore) {
-            // console.debug("Dropping delta with timestamp ", data.timestamp);
-            return;
-          }
-
-          let newDelta = new Delta(data.ops);
-
-          // Hang the editorID off of the delta.
-          newDelta.editorID = data.editorID;
-
-          // Skip deltas from this client
-          if (data.editorID === editorID) {
-            // console.debug("skipping delta from this client");
-            return;
-          }
-
-          newDeltas.push(newDelta);
-          latestDeltaTimestamp.current = data.timestamp;
-        });
-
-        if (newDeltas.length === 0) {
-          // console.debug("no new deltas to apply");
-          return;
-        }
-
-        console.debug("applying deltas to editor", newDeltas);
-
-        // What we have:
-        // - localDelta: the buffered local edits that haven't been uploaded yet
-        // - editor.getContents(): document delta representing local editor content
-
-        let selection = props.editor.getSelection();
-        let selectionIndex = selection ? selection.index : 0;
-
-        // Compute inverse of local delta.
-        let editorContents = props.editor.getContents();
-        console.debug("editorContents", editorContents);
-
-        console.debug("localDelta (before)", localDelta.current);
-        let inverseLocalDelta = localDelta.current.invert(editorContents);
-        console.debug("inverseLocalDelta", inverseLocalDelta);
-
-        // Undo local edits
-        console.debug("unapplying local delta");
-        props.editor.updateContents(inverseLocalDelta);
-        selectionIndex = inverseLocalDelta.transformPosition(selectionIndex);
-
-        newDeltas.forEach((delta) => {
-          props.editor.updateContents(delta);
-          selectionIndex = delta.transformPosition(selectionIndex);
-
-          console.debug("transform local delta");
-          const serverFirst = true;
-          localDelta.current = delta.transform(localDelta.current, serverFirst);
-        });
-
-        // Reapply local edits
-        console.debug("applying transformed local delta", localDelta.current);
-        props.editor.updateContents(localDelta.current);
-        selectionIndex = localDelta.current.transformPosition(selectionIndex);
-
-        if (selection) {
-          console.debug("updating selection index");
-          props.editor.setSelection(selectionIndex, selection.length);
-        }
-      });
-  }, [editorID, props.editor, revisionTimestamp, deltasRef]);
-
   // Register timers to periodically sync local changes with firestore.
   useEffect(() => {
     if (
       !highlightsRef ||
-      !deltasRef ||
       !props.document.ID ||
       !oauthClaims.email ||
       props.document.pending
     ) {
       return;
     }
-
-    // This function sends the contents of `localDelta` to the database
-    // and resets the local cache.
-    const syncDeltas = () => {
-      let opsIndex = localDelta.current.ops.length;
-      if (opsIndex === 0) {
-        return;
-      }
-
-      let ops = localDelta.current.ops.slice(0, opsIndex);
-      localDelta.current = new Delta(localDelta.current.ops.slice(opsIndex));
-
-      let deltaDoc = {
-        editorID: editorID,
-        userEmail: oauthClaims.email,
-        timestamp: firebaseClient.firestore.FieldValue.serverTimestamp(),
-        ops: ops,
-      };
-
-      console.debug("uploading delta", deltaDoc);
-      deltasRef.doc().set(deltaDoc);
-    };
 
     // This function sends any new highlights to the database.
     const syncHighlightsCreate = () => {
@@ -659,9 +483,6 @@ export default function ContentsPane(props) {
       });
     };
 
-    console.debug(`starting periodic syncDeltas every ${syncPeriod}ms`);
-    let syncDeltaInterval = setInterval(syncDeltas, syncPeriod);
-
     console.debug(`starting periodic syncHighlights every ${syncPeriod}ms`);
     let syncHighlightsCreateInterval = setInterval(
       syncHighlightsCreate,
@@ -672,14 +493,11 @@ export default function ContentsPane(props) {
       syncPeriod
     );
     return () => {
-      clearInterval(syncDeltaInterval);
       clearInterval(syncHighlightsCreateInterval);
       clearInterval(syncHighlightsUpdateInterval);
     };
   }, [
     oauthClaims,
-    deltasRef,
-    editorID,
     highlightsRef,
     orgID,
     getHighlightFromEditor,
@@ -725,10 +543,6 @@ export default function ContentsPane(props) {
       }
     });
   }, [highlightsRef]);
-
-  if (!revisionDelta) {
-    return <></>;
-  }
 
   return (
     <>
@@ -830,13 +644,14 @@ export default function ContentsPane(props) {
                       spacing={0}
                     >
                       <CollabEditor
-                        id="quill-editor"
+                        objectRef={documentRef}
                         ref={props.reactQuillRef}
-                        defaultValue={revisionDelta}
+                        editor={props.editor}
+                        id="quill-editor"
                         theme="snow"
                         placeholder="Start typing here and select to mark highlights"
-                        onChange={onEdit}
-                        onChangeSelection={onSelect}
+                        onChange={onChange}
+                        onChangeSelection={onChangeSelection}
                         modules={{
                           toolbar: [
                             [{ header: [1, 2, false] }],

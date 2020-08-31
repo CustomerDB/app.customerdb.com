@@ -27,7 +27,7 @@ import UploadVideoDialog from "./UploadVideoDialog.js";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import { connectHits } from "react-instantsearch-dom";
 import event from "../analytics/event.js";
-import { initialDelta } from "./delta.js";
+import { initialDelta } from "../editor/delta.js";
 import { makeStyles } from "@material-ui/core/styles";
 import useFirestore from "../db/Firestore.js";
 import { useOrganization } from "../organization/hooks.js";
