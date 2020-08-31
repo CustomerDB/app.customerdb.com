@@ -285,16 +285,18 @@ export default function Data(props) {
     />
   );
 
+  let searchConfig;
+  if (process.env.REACT_APP_ALGOLIA_DOCUMENTS_INDEX) {
+    searchConfig = {
+      index: process.env.REACT_APP_ALGOLIA_DOCUMENTS_INDEX,
+      setShowResults: (value) => {
+        setShowResults(value);
+      },
+    };
+  }
+
   return (
-    <Shell
-      title="Data"
-      search={{
-        index: process.env.REACT_APP_ALGOLIA_DOCUMENTS_INDEX,
-        setShowResults: (value) => {
-          setShowResults(value);
-        },
-      }}
-    >
+    <Shell title="Data" search={searchConfig}>
       <Grid container className="fullHeight">
         {list}
         {content}

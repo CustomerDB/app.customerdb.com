@@ -39,8 +39,6 @@ When getting your credntials added, the `onMemberWritten` will write oauth claim
 
 Changes you make will not be saved automatically to the emulated database. If you want to overwrite the data on exit, run `./scripts/emulators.sh -w`.
 
-**NOTE** If you force close the firestore emulator, the data may be corrupted on write. So make sure to make incremental commits by stopping and starting the emulator gracefully.
-
 #### Testing frontend changes against staging data.
 
 To run locally, but use staging services. Run:

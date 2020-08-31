@@ -1,6 +1,5 @@
 #!/bin/bash
-export FIREBASE_CREDENTIALS_FILE="$HOME/.quantap/customerdb-staging-secret.json"
-export GOOGLE_APPLICATION_CREDENTIALS=$FIREBASE_CREDENTIALS_FILE
+export FIREBASE_CREDENTIALS_FILE="$HOME/.quantap/customerdb-local-secret.json"
 
 export EXPORT_ON_EXIT="" 
 while getopts ":w" opt; do
@@ -14,5 +13,5 @@ while getopts ":w" opt; do
   esac
 done
 
-firebase emulators:start --project=customerdb-staging --import=./tests/emulator-fixtures/ $EXPORT_ON_EXIT
+firebase emulators:start --project=customerdb-local --import=./tests/emulator-fixtures/ $EXPORT_ON_EXIT
 

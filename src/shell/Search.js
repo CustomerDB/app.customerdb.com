@@ -15,12 +15,16 @@ export function Search(props) {
   const [searchClient, setSearchClient] = useState();
 
   useEffect(() => {
+    if (!props.search) {
+      return;
+    }
+
     getSearchClient(auth.oauthClaims.orgID, auth.oauthUser.uid).then(
       (client) => {
         setSearchClient(client);
       }
     );
-  }, [auth.oauthClaims.orgID, auth.oauthUser.uid]);
+  }, [auth.oauthClaims.orgID, auth.oauthUser.uid, props.search]);
 
   useEffect(() => {
     if (!props.search || !props.search.setShowResults) {
