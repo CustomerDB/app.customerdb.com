@@ -11,6 +11,14 @@ function init() {
   };
   // Initialize Firebase
   window.firebase.initializeApp(firebaseConfig);
+
+  var db = window.firebase.firestore();
+  if (window.location.hostname === "localhost") {
+    db.settings({
+      host: "localhost:8080",
+      ssl: false,
+    });
+  }
 }
 
 init();
