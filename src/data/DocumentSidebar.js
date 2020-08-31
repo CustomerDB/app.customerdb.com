@@ -96,7 +96,6 @@ export default function DocumentSidebar(props) {
       {transcriptionVideo ? (
         <Card elevation={2} className={classes.videoCard}>
           <ReactPlayer
-            ref={playerRef}
             url={transcriptionVideo}
             controls
             width="100%"
