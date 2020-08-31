@@ -50,15 +50,22 @@ export default function CollabEditor({
   const [editorID] = useState(nanoid());
   const [revisionDelta, setRevisionDelta] = useState();
   const [revisionTimestamp, setRevisionTimestamp] = useState();
+  const [revisionsRef, setRevisionsRef] = useState();
+  const [deltasRef, setDeltasRef] = useState();
 
   const { oauthClaims } = useContext(UserAuthContext);
-
-  const { revisionsRef, deltasRef } = useFirestore();
 
   const localDelta = useRef(new Delta([]));
   const latestDeltaTimestamp = useRef();
 
   const deltaSyncPeriod = syncPeriod || defaultSyncPeriod;
+
+  useEffect(() => {
+    if (!objectRef) return;
+
+    setRevisionsRef(objectRef.collection("revisions"));
+    setDeltasRef(objectRef.collection("deltas"));
+  }, [objectRef]);
 
   // Subscribe to the latest revision
   useEffect(() => {

@@ -53,8 +53,6 @@ export default function useFirestore() {
     }
     let r = {};
     r.documentRef = orgRefs.documentsRef.doc(documentID);
-    r.revisionsRef = r.documentRef.collection("revisions");
-    r.deltasRef = r.documentRef.collection("deltas");
     r.highlightsRef = r.documentRef.collection("highlights");
     setDocumentRefs(r);
   }, [orgRefs.documentsRef, documentID]);
