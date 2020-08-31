@@ -1,6 +1,8 @@
 #!/bin/bash
 export FIREBASE_CREDENTIALS_FILE="$HOME/.quantap/customerdb-local-secret.json"
 
+FIXTURE=${FIXTURE:-00-base}
+
 export EXPORT_ON_EXIT="" 
 while getopts ":w" opt; do
   case $opt in
@@ -13,5 +15,5 @@ while getopts ":w" opt; do
   esac
 done
 
-firebase emulators:start --project=customerdb-local --import=./tests/emulator-fixtures/ $EXPORT_ON_EXIT
+firebase emulators:start --project=customerdb-local --import=./tests/fixtures/$FIXTURE $EXPORT_ON_EXIT
 

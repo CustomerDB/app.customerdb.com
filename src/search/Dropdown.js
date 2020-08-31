@@ -7,7 +7,6 @@ import {
 } from "react-instantsearch-dom";
 import React, { useContext, useEffect, useRef, useState } from "react";
 
-import { Loading } from "../util/Utils.js";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import { getSearchClient } from "./client.js";
 
@@ -60,15 +59,19 @@ export default function SearchDropdown(props) {
   }, [ref]);
 
   useEffect(() => {
+    if (!props.index) {
+      return;
+    }
+
     getSearchClient(auth.oauthClaims.orgID, auth.oauthUser.uid).then(
       (client) => {
         setSearchClient(client);
       }
     );
-  }, [auth.oauthClaims.orgID, auth.oauthUser.uid]);
+  }, [auth.oauthClaims.orgID, auth.oauthUser.uid, props.index]);
 
   if (!searchClient) {
-    return <Loading />;
+    return <></>;
   }
 
   const CustomHits = connectHits((result) => {
