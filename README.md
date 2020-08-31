@@ -26,10 +26,22 @@ $ make install-git-hooks
 
 #### Testing frontend, functions and firestore changes locally
 
-You should include the staging environment variables and add the following:
+You should include the staging environment variables:
 
 ```
+export REACT_APP_FIREBASE_API_KEY="AIzaSyDPw9IjG4BQ4uEWLkFyFSncyJUj3UIi_BM"
+export REACT_APP_FIREBASE_AUTH_DOMAIN="customerdb-local.firebaseapp.com"
+export REACT_APP_FIREBASE_DATABASE_URL="https://customerdb-local.firebaseio.com"
+export REACT_APP_FIREBASE_PROJECT_ID="customerdb-local"
+export REACT_APP_FIREBASE_STORAGE_BUCKET="customerdb-local.appspot.com"
+export REACT_APP_FIREBASE_MESSAGING_SENDER_ID="555668636001"
+export REACT_APP_FIREBASE_APP_ID="1:555668636001:web:53afb06802e973db8d4520"
+export REACT_APP_FIREBASE_MEASUREMENT_ID="G-34Q20QC5V6"
+export REACT_APP_VERSION="<local build>"
+export GCLOUD_CLIENT_ID="555668636001-ff075aeus6gata7oj5bchq37amgv4ltj.apps.googleusercontent.com"
+export GCLOUD_API_KEY="_oev7fe7RB4OvApK1KJt_dbH"
 export FIRESTORE_EMULATOR_HOST="localhost:8080"
+export GOOGLE_APPLICATION_CREDENTIALS="${HOME}/.quantap/customerdb-local-secret.json"
 ```
 
 Then, run `./scripts/emulators.sh` to bring up a bare customerdb instance.
