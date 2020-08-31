@@ -56,37 +56,7 @@ const useStyles = makeStyles({
   },
 });
 
-// ContentsPane is a React component that allows multiple users to edit
-// and highlight a text document simultaneously.
-//
-// It uses the Quill editor (see https://quilljs.com).
-//
-// The Quill editor uses a handy content format called Delta, which represents
-// operations like text insertion, deletion, formatting, etc. in a manner
-// similar to `diff(1)`.
-//
-// This component manages the bidirectional synchronization necessary to
-// construct the illusion of simultaneous editing by distributed clients.
-//
-// On page load, this component loads all of the existing deltas ordered by
-// server timestamp, and iteratively applies them to construct an initial
-// document snapshot. This component also keeps track of the latest delta
-// timestamp seen from the server.
-//
-// The first synchronization operation is to upload local changes to the
-// deltas collection in firestore. For efficiency, edits are cached locally
-// and then periodically sent in a batch.
-//
-// The second synchronization operation involves subscribing to changes to
-// the deltas collection in firestore. On each change to the collection snapshot,
-// this component ignores deltas written before the last-seen timestamp. New
-// deltas are applied to the local document snapshot, followed by any locally
-// cached edits that haven't been sent back to firestore yet.
-//
-// This component also manages tags and text highlights. When this component
-// renders, it generates text formatting deltas on the fly to visually
-// communicate what text segments are associated with tags with background
-// colors.
+// ContentsPane augments a collaborative editor with tags and text highlights.
 export default function ContentsPane(props) {
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);

@@ -10,6 +10,32 @@ import useFirestore from "../db/Firestore.js";
 // Synchronize every second by default (1000ms).
 const defaultSyncPeriod = 1000;
 
+// CollabEditor is a React component that allows multiple users to edit
+// and highlight a text document simultaneously.
+//
+// It uses the Quill editor (see https://quilljs.com).
+//
+// The Quill editor uses a handy content format called Delta, which represents
+// operations like text insertion, deletion, formatting, etc. in a manner
+// similar to `diff(1)`.
+//
+// This component manages the bidirectional synchronization necessary to
+// construct the illusion of simultaneous editing by distributed clients.
+//
+// On page load, this component loads all of the existing deltas ordered by
+// server timestamp, and iteratively applies them to construct an initial
+// document snapshot. This component also keeps track of the latest delta
+// timestamp seen from the server.
+//
+// The first synchronization operation is to upload local changes to the
+// deltas collection in firestore. For efficiency, edits are cached locally
+// and then periodically sent in a batch.
+//
+// The second synchronization operation involves subscribing to changes to
+// the deltas collection in firestore. On each change to the collection snapshot,
+// this component ignores deltas written before the last-seen timestamp. New
+// deltas are applied to the local document snapshot, followed by any locally
+// cached edits that haven't been sent back to firestore yet.
 export default function CollabEditor({
   objectRef,
   editor,
@@ -214,6 +240,8 @@ export default function CollabEditor({
       otherProps.onChange(content, delta, source, editor);
     }
   };
+
+  if (!revisionDelta) return <></>;
 
   return (
     <ReactQuill
