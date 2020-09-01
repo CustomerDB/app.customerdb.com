@@ -85,7 +85,7 @@ export default function GridSelector(props) {
         setSearchClient(client);
       }
     );
-  }, [auth.oauthClaims.orgID, auth.oauthUser.uid]);
+  }, [auth.oauthClaims.orgID, auth.oauthUser.uid, firebase]);
 
   if (!searchClient) {
     return <Loading />;

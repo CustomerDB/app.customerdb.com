@@ -25,7 +25,7 @@ const useStyles = makeStyles({
 
 export default function Profile(props) {
   const auth = useContext(UserAuthContext);
-  const { membersRef, orgRef } = useFirestore();
+  const { membersRef } = useFirestore();
   const [displayName, setDisplayName] = useState();
   const [memberRef, setMemberRef] = useState();
 

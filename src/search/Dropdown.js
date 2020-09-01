@@ -70,7 +70,7 @@ export default function SearchDropdown(props) {
         setSearchClient(client);
       }
     );
-  }, [auth.oauthClaims.orgID, auth.oauthUser.uid, props.index]);
+  }, [auth.oauthClaims.orgID, auth.oauthUser.uid, props.index, firebase]);
 
   if (!searchClient) {
     return <></>;

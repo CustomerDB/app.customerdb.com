@@ -78,7 +78,7 @@ export default function Login(props) {
           console.error("failed to read userToOrg mapping", e);
         });
     }
-  }, [navigate, auth]);
+  }, [navigate, auth, db]);
 
   let loginFailedMessage =
     loginSuccess === false ? (

@@ -20,7 +20,7 @@ export default function WithOauthUser(props) {
     };
     let unsubscribe = firebase.auth().onAuthStateChanged(loginCallback);
     return unsubscribe;
-  }, [props.children]);
+  }, [props.children, firebase]);
 
   useEffect(() => {
     if (oauthUser === null) {
@@ -40,7 +40,7 @@ export default function WithOauthUser(props) {
         setOauthClaims(idTokenResult.claims);
       });
     });
-  }, [oauthUser]);
+  }, [oauthUser, firebase]);
 
   if (oauthLoading) {
     return <Loading />;

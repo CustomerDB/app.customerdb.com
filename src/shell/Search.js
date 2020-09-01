@@ -26,7 +26,7 @@ export function Search(props) {
         setSearchClient(client);
       }
     );
-  }, [auth.oauthClaims.orgID, auth.oauthUser.uid, props.search]);
+  }, [auth.oauthClaims.orgID, auth.oauthUser.uid, props.search, firebase]);
 
   useEffect(() => {
     if (!props.search || !props.search.setShowResults) {
