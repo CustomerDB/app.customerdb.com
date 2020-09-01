@@ -1,8 +1,11 @@
+import "firebase/firestore";
+
+import * as firebaseClient from "firebase/app";
+
 import React, { useContext, useEffect, useState } from "react";
 
 import Avatar from "@material-ui/core/Avatar";
 import AvatarGroup from "@material-ui/lab/AvatarGroup";
-import FirebaseContext from "../util/FirebaseContext.js";
 import Tooltip from "@material-ui/core/Tooltip";
 import UserAuthContext from "../auth/UserAuthContext.js";
 
@@ -10,7 +13,6 @@ const syncPeriod = 5000;
 
 export default function Collaborators(props) {
   const { oauthUser } = useContext(UserAuthContext);
-  const firebase = useContext(FirebaseContext);
 
   const [collaborators, setCollaborators] = useState([]);
 
@@ -25,7 +27,7 @@ export default function Collaborators(props) {
         .doc(oauthUser.email);
 
       let collaborator = {
-        expires: firebase.firestore.Timestamp.now().toMillis() + 5000,
+        expires: firebaseClient.firestore.Timestamp.now().toMillis() + 5000,
       };
 
       if (oauthUser.email) {
@@ -46,7 +48,7 @@ export default function Collaborators(props) {
           .get()
           .then((snapshot) => {
             let newCollaborators = [];
-            let now = firebase.firestore.Timestamp.now().toMillis();
+            let now = firebaseClient.firestore.Timestamp.now().toMillis();
             snapshot.forEach((doc) => {
               let collaborator = doc.data();
               if (collaborator.expires < now) {
@@ -71,13 +73,7 @@ export default function Collaborators(props) {
     return () => {
       clearInterval(interval);
     };
-  }, [
-    props.dbRef,
-    oauthUser.displayName,
-    oauthUser.email,
-    oauthUser.photoURL,
-    firebase.firestore.Timestamp,
-  ]);
+  }, [props.dbRef, oauthUser.displayName, oauthUser.email, oauthUser.photoURL]);
 
   return (
     <AvatarGroup max={4} style={{ minHeight: "2.5rem" }}>
