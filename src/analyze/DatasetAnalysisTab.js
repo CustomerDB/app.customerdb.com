@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 
 import Col from "react-bootstrap/Col";
 import Container from "react-bootstrap/Container";
+import FirebaseContext from "../util/FirebaseContext.js";
 import { Loading } from "../util/Utils.js";
 import { ResponsiveBar } from "@nivo/bar";
 import Row from "react-bootstrap/Row";
@@ -15,6 +16,8 @@ export default function AnalysisAnalysisTab(props) {
     allHighlightsRef,
     allTagsRef,
   } = useFirestore();
+
+  const firebase = useContext(FirebaseContext);
 
   const [groups, setGroups] = useState();
   const [cards, setCards] = useState();
@@ -82,7 +85,7 @@ export default function AnalysisAnalysisTab(props) {
     console.log("Setting up documents snapshot handler");
 
     let analysisDocumentsRef = documentsRef.where(
-      window.firebase.firestore.FieldPath.documentId(),
+      firebase.firestore.FieldPath.documentId(),
       "in",
       props.analysis.documentIDs
     );

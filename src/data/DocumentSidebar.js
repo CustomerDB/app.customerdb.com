@@ -7,6 +7,7 @@ import Card from "@material-ui/core/Card";
 import CardActionArea from "@material-ui/core/CardActionArea";
 import CardActions from "@material-ui/core/CardActions";
 import CardContent from "@material-ui/core/CardContent";
+import FirebaseContext from "../util/FirebaseContext.js";
 import Grid from "@material-ui/core/Grid";
 import ReactPlayer from "react-player";
 import SearchDropdown from "../search/Dropdown.js";
@@ -29,6 +30,7 @@ const useStyles = makeStyles({
 
 export default function DocumentSidebar(props) {
   const { oauthClaims } = useContext(UserAuthContext);
+  const firebase = useContext(FirebaseContext);
   const { orgID } = useParams();
   const { documentRef, peopleRef, transcriptionsRef } = useFirestore();
 
@@ -68,7 +70,7 @@ export default function DocumentSidebar(props) {
       .onSnapshot((doc) => {
         let transcriptionData = doc.data();
 
-        let storageRef = window.firebase.storage().ref();
+        let storageRef = firebase.storage().ref();
         storageRef
           .child(transcriptionData.inputPath)
           .getDownloadURL()
@@ -76,7 +78,12 @@ export default function DocumentSidebar(props) {
             setTranscriptionVideo(url);
           });
       });
-  }, [props.document.transcription, transcriptionsRef, props.document]);
+  }, [
+    props.document.transcription,
+    transcriptionsRef,
+    props.document,
+    firebase,
+  ]);
 
   return (
     <Grid
@@ -161,7 +168,7 @@ export default function DocumentSidebar(props) {
                   index={process.env.REACT_APP_ALGOLIA_PEOPLE_INDEX}
                   default={person ? person.name : ""}
                   onChange={(ID, name) => {
-                    event("link_data_to_person", {
+                    event(firebase, "link_data_to_person", {
                       orgID: oauthClaims.orgID,
                       userID: oauthClaims.user_id,
                     });

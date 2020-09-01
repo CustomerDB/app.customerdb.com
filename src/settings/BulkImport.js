@@ -3,6 +3,7 @@ import React, { useCallback, useContext, useEffect, useState } from "react";
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
+import FirebaseContext from "../util/FirebaseContext.js";
 import Grid from "@material-ui/core/Grid";
 import { Loading } from "../util/Utils.js";
 import UserAuthContext from "../auth/UserAuthContext.js";
@@ -22,7 +23,7 @@ const useStyles = makeStyles({
   },
 });
 
-function recordToPerson(record, creatorEmail) {
+function recordToPerson(firebase, record, creatorEmail) {
   let filtered = {};
 
   if (record) {
@@ -40,7 +41,7 @@ function recordToPerson(record, creatorEmail) {
       labels: [],
 
       createdBy: creatorEmail,
-      creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+      creationTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
       deletionTimestamp: "",
     };
 
@@ -68,6 +69,7 @@ function recordToPerson(record, creatorEmail) {
 
 export default function BulkImport(props) {
   const auth = useContext(UserAuthContext);
+  const firebase = useContext(FirebaseContext);
 
   const { peopleRef } = useFirestore();
 
@@ -95,7 +97,11 @@ export default function BulkImport(props) {
     }
 
     const createPerson = (record) => {
-      let personDocument = recordToPerson(record, auth.oauthClaims.email);
+      let personDocument = recordToPerson(
+        firebase,
+        record,
+        auth.oauthClaims.email
+      );
 
       if (!personDocument.name) {
         console.debug("skipping record (name missing)", record);
@@ -112,7 +118,7 @@ export default function BulkImport(props) {
     if (importProgress < records.length) {
       createPerson(records[importProgress]);
     }
-  }, [importProgress, auth.oauthClaims.email, peopleRef, records]);
+  }, [importProgress, auth.oauthClaims.email, peopleRef, records, firebase]);
 
   const onParse = (results) => {
     console.log("finished", results.data);
@@ -321,8 +327,13 @@ export default function BulkImport(props) {
 
 function ContactPreview(props) {
   const auth = useContext(UserAuthContext);
+  const firebase = useContext(FirebaseContext);
 
-  let personDocument = recordToPerson(props.record, auth.oauthClaims.email);
+  let personDocument = recordToPerson(
+    firebase,
+    props.record,
+    auth.oauthClaims.email
+  );
 
   return (
     <pre style={{ width: "100%" }}>

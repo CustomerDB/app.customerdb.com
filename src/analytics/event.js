@@ -1,7 +1,7 @@
-export default function event(name, params) {
+export default function event(firebase, name, params) {
   console.debug("analytics event", name, params);
-  if (!window.firebase.analytics) {
+  if (!firebase.analytics) {
     return;
   }
-  window.firebase.analytics().logEvent(name, params);
+  firebase.analytics().logEvent(name, params);
 }

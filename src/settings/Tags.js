@@ -15,6 +15,7 @@ import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import Fab from "@material-ui/core/Fab";
+import FirebaseContext from "../util/FirebaseContext.js";
 import Grid from "@material-ui/core/Grid";
 import Hidden from "@material-ui/core/Hidden";
 import IconButton from "@material-ui/core/IconButton";
@@ -52,6 +53,7 @@ const useStyles = makeStyles({
 
 export default function Tags(props) {
   const { oauthClaims } = useContext(UserAuthContext);
+  const firebase = useContext(FirebaseContext);
   const { tagGroupsRef } = useFirestore();
   const navigate = useNavigate();
   const { orgID, tagGroupID } = useParams();
@@ -82,7 +84,7 @@ export default function Tags(props) {
   }, [tagGroupsRef]);
 
   const onAdd = () => {
-    event("create_tag_group", {
+    event(firebase, "create_tag_group", {
       orgID: orgID,
       userID: oauthClaims.user_id,
     });
@@ -90,7 +92,7 @@ export default function Tags(props) {
     tagGroupsRef.add({
       name: "New tag set",
       createdBy: oauthClaims.email,
-      creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+      creationTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
 
       // Deletion is modeled as "soft-delete"; when the deletionTimestamp is set,
       // we don't show the document anymore in the list. However, it should be
@@ -167,6 +169,7 @@ export default function Tags(props) {
 
 function TagGroup(props) {
   const { oauthClaims } = useContext(UserAuthContext);
+  const firebase = useContext(FirebaseContext);
   const { orgID, tagGroupID } = useParams();
   const { tagGroupsRef, orgRef } = useFirestore();
   const [tagGroupRef, setTagGroupRef] = useState();
@@ -222,7 +225,7 @@ function TagGroup(props) {
   const onAddTag = () => {
     if (!tagGroupRef) return;
 
-    event("create_tag", {
+    event(firebase, "create_tag", {
       orgID: orgID,
       userID: oauthClaims.user_id,
     });
@@ -237,7 +240,7 @@ function TagGroup(props) {
       color: color.background,
       textColor: color.foreground,
       createdBy: oauthClaims.email,
-      creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+      creationTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
       deletionTimestamp: "",
     });
   };
@@ -301,7 +304,7 @@ function TagGroup(props) {
           color="primary"
           style={{ marginLeft: "0.5rem" }}
           onClick={() => {
-            event("delete_tag", {
+            event(firebase, "delete_tag", {
               orgID: orgID,
               userID: oauthClaims.user_id,
             });
@@ -319,7 +322,7 @@ function TagGroup(props) {
             tagGroupRef.collection("tags").doc(tag.ID).set(
               {
                 deletedBy: oauthClaims.email,
-                deletionTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+                deletionTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
               },
               { merge: true }
             );
@@ -497,6 +500,7 @@ function ColorPicker(props) {
 
 function TagGroupDeleteDialog({ tagGroupRef, open, setOpen, tagGroup }) {
   const { oauthClaims } = useContext(UserAuthContext);
+  const firebase = useContext(FirebaseContext);
   const { orgID } = useParams();
   const navigate = useNavigate();
 
@@ -519,14 +523,14 @@ function TagGroupDeleteDialog({ tagGroupRef, open, setOpen, tagGroup }) {
 
     console.debug("archiving tag group");
 
-    event("delete_tag_group", {
+    event(firebase, "delete_tag_group", {
       orgID: oauthClaims.orgID,
       userID: oauthClaims.user_id,
     });
     tagGroupRef.set(
       {
         deletedBy: oauthClaims.email,
-        deletionTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+        deletionTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
       },
       { merge: true }
     );

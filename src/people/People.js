@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import AddIcon from "@material-ui/icons/Add";
 import Avatar from "react-avatar";
 import Fab from "@material-ui/core/Fab";
+import FirebaseContext from "../util/FirebaseContext.js";
 import Grid from "@material-ui/core/Grid";
 import Hidden from "@material-ui/core/Hidden";
 import Infinite from "../shell/Infinite.js";
@@ -27,6 +28,7 @@ const batchSize = 25;
 
 export default function People(props) {
   const { oauthClaims } = useContext(UserAuthContext);
+  const firebase = useContext(FirebaseContext);
 
   const { peopleRef } = useFirestore();
 
@@ -142,7 +144,7 @@ export default function People(props) {
         color="secondary"
         aria-label="add"
         onClick={() => {
-          event("create_person", {
+          event(firebase, "create_person", {
             orgID: oauthClaims.orgID,
             userID: oauthClaims.user_id,
           });
@@ -150,7 +152,7 @@ export default function People(props) {
             .add({
               name: "Unnamed person",
               createdBy: oauthClaims.email,
-              creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+              creationTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
               deletionTimestamp: "",
             })
             .then((doc) => {

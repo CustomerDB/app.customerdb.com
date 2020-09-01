@@ -8,6 +8,7 @@ import DescriptionIcon from "@material-ui/icons/Description";
 import Document from "./Document.js";
 import DocumentCreateModal from "./DocumentCreateModal.js";
 import EditIcon from "@material-ui/icons/Edit";
+import FirebaseContext from "../util/FirebaseContext.js";
 import Grid from "@material-ui/core/Grid";
 import Hidden from "@material-ui/core/Hidden";
 import List from "@material-ui/core/List";
@@ -69,6 +70,7 @@ export default function Data(props) {
   let { documentID, orgID } = useParams();
   let { documentsRef } = useFirestore();
   let { oauthClaims } = useContext(UserAuthContext);
+  let firebase = useContext(FirebaseContext);
 
   const [editor, setEditor] = useState();
   const reactQuillRef = useCallback(
@@ -106,7 +108,7 @@ export default function Data(props) {
   }, [documentsRef]);
 
   const onAddDocument = () => {
-    event("create_data", {
+    event(firebase, "create_data", {
       orgID: oauthClaims.orgID,
       userID: oauthClaims.user_id,
     });
@@ -119,7 +121,7 @@ export default function Data(props) {
         ID: documentID,
         name: "Untitled Document",
         createdBy: oauthClaims.email,
-        creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+        creationTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
 
         tagGroupID: defaultTagGroupID || "",
 
@@ -144,7 +146,7 @@ export default function Data(props) {
           .collection("revisions")
           .add({
             delta: { ops: initialDelta().ops },
-            timestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
           });
       })
       .then(() => {

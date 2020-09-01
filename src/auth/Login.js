@@ -42,32 +42,32 @@ export default function Login(props) {
   const [loginSuccess, setLoginSuccess] = useState(undefined);
 
   const auth = useContext(UserAuthContext);
-
   const firebase = useContext(FirebaseContext);
 
   var provider = new firebase.auth.GoogleAuthProvider();
-  var db = firebase.firestore();
 
   const classes = useStyles();
 
   const login = () => {
-    window.firebase
+    firebase
       .auth()
-      .setPersistence(window.firebase.auth.Auth.Persistence.LOCAL)
+      .setPersistence(firebase.auth.Auth.Persistence.LOCAL)
       .then(function () {
-        window.firebase.auth().signInWithRedirect(provider);
+        firebase.auth().signInWithRedirect(provider);
       });
   };
 
   useEffect(() => {
     if (auth.oauthUser !== null) {
-      db.collection("userToOrg")
+      firebase
+        .firestore()
+        .collection("userToOrg")
         .doc(auth.oauthUser.email)
         .get()
         .then((doc) => {
           if (!doc.exists) {
             setLoginSuccess(false);
-            window.firebase.auth().signOut();
+            firebase.auth().signOut();
             return;
           }
 
@@ -78,7 +78,7 @@ export default function Login(props) {
           console.error("failed to read userToOrg mapping", e);
         });
     }
-  }, [navigate, auth, db]);
+  }, [navigate, auth, firebase]);
 
   let loginFailedMessage =
     loginSuccess === false ? (

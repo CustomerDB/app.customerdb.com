@@ -15,6 +15,7 @@ import ContentEditable from "react-contenteditable";
 import Delta from "quill-delta";
 import DocumentDeleteDialog from "./DocumentDeleteDialog.js";
 import DocumentSidebar from "./DocumentSidebar.js";
+import FirebaseContext from "../util/FirebaseContext.js";
 import Grid from "@material-ui/core/Grid";
 import Hidden from "@material-ui/core/Hidden";
 import HighlightBlot from "./HighlightBlot.js";
@@ -87,6 +88,7 @@ const useStyles = makeStyles({
 // colors.
 export default function ContentsPane(props) {
   const { oauthClaims } = useContext(UserAuthContext);
+  const firebase = useContext(FirebaseContext);
   const { orgID } = useParams();
   const {
     tagGroupsRef,
@@ -391,7 +393,7 @@ export default function ContentsPane(props) {
       .onSnapshot((snapshot) => {
         if (snapshot.size === 0) {
           setRevisionDelta(initialDelta());
-          setRevisionTimestamp(new window.firebase.firestore.Timestamp(0, 0));
+          setRevisionTimestamp(new firebase.firestore.Timestamp(0, 0));
           return;
         }
 
@@ -400,13 +402,13 @@ export default function ContentsPane(props) {
           let revision = doc.data();
           setRevisionDelta(new Delta(revision.delta.ops));
           if (!revision.timestamp) {
-            setRevisionTimestamp(new window.firebase.firestore.Timestamp(0, 0));
+            setRevisionTimestamp(new firebase.firestore.Timestamp(0, 0));
             return;
           }
           setRevisionTimestamp(revision.timestamp);
         });
       });
-  }, [revisionsRef]);
+  }, [revisionsRef, firebase.firestore.Timestamp]);
 
   // Document will contain the latest cached and compressed version of the delta document.
   // Subscribe to deltas from other remote clients.
@@ -538,7 +540,7 @@ export default function ContentsPane(props) {
       let deltaDoc = {
         editorID: editorID,
         userEmail: oauthClaims.email,
-        timestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
         ops: ops,
       };
 
@@ -575,9 +577,9 @@ export default function ContentsPane(props) {
             },
             text: current.text,
             createdBy: oauthClaims.email,
-            creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+            creationTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
             deletionTimestamp: props.document.deletionTimestamp,
-            lastUpdateTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+            lastUpdateTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
           };
 
           console.debug(
@@ -585,7 +587,7 @@ export default function ContentsPane(props) {
             newHighlight
           );
 
-          event("create_highlight", {
+          event(firebase, "create_highlight", {
             orgID: oauthClaims.orgID,
             userID: oauthClaims.user_id,
           });
@@ -616,7 +618,7 @@ export default function ContentsPane(props) {
           // highlight is not present; delete it in the database.
           console.debug("syncHighlightsUpdate: deleting highlight", h);
 
-          event("delete_highlight", {
+          event(firebase, "delete_highlight", {
             orgID: oauthClaims.orgID,
             userID: oauthClaims.user_id,
           });
@@ -646,7 +648,7 @@ export default function ContentsPane(props) {
               },
               text: current.text,
               deletionTimestamp: props.document.deletionTimestamp,
-              lastUpdateTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+              lastUpdateTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
             },
             { merge: true }
           );
@@ -683,6 +685,7 @@ export default function ContentsPane(props) {
     props.document.personID,
     props.editor,
     props.document.pending,
+    firebase,
   ]);
 
   // Subscribe to highlight changes

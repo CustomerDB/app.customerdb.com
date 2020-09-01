@@ -335,7 +335,7 @@ export default class AnalysisClusterBoard extends React.Component {
       // If this card was previously part of a group, check whether we need
       // to delete that group (because it became empty or only has one other card)
       if (card.groupID !== undefined) {
-        event("remove_card_from_group", {
+        event(this.props.firebase, "remove_card_from_group", {
           orgID: this.props.orgID,
           userID: this.props.userID,
         });
@@ -349,7 +349,7 @@ export default class AnalysisClusterBoard extends React.Component {
           // Delete the group.
           console.debug("deleting group with ID", card.groupID);
 
-          event("delete_group", {
+          event(this.props.firebase, "delete_group", {
             orgID: this.props.orgID,
             userID: this.props.userID,
           });
@@ -382,7 +382,7 @@ export default class AnalysisClusterBoard extends React.Component {
       let groupID = cardGroupIDs.values().next().value;
 
       if (card.groupID !== groupID) {
-        event("add_card_to_group", {
+        event(this.props.firebase, "add_card_to_group", {
           orgID: this.props.orgID,
           userID: this.props.userID,
         });
@@ -406,7 +406,7 @@ export default class AnalysisClusterBoard extends React.Component {
       // Create a group.
       console.debug("Creating a group");
 
-      event("create_group", {
+      event(this.props.firebase, "create_group", {
         orgID: this.props.orgID,
         userID: this.props.userID,
       });

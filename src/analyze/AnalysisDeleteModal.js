@@ -2,12 +2,14 @@ import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import Button from "react-bootstrap/Button";
+import FirebaseContext from "../util/FirebaseContext.js";
 import Modal from "../shell_obsolete/Modal.js";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
 
 export default function AnalysisDeleteModal(props) {
   const { oauthClaims } = useContext(UserAuthContext);
+  const firebase = useContext(FirebaseContext);
   const navigate = useNavigate();
 
   const { orgID } = useParams();
@@ -40,7 +42,7 @@ export default function AnalysisDeleteModal(props) {
         <Button
           key={analysis.ID}
           onClick={() => {
-            event("delete_analysis", {
+            event(firebase, "delete_analysis", {
               orgID: oauthClaims.orgID,
               userID: oauthClaims.user_id,
             });
@@ -48,7 +50,7 @@ export default function AnalysisDeleteModal(props) {
             props.analysisRef.set(
               {
                 deletedBy: oauthClaims.email,
-                deletionTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+                deletionTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
               },
               { merge: true }
             );
