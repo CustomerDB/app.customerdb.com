@@ -5,11 +5,13 @@ import { Route, MemoryRouter as Router, Routes } from "react-router-dom";
 
 import Document from "./Document.js";
 import FirebaseContext from "../util/FirebaseContext.js";
+import MutationObserver from "mutation-observer";
 import ReactDOM from "react-dom";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import { act } from "react-dom/test-utils";
-import { v4 as uuidv4 } from "uuid";
 import { wait } from "@testing-library/react";
+
+global.MutationObserver = MutationObserver;
 
 let container;
 let app;
@@ -83,6 +85,8 @@ const setupData = () => {
 };
 
 it("can render an existing document", async () => {
+  window.document.getSelection = function () {};
+
   // Test first render and componentDidMount
   await act(async () => {
     await setupData();
