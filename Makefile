@@ -38,5 +38,8 @@ check-format:
 	yarn prettier --check src/
 	yarn prettier --check functions/
 
+test:
+	firebase --project=customerdb-local emulators:exec "yarn test --watchAll=false --forceExit"
+
 install-git-hooks:
 	cp scripts/pre-commit .git/hooks/pre-commit
