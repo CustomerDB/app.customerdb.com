@@ -4,4 +4,4 @@ steps:
 - name: 'gcr.io/$PROJECT_ID/firebase'
   args: ['/usr/local/bin/npm', '--prefix=/workspace/functions', 'install']
 - name: 'gcr.io/$PROJECT_ID/firebase'
-  args: ['/usr/bin/make', 'test]
+  args: ['/usr/bin/make', 'test']
