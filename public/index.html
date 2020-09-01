@@ -32,13 +32,21 @@
       window.acceptPerformanceCookies();
     </script>
 
-    <!-- TODO: Do this in firebaseConfig.js instead -->
-    <script
-      type="text/plain"
-      data-categories="analytics"
-      src="https://www.gstatic.com/firebasejs/7.14.6/firebase-analytics.js"
-      onload="(function () { console.debug('initialize analytics'); window.firebase.analytics(); })()"
-    ></script>
+    <script>
+      window.acceptAnalyticsCookies = undefined;
+      window.analyticsPromise = new Promise(function (resolve) {
+        window.acceptAnalyticsCookies = () => {
+          console.log("resolving analyticsPromise");
+          resolve();
+        };
+      });
+    </script>
+    <script type="text/plain" data-categories="analytics">
+      while (!window.acceptAnalyticsCookies) {
+        // busy wait :(
+      }
+      window.acceptAnalyticsCookies();
+    </script>
 
     <script src="/getEmPixels.min.js"></script>
   </head>

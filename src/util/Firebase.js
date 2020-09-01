@@ -29,6 +29,10 @@ class Firebase {
       });
     }
 
+    window.analyticsPromise.then(() => {
+      app.analytics();
+    });
+
     this.auth = app.auth;
     this.firestore = app.firestore;
     this.storage = app.storage;
