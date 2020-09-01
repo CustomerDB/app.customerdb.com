@@ -1,5 +1,7 @@
+import React, { useContext } from "react";
+
 import CircularProgress from "@material-ui/core/CircularProgress";
-import React from "react";
+import FirebaseContext from "../util/FirebaseContext.js";
 
 export function now() {
   let now = new Date();
@@ -16,8 +18,11 @@ export function Loading() {
   );
 }
 
-export function logout() {
-  return window.firebase.auth().signOut();
+export function useLogout() {
+  const firebase = useContext(FirebaseContext);
+  return () => {
+    firebase.auth().signOut();
+  };
 }
 
 export function checkReturn(e) {

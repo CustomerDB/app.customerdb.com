@@ -7,11 +7,13 @@ import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
+import FirebaseContext from "../util/FirebaseContext.js";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
 
 export default function PersonDeleteDialog(props) {
   const { oauthClaims } = useContext(UserAuthContext);
+  const firebase = useContext(FirebaseContext);
   const navigate = useNavigate();
 
   const { orgID } = useParams();
@@ -55,14 +57,14 @@ export default function PersonDeleteDialog(props) {
         </Button>
         <Button
           onClick={() => {
-            event("delete_person", {
+            event(firebase, "delete_person", {
               orgID: oauthClaims.orgID,
               userID: oauthClaims.user_id,
             });
             props.personRef.set(
               {
                 deletedBy: oauthClaims.email,
-                deletionTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+                deletionTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
               },
               { merge: true }
             );

@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 
 import AnalysisDeleteModal from "./AnalysisDeleteModal.js";
 import ArchiveIcon from "@material-ui/icons/Archive";
 import Button from "@material-ui/core/Button";
 import ContentEditable from "react-contenteditable";
+import FirebaseContext from "../util/FirebaseContext.js";
 import GetAppIcon from "@material-ui/icons/GetApp";
 import Grid from "@material-ui/core/Grid";
 import IconButton from "@material-ui/core/IconButton";
@@ -24,6 +25,8 @@ export default function AnalysisSummaryTab(props) {
     allTagsRef,
     peopleRef,
   } = useFirestore();
+
+  const firebase = useContext(FirebaseContext);
 
   const [groups, setGroups] = useState();
   const [cards, setCards] = useState();
@@ -82,7 +85,7 @@ export default function AnalysisSummaryTab(props) {
     let analysisDocumentsRef = documentsRef
       .where("deletionTimestamp", "==", "")
       .where(
-        window.firebase.firestore.FieldPath.documentId(),
+        firebase.firestore.FieldPath.documentId(),
         "in",
         props.analysis.documentIDs
       );
@@ -94,7 +97,7 @@ export default function AnalysisSummaryTab(props) {
       });
       setDocuments(newDocuments);
     });
-  }, [documentsRef, props.analysis.documentIDs]);
+  }, [documentsRef, props.analysis.documentIDs, firebase.firestore.FieldPath]);
 
   useEffect(() => {
     if (!allTagsRef) {
@@ -127,7 +130,7 @@ export default function AnalysisSummaryTab(props) {
     }
 
     return peopleRef
-      .where(window.firebase.firestore.FieldPath.documentId(), "in", peopleIDs)
+      .where(firebase.firestore.FieldPath.documentId(), "in", peopleIDs)
       .onSnapshot((snapshot) => {
         let newPeople = {};
         snapshot.forEach((doc) => {
@@ -135,7 +138,7 @@ export default function AnalysisSummaryTab(props) {
         });
         setPeople(newPeople);
       });
-  }, [peopleRef, documents]);
+  }, [peopleRef, documents, firebase.firestore.FieldPath]);
 
   if (
     !documentsRef ||
