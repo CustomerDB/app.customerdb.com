@@ -1,7 +1,7 @@
 FROM node
 
 RUN npm i -g firebase-tools
-RUN apt-get update -y && apt-get install -y yarn
+RUN apt-get update -y && apt-get install -y yarn openjdk-8-jre
 ADD firebase.bash /usr/bin
 RUN chmod +x /usr/bin/firebase.bash
 RUN /usr/bin/firebase.bash setup:emulators:firestore
