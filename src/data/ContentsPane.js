@@ -1,4 +1,7 @@
 import "react-quill/dist/quill.snow.css";
+import "firebase/firestore";
+
+import * as firebaseClient from "firebase/app";
 
 import React, {
   useCallback,
@@ -393,7 +396,7 @@ export default function ContentsPane(props) {
       .onSnapshot((snapshot) => {
         if (snapshot.size === 0) {
           setRevisionDelta(initialDelta());
-          setRevisionTimestamp(new firebase.firestore.Timestamp(0, 0));
+          setRevisionTimestamp(new firebaseClient.firestore.Timestamp(0, 0));
           return;
         }
 
@@ -402,13 +405,13 @@ export default function ContentsPane(props) {
           let revision = doc.data();
           setRevisionDelta(new Delta(revision.delta.ops));
           if (!revision.timestamp) {
-            setRevisionTimestamp(new firebase.firestore.Timestamp(0, 0));
+            setRevisionTimestamp(new firebaseClient.firestore.Timestamp(0, 0));
             return;
           }
           setRevisionTimestamp(revision.timestamp);
         });
       });
-  }, [revisionsRef, firebase.firestore.Timestamp]);
+  }, [revisionsRef]);
 
   // Document will contain the latest cached and compressed version of the delta document.
   // Subscribe to deltas from other remote clients.
@@ -540,7 +543,7 @@ export default function ContentsPane(props) {
       let deltaDoc = {
         editorID: editorID,
         userEmail: oauthClaims.email,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        timestamp: firebaseClient.firestore.FieldValue.serverTimestamp(),
         ops: ops,
       };
 
@@ -577,9 +580,9 @@ export default function ContentsPane(props) {
             },
             text: current.text,
             createdBy: oauthClaims.email,
-            creationTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            creationTimestamp: firebaseClient.firestore.FieldValue.serverTimestamp(),
             deletionTimestamp: props.document.deletionTimestamp,
-            lastUpdateTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            lastUpdateTimestamp: firebaseClient.firestore.FieldValue.serverTimestamp(),
           };
 
           console.debug(
@@ -648,7 +651,7 @@ export default function ContentsPane(props) {
               },
               text: current.text,
               deletionTimestamp: props.document.deletionTimestamp,
-              lastUpdateTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
+              lastUpdateTimestamp: firebaseClient.firestore.FieldValue.serverTimestamp(),
             },
             { merge: true }
           );
