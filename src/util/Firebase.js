@@ -29,8 +29,6 @@ class Firebase {
       });
     }
 
-    console.log("Firebase initialized");
-
     this.auth = app.auth;
     this.firestore = app.firestore;
     this.storage = app.storage;

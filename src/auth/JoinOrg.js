@@ -20,7 +20,7 @@ export default function JoinOrg(props) {
 
   const firebase = useContext(FirebaseContext);
 
-  var provider = new firebase.auth.GoogleAuthProvider();
+  var provider = new firebase.auth().GoogleAuthProvider();
   var db = firebase.firestore();
 
   let navigate = useNavigate();

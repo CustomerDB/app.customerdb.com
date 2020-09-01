@@ -25,7 +25,7 @@ const useStyles = makeStyles({
 
 export default function Profile(props) {
   const auth = useContext(UserAuthContext);
-  const { membersRef } = useFirestore();
+  const { membersRef, orgRef } = useFirestore();
   const [displayName, setDisplayName] = useState();
   const [memberRef, setMemberRef] = useState();
 
@@ -42,7 +42,6 @@ export default function Profile(props) {
 
     return ref.onSnapshot((doc) => {
       let data = doc.data();
-      console.log("data", data);
       setDisplayName(data.displayName);
     });
   }, [auth.oauthClaims.email, membersRef, auth.oauthClaims]);
@@ -69,6 +68,7 @@ export default function Profile(props) {
             <Grid item>
               <Typography align="center" variant="h4" component="h2">
                 <ContentEditable
+                  id="displayName"
                   html={displayName ? displayName : ""}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {

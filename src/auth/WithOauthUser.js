@@ -12,8 +12,6 @@ export default function WithOauthUser(props) {
 
   const firebase = useContext(FirebaseContext);
 
-  console.log(firebase);
-
   useEffect(() => {
     const loginCallback = (user) => {
       console.debug("loginCallback user", user);

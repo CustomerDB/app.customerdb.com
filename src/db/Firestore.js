@@ -13,7 +13,10 @@ export default function useFirestore() {
   const firebase = useContext(FirebaseContext);
   const db = firebase.firestore();
 
+  console.log("useParams ", useParams());
+
   useEffect(() => {
+    console.log("useFirestore: found org ID: ", orgID);
     if (!orgID) {
       setOrgRefs({});
       return;
