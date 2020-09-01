@@ -21,7 +21,7 @@
     "material-ui": "^0.20.2",
     "material-ui-dropzone": "^3.4.0",
     "moment": "^2.27.0",
-    "nanoid": "^3.1.10",
+    "nanoid": "^3.1.12",
     "nivo": "^0.31.0",
     "papaparse": "^5.2.0",
     "quill-delta": "^4.2.2",

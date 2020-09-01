@@ -99,6 +99,8 @@ export default function ContentsPane(props) {
 
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
+  console.log(nanoid);
+
   const [editorID] = useState(nanoid());
   const [revisionDelta, setRevisionDelta] = useState();
   const [revisionTimestamp, setRevisionTimestamp] = useState();
@@ -741,7 +743,12 @@ export default function ContentsPane(props) {
                 <Grid container>
                   <Grid container item xs={12} alignItems="flex-start">
                     <Grid item xs={11}>
-                      <Typography gutterBottom variant="h4" component="h2">
+                      <Typography
+                        gutterBottom
+                        variant="h4"
+                        component="h2"
+                        id="documentTitle"
+                      >
                         <ContentEditable
                           html={props.document.name}
                           onKeyDown={(e) => {

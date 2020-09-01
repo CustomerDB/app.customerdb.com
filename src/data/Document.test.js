@@ -1,13 +1,14 @@
 import * as firebase from "@firebase/testing";
 
+import React, { useCallback, useState } from "react";
 import { Route, MemoryRouter as Router, Routes } from "react-router-dom";
 
+import Document from "./Document.js";
 import FirebaseContext from "../util/FirebaseContext.js";
-import Profile from "./Profile.js";
-import React from "react";
 import ReactDOM from "react-dom";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import { act } from "react-dom/test-utils";
+import { nanoid } from "nanoid";
 import { wait } from "@testing-library/react";
 
 let container;
@@ -16,6 +17,7 @@ let adminApp;
 let contextValue;
 
 const orgID = "acme-0001";
+
 const userObject = {
   uid: "abcdefg",
   email: "someone@example.com",
@@ -23,6 +25,8 @@ const userObject = {
   email_verified: true,
   photoURL: "https://lh3.googleusercontent.com/a-/fakeimage",
 };
+
+const documentID = "fake-document-id";
 
 beforeEach(() => {
   container = document.createElement("div");
@@ -65,24 +69,26 @@ const setupData = () => {
       name: "Acme 0001",
     })
     .then(() => {
-      return orgRef.collection("members").doc(userObject.email).set({
-        admin: true,
-        active: true,
-        invited: false,
-        displayName: userObject.displayName,
-        email: userObject.email,
-        uid: userObject.uid,
-        photoURL: userObject.photoURL,
+      return orgRef.collection("documents").doc(documentID).set({
+        ID: documentID,
+        name: "Test Document",
+        createdBy: userObject.email,
+        creationTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        tagGroupID: "",
+        templateID: "",
+        needsIndex: false,
+        deletionTimestamp: "",
       });
     });
 };
 
-it("can render the logged-in user's details", async () => {
+it("can render an existing document", async () => {
   // Test first render and componentDidMount
   await act(async () => {
     await setupData();
-    let route = "/org/acme-0001";
-    let path = "/org/:orgID";
+    let route = `/org/acme-0001/data/${documentID}`;
+    let path = "/org/:orgID/data/:documentID";
+
     ReactDOM.render(
       <Router initialEntries={[route]}>
         <Routes>
@@ -91,7 +97,7 @@ it("can render the logged-in user's details", async () => {
             element={
               <FirebaseContext.Provider value={app}>
                 <UserAuthContext.Provider value={contextValue}>
-                  <Profile />
+                  <DocumentWrapper />
                 </UserAuthContext.Provider>
               </FirebaseContext.Provider>
             }
@@ -103,7 +109,23 @@ it("can render the logged-in user's details", async () => {
   });
 
   await wait(() => {
-    const name = container.querySelector("#displayName");
-    return expect(name.textContent).toBe("Alice Fake");
+    const name = container.querySelector("#documentTitle");
+    return expect(name.textContent).toBe("Test Document");
   });
 });
+
+const DocumentWrapper = (props) => {
+  const [editor, setEditor] = useState();
+  const reactQuillRef = useCallback(
+    (current) => {
+      if (!current) {
+        setEditor();
+        return;
+      }
+      setEditor(current.getEditor());
+    },
+    [setEditor]
+  );
+
+  return <Document editor={editor} reactQuillRef={reactQuillRef} />;
+};
