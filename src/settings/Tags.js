@@ -33,9 +33,9 @@ import Typography from "@material-ui/core/Typography";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
 import { makeStyles } from "@material-ui/core/styles";
-import { nanoid } from "nanoid";
 import useFirestore from "../db/Firestore.js";
 import { useOrganization } from "../organization/hooks.js";
+import { v4 as uuidv4 } from "uuid";
 
 const useStyles = makeStyles({
   tagGroupCard: {
@@ -228,7 +228,7 @@ function TagGroup(props) {
     });
 
     let color = colorPair();
-    let newTagID = nanoid();
+    let newTagID = uuidv4();
 
     tagGroupRef.collection("tags").doc(newTagID).set({
       ID: newTagID,

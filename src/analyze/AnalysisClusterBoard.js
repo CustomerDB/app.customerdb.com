@@ -12,7 +12,7 @@ import React from "react";
 import colorPair from "../util/color.js";
 import domToImage from "dom-to-image";
 import event from "../analytics/event.js";
-import { nanoid } from "nanoid";
+import { v4 as uuidv4 } from "uuid";
 
 export default class AnalysisClusterBoard extends React.Component {
   constructor(props) {
@@ -411,7 +411,7 @@ export default class AnalysisClusterBoard extends React.Component {
         userID: this.props.userID,
       });
 
-      let groupID = nanoid();
+      let groupID = uuidv4();
       let colors = colorPair();
 
       this.props.groupsRef.doc(groupID).set({

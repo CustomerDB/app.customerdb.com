@@ -21,7 +21,6 @@
     "material-ui": "^0.20.2",
     "material-ui-dropzone": "^3.4.0",
     "moment": "^2.27.0",
-    "nanoid": "^3.1.12",
     "nivo": "^0.31.0",
     "papaparse": "^5.2.0",
     "quill-delta": "^4.2.2",
@@ -46,7 +45,7 @@
     "react-virtualized": "^9.21.2",
     "react-zoom-pan-pinch": "^1.6.1",
     "stackdriver-errors-js": "^0.8.0",
-    "uuid": "^8.1.0",
+    "uuid": "^8.3.0",
     "uuidv4": "^6.1.1"
   },
   "scripts": {

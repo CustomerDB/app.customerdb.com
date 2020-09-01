@@ -7,10 +7,10 @@ import Grid from "@material-ui/core/Grid";
 import { Loading } from "../util/Utils.js";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import { makeStyles } from "@material-ui/core/styles";
-import { nanoid } from "nanoid";
 import papa from "papaparse";
 import { useDropzone } from "react-dropzone";
 import useFirestore from "../db/Firestore.js";
+import { v4 as uuidv4 } from "uuid";
 
 const useStyles = makeStyles({
   fullWidthCard: {
@@ -45,7 +45,7 @@ function recordToPerson(record, creatorEmail) {
     };
 
     if (record.LinkedIn) {
-      let fieldID = nanoid();
+      let fieldID = uuidv4();
       filtered.customFields[fieldID] = {
         ID: fieldID,
         kind: "LinkedIn",
@@ -54,7 +54,7 @@ function recordToPerson(record, creatorEmail) {
     }
 
     if (record.Twitter) {
-      let fieldID = nanoid();
+      let fieldID = uuidv4();
       filtered.customFields[fieldID] = {
         ID: fieldID,
         kind: "Twitter",

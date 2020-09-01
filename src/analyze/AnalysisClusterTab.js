@@ -12,8 +12,8 @@ import Grid from "@material-ui/core/Grid";
 import { Loading } from "../util/Utils.js";
 import Modal from "../shell_obsolete/Modal.js";
 import UserAuthContext from "../auth/UserAuthContext.js";
-import { nanoid } from "nanoid";
 import useFirestore from "../db/Firestore.js";
+import { v4 as uuidv4 } from "uuid";
 
 export default function AnalysisClusterTab(props) {
   const { oauthClaims } = useContext(UserAuthContext);
@@ -84,7 +84,7 @@ export default function AnalysisClusterTab(props) {
     // same group consecutively.
     //
     // TODO: fix this in a cleaner way.
-    setModalGroupNonce(nanoid());
+    setModalGroupNonce(uuidv4());
     setModalGroupID(ID);
     setShowRenameGroupModal(true);
   };

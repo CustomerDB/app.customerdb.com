@@ -28,9 +28,9 @@ import { connectHits } from "react-instantsearch-dom";
 import event from "../analytics/event.js";
 import { initialDelta } from "./delta.js";
 import { makeStyles } from "@material-ui/core/styles";
-import { nanoid } from "nanoid";
 import useFirestore from "../db/Firestore.js";
 import { useOrganization } from "../organization/hooks.js";
+import { v4 as uuidv4 } from "uuid";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -111,7 +111,7 @@ export default function Data(props) {
       userID: oauthClaims.user_id,
     });
 
-    let documentID = nanoid();
+    let documentID = uuidv4();
 
     documentsRef
       .doc(documentID)

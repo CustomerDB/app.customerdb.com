@@ -32,9 +32,9 @@ import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
 import { initialDelta } from "./delta.js";
 import { makeStyles } from "@material-ui/core/styles";
-import { nanoid } from "nanoid";
 import useFirestore from "../db/Firestore.js";
 import { useParams } from "react-router-dom";
+import { v4 as uuidv4 } from "uuid";
 
 Quill.register("formats/highlight", HighlightBlot);
 
@@ -99,14 +99,12 @@ export default function ContentsPane(props) {
 
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
-  console.log(nanoid);
-
-  const [editorID] = useState(nanoid());
+  const [editorID] = useState(uuidv4());
   const [revisionDelta, setRevisionDelta] = useState();
   const [revisionTimestamp, setRevisionTimestamp] = useState();
   const [tagGroupName, setTagGroupName] = useState();
   const [tags, setTags] = useState();
-  const [reflowHints, setReflowHints] = useState(nanoid());
+  const [reflowHints, setReflowHints] = useState(uuidv4());
   const [toolbarHeight, setToolbarHeight] = useState(40);
   const [transcriptionProgress, setTranscriptionProgress] = useState();
 
@@ -123,7 +121,7 @@ export default function ContentsPane(props) {
   const classes = useStyles();
 
   const updateHints = () => {
-    setReflowHints(nanoid());
+    setReflowHints(uuidv4());
   };
 
   // Subscribe to window resize events because hint offsets need to be
@@ -282,7 +280,7 @@ export default function ContentsPane(props) {
     if (checked) {
       console.debug("formatting highlight with tag ", tag);
 
-      let highlightID = nanoid();
+      let highlightID = uuidv4();
 
       props.editor.formatText(
         selection.index,

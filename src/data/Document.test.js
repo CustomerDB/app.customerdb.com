@@ -8,7 +8,7 @@ import FirebaseContext from "../util/FirebaseContext.js";
 import ReactDOM from "react-dom";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import { act } from "react-dom/test-utils";
-import { nanoid } from "nanoid";
+import { v4 as uuidv4 } from "uuid";
 import { wait } from "@testing-library/react";
 
 let container;

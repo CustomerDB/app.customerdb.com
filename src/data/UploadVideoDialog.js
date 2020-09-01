@@ -18,8 +18,8 @@ import TextField from "@material-ui/core/TextField";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import { green } from "@material-ui/core/colors";
 import { makeStyles } from "@material-ui/core/styles";
-import { nanoid } from "nanoid";
 import useFirestore from "../db/Firestore.js";
+import { v4 as uuidv4 } from "uuid";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -91,8 +91,8 @@ export default function UploadVideoDialog({ open, setOpen }) {
     setUploading(true);
 
     // Store name, speaker count and path in operation document.
-    let transcriptionID = nanoid();
-    let documentID = nanoid();
+    let transcriptionID = uuidv4();
+    let documentID = uuidv4();
 
     // TODO: Find official google storage rules for allowed object names.
     let fileName = file.name.replace(/[ !@#$%^&*()+[]{}<>]/g, "-");

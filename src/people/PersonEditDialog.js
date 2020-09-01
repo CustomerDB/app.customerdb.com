@@ -8,7 +8,7 @@ import Modal from "../shell_obsolete/Modal.js";
 import Row from "react-bootstrap/Row";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
-import { nanoid } from "nanoid";
+import { v4 as uuidv4 } from "uuid";
 
 export default function PersonEditDialog(props) {
   const { oauthClaims } = useContext(UserAuthContext);
@@ -55,7 +55,7 @@ export default function PersonEditDialog(props) {
   }
 
   const addCustomField = () => {
-    let ID = nanoid();
+    let ID = uuidv4();
     let fields = {};
     Object.assign(fields, customFields);
     fields[ID] = { ID: ID, kind: "", value: "" };
@@ -63,7 +63,7 @@ export default function PersonEditDialog(props) {
   };
 
   const addLabel = () => {
-    let ID = nanoid();
+    let ID = uuidv4();
     let l = {};
     Object.assign(l, labels);
     l[ID] = { ID: ID, kind: "" };

@@ -31,8 +31,8 @@ import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
 import { initialDelta } from "../data/delta.js";
 import { makeStyles } from "@material-ui/core/styles";
-import { nanoid } from "nanoid";
 import useFirestore from "../db/Firestore.js";
+import { v4 as uuidv4 } from "uuid";
 
 // Synchronize every second (1000ms).
 const syncPeriod = 1000;
@@ -87,7 +87,7 @@ export default function Templates(props) {
       userID: oauthClaims.user_id,
     });
 
-    let newTemplateID = nanoid();
+    let newTemplateID = uuidv4();
     templatesRef
       .doc(newTemplateID)
       .set({

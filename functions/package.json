@@ -18,10 +18,10 @@
     "csv-parser": "^2.3.3",
     "firebase-admin": "^8.10.0",
     "firebase-functions": "^3.8.0",
-    "nanoid": "^3.1.11",
     "quill-delta": "^4.2.2",
     "quill-delta-to-plaintext": "^1.0.0",
-    "tmp": "^0.2.1"
+    "tmp": "^0.2.1",
+    "uuid": "^8.3.0"
   },
   "private": true
 }
