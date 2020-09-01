@@ -71,16 +71,31 @@ const setupData = () => {
       name: "Acme 0001",
     })
     .then(() => {
-      return orgRef.collection("documents").doc(documentID).set({
-        ID: documentID,
-        name: "Test Document",
-        createdBy: userObject.email,
-        creationTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
-        tagGroupID: "",
-        templateID: "",
-        needsIndex: false,
-        deletionTimestamp: "",
-      });
+      return orgRef
+        .collection("documents")
+        .doc(documentID)
+        .set({
+          ID: documentID,
+          name: "Test Document",
+          createdBy: userObject.email,
+          creationTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
+          tagGroupID: "",
+          templateID: "",
+          needsIndex: false,
+          deletionTimestamp: "",
+        })
+        .then(() => {
+          return orgRef
+            .collection("documents")
+            .doc(documentID)
+            .collection("deltas")
+            .add({
+              editorID: "",
+              ops: [{ insert: "Hello" }],
+              timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+              userEmail: "system@example.com",
+            });
+        });
     });
 };
 
@@ -115,6 +130,11 @@ it("can render an existing document", async () => {
   await wait(() => {
     const name = container.querySelector("#documentTitle");
     return expect(name.textContent).toBe("Test Document");
+  });
+
+  await wait(() => {
+    const editor = container.querySelector(".ql-editor");
+    return expect(editor.textContent).toBe("Hello");
   });
 });
 
