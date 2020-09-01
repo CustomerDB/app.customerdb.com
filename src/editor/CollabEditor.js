@@ -1,10 +1,14 @@
+import "firebase/firestore";
+
+import * as firebaseClient from "firebase/app";
+
 import React, { useContext, useEffect, useRef, useState } from "react";
 
 import Delta from "quill-delta";
 import ReactQuill from "react-quill";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import { initialDelta } from "./delta.js";
-import { nanoid } from "nanoid";
+import { v4 as uuidv4 } from "uuid";
 
 // Synchronize every second by default (1000ms).
 const defaultSyncPeriod = 1000;
@@ -48,7 +52,7 @@ export default function CollabEditor({
   syncPeriod,
   ...otherProps
 }) {
-  const [editorID] = useState(nanoid());
+  const [editorID] = useState(uuidv4());
   const [revisionDelta, setRevisionDelta] = useState();
   const [revisionTimestamp, setRevisionTimestamp] = useState();
   const [revisionsRef, setRevisionsRef] = useState();
@@ -80,7 +84,7 @@ export default function CollabEditor({
       .onSnapshot((snapshot) => {
         if (snapshot.size === 0) {
           setRevisionDelta(initialDelta());
-          setRevisionTimestamp(new window.firebase.firestore.Timestamp(0, 0));
+          setRevisionTimestamp(new firebaseClient.firestore.Timestamp(0, 0));
           return;
         }
 
@@ -89,7 +93,7 @@ export default function CollabEditor({
           let revision = doc.data();
           setRevisionDelta(new Delta(revision.delta.ops));
           if (!revision.timestamp) {
-            setRevisionTimestamp(new window.firebase.firestore.Timestamp(0, 0));
+            setRevisionTimestamp(new firebaseClient.firestore.Timestamp(0, 0));
             return;
           }
           setRevisionTimestamp(revision.timestamp);
@@ -221,7 +225,7 @@ export default function CollabEditor({
       let deltaDoc = {
         editorID: editorID,
         userEmail: oauthClaims.email,
-        timestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+        timestamp: firebaseClient.firestore.FieldValue.serverTimestamp(),
         ops: ops,
       };
 
