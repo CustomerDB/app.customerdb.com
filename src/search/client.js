@@ -1,10 +1,45 @@
+import { useContext, useEffect, useState } from "react";
+
+import FirebaseContext from "../util/FirebaseContext.js";
+import UserAuthContext from "../auth/UserAuthContext.js";
 import algoliasearch from "algoliasearch/lite";
 
-export function getSearchClient(firebase, orgID, userID) {
-  const db = firebase.firestore();
+export function useSearchClient() {
+  const { oauthClaims } = useContext(UserAuthContext);
+  const firebase = useContext(FirebaseContext);
+  const [client, setClient] = useState();
+
+  useEffect(() => {
+    if (
+      process.env.REACT_APP_FIREBASE_PROJECT_ID === "customerdb-development"
+    ) {
+      console.debug("hosted search is disabled for local development");
+      return;
+    }
+
+    if (
+      !firebase ||
+      !oauthClaims ||
+      !oauthClaims.orgID ||
+      !oauthClaims.user_id
+    ) {
+      return;
+    }
+    setClient(
+      getSearchClient(firebase, oauthClaims.orgID, oauthClaims.user_id)
+    );
+  }, [firebase, oauthClaims, oauthClaims.orgID, oauthClaims.user_id]);
+
+  return client;
+}
+
+function getSearchClient(firebase, orgID, userID) {
+  console.debug("fetching search API key");
+
   const getSearchKey = firebase.functions().httpsCallable("getSearchKey");
 
-  return db
+  return firebase
+    .firestore()
     .collection("organizations")
     .doc(orgID)
     .collection("apiKeys")

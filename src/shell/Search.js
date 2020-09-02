@@ -1,32 +1,14 @@
 import { InstantSearch, connectSearchBox } from "react-instantsearch-dom";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { fade, makeStyles } from "@material-ui/core/styles";
 
-import FirebaseContext from "../util/FirebaseContext.js";
 import InputBase from "@material-ui/core/InputBase";
 import SearchIcon from "@material-ui/icons/Search";
-import UserAuthContext from "../auth/UserAuthContext.js";
-import { getSearchClient } from "../search/client.js";
+import { useSearchClient } from "../search/client.js";
 
 export function Search(props) {
-  const auth = useContext(UserAuthContext);
-  const firebase = useContext(FirebaseContext);
-
   const [searchState, setSearchState] = useState({});
-
-  const [searchClient, setSearchClient] = useState();
-
-  useEffect(() => {
-    if (!props.search) {
-      return;
-    }
-
-    getSearchClient(firebase, auth.oauthClaims.orgID, auth.oauthUser.uid).then(
-      (client) => {
-        setSearchClient(client);
-      }
-    );
-  }, [auth.oauthClaims.orgID, auth.oauthUser.uid, props.search, firebase]);
+  const searchClient = useSearchClient();
 
   useEffect(() => {
     if (!props.search || !props.search.setShowResults) {
