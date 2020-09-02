@@ -35,7 +35,7 @@ export function useSearchClient() {
         setClient(client);
       }
     );
-  }, [firebase, oauthClaims, oauthClaims.orgID, oauthClaims.user_id]);
+  }, [firebase, oauthClaims, oauthClaims.orgID, oauthClaims.user_id, client]);
 
   return client;
 }
