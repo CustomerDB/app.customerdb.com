@@ -6,7 +6,7 @@ steps:
 - name: 'gcr.io/$PROJECT_ID/firebase'
   args: ['/usr/local/bin/npm', '--prefix=/workspace/functions', 'install']
 - name: 'gcr.io/$PROJECT_ID/firebase'
-  args: [/usr/bin/firebase.bash', '--project=customerdb-development', 'emulators:exec', "yarn test --watchAll=false --forceExit"]
+  args: ['/usr/bin/firebase.bash', '--project=customerdb-development', 'emulators:exec', '"yarn test --watchAll=false --forceExit"']
   env:
   - 'REACT_APP_FIREBASE_API_KEY=$_FIREBASE_API_KEY'
   - 'REACT_APP_FIREBASE_AUTH_DOMAIN=$_FIREBASE_AUTH_DOMAIN'
