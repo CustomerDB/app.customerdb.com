@@ -454,7 +454,6 @@ const indexUpdated = (index) => {
         });
 
         if (data.needsIndex === true) {
-          console.log("Needs index ", data);
           return change.after.ref
             .collection("deltas")
             .where("timestamp", ">", ts)
