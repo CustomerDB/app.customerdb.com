@@ -27,6 +27,8 @@ class Firebase {
         host: "localhost:8080",
         ssl: false,
       });
+
+      app.functions().useFunctionsEmulator("http://localhost:5001");
     }
 
     window.analyticsPromise.then(() => {

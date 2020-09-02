@@ -4,7 +4,6 @@ const admin = require("firebase-admin");
 const fs = require("fs");
 const algoliasearch = require("algoliasearch");
 const Delta = require("quill-delta");
-const toPlaintext = require("quill-delta-to-plaintext");
 const { v4: uuidv4 } = require("uuid");
 const Video = require("@google-cloud/video-intelligence").v1p3beta1;
 const tmp = require("tmp");
@@ -415,6 +414,14 @@ exports.updateHighlightsForUpdatedDocument = functions.firestore
     }
   });
 
+const deltaToPlaintext = (delta) => {
+  return delta.reduce(function (text, op) {
+    if (!op.insert) return text;
+    if (typeof op.insert !== "string") return text + " ";
+    return text + op.insert;
+  }, "");
+};
+
 const indexUpdated = (index) => {
   return (change, context) => {
     if (!change.after.exists || change.after.data().deletionTimestamp != "") {
@@ -447,6 +454,7 @@ const indexUpdated = (index) => {
         });
 
         if (data.needsIndex === true) {
+          console.log("Needs index ", data);
           return change.after.ref
             .collection("deltas")
             .where("timestamp", ">", ts)
@@ -462,7 +470,7 @@ const indexUpdated = (index) => {
               });
 
               // Convert the consolidated document delta snapshot to text.
-              let docText = toPlaintext(latestRevisionDelta);
+              let docText = deltaToPlaintext(latestRevisionDelta);
 
               // Index the new content
               let docToIndex = {
@@ -505,7 +513,7 @@ const indexUpdated = (index) => {
           createdBy: data.createdBy,
           creationTimestamp: data.creationTimestamp.seconds,
           latestSnapshotTimestamp: ts.seconds,
-          text: toPlaintext(latestRevisionDelta),
+          text: deltaToPlaintext(latestRevisionDelta),
         });
       });
   };
