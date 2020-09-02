@@ -30,7 +30,7 @@ const userObject = {
 
 const documentID = "fake-document-id";
 
-beforeEach(() => {
+beforeEach(async () => {
   container = document.createElement("div");
   document.body.appendChild(container);
 
@@ -56,11 +56,33 @@ beforeEach(() => {
     },
     oauthLoading: false,
   };
+
+  let db = adminApp.firestore();
+  let orgRef = db.collection("organizations").doc(orgID);
+  await orgRef
+    .set({
+      name: "Acme 0001",
+    })
+    .then(() => {
+      return orgRef.collection("members").doc(userObject.email).set({
+        admin: true,
+        active: true,
+        invited: false,
+        displayName: userObject.displayName,
+        email: userObject.email,
+        uid: userObject.uid,
+        photoURL: userObject.photoURL,
+      });
+    });
 });
 
 afterEach(() => {
   document.body.removeChild(container);
   container = null;
+});
+
+afterEach(async () => {
+  await Promise.all(firebase.apps().map((app) => app.delete()));
 });
 
 const setupData = () => {

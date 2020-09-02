@@ -24,7 +24,7 @@ const userObject = {
   photoURL: "https://lh3.googleusercontent.com/a-/fakeimage",
 };
 
-beforeEach(() => {
+beforeEach(async () => {
   container = document.createElement("div");
   document.body.appendChild(container);
 
@@ -50,17 +50,10 @@ beforeEach(() => {
     },
     oauthLoading: false,
   };
-});
 
-afterEach(() => {
-  document.body.removeChild(container);
-  container = null;
-});
-
-const setupData = () => {
   let db = adminApp.firestore();
   let orgRef = db.collection("organizations").doc(orgID);
-  return orgRef
+  await orgRef
     .set({
       name: "Acme 0001",
     })
@@ -75,12 +68,20 @@ const setupData = () => {
         photoURL: userObject.photoURL,
       });
     });
-};
+});
+
+afterEach(() => {
+  document.body.removeChild(container);
+  container = null;
+});
+
+afterEach(async () => {
+  await Promise.all(firebase.apps().map((app) => app.delete()));
+});
 
 it("can render the logged-in user's details", async () => {
   // Test first render and componentDidMount
   await act(async () => {
-    await setupData();
     let route = "/org/acme-0001";
     let path = "/org/:orgID";
     ReactDOM.render(
