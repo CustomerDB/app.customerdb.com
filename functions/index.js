@@ -370,11 +370,10 @@ exports.onHighlightWritten = functions.firestore
       objectID: change.after.id,
       orgID: context.params.orgID,
       documentID: highlight.documentID,
-      personID: highlight.documentID,
+      personID: highlight.personID,
       text: highlight.text,
       tagID: highlight.tagID,
       createdBy: highlight.createdBy,
-      creationTimestamp: highlight.creationTimestamp.seconds,
       creationTimestamp: highlight.creationTimestamp.seconds,
       lastUpdateTimestamp: highlight.lastUpdateTimestamp.seconds,
     };
