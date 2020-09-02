@@ -27,7 +27,6 @@ export function useSearchClient() {
     }
 
     if (client) {
-      console.debug("Return existing client");
       return;
     }
 
@@ -42,8 +41,6 @@ export function useSearchClient() {
 }
 
 function getSearchClient(firebase, orgID, userID) {
-  console.debug("fetching search API key");
-
   const getSearchKey = firebase.functions().httpsCallable("getSearchKey");
 
   return firebase

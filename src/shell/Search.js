@@ -25,8 +25,6 @@ export function Search(props) {
     return <></>;
   }
 
-  console.log("Search: ", searchClient);
-
   return (
     <InstantSearch
       indexName={props.search.index}
