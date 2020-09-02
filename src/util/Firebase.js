@@ -22,7 +22,7 @@ class Firebase {
     app.initializeApp(config);
 
     var db = app.firestore();
-    if (window.location.hostname === "localhost") {
+    if (config.projectId === "customerdb-development") {
       db.settings({
         host: "localhost:8080",
         ssl: false,
