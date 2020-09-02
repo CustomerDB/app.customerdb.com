@@ -29,12 +29,12 @@ beforeEach(() => {
   document.body.appendChild(container);
 
   app = firebase.initializeTestApp({
-    projectId: "customerdb-local",
+    projectId: "customerdb-development",
     auth: userObject,
   });
 
   adminApp = firebase.initializeAdminApp({
-    projectId: "customerdb-local",
+    projectId: "customerdb-development",
   });
 
   contextValue = {
