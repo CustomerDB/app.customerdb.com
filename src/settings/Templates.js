@@ -30,7 +30,7 @@ import Scrollable from "../shell/Scrollable.js";
 import Typography from "@material-ui/core/Typography";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
-import { initialDelta } from "../data/delta.js";
+import { initialDelta } from "../editor/delta.js";
 import { makeStyles } from "@material-ui/core/styles";
 import useFirestore from "../db/Firestore.js";
 import { v4 as uuidv4 } from "uuid";

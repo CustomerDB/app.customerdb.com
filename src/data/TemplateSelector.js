@@ -8,7 +8,7 @@ import MenuItem from "@material-ui/core/MenuItem";
 import Select from "@material-ui/core/Select";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
-import { initialDelta } from "./delta.js";
+import { initialDelta } from "../editor/delta.js";
 import useFirestore from "../db/Firestore.js";
 
 export default function TemplateSelector(props) {
