@@ -350,7 +350,9 @@ exports.onPersonWritten = functions.firestore
 
 // Add highlight records to the search index when created, updated or deleted.
 exports.onHighlightWritten = functions.firestore
-  .document("organizations/{orgID}/data/{documentID}/highlights/{highlightID}")
+  .document(
+    "organizations/{orgID}/documents/{documentID}/highlights/{highlightID}"
+  )
   .onWrite((change, context) => {
     if (!client) {
       console.warn("Algolia client not available; skipping index operation");
