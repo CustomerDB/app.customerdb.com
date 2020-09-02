@@ -25,8 +25,16 @@ export function useSearchClient() {
     ) {
       return;
     }
-    setClient(
-      getSearchClient(firebase, oauthClaims.orgID, oauthClaims.user_id)
+
+    if (client) {
+      console.debug("Return existing client");
+      return;
+    }
+
+    getSearchClient(firebase, oauthClaims.orgID, oauthClaims.user_id).then(
+      (client) => {
+        setClient(client);
+      }
     );
   }, [firebase, oauthClaims, oauthClaims.orgID, oauthClaims.user_id]);
 
