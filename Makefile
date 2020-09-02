@@ -39,7 +39,8 @@ check-format:
 	yarn prettier --check functions/
 
 test:
-	firebase --project=customerdb-development emulators:exec "yarn test --watchAll=false --forceExit"
+	GOOGLE_APPLICATION_CREDENTIALS=$(FIREBASE_CREDENTIALS_FILE) \
+		firebase --project=customerdb-development emulators:exec "yarn test --watchAll=false --forceExit"
 
 install-git-hooks:
 	cp scripts/pre-commit .git/hooks/pre-commit
