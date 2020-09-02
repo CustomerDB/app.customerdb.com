@@ -11,9 +11,12 @@ export function useSearchClient() {
 
   useEffect(() => {
     if (
-      process.env.REACT_APP_FIREBASE_PROJECT_ID === "customerdb-development"
+      !process.env.REACT_APP_ALGOLIA_PEOPLE_INDEX ||
+      !process.env.REACT_APP_ALGOLIA_DOCUMENTS_INDEX ||
+      !process.env.REACT_APP_ALGOLIA_SNAPSHOTS_INDEX ||
+      !process.env.REACT_APP_ALGOLIA_HIGHLIGHTS_INDEX
     ) {
-      console.debug("hosted search is disabled for local development");
+      console.debug("Search not available: missing indexes");
       return;
     }
 
