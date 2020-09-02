@@ -380,7 +380,7 @@ exports.onHighlightWritten = functions.firestore
     };
 
     // Write to the algolia index
-    return index.saveObject(personToIndex);
+    return index.saveObject(highlightToIndex);
   });
 
 // Update highlight records when document personID is updated.
