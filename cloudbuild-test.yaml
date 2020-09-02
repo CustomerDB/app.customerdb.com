@@ -2,6 +2,8 @@ steps:
 - name: 'gcr.io/$PROJECT_ID/firebase'
   args: ['/usr/local/bin/yarn']
 - name: 'gcr.io/$PROJECT_ID/firebase'
+  args: ['/usr/bin/make', 'runtimeconfig']
+- name: 'gcr.io/$PROJECT_ID/firebase'
   args: ['/usr/local/bin/npm', '--prefix=/workspace/functions', 'install']
 - name: 'gcr.io/$PROJECT_ID/firebase'
   args: ['firebase', '--token', '$_FIREBASE_TOKEN', '--project=customerdb-development', 'emulators:exec', 'exit 0']
