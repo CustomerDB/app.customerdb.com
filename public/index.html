@@ -15,9 +15,6 @@
 
     <title>CustomerDB</title>
 
-    <script src="https://www.gstatic.com/firebasejs/7.14.6/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.14.6/firebase-auth.js"></script>
-
     <!-- Guarded by user consent -->
     <script>
       window.acceptPerformanceCookies = undefined;
@@ -35,16 +32,22 @@
       window.acceptPerformanceCookies();
     </script>
 
-    <script
-      type="text/plain"
-      data-categories="analytics"
-      src="https://www.gstatic.com/firebasejs/7.14.6/firebase-analytics.js"
-      onload="(function () { console.debug('initialize analytics'); window.firebase.analytics(); })()"
-    ></script>
+    <script>
+      window.acceptAnalyticsCookies = undefined;
+      window.analyticsPromise = new Promise(function (resolve) {
+        window.acceptAnalyticsCookies = () => {
+          console.log("resolving analyticsPromise");
+          resolve();
+        };
+      });
+    </script>
+    <script type="text/plain" data-categories="analytics">
+      while (!window.acceptAnalyticsCookies) {
+        // busy wait :(
+      }
+      window.acceptAnalyticsCookies();
+    </script>
 
-    <script src="https://www.gstatic.com/firebasejs/7.14.6/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.14.6/firebase-functions.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.14.6/firebase-storage.js"></script>
     <script src="/getEmPixels.min.js"></script>
   </head>
   <body>

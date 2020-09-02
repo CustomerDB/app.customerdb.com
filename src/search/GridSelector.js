@@ -8,6 +8,7 @@ import {
 import React, { useContext, useEffect, useState } from "react";
 
 import Col from "react-bootstrap/Col";
+import FirebaseContext from "../util/FirebaseContext.js";
 import Form from "react-bootstrap/Form";
 import { Loading } from "../util/Utils.js";
 import Row from "react-bootstrap/Row";
@@ -70,6 +71,7 @@ function Item(props) {
 
 export default function GridSelector(props) {
   const auth = useContext(UserAuthContext);
+  const firebase = useContext(FirebaseContext);
 
   const [searchState, setSearchState] = useState({
     query: props.default,
@@ -78,12 +80,12 @@ export default function GridSelector(props) {
   const [searchClient, setSearchClient] = useState();
 
   useEffect(() => {
-    getSearchClient(auth.oauthClaims.orgID, auth.oauthUser.uid).then(
+    getSearchClient(firebase, auth.oauthClaims.orgID, auth.oauthUser.uid).then(
       (client) => {
         setSearchClient(client);
       }
     );
-  }, [auth.oauthClaims.orgID, auth.oauthUser.uid]);
+  }, [auth.oauthClaims.orgID, auth.oauthUser.uid, firebase]);
 
   if (!searchClient) {
     return <Loading />;

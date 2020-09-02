@@ -1,3 +1,7 @@
+import "firebase/firestore";
+
+import * as firebaseClient from "firebase/app";
+
 import React, { useContext, useEffect, useState } from "react";
 
 import Avatar from "@material-ui/core/Avatar";
@@ -23,7 +27,7 @@ export default function Collaborators(props) {
         .doc(oauthUser.email);
 
       let collaborator = {
-        expires: window.firebase.firestore.Timestamp.now().toMillis() + 5000,
+        expires: firebaseClient.firestore.Timestamp.now().toMillis() + 5000,
       };
 
       if (oauthUser.email) {
@@ -44,7 +48,7 @@ export default function Collaborators(props) {
           .get()
           .then((snapshot) => {
             let newCollaborators = [];
-            let now = window.firebase.firestore.Timestamp.now().toMillis();
+            let now = firebaseClient.firestore.Timestamp.now().toMillis();
             snapshot.forEach((doc) => {
               let collaborator = doc.data();
               if (collaborator.expires < now) {

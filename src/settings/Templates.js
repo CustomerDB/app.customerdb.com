@@ -14,6 +14,7 @@ import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import Fab from "@material-ui/core/Fab";
+import FirebaseContext from "../util/FirebaseContext.js";
 import Grid from "@material-ui/core/Grid";
 import Hidden from "@material-ui/core/Hidden";
 import IconButton from "@material-ui/core/IconButton";
@@ -31,8 +32,8 @@ import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
 import { initialDelta } from "../data/delta.js";
 import { makeStyles } from "@material-ui/core/styles";
-import { nanoid } from "nanoid";
 import useFirestore from "../db/Firestore.js";
+import { v4 as uuidv4 } from "uuid";
 
 // Synchronize every second (1000ms).
 const syncPeriod = 1000;
@@ -52,6 +53,7 @@ const useStyles = makeStyles({
 
 export default function Templates(props) {
   const { oauthClaims } = useContext(UserAuthContext);
+  const firebase = useContext(FirebaseContext);
   const [templates, setTemplates] = useState();
   const { orgID, templateID } = useParams();
   const { templatesRef } = useFirestore();
@@ -82,19 +84,19 @@ export default function Templates(props) {
   }
 
   const onAdd = () => {
-    event("create_template", {
+    event(firebase, "create_template", {
       orgID: oauthClaims.orgID,
       userID: oauthClaims.user_id,
     });
 
-    let newTemplateID = nanoid();
+    let newTemplateID = uuidv4();
     templatesRef
       .doc(newTemplateID)
       .set({
         ID: newTemplateID,
         name: "Untitled Template",
         createdBy: oauthClaims.email,
-        creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+        creationTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
         deletionTimestamp: "",
       })
       .then(() => {
@@ -105,7 +107,7 @@ export default function Templates(props) {
           .set({
             delta: { ops: initialDelta().ops },
             createdBy: oauthClaims.email,
-            timestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
           });
       })
       .then((newTemplateRef) => {
@@ -167,6 +169,7 @@ export default function Templates(props) {
 
 function Template({ templateRef }) {
   const { oauthClaims } = useContext(UserAuthContext);
+  const firebase = useContext(FirebaseContext);
   const { templateID } = useParams();
   const { templatesRef } = useFirestore();
 
@@ -219,7 +222,7 @@ function Template({ templateRef }) {
         return;
       }
 
-      event("edit_template", {
+      event(firebase, "edit_template", {
         orgID: oauthClaims.orgID,
         userID: oauthClaims.user_id,
       });
@@ -236,7 +239,7 @@ function Template({ templateRef }) {
         .set({
           delta: { ops: currentDelta.ops },
           createdBy: oauthClaims.email,
-          timestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
         })
         .then(() => {
           dirty.current = false;
@@ -256,6 +259,7 @@ function Template({ templateRef }) {
     oauthClaims.email,
     oauthClaims.orgID,
     oauthClaims.user_id,
+    firebase,
   ]);
 
   const onEdit = (content, delta, source, editor) => {
@@ -391,6 +395,7 @@ function Template({ templateRef }) {
 
 function TemplateDeleteDialog({ templateRef, open, setOpen, template }) {
   const { oauthClaims } = useContext(UserAuthContext);
+  const firebase = useContext(FirebaseContext);
   const { orgID } = useParams();
   const navigate = useNavigate();
 
@@ -413,14 +418,14 @@ function TemplateDeleteDialog({ templateRef, open, setOpen, template }) {
 
     console.debug("archiving template");
 
-    event("delete_template", {
+    event(firebase, "delete_template", {
       orgID: oauthClaims.orgID,
       userID: oauthClaims.user_id,
     });
     templateRef.set(
       {
         deletedBy: oauthClaims.email,
-        deletionTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+        deletionTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
       },
       { merge: true }
     );

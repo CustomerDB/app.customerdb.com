@@ -3,15 +3,17 @@ import React, { useContext, useEffect, useState } from "react";
 import Button from "react-bootstrap/Button";
 import Col from "react-bootstrap/Col";
 import DeleteIcon from "@material-ui/icons/Delete";
+import FirebaseContext from "../util/FirebaseContext.js";
 import Form from "react-bootstrap/Form";
 import Modal from "../shell_obsolete/Modal.js";
 import Row from "react-bootstrap/Row";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
-import { nanoid } from "nanoid";
+import { v4 as uuidv4 } from "uuid";
 
 export default function PersonEditDialog(props) {
   const { oauthClaims } = useContext(UserAuthContext);
+  const firebase = useContext(FirebaseContext);
   const [person, setPerson] = useState();
   const [name, setName] = useState();
   const [email, setEmail] = useState();
@@ -55,7 +57,7 @@ export default function PersonEditDialog(props) {
   }
 
   const addCustomField = () => {
-    let ID = nanoid();
+    let ID = uuidv4();
     let fields = {};
     Object.assign(fields, customFields);
     fields[ID] = { ID: ID, kind: "", value: "" };
@@ -63,7 +65,7 @@ export default function PersonEditDialog(props) {
   };
 
   const addLabel = () => {
-    let ID = nanoid();
+    let ID = uuidv4();
     let l = {};
     Object.assign(l, labels);
     l[ID] = { ID: ID, kind: "" };
@@ -138,7 +140,7 @@ export default function PersonEditDialog(props) {
         <Button
           key={person.ID}
           onClick={() => {
-            event("edit_person", {
+            event(firebase, "edit_person", {
               orgID: oauthClaims.orgID,
               userID: oauthClaims.user_id,
             });

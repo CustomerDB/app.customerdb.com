@@ -5,20 +5,22 @@ import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
 import Col from "react-bootstrap/Col";
 import Container from "react-bootstrap/Container";
+import FirebaseContext from "../util/FirebaseContext.js";
 import Row from "react-bootstrap/Row";
 import UserAuthContext from "./UserAuthContext.js";
 import event from "../analytics/event.js";
 import loginFigure from "../assets/images/login.svg";
 import logo from "../assets/images/logo.svg";
 
-var provider = new window.firebase.auth.GoogleAuthProvider();
-var db = window.firebase.firestore();
-
 export default function JoinOrg(props) {
   const auth = useContext(UserAuthContext);
+  const firebase = useContext(FirebaseContext);
 
   const [inviteFailed, setInviteFailed] = useState(false);
   const [reason, setReason] = useState(undefined);
+
+  var provider = new firebase.auth().GoogleAuthProvider();
+  var db = firebase.firestore();
 
   let navigate = useNavigate();
 
@@ -35,11 +37,11 @@ export default function JoinOrg(props) {
   }, [auth, orgID, navigate]);
 
   const login = () => {
-    window.firebase
+    firebase
       .auth()
-      .setPersistence(window.firebase.auth.Auth.Persistence.SESSION)
+      .setPersistence(firebase.auth.Auth.Persistence.SESSION)
       .then(function () {
-        window.firebase.auth().signInWithRedirect(provider);
+        firebase.auth().signInWithRedirect(provider);
       })
       .catch(function (error) {
         console.error(error);
@@ -58,7 +60,7 @@ export default function JoinOrg(props) {
   const join = () => {
     let user = auth.oauthUser;
 
-    event("join_org", {
+    event(firebase, "join_org", {
       orgID: orgID,
       userID: user.uid,
     });
@@ -79,7 +81,7 @@ export default function JoinOrg(props) {
           photoURL: user.photoURL,
           invited: false,
           active: true,
-          joinedTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+          joinedTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
         },
         { merge: true }
       )
@@ -96,7 +98,7 @@ export default function JoinOrg(props) {
   };
 
   const logout = () => {
-    window.firebase
+    firebase
       .auth()
       .signOut()
       .catch(function (error) {

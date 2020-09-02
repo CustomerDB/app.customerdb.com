@@ -5,7 +5,7 @@ const fs = require("fs");
 const algoliasearch = require("algoliasearch");
 const Delta = require("quill-delta");
 const toPlaintext = require("quill-delta-to-plaintext");
-const { nanoid } = require("nanoid");
+const { v4: uuidv4 } = require("uuid");
 const Video = require("@google-cloud/video-intelligence").v1p3beta1;
 const tmp = require("tmp");
 
@@ -190,7 +190,7 @@ exports.createOrganization = functions.https.onCall((data, context) => {
                   // 4) Create default tags.
                   let tagPromises = tagGroup["tags"].map((tag) => {
                     let tagDocument = {
-                      ID: nanoid(),
+                      ID: uuidv4(),
                       color: tag.color,
                       textColor: tag.textColor,
                       name: tag.name,
@@ -1025,7 +1025,7 @@ exports.deltaForTranscript = functions.firestore
         let documentRef = documentsRef.doc(operation.documentID);
         let revisionsRef = documentRef.collection("revisions");
 
-        let revisionID = nanoid();
+        let revisionID = uuidv4();
         revisionsRef
           .doc(revisionID)
           .set({

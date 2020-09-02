@@ -1,4 +1,7 @@
 import "react-quill/dist/quill.snow.css";
+import "firebase/firestore";
+
+import * as firebaseClient from "firebase/app";
 
 import React, {
   useCallback,
@@ -15,6 +18,7 @@ import ContentEditable from "react-contenteditable";
 import Delta from "quill-delta";
 import DocumentDeleteDialog from "./DocumentDeleteDialog.js";
 import DocumentSidebar from "./DocumentSidebar.js";
+import FirebaseContext from "../util/FirebaseContext.js";
 import Grid from "@material-ui/core/Grid";
 import Hidden from "@material-ui/core/Hidden";
 import HighlightBlot from "./HighlightBlot.js";
@@ -32,9 +36,9 @@ import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
 import { initialDelta } from "./delta.js";
 import { makeStyles } from "@material-ui/core/styles";
-import { nanoid } from "nanoid";
 import useFirestore from "../db/Firestore.js";
 import { useParams } from "react-router-dom";
+import { v4 as uuidv4 } from "uuid";
 
 Quill.register("formats/highlight", HighlightBlot);
 
@@ -87,6 +91,7 @@ const useStyles = makeStyles({
 // colors.
 export default function ContentsPane(props) {
   const { oauthClaims } = useContext(UserAuthContext);
+  const firebase = useContext(FirebaseContext);
   const { orgID } = useParams();
   const {
     tagGroupsRef,
@@ -99,12 +104,12 @@ export default function ContentsPane(props) {
 
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
-  const [editorID] = useState(nanoid());
+  const [editorID] = useState(uuidv4());
   const [revisionDelta, setRevisionDelta] = useState();
   const [revisionTimestamp, setRevisionTimestamp] = useState();
   const [tagGroupName, setTagGroupName] = useState();
   const [tags, setTags] = useState();
-  const [reflowHints, setReflowHints] = useState(nanoid());
+  const [reflowHints, setReflowHints] = useState(uuidv4());
   const [toolbarHeight, setToolbarHeight] = useState(40);
   const [transcriptionProgress, setTranscriptionProgress] = useState();
 
@@ -121,7 +126,7 @@ export default function ContentsPane(props) {
   const classes = useStyles();
 
   const updateHints = () => {
-    setReflowHints(nanoid());
+    setReflowHints(uuidv4());
   };
 
   // Subscribe to window resize events because hint offsets need to be
@@ -280,7 +285,7 @@ export default function ContentsPane(props) {
     if (checked) {
       console.debug("formatting highlight with tag ", tag);
 
-      let highlightID = nanoid();
+      let highlightID = uuidv4();
 
       props.editor.formatText(
         selection.index,
@@ -391,7 +396,7 @@ export default function ContentsPane(props) {
       .onSnapshot((snapshot) => {
         if (snapshot.size === 0) {
           setRevisionDelta(initialDelta());
-          setRevisionTimestamp(new window.firebase.firestore.Timestamp(0, 0));
+          setRevisionTimestamp(new firebaseClient.firestore.Timestamp(0, 0));
           return;
         }
 
@@ -400,7 +405,7 @@ export default function ContentsPane(props) {
           let revision = doc.data();
           setRevisionDelta(new Delta(revision.delta.ops));
           if (!revision.timestamp) {
-            setRevisionTimestamp(new window.firebase.firestore.Timestamp(0, 0));
+            setRevisionTimestamp(new firebaseClient.firestore.Timestamp(0, 0));
             return;
           }
           setRevisionTimestamp(revision.timestamp);
@@ -538,7 +543,7 @@ export default function ContentsPane(props) {
       let deltaDoc = {
         editorID: editorID,
         userEmail: oauthClaims.email,
-        timestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+        timestamp: firebaseClient.firestore.FieldValue.serverTimestamp(),
         ops: ops,
       };
 
@@ -575,9 +580,9 @@ export default function ContentsPane(props) {
             },
             text: current.text,
             createdBy: oauthClaims.email,
-            creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+            creationTimestamp: firebaseClient.firestore.FieldValue.serverTimestamp(),
             deletionTimestamp: props.document.deletionTimestamp,
-            lastUpdateTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+            lastUpdateTimestamp: firebaseClient.firestore.FieldValue.serverTimestamp(),
           };
 
           console.debug(
@@ -585,7 +590,7 @@ export default function ContentsPane(props) {
             newHighlight
           );
 
-          event("create_highlight", {
+          event(firebase, "create_highlight", {
             orgID: oauthClaims.orgID,
             userID: oauthClaims.user_id,
           });
@@ -616,7 +621,7 @@ export default function ContentsPane(props) {
           // highlight is not present; delete it in the database.
           console.debug("syncHighlightsUpdate: deleting highlight", h);
 
-          event("delete_highlight", {
+          event(firebase, "delete_highlight", {
             orgID: oauthClaims.orgID,
             userID: oauthClaims.user_id,
           });
@@ -646,7 +651,7 @@ export default function ContentsPane(props) {
               },
               text: current.text,
               deletionTimestamp: props.document.deletionTimestamp,
-              lastUpdateTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+              lastUpdateTimestamp: firebaseClient.firestore.FieldValue.serverTimestamp(),
             },
             { merge: true }
           );
@@ -683,6 +688,7 @@ export default function ContentsPane(props) {
     props.document.personID,
     props.editor,
     props.document.pending,
+    firebase,
   ]);
 
   // Subscribe to highlight changes
@@ -741,7 +747,12 @@ export default function ContentsPane(props) {
                 <Grid container>
                   <Grid container item xs={12} alignItems="flex-start">
                     <Grid item xs={11}>
-                      <Typography gutterBottom variant="h4" component="h2">
+                      <Typography
+                        gutterBottom
+                        variant="h4"
+                        component="h2"
+                        id="documentTitle"
+                      >
                         <ContentEditable
                           html={props.document.name}
                           onKeyDown={(e) => {
