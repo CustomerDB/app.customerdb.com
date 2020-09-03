@@ -13,12 +13,7 @@ export default function TagGroupSelector(props) {
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
 
-  const {
-    documentRef,
-    tagGroupsRef,
-    highlightsRef,
-    deltasRef,
-  } = useFirestore();
+  const { documentRef, tagGroupsRef, highlightsRef } = useFirestore();
 
   const [doc, setDoc] = useState();
   const [tagGroups, setTagGroups] = useState();
@@ -116,7 +111,8 @@ export default function TagGroupSelector(props) {
             deltaDoc
           );
 
-          deltasRef
+          documentRef
+            .collection("deltas")
             .doc()
             .set(deltaDoc)
             .then(() => {
