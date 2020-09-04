@@ -1,3 +1,7 @@
+import "firebase/firestore";
+
+import * as firebaseClient from "firebase/app";
+
 import React, { useContext } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -43,7 +47,7 @@ export default function AlertDialog({ open, setOpen, document }) {
       .doc(document.ID)
       .update({
         deletedBy: oauthClaims.email,
-        deletionTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        deletionTimestamp: firebaseClient.firestore.FieldValue.serverTimestamp(),
       })
       .then(() => {
         navigate(`/orgs/${orgID}/data`);
@@ -70,6 +74,7 @@ export default function AlertDialog({ open, setOpen, document }) {
           Cancel
         </Button>
         <Button
+          id="archive-document-dialog-button"
           onClick={archive}
           variant="contained"
           color="secondary"

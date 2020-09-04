@@ -578,6 +578,7 @@ export default function ContentsPane(props) {
 
                     <Grid item xs={1}>
                       <IconButton
+                        id="archive-document-button"
                         color="primary"
                         aria-label="Archive document"
                         onClick={() => {

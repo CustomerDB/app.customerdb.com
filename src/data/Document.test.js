@@ -218,6 +218,51 @@ it("can edit a document", async () => {
   });
 });
 
+it("can delete a document", async () => {
+  let container = await renderDocument(`/org/acme-0001/data/${documentID}`);
+  await wait(() => {
+    const editor = container.querySelector(".ql-editor");
+    return expect(editor.textContent).toBe("Hello");
+  });
+
+  await act(async () => {
+    const archiveButton = container.querySelector("#archive-document-button");
+    archiveButton.click();
+  });
+
+  await wait(() => {
+    const archiveConfirmButton = document.querySelector(
+      "#archive-document-dialog-button"
+    );
+    return expect(archiveConfirmButton).toBeTruthy();
+  });
+
+  await act(async () => {
+    const archiveConfirmButton = document.querySelector(
+      "#archive-document-dialog-button"
+    );
+    archiveConfirmButton.click();
+  });
+
+  let deleted = false;
+  let db = adminApp.firestore();
+  let orgRef = db.collection("organizations").doc(orgID);
+  let unsubscribe = orgRef
+    .collection("documents")
+    .doc(documentID)
+    .onSnapshot((doc) => {
+      if (!doc.exists) return;
+      let data = doc.data();
+      deleted = data.deletionTimestamp !== "";
+    });
+
+  await wait(() => {
+    return expect(deleted).toBe(true);
+  });
+
+  unsubscribe();
+});
+
 const DocumentWrapper = (props) => {
   const [editor, setEditor] = useState();
   const reactQuillRef = useCallback(
