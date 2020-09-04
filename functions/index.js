@@ -336,6 +336,7 @@ exports.onPersonWritten = functions.firestore
       objectID: change.after.id,
       orgID: context.params.orgID,
       name: person.name,
+      company: person.company,
       job: person.job,
       labels: person.labels,
       customFields: person.customFields,
