@@ -1,4 +1,7 @@
 import "react-quill/dist/quill.snow.css";
+import "firebase/firestore";
+
+import * as firebaseClient from "firebase/app";
 
 import React, {
   useCallback,
@@ -10,11 +13,12 @@ import React, {
 import { addTagStyles, removeTagStyles } from "./Tags.js";
 
 import Archive from "@material-ui/icons/Archive";
+import CollabEditor from "../editor/CollabEditor.js";
 import Collaborators from "../util/Collaborators.js";
 import ContentEditable from "react-contenteditable";
-import Delta from "quill-delta";
 import DocumentDeleteDialog from "./DocumentDeleteDialog.js";
 import DocumentSidebar from "./DocumentSidebar.js";
+import FirebaseContext from "../util/FirebaseContext.js";
 import Grid from "@material-ui/core/Grid";
 import Hidden from "@material-ui/core/Hidden";
 import HighlightBlot from "./HighlightBlot.js";
@@ -24,17 +28,15 @@ import LinearProgress from "@material-ui/core/LinearProgress";
 import Moment from "react-moment";
 import Paper from "@material-ui/core/Paper";
 import Quill from "quill";
-import ReactQuill from "react-quill";
 import Scrollable from "../shell/Scrollable.js";
 import SelectionFAB from "./SelectionFAB.js";
 import Typography from "@material-ui/core/Typography";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
-import { initialDelta } from "./delta.js";
 import { makeStyles } from "@material-ui/core/styles";
-import { nanoid } from "nanoid";
 import useFirestore from "../db/Firestore.js";
 import { useParams } from "react-router-dom";
+import { v4 as uuidv4 } from "uuid";
 
 Quill.register("formats/highlight", HighlightBlot);
 
@@ -54,64 +56,27 @@ const useStyles = makeStyles({
   },
 });
 
-// ContentsPane is a React component that allows multiple users to edit
-// and highlight a text document simultaneously.
-//
-// It uses the Quill editor (see https://quilljs.com).
-//
-// The Quill editor uses a handy content format called Delta, which represents
-// operations like text insertion, deletion, formatting, etc. in a manner
-// similar to `diff(1)`.
-//
-// This component manages the bidirectional synchronization necessary to
-// construct the illusion of simultaneous editing by distributed clients.
-//
-// On page load, this component loads all of the existing deltas ordered by
-// server timestamp, and iteratively applies them to construct an initial
-// document snapshot. This component also keeps track of the latest delta
-// timestamp seen from the server.
-//
-// The first synchronization operation is to upload local changes to the
-// deltas collection in firestore. For efficiency, edits are cached locally
-// and then periodically sent in a batch.
-//
-// The second synchronization operation involves subscribing to changes to
-// the deltas collection in firestore. On each change to the collection snapshot,
-// this component ignores deltas written before the last-seen timestamp. New
-// deltas are applied to the local document snapshot, followed by any locally
-// cached edits that haven't been sent back to firestore yet.
-//
-// This component also manages tags and text highlights. When this component
-// renders, it generates text formatting deltas on the fly to visually
-// communicate what text segments are associated with tags with background
-// colors.
+// ContentsPane augments a collaborative editor with tags and text highlights.
 export default function ContentsPane(props) {
   const { oauthClaims } = useContext(UserAuthContext);
+  const firebase = useContext(FirebaseContext);
   const { orgID } = useParams();
   const {
     tagGroupsRef,
     documentRef,
-    revisionsRef,
     highlightsRef,
-    deltasRef,
     transcriptionsRef,
   } = useFirestore();
 
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
-  const [editorID] = useState(nanoid());
-  const [revisionDelta, setRevisionDelta] = useState();
-  const [revisionTimestamp, setRevisionTimestamp] = useState();
   const [tagGroupName, setTagGroupName] = useState();
   const [tags, setTags] = useState();
-  const [reflowHints, setReflowHints] = useState(nanoid());
+  const [reflowHints, setReflowHints] = useState(uuidv4());
   const [toolbarHeight, setToolbarHeight] = useState(40);
   const [transcriptionProgress, setTranscriptionProgress] = useState();
 
   const [tagIDsInSelection, setTagIDsInSelection] = useState(new Set());
-
-  const localDelta = useRef(new Delta([]));
-  const latestDeltaTimestamp = useRef();
 
   const currentSelection = useRef();
   const quillContainerRef = useRef();
@@ -121,7 +86,7 @@ export default function ContentsPane(props) {
   const classes = useStyles();
 
   const updateHints = () => {
-    setReflowHints(nanoid());
+    setReflowHints(uuidv4());
   };
 
   // Subscribe to window resize events because hint offsets need to be
@@ -240,23 +205,13 @@ export default function ContentsPane(props) {
     [props.editor]
   );
 
-  // onEdit builds a batch of local edits in `localDelta`
-  // which are sent to the server and reset to [] periodically
-  // in `syncDeltas()`.
-  const onEdit = (content, delta, source, editor) => {
+  const onChange = (content, delta, source, editor) => {
     updateHints();
-
-    if (source !== "user") {
-      // console.debug("onEdit: skipping non-user change", delta, source);
-      return;
-    }
-
-    localDelta.current = localDelta.current.compose(delta);
   };
 
-  // onSelect is invoked when the content selection changes, including
+  // onChangeSelection is invoked when the content selection changes, including
   // whenever the cursor changes position.
-  const onSelect = (range, source, editor) => {
+  const onChangeSelection = (range, source, editor) => {
     if (source !== "user" || range === null) {
       return;
     }
@@ -280,7 +235,7 @@ export default function ContentsPane(props) {
     if (checked) {
       console.debug("formatting highlight with tag ", tag);
 
-      let highlightID = nanoid();
+      let highlightID = uuidv4();
 
       props.editor.formatText(
         selection.index,
@@ -379,172 +334,16 @@ export default function ContentsPane(props) {
     };
   }, [props.document.tagGroupID, tagGroupsRef]);
 
-  // Subscribe to the latest revision
-  useEffect(() => {
-    if (!revisionsRef) {
-      return;
-    }
-
-    return revisionsRef
-      .orderBy("timestamp", "desc")
-      .limit(1)
-      .onSnapshot((snapshot) => {
-        if (snapshot.size === 0) {
-          setRevisionDelta(initialDelta());
-          setRevisionTimestamp(new window.firebase.firestore.Timestamp(0, 0));
-          return;
-        }
-
-        // hint: limit 1 -- iterating over a list of exactly 1
-        snapshot.forEach((doc) => {
-          let revision = doc.data();
-          setRevisionDelta(new Delta(revision.delta.ops));
-          if (!revision.timestamp) {
-            setRevisionTimestamp(new window.firebase.firestore.Timestamp(0, 0));
-            return;
-          }
-          setRevisionTimestamp(revision.timestamp);
-        });
-      });
-  }, [revisionsRef]);
-
-  // Document will contain the latest cached and compressed version of the delta document.
-  // Subscribe to deltas from other remote clients.
-  useEffect(() => {
-    if (!editorID || !props.editor || !deltasRef || !revisionTimestamp) {
-      return;
-    }
-
-    if (!latestDeltaTimestamp.current) {
-      latestDeltaTimestamp.current = revisionTimestamp;
-    }
-
-    console.debug(
-      "Subscribing to deltas since",
-      latestDeltaTimestamp.current.toDate()
-    );
-
-    return deltasRef
-      .orderBy("timestamp", "asc")
-      .where("timestamp", ">", latestDeltaTimestamp.current)
-      .onSnapshot((snapshot) => {
-        // console.debug("Delta snapshot received");
-
-        let newDeltas = [];
-        snapshot.forEach((delta) => {
-          let data = delta.data();
-
-          // Skip deltas with no timestamp
-          if (data.timestamp === null) {
-            // console.debug("skipping delta with no timestamp");
-            return;
-          }
-
-          // Skip deltas older than the latest timestamp we have applied already
-          let haveSeenBefore =
-            data.timestamp.valueOf() <= latestDeltaTimestamp.current.valueOf();
-
-          if (haveSeenBefore) {
-            // console.debug("Dropping delta with timestamp ", data.timestamp);
-            return;
-          }
-
-          let newDelta = new Delta(data.ops);
-
-          // Hang the editorID off of the delta.
-          newDelta.editorID = data.editorID;
-
-          // Skip deltas from this client
-          if (data.editorID === editorID) {
-            // console.debug("skipping delta from this client");
-            return;
-          }
-
-          newDeltas.push(newDelta);
-          latestDeltaTimestamp.current = data.timestamp;
-        });
-
-        if (newDeltas.length === 0) {
-          // console.debug("no new deltas to apply");
-          return;
-        }
-
-        console.debug("applying deltas to editor", newDeltas);
-
-        // What we have:
-        // - localDelta: the buffered local edits that haven't been uploaded yet
-        // - editor.getContents(): document delta representing local editor content
-
-        let selection = props.editor.getSelection();
-        let selectionIndex = selection ? selection.index : 0;
-
-        // Compute inverse of local delta.
-        let editorContents = props.editor.getContents();
-        console.debug("editorContents", editorContents);
-
-        console.debug("localDelta (before)", localDelta.current);
-        let inverseLocalDelta = localDelta.current.invert(editorContents);
-        console.debug("inverseLocalDelta", inverseLocalDelta);
-
-        // Undo local edits
-        console.debug("unapplying local delta");
-        props.editor.updateContents(inverseLocalDelta);
-        selectionIndex = inverseLocalDelta.transformPosition(selectionIndex);
-
-        newDeltas.forEach((delta) => {
-          props.editor.updateContents(delta);
-          selectionIndex = delta.transformPosition(selectionIndex);
-
-          console.debug("transform local delta");
-          const serverFirst = true;
-          localDelta.current = delta.transform(localDelta.current, serverFirst);
-        });
-
-        // Reapply local edits
-        console.debug("applying transformed local delta", localDelta.current);
-        props.editor.updateContents(localDelta.current);
-        selectionIndex = localDelta.current.transformPosition(selectionIndex);
-
-        if (selection) {
-          console.debug("updating selection index");
-          props.editor.setSelection(selectionIndex, selection.length);
-        }
-      });
-  }, [editorID, props.editor, revisionTimestamp, deltasRef]);
-
   // Register timers to periodically sync local changes with firestore.
   useEffect(() => {
     if (
       !highlightsRef ||
-      !deltasRef ||
       !props.document.ID ||
       !oauthClaims.email ||
       props.document.pending
     ) {
       return;
     }
-
-    // This function sends the contents of `localDelta` to the database
-    // and resets the local cache.
-    const syncDeltas = () => {
-      let opsIndex = localDelta.current.ops.length;
-      if (opsIndex === 0) {
-        return;
-      }
-
-      let ops = localDelta.current.ops.slice(0, opsIndex);
-      localDelta.current = new Delta(localDelta.current.ops.slice(opsIndex));
-
-      let deltaDoc = {
-        editorID: editorID,
-        userEmail: oauthClaims.email,
-        timestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
-        ops: ops,
-      };
-
-      console.debug("uploading delta", deltaDoc);
-      deltasRef.doc().set(deltaDoc);
-    };
 
     // This function sends any new highlights to the database.
     const syncHighlightsCreate = () => {
@@ -575,9 +374,9 @@ export default function ContentsPane(props) {
             },
             text: current.text,
             createdBy: oauthClaims.email,
-            creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+            creationTimestamp: firebaseClient.firestore.FieldValue.serverTimestamp(),
             deletionTimestamp: props.document.deletionTimestamp,
-            lastUpdateTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+            lastUpdateTimestamp: firebaseClient.firestore.FieldValue.serverTimestamp(),
           };
 
           console.debug(
@@ -585,7 +384,7 @@ export default function ContentsPane(props) {
             newHighlight
           );
 
-          event("create_highlight", {
+          event(firebase, "create_highlight", {
             orgID: oauthClaims.orgID,
             userID: oauthClaims.user_id,
           });
@@ -616,7 +415,7 @@ export default function ContentsPane(props) {
           // highlight is not present; delete it in the database.
           console.debug("syncHighlightsUpdate: deleting highlight", h);
 
-          event("delete_highlight", {
+          event(firebase, "delete_highlight", {
             orgID: oauthClaims.orgID,
             userID: oauthClaims.user_id,
           });
@@ -646,16 +445,13 @@ export default function ContentsPane(props) {
               },
               text: current.text,
               deletionTimestamp: props.document.deletionTimestamp,
-              lastUpdateTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+              lastUpdateTimestamp: firebaseClient.firestore.FieldValue.serverTimestamp(),
             },
             { merge: true }
           );
         }
       });
     };
-
-    console.debug(`starting periodic syncDeltas every ${syncPeriod}ms`);
-    let syncDeltaInterval = setInterval(syncDeltas, syncPeriod);
 
     console.debug(`starting periodic syncHighlights every ${syncPeriod}ms`);
     let syncHighlightsCreateInterval = setInterval(
@@ -667,14 +463,11 @@ export default function ContentsPane(props) {
       syncPeriod
     );
     return () => {
-      clearInterval(syncDeltaInterval);
       clearInterval(syncHighlightsCreateInterval);
       clearInterval(syncHighlightsUpdateInterval);
     };
   }, [
     oauthClaims,
-    deltasRef,
-    editorID,
     highlightsRef,
     orgID,
     getHighlightFromEditor,
@@ -683,6 +476,7 @@ export default function ContentsPane(props) {
     props.document.personID,
     props.editor,
     props.document.pending,
+    firebase,
   ]);
 
   // Subscribe to highlight changes
@@ -720,10 +514,6 @@ export default function ContentsPane(props) {
     });
   }, [highlightsRef]);
 
-  if (!revisionDelta) {
-    return <></>;
-  }
-
   return (
     <>
       <Grid
@@ -741,7 +531,12 @@ export default function ContentsPane(props) {
                 <Grid container>
                   <Grid container item xs={12} alignItems="flex-start">
                     <Grid item xs={11}>
-                      <Typography gutterBottom variant="h4" component="h2">
+                      <Typography
+                        gutterBottom
+                        variant="h4"
+                        component="h2"
+                        id="documentTitle"
+                      >
                         <ContentEditable
                           html={props.document.name}
                           onKeyDown={(e) => {
@@ -783,6 +578,7 @@ export default function ContentsPane(props) {
 
                     <Grid item xs={1}>
                       <IconButton
+                        id="archive-document-button"
                         color="primary"
                         aria-label="Archive document"
                         onClick={() => {
@@ -818,14 +614,15 @@ export default function ContentsPane(props) {
                       style={{ position: "relative" }}
                       spacing={0}
                     >
-                      <ReactQuill
+                      <CollabEditor
+                        objectRef={documentRef}
+                        quillRef={props.reactQuillRef}
+                        editor={props.editor}
                         id="quill-editor"
-                        ref={props.reactQuillRef}
-                        defaultValue={revisionDelta}
                         theme="snow"
                         placeholder="Start typing here and select to mark highlights"
-                        onChange={onEdit}
-                        onChangeSelection={onSelect}
+                        onChange={onChange}
+                        onChangeSelection={onChangeSelection}
                         modules={{
                           toolbar: [
                             [{ header: [1, 2, false] }],

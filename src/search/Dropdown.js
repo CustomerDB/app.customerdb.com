@@ -5,11 +5,9 @@ import {
   connectHits,
   connectSearchBox,
 } from "react-instantsearch-dom";
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
-import { Loading } from "../util/Utils.js";
-import UserAuthContext from "../auth/UserAuthContext.js";
-import { getSearchClient } from "./client.js";
+import { useSearchClient } from "./client.js";
 
 const SearchBox = ({ currentRefinement, isSearchStalled, refine, setShow }) => (
   <form>
@@ -36,15 +34,12 @@ const CustomSearchBox = connectSearchBox(SearchBox);
 
 export default function SearchDropdown(props) {
   const ref = useRef(null);
-  const auth = useContext(UserAuthContext);
-
   const [show, setShow] = useState(false);
-
   const [searchState, setSearchState] = useState({
     query: props.default,
   });
 
-  const [searchClient, setSearchClient] = useState();
+  const searchClient = useSearchClient();
 
   useEffect(() => {
     const handleClose = (event) => {
@@ -59,16 +54,8 @@ export default function SearchDropdown(props) {
     };
   }, [ref]);
 
-  useEffect(() => {
-    getSearchClient(auth.oauthClaims.orgID, auth.oauthUser.uid).then(
-      (client) => {
-        setSearchClient(client);
-      }
-    );
-  }, [auth.oauthClaims.orgID, auth.oauthUser.uid]);
-
   if (!searchClient) {
-    return <Loading />;
+    return <></>;
   }
 
   const CustomHits = connectHits((result) => {

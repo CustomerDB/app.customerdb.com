@@ -4,8 +4,7 @@ const admin = require("firebase-admin");
 const fs = require("fs");
 const algoliasearch = require("algoliasearch");
 const Delta = require("quill-delta");
-const toPlaintext = require("quill-delta-to-plaintext");
-const { nanoid } = require("nanoid");
+const { v4: uuidv4 } = require("uuid");
 const Video = require("@google-cloud/video-intelligence").v1p3beta1;
 const tmp = require("tmp");
 
@@ -190,7 +189,7 @@ exports.createOrganization = functions.https.onCall((data, context) => {
                   // 4) Create default tags.
                   let tagPromises = tagGroup["tags"].map((tag) => {
                     let tagDocument = {
-                      ID: nanoid(),
+                      ID: uuidv4(),
                       color: tag.color,
                       textColor: tag.textColor,
                       name: tag.name,
@@ -237,17 +236,33 @@ exports.createOrganization = functions.https.onCall((data, context) => {
 //
 //////////////////////////////////////////////////////////////////////////////
 
-const ALGOLIA_ID = functions.config().algolia.app_id;
-const ALGOLIA_ADMIN_KEY = functions.config().algolia.api_key;
-const ALGOLIA_SEARCH_KEY = functions.config().algolia.search_key;
+const ALGOLIA_ID = functions.config().algolia
+  ? functions.config().algolia.app_id
+  : undefined;
+const ALGOLIA_ADMIN_KEY = functions.config().algolia
+  ? functions.config().algolia.api_key
+  : undefined;
+const ALGOLIA_SEARCH_KEY = functions.config().algolia
+  ? functions.config().algolia.search_key
+  : undefined;
 
-const ALGOLIA_PEOPLE_INDEX_NAME = functions.config().algolia.people_index;
-const ALGOLIA_DOCUMENTS_INDEX_NAME = functions.config().algolia.documents_index;
-const ALGOLIA_SNAPSHOTS_INDEX_NAME = functions.config().algolia.snapshots_index;
+const ALGOLIA_PEOPLE_INDEX_NAME = functions.config().algolia
+  ? functions.config().algolia.people_index
+  : undefined;
+const ALGOLIA_DOCUMENTS_INDEX_NAME = functions.config().algolia
+  ? functions.config().algolia.documents_index
+  : undefined;
+const ALGOLIA_SNAPSHOTS_INDEX_NAME = functions.config().algolia
+  ? functions.config().algolia.snapshots_index
+  : undefined;
 const ALGOLIA_HIGHLIGHTS_INDEX_NAME = functions.config().algolia
-  .highlights_index;
+  ? functions.config().algolia.highlights_index
+  : undefined;
 
-const client = algoliasearch(ALGOLIA_ID, ALGOLIA_ADMIN_KEY);
+let client;
+if (ALGOLIA_ID && ALGOLIA_ADMIN_KEY) {
+  client = algoliasearch(ALGOLIA_ID, ALGOLIA_ADMIN_KEY);
+}
 
 // Provision a new API key for the client to use when making
 // search index queries.
@@ -302,6 +317,10 @@ exports.getSearchKey = functions.https.onCall((data, context) => {
 exports.onPersonWritten = functions.firestore
   .document("organizations/{orgID}/people/{personID}")
   .onWrite((change, context) => {
+    if (!client) {
+      console.warn("Algolia client not available; skipping index operation");
+      return;
+    }
     const index = client.initIndex(ALGOLIA_PEOPLE_INDEX_NAME);
 
     if (!change.after.exists || change.after.data().deletionTimestamp != "") {
@@ -317,6 +336,7 @@ exports.onPersonWritten = functions.firestore
       objectID: change.after.id,
       orgID: context.params.orgID,
       name: person.name,
+      company: person.company,
       job: person.job,
       labels: person.labels,
       customFields: person.customFields,
@@ -326,6 +346,42 @@ exports.onPersonWritten = functions.firestore
 
     // Write to the algolia index
     return index.saveObject(personToIndex);
+  });
+
+// Add highlight records to the search index when created, updated or deleted.
+exports.onHighlightWritten = functions.firestore
+  .document(
+    "organizations/{orgID}/documents/{documentID}/highlights/{highlightID}"
+  )
+  .onWrite((change, context) => {
+    if (!client) {
+      console.warn("Algolia client not available; skipping index operation");
+      return;
+    }
+    const index = client.initIndex(ALGOLIA_HIGHLIGHTS_INDEX_NAME);
+    if (!change.after.exists || change.after.data().deletionTimestamp != "") {
+      // Delete highlight from index;
+      index.deleteObject(context.params.highlightID);
+      return;
+    }
+
+    let highlight = change.after.data();
+
+    let highlightToIndex = {
+      // Add an 'objectID' field which Algolia requires
+      objectID: change.after.id,
+      orgID: context.params.orgID,
+      documentID: highlight.documentID,
+      personID: highlight.personID,
+      text: highlight.text,
+      tagID: highlight.tagID,
+      createdBy: highlight.createdBy,
+      creationTimestamp: highlight.creationTimestamp.seconds,
+      lastUpdateTimestamp: highlight.lastUpdateTimestamp.seconds,
+    };
+
+    // Write to the algolia index
+    return index.saveObject(highlightToIndex);
   });
 
 // Update highlight records when document personID is updated.
@@ -358,6 +414,14 @@ exports.updateHighlightsForUpdatedDocument = functions.firestore
         );
     }
   });
+
+const deltaToPlaintext = (delta) => {
+  return delta.reduce(function (text, op) {
+    if (!op.insert) return text;
+    if (typeof op.insert !== "string") return text + " ";
+    return text + op.insert;
+  }, "");
+};
 
 const indexUpdated = (index) => {
   return (change, context) => {
@@ -406,7 +470,7 @@ const indexUpdated = (index) => {
               });
 
               // Convert the consolidated document delta snapshot to text.
-              let docText = toPlaintext(latestRevisionDelta);
+              let docText = deltaToPlaintext(latestRevisionDelta);
 
               // Index the new content
               let docToIndex = {
@@ -449,7 +513,7 @@ const indexUpdated = (index) => {
           createdBy: data.createdBy,
           creationTimestamp: data.creationTimestamp.seconds,
           latestSnapshotTimestamp: ts.seconds,
-          text: toPlaintext(latestRevisionDelta),
+          text: deltaToPlaintext(latestRevisionDelta),
         });
       });
   };
@@ -457,15 +521,19 @@ const indexUpdated = (index) => {
 
 // Add document records to the search index when created or
 // when marked for re-index.
-exports.indexUpdatedDocument = functions.firestore
-  .document("organizations/{orgID}/documents/{documentID}")
-  .onWrite(indexUpdated(client.initIndex(ALGOLIA_DOCUMENTS_INDEX_NAME)));
+if (client) {
+  exports.indexUpdatedDocument = functions.firestore
+    .document("organizations/{orgID}/documents/{documentID}")
+    .onWrite(indexUpdated(client.initIndex(ALGOLIA_DOCUMENTS_INDEX_NAME)));
+}
 
-// Add document records to the search index when created or
+// Add snapshot records to the search index when created or
 // when marked for re-index.
-exports.indexUpdatedSnapshot = functions.firestore
-  .document("organizations/{orgID}/snapshots/{documentID}")
-  .onWrite(indexUpdated(client.initIndex(ALGOLIA_SNAPSHOTS_INDEX_NAME)));
+if (client) {
+  exports.indexUpdatedSnapshot = functions.firestore
+    .document("organizations/{orgID}/snapshots/{documentID}")
+    .onWrite(indexUpdated(client.initIndex(ALGOLIA_SNAPSHOTS_INDEX_NAME)));
+}
 
 // Mark documents with edits more recent than the last indexing operation
 // for re-indexing.
@@ -1005,7 +1073,7 @@ exports.deltaForTranscript = functions.firestore
         let documentRef = documentsRef.doc(operation.documentID);
         let revisionsRef = documentRef.collection("revisions");
 
-        let revisionID = nanoid();
+        let revisionID = uuidv4();
         revisionsRef
           .doc(revisionID)
           .set({

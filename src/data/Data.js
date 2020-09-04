@@ -7,7 +7,8 @@ import DataHelp from "./DataHelp.js";
 import DescriptionIcon from "@material-ui/icons/Description";
 import Document from "./Document.js";
 import DocumentCreateModal from "./DocumentCreateModal.js";
-import EditIcon from "@material-ui/icons/Edit";
+import FileCopyIcon from "@material-ui/icons/FileCopy";
+import FirebaseContext from "../util/FirebaseContext.js";
 import Grid from "@material-ui/core/Grid";
 import Hidden from "@material-ui/core/Hidden";
 import List from "@material-ui/core/List";
@@ -26,11 +27,11 @@ import UploadVideoDialog from "./UploadVideoDialog.js";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import { connectHits } from "react-instantsearch-dom";
 import event from "../analytics/event.js";
-import { initialDelta } from "./delta.js";
+import { initialDelta } from "../editor/delta.js";
 import { makeStyles } from "@material-ui/core/styles";
-import { nanoid } from "nanoid";
 import useFirestore from "../db/Firestore.js";
 import { useOrganization } from "../organization/hooks.js";
+import { v4 as uuidv4 } from "uuid";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -69,6 +70,7 @@ export default function Data(props) {
   let { documentID, orgID } = useParams();
   let { documentsRef } = useFirestore();
   let { oauthClaims } = useContext(UserAuthContext);
+  let firebase = useContext(FirebaseContext);
 
   const [editor, setEditor] = useState();
   const reactQuillRef = useCallback(
@@ -106,20 +108,20 @@ export default function Data(props) {
   }, [documentsRef]);
 
   const onAddDocument = () => {
-    event("create_data", {
+    event(firebase, "create_data", {
       orgID: oauthClaims.orgID,
       userID: oauthClaims.user_id,
     });
 
-    let documentID = nanoid();
+    let documentID = uuidv4();
 
-    documentsRef
+    return documentsRef
       .doc(documentID)
       .set({
         ID: documentID,
         name: "Untitled Document",
         createdBy: oauthClaims.email,
-        creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+        creationTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
 
         tagGroupID: defaultTagGroupID || "",
 
@@ -144,12 +146,11 @@ export default function Data(props) {
           .collection("revisions")
           .add({
             delta: { ops: initialDelta().ops },
-            timestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
           });
       })
       .then(() => {
         navigate(`/orgs/${orgID}/data/${documentID}`);
-        setAddModalShow(true);
       });
   };
 
@@ -209,11 +210,10 @@ export default function Data(props) {
         <SpeedDial
           ariaLabel="SpeedDial example"
           className={classes.speedDial}
-          icon={<SpeedDialIcon openIcon={<EditIcon />} />}
+          icon={<SpeedDialIcon />}
           onClose={() => setOpenDial(false)}
           FabProps={{
             color: "secondary",
-            onClick: () => onAddDocument(),
           }}
           onOpen={() => setOpenDial(true)}
           open={openDial}
@@ -229,9 +229,20 @@ export default function Data(props) {
             }}
           />
           <SpeedDialAction
-            key="Upload video"
+            key="Create document from template"
+            icon={<FileCopyIcon />}
+            tooltipTitle="Create document from template"
+            onClick={() => {
+              onAddDocument().then(() => {
+                setAddModalShow(true);
+              });
+              setOpenDial(false);
+            }}
+          />
+          <SpeedDialAction
+            key="Transcribe video"
             icon={<TheatersIcon />}
-            tooltipTitle="Upload video"
+            tooltipTitle="Transcribe video"
             onClick={() => {
               onUploadVideo();
               setOpenDial(false);
@@ -285,16 +296,18 @@ export default function Data(props) {
     />
   );
 
+  let searchConfig;
+  if (process.env.REACT_APP_ALGOLIA_DOCUMENTS_INDEX) {
+    searchConfig = {
+      index: process.env.REACT_APP_ALGOLIA_DOCUMENTS_INDEX,
+      setShowResults: (value) => {
+        setShowResults(value);
+      },
+    };
+  }
+
   return (
-    <Shell
-      title="Data"
-      search={{
-        index: process.env.REACT_APP_ALGOLIA_DOCUMENTS_INDEX,
-        setShowResults: (value) => {
-          setShowResults(value);
-        },
-      }}
-    >
+    <Shell title="Data" search={searchConfig}>
       <Grid container className="fullHeight">
         {list}
         {content}

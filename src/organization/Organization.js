@@ -44,18 +44,20 @@ export default function Organization() {
   useEffect(() => {
     if (!authorized || !oauthClaims) return;
 
-    window.performancePromise.then(() => {
-      console.log("Loading intercom");
-      loadIntercom();
+    if (window) {
+      window.performancePromise.then(() => {
+        console.log("Loading intercom");
+        loadIntercom();
 
-      if (!window.Intercom) return;
+        if (!window.Intercom) return;
 
-      let intercomConfig = Object.assign({ app_id: "xdjuo7oo" }, oauthClaims);
-      window.Intercom("boot", intercomConfig);
+        let intercomConfig = Object.assign({ app_id: "xdjuo7oo" }, oauthClaims);
+        window.Intercom("boot", intercomConfig);
 
-      console.log("Done loading intercom");
-      setIntercomInit(true);
-    });
+        console.log("Done loading intercom");
+        setIntercomInit(true);
+      });
+    }
   }, [authorized, oauthClaims]);
 
   // Update intercom whenever the URL changes

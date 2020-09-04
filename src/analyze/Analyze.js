@@ -11,6 +11,7 @@ import BarChartIcon from "@material-ui/icons/BarChart";
 import BubbleChartIcon from "@material-ui/icons/BubbleChart";
 import DescriptionIcon from "@material-ui/icons/Description";
 import Fab from "@material-ui/core/Fab";
+import FirebaseContext from "../util/FirebaseContext.js";
 import Grid from "@material-ui/core/Grid";
 import Hidden from "@material-ui/core/Hidden";
 import List from "@material-ui/core/List";
@@ -27,6 +28,7 @@ import useFirestore from "../db/Firestore.js";
 
 export default function Analyze(props) {
   const { oauthClaims } = useContext(UserAuthContext);
+  const firebase = useContext(FirebaseContext);
 
   let { analysesRef } = useFirestore();
 
@@ -101,7 +103,7 @@ export default function Analyze(props) {
   );
 
   const onAdd = () => {
-    event("create_analysis", {
+    event(firebase, "create_analysis", {
       orgID: oauthClaims.orgID,
       userID: oauthClaims.user_id,
     });
@@ -111,7 +113,7 @@ export default function Analyze(props) {
         name: "Unnamed analysis",
         documentIDs: [],
         createdBy: oauthClaims.email,
-        creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+        creationTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
         deletionTimestamp: "",
       })
       .then((doc) => {

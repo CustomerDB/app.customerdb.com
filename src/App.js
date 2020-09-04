@@ -1,5 +1,3 @@
-import "./util/firebaseConfig.js";
-
 import { Cookies, Privacy, Terms } from "./legal/Legal.js";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { ThemeProvider, createMuiTheme } from "@material-ui/core/styles";
@@ -7,11 +5,14 @@ import { ThemeProvider, createMuiTheme } from "@material-ui/core/styles";
 import Admin from "./admin/Admin.js";
 import Error404 from "./404.js";
 import ErrorBoundary from "./util/ErrorBoundary.js";
+import Firebase from "./util/Firebase.js";
+import FirebaseContext from "./util/FirebaseContext.js";
 import JoinOrg from "./auth/JoinOrg.js";
 import Login from "./auth/Login.js";
 import Logout from "./auth/Logout.js";
 import Organization from "./organization/Organization.js";
 import React from "react";
+import { BrowserRouter as Router } from "react-router-dom";
 import WithOauthUser from "./auth/WithOauthUser.js";
 
 export default function App() {
@@ -27,72 +28,76 @@ export default function App() {
   });
 
   return (
-    <ErrorBoundary>
-      <ThemeProvider theme={appTheme}>
-        <Routes caseSensitive>
-          <Route
-            path="/"
-            element={
-              <WithOauthUser>
-                <Login />
-              </WithOauthUser>
-            }
-          />
+    <Router>
+      <ErrorBoundary>
+        <FirebaseContext.Provider value={new Firebase()}>
+          <ThemeProvider theme={appTheme}>
+            <Routes caseSensitive>
+              <Route
+                path="/"
+                element={
+                  <WithOauthUser>
+                    <Login />
+                  </WithOauthUser>
+                }
+              />
 
-          <Route
-            path="login"
-            element={
-              <WithOauthUser>
-                <Login />
-              </WithOauthUser>
-            }
-          />
+              <Route
+                path="login"
+                element={
+                  <WithOauthUser>
+                    <Login />
+                  </WithOauthUser>
+                }
+              />
 
-          <Route path="join">
-            <Route
-              path=":id"
-              element={
-                <WithOauthUser>
-                  <JoinOrg />
-                </WithOauthUser>
-              }
-            />
-          </Route>
+              <Route path="join">
+                <Route
+                  path=":id"
+                  element={
+                    <WithOauthUser>
+                      <JoinOrg />
+                    </WithOauthUser>
+                  }
+                />
+              </Route>
 
-          <Route path="orgs">
-            <Route
-              path=":orgID/*"
-              element={
-                <WithOauthUser>
-                  <Organization />
-                </WithOauthUser>
-              }
-            />
-          </Route>
+              <Route path="orgs">
+                <Route
+                  path=":orgID/*"
+                  element={
+                    <WithOauthUser>
+                      <Organization />
+                    </WithOauthUser>
+                  }
+                />
+              </Route>
 
-          <Route
-            path="admin"
-            element={
-              <WithOauthUser>
-                <Admin />
-              </WithOauthUser>
-            }
-          />
+              <Route
+                path="admin"
+                element={
+                  <WithOauthUser>
+                    <Admin />
+                  </WithOauthUser>
+                }
+              />
 
-          <Route path="terms" element={<Terms />} />
+              <Route path="terms" element={<Terms />} />
 
-          <Route path="privacy" element={<Privacy />} />
+              <Route path="privacy" element={<Privacy />} />
 
-          <Route path="cookies" element={<Cookies />} />
+              <Route path="cookies" element={<Cookies />} />
 
-          <Route path="404" element={<Error404 />} />
+              <Route path="404" element={<Error404 />} />
 
-          <Route path="logout">
-            <Logout />
-          </Route>
-          <Route path="*" element={<Navigate to="/404" />} />
-        </Routes>
-      </ThemeProvider>
-    </ErrorBoundary>
+              <Route path="logout">
+                <Logout />
+              </Route>
+              <Route path="*" element={<Navigate to="/404" />} />
+            </Routes>
+          </ThemeProvider>
+        </FirebaseContext.Provider>
+      </ErrorBoundary>
+    </Router>
   );
 }

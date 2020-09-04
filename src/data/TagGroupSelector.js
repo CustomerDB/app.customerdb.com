@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 
+import FirebaseContext from "../util/FirebaseContext.js";
 import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
 import MenuItem from "@material-ui/core/MenuItem";
@@ -10,13 +11,9 @@ import useFirestore from "../db/Firestore.js";
 
 export default function TagGroupSelector(props) {
   const { oauthClaims } = useContext(UserAuthContext);
+  const firebase = useContext(FirebaseContext);
 
-  const {
-    documentRef,
-    tagGroupsRef,
-    highlightsRef,
-    deltasRef,
-  } = useFirestore();
+  const { documentRef, tagGroupsRef, highlightsRef } = useFirestore();
 
   const [doc, setDoc] = useState();
   const [tagGroups, setTagGroups] = useState();
@@ -58,7 +55,7 @@ export default function TagGroupSelector(props) {
 
   const onTagGroupChange = (e) => {
     console.log("onTagGroupChange", e);
-    event("change_data_tag_group", {
+    event(firebase, "change_data_tag_group", {
       orgID: oauthClaims.orgID,
       userID: oauthClaims.user_id,
     });
@@ -97,7 +94,7 @@ export default function TagGroupSelector(props) {
 
           let deltaDoc = {
             editorID: "",
-            timestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
             userEmail: oauthClaims.email,
             ops: [
               {
@@ -114,7 +111,8 @@ export default function TagGroupSelector(props) {
             deltaDoc
           );
 
-          deltasRef
+          documentRef
+            .collection("deltas")
             .doc()
             .set(deltaDoc)
             .then(() => {

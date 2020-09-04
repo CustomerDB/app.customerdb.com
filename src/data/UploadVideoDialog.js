@@ -8,6 +8,7 @@ import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
+import FirebaseContext from "../util/FirebaseContext.js";
 import FormControl from "@material-ui/core/FormControl";
 import Grid from "@material-ui/core/Grid";
 import InputLabel from "@material-ui/core/InputLabel";
@@ -17,8 +18,8 @@ import TextField from "@material-ui/core/TextField";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import { green } from "@material-ui/core/colors";
 import { makeStyles } from "@material-ui/core/styles";
-import { nanoid } from "nanoid";
 import useFirestore from "../db/Firestore.js";
+import { v4 as uuidv4 } from "uuid";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -39,15 +40,16 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-let storageRef = window.firebase.storage().ref();
-
 export default function UploadVideoDialog({ open, setOpen }) {
   const classes = useStyles();
 
   let { oauthClaims } = useContext(UserAuthContext);
   let { orgID } = useParams();
+  const firebase = useContext(FirebaseContext);
 
   let uploadTask = useRef();
+
+  let storageRef = firebase.storage().ref();
 
   const navigate = useNavigate();
   const { transcriptionsRef, documentsRef } = useFirestore();
@@ -89,8 +91,8 @@ export default function UploadVideoDialog({ open, setOpen }) {
     setUploading(true);
 
     // Store name, speaker count and path in operation document.
-    let transcriptionID = nanoid();
-    let documentID = nanoid();
+    let transcriptionID = uuidv4();
+    let documentID = uuidv4();
 
     // TODO: Find official google storage rules for allowed object names.
     let fileName = file.name.replace(/[ !@#$%^&*()+[]{}<>]/g, "-");
@@ -103,7 +105,7 @@ export default function UploadVideoDialog({ open, setOpen }) {
         name: name,
         speakers: speakers,
         createdBy: oauthClaims.email,
-        creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+        creationTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
         deletionTimestamp: "",
         inputPath: storagePath,
         orgID: orgID,
@@ -139,7 +141,7 @@ export default function UploadVideoDialog({ open, setOpen }) {
                 ID: documentID,
                 name: name,
                 createdBy: oauthClaims.email,
-                creationTimestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+                creationTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
                 tagGroupID: "",
                 templateID: "",
                 needsIndex: false,

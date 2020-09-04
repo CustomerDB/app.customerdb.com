@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 
 import Col from "react-bootstrap/Col";
 import Container from "react-bootstrap/Container";
+import FirebaseContext from "../util/FirebaseContext.js";
 import GridSelector from "../search/GridSelector.js";
 import Row from "react-bootstrap/Row";
 import UserAuthContext from "../auth/UserAuthContext.js";
@@ -10,6 +11,7 @@ import useFirestore from "../db/Firestore.js";
 
 export default function AnalysisDataTab(props) {
   const { oauthClaims } = useContext(UserAuthContext);
+  const firebase = useContext(FirebaseContext);
   const { analysisRef, documentsRef, cardsRef } = useFirestore();
   const [documents, setDocuments] = useState([]);
 
@@ -25,7 +27,7 @@ export default function AnalysisDataTab(props) {
     let unsubscribe = documentsRef
       .where("deletionTimestamp", "==", "")
       .where(
-        window.firebase.firestore.FieldPath.documentId(),
+        firebase.firestore.FieldPath.documentId(),
         "in",
         props.analysis.documentIDs
       )
@@ -41,10 +43,10 @@ export default function AnalysisDataTab(props) {
       });
 
     return unsubscribe;
-  }, [documentsRef, props.analysis.documentIDs]);
+  }, [documentsRef, props.analysis.documentIDs, firebase.firestore.FieldPath]);
 
   const onClick = (documentID) => {
-    event("edit_analysis_data", {
+    event(firebase, "edit_analysis_data", {
       orgID: oauthClaims.orgID,
       userID: oauthClaims.user_id,
     });
@@ -89,11 +91,7 @@ export default function AnalysisDataTab(props) {
     }
 
     documentsRef
-      .where(
-        window.firebase.firestore.FieldPath.documentId(),
-        "in",
-        newDocumentIDs
-      )
+      .where(firebase.firestore.FieldPath.documentId(), "in", newDocumentIDs)
       .get()
       .then((snapshot) => {
         let newTagGroupIDs = new Set();

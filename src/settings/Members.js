@@ -6,6 +6,7 @@ import Card from "@material-ui/core/Card";
 import CardActions from "@material-ui/core/CardActions";
 import CardContent from "@material-ui/core/CardContent";
 import DeleteMemberDialog from "./DeleteMemberDialog.js";
+import FirebaseContext from "../util/FirebaseContext.js";
 import Grid from "@material-ui/core/Grid";
 import InviteMemberDialog from "./InviteMemberDialog.js";
 import { Loading } from "../util/Utils.js";
@@ -33,6 +34,7 @@ const useStyles = makeStyles({
 
 export default function Members(props) {
   const { oauthClaims } = useContext(UserAuthContext);
+  const firebase = useContext(FirebaseContext);
   const { orgID } = useParams();
   const { membersRef } = useFirestore();
   const [members, setMembers] = useState();
@@ -61,7 +63,7 @@ export default function Members(props) {
   }, [membersRef]);
 
   const onInvite = (email) => {
-    event("invite_member", {
+    event(firebase, "invite_member", {
       orgID: orgID,
       userID: oauthClaims.user_id,
     });

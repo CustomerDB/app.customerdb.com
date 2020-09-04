@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import AnalysisClusterBoard from "./AnalysisClusterBoard.js";
 import Button from "react-bootstrap/Button";
 import ClusterDropdown from "./ClusterDropdown.js";
+import FirebaseContext from "../util/FirebaseContext.js";
 import FocusContext from "../util/FocusContext.js";
 import Form from "react-bootstrap/Form";
 import FullscreenExitIcon from "@material-ui/icons/FullscreenExit";
@@ -12,11 +13,12 @@ import Grid from "@material-ui/core/Grid";
 import { Loading } from "../util/Utils.js";
 import Modal from "../shell_obsolete/Modal.js";
 import UserAuthContext from "../auth/UserAuthContext.js";
-import { nanoid } from "nanoid";
 import useFirestore from "../db/Firestore.js";
+import { v4 as uuidv4 } from "uuid";
 
 export default function AnalysisClusterTab(props) {
   const { oauthClaims } = useContext(UserAuthContext);
+  const firebase = useContext(FirebaseContext);
   const focus = useContext(FocusContext);
   const [boardKey, setBoardKey] = useState();
   const navigate = useNavigate();
@@ -73,7 +75,7 @@ export default function AnalysisClusterTab(props) {
     .where("tagID", "==", tagID);
 
   let analysisDocumentsRef = documentsRef.where(
-    window.firebase.firestore.FieldPath.documentId(),
+    firebase.firestore.FieldPath.documentId(),
     "in",
     props.analysis.documentIDs
   );
@@ -84,7 +86,7 @@ export default function AnalysisClusterTab(props) {
     // same group consecutively.
     //
     // TODO: fix this in a cleaner way.
-    setModalGroupNonce(nanoid());
+    setModalGroupNonce(uuidv4());
     setModalGroupID(ID);
     setShowRenameGroupModal(true);
   };
@@ -137,6 +139,7 @@ export default function AnalysisClusterTab(props) {
           {arrows}
         </Button>
         <AnalysisClusterBoard
+          firebase={firebase}
           analysisID={analysisID}
           analysisName={props.analysis.name}
           key={boardKey}

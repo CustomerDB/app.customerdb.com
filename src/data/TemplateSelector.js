@@ -1,17 +1,19 @@
 import React, { useContext, useEffect, useState } from "react";
 
 import Delta from "quill-delta";
+import FirebaseContext from "../util/FirebaseContext.js";
 import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
 import MenuItem from "@material-ui/core/MenuItem";
 import Select from "@material-ui/core/Select";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
-import { initialDelta } from "./delta.js";
+import { initialDelta } from "../editor/delta.js";
 import useFirestore from "../db/Firestore.js";
 
 export default function TemplateSelector(props) {
   const { oauthClaims } = useContext(UserAuthContext);
+  const firebase = useContext(FirebaseContext);
   const [doc, setDoc] = useState();
   const [templates, setTemplates] = useState();
 
@@ -44,7 +46,7 @@ export default function TemplateSelector(props) {
 
   const onTemplateChange = (e) => {
     console.log("onTagGroupChange", e);
-    event("change_data_template", {
+    event(firebase, "change_data_template", {
       orgID: oauthClaims.orgID,
       userID: oauthClaims.user_id,
     });
