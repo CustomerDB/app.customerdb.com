@@ -10,6 +10,7 @@ import FirebaseContext from "../util/FirebaseContext.js";
 import ReactDOM from "react-dom";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import { act } from "react-dom/test-utils";
+import { v4 as uuidv4 } from "uuid";
 import { wait } from "@testing-library/react";
 
 let app;
@@ -112,23 +113,26 @@ const setupData = async () => {
 const cleanupData = async () => {
   let db = adminApp.firestore();
   let orgRef = db.collection("organizations").doc(orgID);
-  await orgRef
-    .collection("documents")
-    .doc(documentID)
+  let docRef = orgRef.collection("documents").doc(documentID);
+  await docRef
     .collection("deltas")
     .get()
     .then((snapshot) => {
       snapshot.forEach((doc) => doc.ref.delete());
     });
-  await orgRef
-    .collection("documents")
-    .doc(documentID)
+  await docRef
     .collection("revisions")
     .get()
     .then((snapshot) => {
       snapshot.forEach((doc) => doc.ref.delete());
     });
-  await orgRef.collection("documents").doc(documentID).delete();
+  await docRef
+    .collection("highlights")
+    .get()
+    .then((snapshot) => {
+      snapshot.forEach((doc) => doc.ref.delete());
+    });
+  await docRef.delete();
   await orgRef.collection("members").doc(userObject.email).delete();
   await orgRef.delete();
 };
@@ -140,6 +144,9 @@ const renderDocument = async (route, container) => {
     document.body.appendChild(container);
     containers.push(container);
   }
+
+  let editor;
+
   await act(async () => {
     ReactDOM.render(
       <Router initialEntries={[route]}>
@@ -149,7 +156,11 @@ const renderDocument = async (route, container) => {
             element={
               <FirebaseContext.Provider value={app}>
                 <UserAuthContext.Provider value={contextValue}>
-                  <DocumentWrapper />
+                  <DocumentWrapper
+                    onEditor={(e) => {
+                      editor = e;
+                    }}
+                  />
                 </UserAuthContext.Provider>
               </FirebaseContext.Provider>
             }
@@ -160,11 +171,15 @@ const renderDocument = async (route, container) => {
     );
   });
 
-  return container;
+  await wait(() => {
+    return expect(editor).toBeTruthy();
+  });
+
+  return [container, editor];
 };
 
 it("can render an existing document", async () => {
-  let container = await renderDocument(`/org/acme-0001/data/${documentID}`);
+  let [container] = await renderDocument(`/org/acme-0001/data/${documentID}`);
 
   await wait(() => {
     const name = container.querySelector("#documentTitle");
@@ -172,21 +187,21 @@ it("can render an existing document", async () => {
   });
 
   await wait(() => {
-    const editor = container.querySelector(".ql-editor");
-    return expect(editor.textContent).toBe("Hello");
+    const editorNode = container.querySelector(".ql-editor");
+    return expect(editorNode.textContent).toBe("Hello");
   });
 });
 
 it("can edit a document", async () => {
-  let container = await renderDocument(`/org/acme-0001/data/${documentID}`);
+  let [container] = await renderDocument(`/org/acme-0001/data/${documentID}`);
   await wait(() => {
-    const editor = container.querySelector(".ql-editor");
-    return expect(editor.textContent).toBe("Hello");
+    const editorNode = container.querySelector(".ql-editor");
+    return expect(editorNode.textContent).toBe("Hello");
   });
 
   await act(async () => {
-    const editor = container.querySelector(".ql-editor");
-    editor.innerHTML = "<p>Goodbye</p>";
+    const editorNode = container.querySelector(".ql-editor");
+    editorNode.innerHTML = "<p>Goodbye</p>";
   });
 
   let numDeltas;
@@ -207,22 +222,22 @@ it("can edit a document", async () => {
   unsubscribe();
 
   await wait(() => {
-    let editor = container.querySelector(".ql-editor");
-    return expect(editor.textContent).toBe("Goodbye");
+    let editorNode = container.querySelector(".ql-editor");
+    return expect(editorNode.textContent).toBe("Goodbye");
   });
 
-  let container2 = await renderDocument(`/org/acme-0001/data/${documentID}`);
+  let [container2] = await renderDocument(`/org/acme-0001/data/${documentID}`);
   await wait(() => {
-    let editor = container2.querySelector(".ql-editor");
-    return expect(editor.textContent).toBe("Goodbye");
+    let editorNode = container2.querySelector(".ql-editor");
+    return expect(editorNode.textContent).toBe("Goodbye");
   });
 });
 
 it("can delete a document", async () => {
-  let container = await renderDocument(`/org/acme-0001/data/${documentID}`);
+  let [container] = await renderDocument(`/org/acme-0001/data/${documentID}`);
   await wait(() => {
-    const editor = container.querySelector(".ql-editor");
-    return expect(editor.textContent).toBe("Hello");
+    const editorNode = container.querySelector(".ql-editor");
+    return expect(editorNode.textContent).toBe("Hello");
   });
 
   await act(async () => {
@@ -263,15 +278,86 @@ it("can delete a document", async () => {
   unsubscribe();
 });
 
-const DocumentWrapper = (props) => {
+it("can receive and render highlights in a document", async () => {
+  let [container] = await renderDocument(`/org/acme-0001/data/${documentID}`);
+  await wait(() => {
+    const editorNode = container.querySelector(".ql-editor");
+    return expect(editorNode.textContent).toBe("Hello");
+  });
+
+  let db = adminApp.firestore();
+  let orgRef = db.collection("organizations").doc(orgID);
+  let highlightID = uuidv4();
+  let docRef = orgRef.collection("documents").doc(documentID);
+  let highlightRef = docRef.collection("highlights").doc(highlightID);
+
+  await docRef.collection("deltas").add({
+    editorID: "",
+    ops: [
+      { retain: 1 },
+      {
+        retain: 4,
+        attributes: {
+          highlight: {
+            highlightID: highlightID,
+            tagID: "fake-tag-id",
+          },
+        },
+      },
+    ],
+    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+    userEmail: "system@example.com",
+  });
+
+  await wait(() => {
+    const highlightNode = container.querySelector(".inline-highlight");
+    return expect(highlightNode).toBeTruthy();
+  });
+
+  await wait(() => {
+    const highlightNode = container.querySelector(".inline-highlight");
+    return expect(highlightNode.textContent).toBe("ello");
+  });
+
+  await wait(() => {
+    const highlightNode = container.querySelector(".inline-highlight");
+    return expect(
+      highlightNode.classList.contains(`highlight-${highlightID}`)
+    ).toBe(true);
+  });
+
+  await wait(() => {
+    const highlightNode = container.querySelector(".inline-highlight");
+    return expect(highlightNode.classList.contains(`tag-fake-tag-id`)).toBe(
+      true
+    );
+  });
+
+  let highlightDocument;
+
+  highlightRef.onSnapshot((doc) => (highlightDocument = doc.data()));
+
+  await wait(() => {
+    return expect(highlightDocument.ID).toBe(highlightID);
+  });
+
+  await wait(() => {
+    return expect(highlightDocument.text).toBe("ello");
+  });
+});
+
+const DocumentWrapper = ({ onEditor }) => {
   const [editor, setEditor] = useState();
   const reactQuillRef = useCallback(
     (current) => {
       if (!current) {
         setEditor();
+        onEditor();
         return;
       }
-      setEditor(current.getEditor());
+      let newEditor = current.getEditor();
+      setEditor(newEditor);
+      onEditor(newEditor);
     },
     [setEditor]
   );
