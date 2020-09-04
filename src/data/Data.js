@@ -211,7 +211,7 @@ export default function Data(props) {
         <SpeedDial
           ariaLabel="SpeedDial example"
           className={classes.speedDial}
-          icon={<SpeedDialIcon openIcon={<EditIcon />} />}
+          icon={<SpeedDialIcon />}
           onClose={() => setOpenDial(false)}
           FabProps={{
             color: "secondary",
@@ -241,9 +241,9 @@ export default function Data(props) {
             }}
           />
           <SpeedDialAction
-            key="Upload video"
+            key="Transcribe video"
             icon={<TheatersIcon />}
-            tooltipTitle="Upload video"
+            tooltipTitle="Transcribe video"
             onClick={() => {
               onUploadVideo();
               setOpenDial(false);

@@ -45,7 +45,7 @@ export default function DocumentCreateModal({ show, onHide, editor }) {
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-description"
     >
-      <DialogTitle id="alert-dialog-title">{`New document`}</DialogTitle>
+      <DialogTitle id="alert-dialog-title">{`New document from template`}</DialogTitle>
       <DialogContent>
         <Grid container spacing={2}>
           <Grid container item>
