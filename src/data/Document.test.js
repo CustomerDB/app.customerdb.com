@@ -288,28 +288,26 @@ it("can receive and render highlights in a document", async () => {
   let db = adminApp.firestore();
   let orgRef = db.collection("organizations").doc(orgID);
   let highlightID = uuidv4();
+  let docRef = orgRef.collection("documents").doc(documentID);
+  let highlightRef = docRef.collection("highlights").doc(highlightID);
 
-  await orgRef
-    .collection("documents")
-    .doc(documentID)
-    .collection("deltas")
-    .add({
-      editorID: "",
-      ops: [
-        { retain: 1 },
-        {
-          retain: 4,
-          attributes: {
-            highlight: {
-              highlightID: highlightID,
-              tagID: "fake-tag-id",
-            },
+  await docRef.collection("deltas").add({
+    editorID: "",
+    ops: [
+      { retain: 1 },
+      {
+        retain: 4,
+        attributes: {
+          highlight: {
+            highlightID: highlightID,
+            tagID: "fake-tag-id",
           },
         },
-      ],
-      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-      userEmail: "system@example.com",
-    });
+      },
+    ],
+    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+    userEmail: "system@example.com",
+  });
 
   await wait(() => {
     const highlightNode = container.querySelector(".inline-highlight");
@@ -333,6 +331,18 @@ it("can receive and render highlights in a document", async () => {
     return expect(highlightNode.classList.contains(`tag-fake-tag-id`)).toBe(
       true
     );
+  });
+
+  let highlightDocument;
+
+  highlightRef.onSnapshot((doc) => (highlightDocument = doc.data()));
+
+  await wait(() => {
+    return expect(highlightDocument.ID).toBe(highlightID);
+  });
+
+  await wait(() => {
+    return expect(highlightDocument.text).toBe("ello");
   });
 });
 
