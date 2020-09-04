@@ -8,6 +8,7 @@ import DescriptionIcon from "@material-ui/icons/Description";
 import Document from "./Document.js";
 import DocumentCreateModal from "./DocumentCreateModal.js";
 import EditIcon from "@material-ui/icons/Edit";
+import FileCopyIcon from "@material-ui/icons/FileCopy";
 import FirebaseContext from "../util/FirebaseContext.js";
 import Grid from "@material-ui/core/Grid";
 import Hidden from "@material-ui/core/Hidden";
@@ -115,7 +116,7 @@ export default function Data(props) {
 
     let documentID = uuidv4();
 
-    documentsRef
+    return documentsRef
       .doc(documentID)
       .set({
         ID: documentID,
@@ -151,7 +152,6 @@ export default function Data(props) {
       })
       .then(() => {
         navigate(`/orgs/${orgID}/data/${documentID}`);
-        setAddModalShow(true);
       });
   };
 
@@ -211,11 +211,10 @@ export default function Data(props) {
         <SpeedDial
           ariaLabel="SpeedDial example"
           className={classes.speedDial}
-          icon={<SpeedDialIcon openIcon={<EditIcon />} />}
+          icon={<SpeedDialIcon />}
           onClose={() => setOpenDial(false)}
           FabProps={{
             color: "secondary",
-            onClick: () => onAddDocument(),
           }}
           onOpen={() => setOpenDial(true)}
           open={openDial}
@@ -231,9 +230,20 @@ export default function Data(props) {
             }}
           />
           <SpeedDialAction
-            key="Upload video"
+            key="Create document from template"
+            icon={<FileCopyIcon />}
+            tooltipTitle="Create document from template"
+            onClick={() => {
+              onAddDocument().then(() => {
+                setAddModalShow(true);
+              });
+              setOpenDial(false);
+            }}
+          />
+          <SpeedDialAction
+            key="Transcribe video"
             icon={<TheatersIcon />}
-            tooltipTitle="Upload video"
+            tooltipTitle="Transcribe video"
             onClick={() => {
               onUploadVideo();
               setOpenDial(false);

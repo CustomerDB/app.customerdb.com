@@ -1,3 +1,5 @@
+import "mutationobserver-shim";
+
 import * as firebase from "@firebase/testing";
 
 import React, { useCallback, useState } from "react";
@@ -5,18 +7,15 @@ import { Route, MemoryRouter as Router, Routes } from "react-router-dom";
 
 import Document from "./Document.js";
 import FirebaseContext from "../util/FirebaseContext.js";
-import MutationObserver from "mutation-observer";
 import ReactDOM from "react-dom";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import { act } from "react-dom/test-utils";
 import { wait } from "@testing-library/react";
 
-global.MutationObserver = MutationObserver;
-
-let container;
 let app;
 let adminApp;
 let contextValue;
+let containers;
 
 const orgID = "acme-0001";
 
@@ -31,8 +30,9 @@ const userObject = {
 const documentID = "fake-document-id";
 
 beforeEach(async () => {
-  container = document.createElement("div");
-  document.body.appendChild(container);
+  window.document.getSelection = function () {};
+
+  containers = [];
 
   app = firebase.initializeTestApp({
     projectId: "customerdb-development",
@@ -59,77 +59,88 @@ beforeEach(async () => {
 
   let db = adminApp.firestore();
   let orgRef = db.collection("organizations").doc(orgID);
-  await orgRef
-    .set({
-      name: "Acme 0001",
-    })
-    .then(() => {
-      return orgRef.collection("members").doc(userObject.email).set({
-        admin: true,
-        active: true,
-        invited: false,
-        displayName: userObject.displayName,
-        email: userObject.email,
-        uid: userObject.uid,
-        photoURL: userObject.photoURL,
-      });
-    });
-});
 
-afterEach(() => {
-  document.body.removeChild(container);
-  container = null;
+  await setupData();
 });
 
 afterEach(async () => {
+  containers.forEach((c) => {
+    document.body.removeChild(c);
+  });
+  containers = [];
+  await cleanupData();
   await Promise.all(firebase.apps().map((app) => app.delete()));
 });
 
-const setupData = () => {
+const setupData = async () => {
   let db = adminApp.firestore();
   let orgRef = db.collection("organizations").doc(orgID);
-  return orgRef
-    .set({
-      name: "Acme 0001",
-    })
-    .then(() => {
-      return orgRef
-        .collection("documents")
-        .doc(documentID)
-        .set({
-          ID: documentID,
-          name: "Test Document",
-          createdBy: userObject.email,
-          creationTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
-          tagGroupID: "",
-          templateID: "",
-          needsIndex: false,
-          deletionTimestamp: "",
-        })
-        .then(() => {
-          return orgRef
-            .collection("documents")
-            .doc(documentID)
-            .collection("deltas")
-            .add({
-              editorID: "",
-              ops: [{ insert: "Hello" }],
-              timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-              userEmail: "system@example.com",
-            });
-        });
+  await orgRef.set({
+    name: "Acme 0001",
+  });
+  await orgRef.collection("members").doc(userObject.email).set({
+    admin: true,
+    active: true,
+    invited: false,
+    displayName: userObject.displayName,
+    email: userObject.email,
+    uid: userObject.uid,
+    photoURL: userObject.photoURL,
+  });
+  await orgRef.collection("documents").doc(documentID).set({
+    ID: documentID,
+    name: "Test Document",
+    createdBy: userObject.email,
+    creationTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
+    tagGroupID: "",
+    templateID: "",
+    needsIndex: false,
+    deletionTimestamp: "",
+  });
+  await orgRef
+    .collection("documents")
+    .doc(documentID)
+    .collection("deltas")
+    .add({
+      editorID: "",
+      ops: [{ insert: "Hello" }],
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      userEmail: "system@example.com",
     });
 };
 
-it("can render an existing document", async () => {
-  window.document.getSelection = function () {};
+const cleanupData = async () => {
+  let db = adminApp.firestore();
+  let orgRef = db.collection("organizations").doc(orgID);
+  await orgRef
+    .collection("documents")
+    .doc(documentID)
+    .collection("deltas")
+    .get()
+    .then((snapshot) => {
+      snapshot.forEach((doc) => doc.ref.delete());
+    });
+  await orgRef
+    .collection("documents")
+    .doc(documentID)
+    .collection("revisions")
+    .get()
+    .then((snapshot) => {
+      snapshot.forEach((doc) => doc.ref.delete());
+    });
+  await orgRef.collection("documents").doc(documentID).delete();
+  await orgRef.collection("members").doc(userObject.email).delete();
+  await orgRef.delete();
+};
 
-  // Test first render and componentDidMount
+const renderDocument = async (route, container) => {
+  const path = "/org/:orgID/data/:documentID";
+  if (!container) {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    containers.push(container);
+  }
   await act(async () => {
-    await setupData();
-    let route = `/org/acme-0001/data/${documentID}`;
-    let path = "/org/:orgID/data/:documentID";
-
     ReactDOM.render(
       <Router initialEntries={[route]}>
         <Routes>
@@ -149,6 +160,12 @@ it("can render an existing document", async () => {
     );
   });
 
+  return container;
+};
+
+it("can render an existing document", async () => {
+  let container = await renderDocument(`/org/acme-0001/data/${documentID}`);
+
   await wait(() => {
     const name = container.querySelector("#documentTitle");
     return expect(name.textContent).toBe("Test Document");
@@ -157,6 +174,47 @@ it("can render an existing document", async () => {
   await wait(() => {
     const editor = container.querySelector(".ql-editor");
     return expect(editor.textContent).toBe("Hello");
+  });
+});
+
+it("can edit a document", async () => {
+  let container = await renderDocument(`/org/acme-0001/data/${documentID}`);
+  await wait(() => {
+    const editor = container.querySelector(".ql-editor");
+    return expect(editor.textContent).toBe("Hello");
+  });
+
+  await act(async () => {
+    const editor = container.querySelector(".ql-editor");
+    editor.innerHTML = "<p>Goodbye</p>";
+  });
+
+  let numDeltas;
+  let db = adminApp.firestore();
+  let orgRef = db.collection("organizations").doc(orgID);
+  let unsubscribe = orgRef
+    .collection("documents")
+    .doc(documentID)
+    .collection("deltas")
+    .onSnapshot((snapshot) => {
+      numDeltas = snapshot.size;
+    });
+
+  await wait(() => {
+    return expect(numDeltas).toBe(2);
+  });
+
+  unsubscribe();
+
+  await wait(() => {
+    let editor = container.querySelector(".ql-editor");
+    return expect(editor.textContent).toBe("Goodbye");
+  });
+
+  let container2 = await renderDocument(`/org/acme-0001/data/${documentID}`);
+  await wait(() => {
+    let editor = container2.querySelector(".ql-editor");
+    return expect(editor.textContent).toBe("Goodbye");
   });
 });
 
