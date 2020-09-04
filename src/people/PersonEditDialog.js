@@ -157,7 +157,16 @@ export default function PersonEditDialog(props) {
             person.customFields = customFields;
             person.labels = labels;
 
-            props.personRef.set(person);
+            props.personRef.set(person).then(() => {
+              setPerson();
+              setName();
+              setEmail();
+              setCompany();
+              setPhone();
+              setCountry();
+              setState();
+              setCity();
+            });
           }}
         >
           Save
