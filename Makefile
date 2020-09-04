@@ -40,7 +40,7 @@ check-format:
 
 test:
 	GOOGLE_APPLICATION_CREDENTIALS=$(FIREBASE_CREDENTIALS_FILE) \
-		firebase --project=customerdb-development emulators:exec "yarn test --watchAll=false --forceExit"
+		firebase --project=customerdb-development emulators:exec "yarn test --watchAll=false --forceExit --coverage"
 
 install-git-hooks:
 	cp scripts/pre-commit .git/hooks/pre-commit
