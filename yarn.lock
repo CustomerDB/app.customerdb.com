@@ -1726,6 +1726,11 @@
   resolved "https://registry.yarnpkg.com/@firebase/webchannel-wrapper/-/webchannel-wrapper-0.3.0.tgz#d1689566b94c25423d1fb2cb031c5c2ea4c9f939"
   integrity sha512-VniCGPIgSGNEgOkh5phb3iKmSGIzcwrccy3IomMFRWPCMiCk2y98UQNJEoDs1yIHtZMstVjYWKYxnunIGzC5UQ==
 
+"@flatten-js/interval-tree@^1.0.12":
+  version "1.0.12"
+  resolved "https://registry.yarnpkg.com/@flatten-js/interval-tree/-/interval-tree-1.0.12.tgz#f22784c3ffcaf473d0042ef1b8cb3309f2f2794c"
+  integrity sha512-j2o14WdFPII5cI57j0XNSWQm80gM4G6RT5+NLaH8q7KmQKejR/qZiGiViMjRgMtPiiwaX6hv3hlXeyRL3yzi7g==
+
 "@grpc/grpc-js@^1.0.0":
   version "1.1.5"
   resolved "https://registry.yarnpkg.com/@grpc/grpc-js/-/grpc-js-1.1.5.tgz#2d0b261cd54a529f6b78ac0de9d6fd91a9a3129c"
