@@ -9,11 +9,11 @@ import CardActions from "@material-ui/core/CardActions";
 import CardContent from "@material-ui/core/CardContent";
 import FirebaseContext from "../util/FirebaseContext.js";
 import Grid from "@material-ui/core/Grid";
-import ReactPlayer from "react-player";
 import SearchDropdown from "../search/Dropdown.js";
 import TagGroupSelector from "./TagGroupSelector.js";
 import Typography from "@material-ui/core/Typography";
 import UserAuthContext from "../auth/UserAuthContext.js";
+import VideoPlayer from "./VideoPlayer.js";
 import event from "../analytics/event.js";
 import { makeStyles } from "@material-ui/core/styles";
 import useFirestore from "../db/Firestore.js";
@@ -102,11 +102,10 @@ export default function DocumentSidebar(props) {
     >
       {transcriptionVideo ? (
         <Card elevation={2} className={classes.videoCard}>
-          <ReactPlayer
-            url={transcriptionVideo}
-            controls
-            width="100%"
-            height="100%"
+          <VideoPlayer
+            transcriptionVideo={transcriptionVideo}
+            editor={props.editor}
+            selection={props.selection}
           />
         </Card>
       ) : (
