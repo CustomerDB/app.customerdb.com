@@ -163,6 +163,10 @@ button.addButton {
   font-size: large;
 }
 
+#progress-indicator {
+  border-bottom: 3px solid green;
+}
+
 .ql-container {
   font-size: 1rem !important;
 }

@@ -1,11 +1,11 @@
 import * as firebaseClient from "firebase/app";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { indexToTime, timeToIndex } from "./transcript/timecodes.js";
 
 import Delta from "quill-delta";
 import IntervalTree from "@flatten-js/interval-tree";
 import ReactPlayer from "react-player";
-import { indexToTime } from "./transcript/timecodes.js";
 import useFirestore from "../db/Firestore.js";
 import { useParams } from "react-router-dom";
 
@@ -14,6 +14,9 @@ export default function VideoPlayer({ transcriptionVideo, editor, selection }) {
   const { documentRef } = useFirestore();
   const [initialRevision, setInitialRevision] = useState();
   const [indexTree, setIndexTree] = useState();
+  const [timeTree, setTimeTree] = useState();
+  const playerRef = useRef();
+  const [indicatorRange, setIndicatorRange] = useState();
 
   useEffect(() => {
     if (!documentRef) {
@@ -34,6 +37,13 @@ export default function VideoPlayer({ transcriptionVideo, editor, selection }) {
         setInitialRevision(revision);
       });
   }, [documentRef]);
+
+  useEffect(() => {
+    if (!indicatorRange) {
+      return;
+    }
+    console.debug("range", indicatorRange);
+  }, [indicatorRange]);
 
   useEffect(() => {
     if (documentID === "qevu3lmnyNNr30CjyZHRE") {
@@ -207,6 +217,7 @@ export default function VideoPlayer({ transcriptionVideo, editor, selection }) {
       let offset = 10; // "Speaker 1 "
 
       let newIndexTree = new IntervalTree();
+      let newTimeTree = new IntervalTree();
 
       let alternative = raw.speechTranscriptions[0].alternatives[0];
 
@@ -223,31 +234,61 @@ export default function VideoPlayer({ transcriptionVideo, editor, selection }) {
         let i = offset + 1;
         let j = i + word.length;
         offset = j + 1;
+
         newIndexTree.insert([i, j], [s, e]);
+        newTimeTree.insert([s, e], [i, j]);
       });
 
       setIndexTree(newIndexTree);
+      setTimeTree(newTimeTree);
     }
   }, [documentID]);
 
   useEffect(() => {
-    if (!selection || !initialRevision) {
+    if (!selection || !initialRevision || !indexTree || !playerRef.current) {
       return;
     }
     let currentRevision = editor.getContents();
-    let timeForSelection = indexToTime(
+    let time = indexToTime(
       selection.index,
       indexTree,
       initialRevision,
       currentRevision
     );
-    console.log("timeForSelection", timeForSelection);
+    console.log("time", time);
+    if (time) {
+      playerRef.current.seekTo(time);
+    }
   }, [indexTree, selection, editor, initialRevision]);
+
+  const onVideoProgress = ({ playedSeconds }) => {
+    if (!initialRevision || !timeTree) {
+      return;
+    }
+    let currentRevision = editor.getContents();
+    let index = timeToIndex(
+      playedSeconds,
+      timeTree,
+      initialRevision,
+      currentRevision
+    );
+    console.log("index", index);
+    if (index) {
+      let [blot, offset] = editor.getLeaf(index);
+      let range = document.createRange();
+      range.selectNode(blot.domNode);
+      range.setEnd(blot.domNode, offset);
+      setIndicatorRange(range);
+    }
+  };
 
   return (
     <>
       <ReactPlayer
+        ref={playerRef}
         url={transcriptionVideo}
+        onProgress={onVideoProgress}
+        progressInterval={250}
         controls
         width="100%"
         height="100%"
