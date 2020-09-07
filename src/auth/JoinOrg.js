@@ -19,7 +19,7 @@ export default function JoinOrg(props) {
   const [inviteFailed, setInviteFailed] = useState(false);
   const [reason, setReason] = useState(undefined);
 
-  var provider = new firebase.auth().GoogleAuthProvider();
+  var provider = new firebase.auth.GoogleAuthProvider();
   var db = firebase.firestore();
 
   let navigate = useNavigate();

@@ -33,7 +33,7 @@ export default function Admin(props) {
   const [email, setEmail] = useState();
   const [organizations, setOrganizations] = useState();
 
-  const { firebase } = useContext(FirebaseContext);
+  const firebase = useContext(FirebaseContext);
 
   const classes = useStyles();
 
