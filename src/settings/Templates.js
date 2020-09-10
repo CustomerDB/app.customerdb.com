@@ -157,7 +157,9 @@ export default function Templates(props) {
     list = <Hidden smDown>{list}</Hidden>;
   }
 
-  let content = templatesRef && templateID && <Template key={templateID} />;
+  let content = templatesRef && templateID && (
+    <Template templateRef={templatesRef.doc(templateID)} key={templateID} />
+  );
 
   return (
     <Grid container item xs={12} style={{ height: "100%" }}>
@@ -313,8 +315,6 @@ function Template({ templateRef }) {
                                 .replace(/(\r\n|\n|\r)/gm, " ")
                                 .replace(/\s+/g, " ")
                                 .trim();
-
-                              console.debug("setting template name", newName);
 
                               templateRef.set(
                                 { name: newName },
