@@ -316,6 +316,8 @@ function Template({ templateRef }) {
                                 .replace(/\s+/g, " ")
                                 .trim();
 
+                              console.debug("setting template name", newName);
+
                               templateRef.set(
                                 { name: newName },
                                 { merge: true }
