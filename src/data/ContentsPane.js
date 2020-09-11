@@ -514,6 +514,10 @@ export default function ContentsPane(props) {
     });
   }, [highlightsRef]);
 
+  if (!documentRef) {
+    return <></>;
+  }
+
   return (
     <>
       <Grid
