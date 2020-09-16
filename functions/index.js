@@ -934,6 +934,8 @@ exports.startTranscription = functions.storage
             enableAutomaticPunctuation: true,
             enableSpeakerDiarization: true,
             diarizationSpeakerCount: transcriptionOperation.speakers,
+            model: "video",
+            useEnhanced: true,
           },
         },
       };
