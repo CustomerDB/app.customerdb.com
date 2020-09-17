@@ -163,6 +163,10 @@ button.addButton {
   font-size: large;
 }
 
+.inline-playhead {
+  border-bottom: 3px solid #ff5252;
+}
+
 .ql-container {
   font-size: 1rem !important;
 }
