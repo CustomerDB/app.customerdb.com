@@ -27,6 +27,7 @@ import IconButton from "@material-ui/core/IconButton";
 import LinearProgress from "@material-ui/core/LinearProgress";
 import Moment from "react-moment";
 import Paper from "@material-ui/core/Paper";
+import PlayheadBlot from "./PlayheadBlot.js";
 import Quill from "quill";
 import Scrollable from "../shell/Scrollable.js";
 import SelectionFAB from "./SelectionFAB.js";
@@ -39,6 +40,7 @@ import { useParams } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 
 Quill.register("formats/highlight", HighlightBlot);
+Quill.register("formats/playhead", PlayheadBlot);
 
 // Synchronize every second (1000ms).
 const syncPeriod = 1000;
@@ -78,7 +80,7 @@ export default function ContentsPane(props) {
 
   const [tagIDsInSelection, setTagIDsInSelection] = useState(new Set());
 
-  const currentSelection = useRef();
+  const [currentSelection, setCurrentSelection] = useState();
   const quillContainerRef = useRef();
 
   const highlights = useRef();
@@ -217,7 +219,7 @@ export default function ContentsPane(props) {
     }
 
     console.debug("current selection range", range);
-    currentSelection.current = range;
+    setCurrentSelection(range);
     setTagIDsInSelection(computeTagIDsInSelection(range));
   };
 
@@ -226,11 +228,11 @@ export default function ContentsPane(props) {
   const onTagControlChange = (tag, checked) => {
     console.debug("onTagControlChange", tag, checked, currentSelection);
 
-    if (currentSelection.current === undefined) {
+    if (currentSelection === undefined) {
       return;
     }
 
-    let selection = currentSelection.current;
+    let selection = currentSelection;
 
     if (checked) {
       console.debug("formatting highlight with tag ", tag);
@@ -270,7 +272,7 @@ export default function ContentsPane(props) {
       length: 0,
     };
     props.editor.setSelection(newRange, "user");
-    currentSelection.current = newRange;
+    setCurrentSelection(newRange);
     setTagIDsInSelection(computeTagIDsInSelection(newRange));
   };
 
@@ -651,7 +653,7 @@ export default function ContentsPane(props) {
 
                       <SelectionFAB
                         toolbarHeight={toolbarHeight}
-                        selection={currentSelection.current}
+                        selection={currentSelection}
                         quillContainerRef={quillContainerRef}
                         tags={tags}
                         tagIDsInSelection={tagIDsInSelection}
@@ -675,7 +677,9 @@ export default function ContentsPane(props) {
 
       <Hidden smDown>
         <DocumentSidebar
+          editor={props.editor}
           document={props.document}
+          selection={currentSelection}
           tagGroupName={tagGroupName}
         />
       </Hidden>
