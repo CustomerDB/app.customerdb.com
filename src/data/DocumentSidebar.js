@@ -103,6 +103,7 @@ export default function DocumentSidebar(props) {
       {transcriptionVideo ? (
         <Card elevation={2} className={classes.videoCard}>
           <VideoPlayer
+            doc={props.document}
             transcriptionVideo={transcriptionVideo}
             editor={props.editor}
             selection={props.selection}
