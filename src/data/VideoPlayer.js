@@ -17,7 +17,7 @@ export default function VideoPlayer({
   selection,
 }) {
   const firebase = useContext(FirebaseContext);
-  const { orgID, documentID } = useParams();
+  const { orgID } = useParams();
   const { documentRef } = useFirestore();
   const [revisionID, setRevisionID] = useState();
   const [initialRevision, setInitialRevision] = useState();
@@ -77,7 +77,7 @@ export default function VideoPlayer({
         xhr.open("GET", url);
         xhr.send();
       });
-  }, [revisionID]);
+  }, [revisionID, doc.transcription, firebase, orgID]);
 
   useEffect(() => {
     if (!indicatorRange) {
