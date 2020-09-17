@@ -1011,6 +1011,75 @@ exports.transcriptionProgress = functions.pubsub
       });
   });
 
+const createRevisionAndTimecodesForTranscript = (outputPath) => {
+  const tmpobj = tmp.fileSync();
+  return admin
+    .storage()
+    .bucket()
+    .file(outputPath)
+    .download({
+      destination: tmpobj.name,
+    })
+    .then(() => {
+      let transcriptionJson = JSON.parse(fs.readFileSync(tmpobj.name));
+
+      let alternatives = transcriptionJson["speechTranscriptions"];
+      let lastSpeaker;
+
+      let ops = [];
+      let timecodes = [];
+
+      let deltaOffset = 0;
+
+      alternatives.forEach((alternative) => {
+        let words = alternative["alternatives"][0]["words"];
+        if (!words) {
+          return;
+        }
+
+        words.forEach((word) => {
+          if (!Object.keys(word).includes("speakerTag")) {
+            return;
+          }
+
+          let speakerTag = word["speakerTag"];
+          if (speakerTag != lastSpeaker) {
+            lastSpeaker = speakerTag;
+            let speakerPrefix = `\nSpeaker ${lastSpeaker} `;
+            deltaOffset += speakerPrefix.length;
+            ops.push({
+              insert: speakerPrefix,
+              attributes: { bold: true },
+            });
+          }
+
+          let transcriptWord = word.word + " ";
+          ops.push({ insert: transcriptWord });
+
+          let startIndex = deltaOffset;
+          deltaOffset += transcriptWord.length;
+          let endIndex = deltaOffset - 1;
+
+          let startTime = parseInt(word.startTime.seconds);
+          if (word.startTime.nanos) {
+            startTime += word.startTime.nanos / 1e9;
+          }
+          let endTime = parseInt(word.endTime.seconds);
+          if (word.endTime.nanos) {
+            endTime += word.endTime.nanos / 1e9;
+          }
+
+          timecodes.push([startTime, endTime, startIndex, endIndex]);
+        });
+      });
+
+      return {
+        revision: new Delta(ops),
+        timecodes: timecodes,
+      };
+    });
+};
+
 // Create delta for completed transcription
 exports.deltaForTranscript = functions.firestore
   .document("organizations/{orgID}/transcriptions/{transcriptionID}")
@@ -1024,67 +1093,8 @@ exports.deltaForTranscript = functions.firestore
 
     let operation = after;
 
-    const tmpobj = tmp.fileSync();
-    return admin
-      .storage()
-      .bucket()
-      .file(operation.outputPath)
-      .download({
-        destination: tmpobj.name,
-      })
-      .then(() => {
-        let transcriptionJson = JSON.parse(fs.readFileSync(tmpobj.name));
-
-        let alternatives = transcriptionJson["speechTranscriptions"];
-        let lastSpeaker;
-
-        let ops = [];
-        let timecodes = [];
-
-        let deltaOffset = 0;
-
-        alternatives.forEach((alternative) => {
-          let words = alternative["alternatives"][0]["words"];
-          if (!words) {
-            return;
-          }
-
-          words.forEach((word) => {
-            if (!Object.keys(word).includes("speakerTag")) {
-              return;
-            }
-
-            let speakerTag = word["speakerTag"];
-            if (speakerTag != lastSpeaker) {
-              lastSpeaker = speakerTag;
-              let speakerPrefix = `\nSpeaker ${lastSpeaker} `;
-              deltaOffset += speakerPrefix.length;
-              ops.push({
-                insert: speakerPrefix,
-                attributes: { bold: true },
-              });
-            }
-
-            let transcriptWord = word.word + " ";
-            ops.push({ insert: transcriptWord });
-
-            let startIndex = deltaOffset;
-            deltaOffset += transcriptWord.length;
-            let endIndex = deltaOffset - 1;
-
-            let startTime = parseInt(word.startTime.seconds);
-            if (word.startTime.nanos) {
-              startTime += word.startTime.nanos / 1e9;
-            }
-            let endTime = parseInt(word.endTime.seconds);
-            if (word.endTime.nanos) {
-              endTime += word.endTime.nanos / 1e9;
-            }
-
-            timecodes.push([startTime, endTime, startIndex, endIndex]);
-          });
-        });
-
+    return createRevisionAndTimecodesForTranscript(operation.outputPath).then(
+      ({ revision, timecodes }) => {
         // Write to document.
         const db = admin.firestore();
         let documentsRef = db
@@ -1095,21 +1105,31 @@ exports.deltaForTranscript = functions.firestore
         let revisionsRef = documentRef.collection("revisions");
 
         let revisionID = uuidv4();
+
+        let timecodesPath = `${context.params.orgID}/transcriptions/${context.params.transcriptionID}/output/timecodes-${revisionID}.json`;
+
         revisionsRef
           .doc(revisionID)
           .set({
             delta: {
-              ops: ops,
+              ops: revision.ops,
             },
             timestamp: admin.firestore.FieldValue.serverTimestamp(),
           })
           .then(() => {
-            const outputPath = `${context.params.orgID}/transcriptions/${context.params.transcriptionID}/output/timecodes-${revisionID}.json`;
             const tmpobj = tmp.fileSync();
             fs.writeFileSync(tmpobj.name, JSON.stringify(timecodes));
             return admin.storage().bucket().upload(tmpobj.name, {
-              destination: outputPath,
+              destination: timecodesPath,
             });
+          })
+          .then(() => {
+            return change.after.ref.set(
+              {
+                timecodesPath: timecodesPath,
+              },
+              { merge: true }
+            );
           })
           .then(() => {
             // Lastly, unlock the document.
@@ -1120,5 +1140,67 @@ exports.deltaForTranscript = functions.firestore
               { merge: true }
             );
           });
+      }
+    );
+  });
+
+exports.transcriptRepair = functions.pubsub
+  .topic("transcript-repair")
+  .onPublish((message) => {
+    const db = admin.firestore();
+    let transcriptionsRef = db.collectionGroup("transcriptions");
+
+    return transcriptionsRef
+      .where("deletionTimestamp", "==", "")
+      .where("status", "==", "finished")
+      .get()
+      .then((snapshot) => {
+        return Promise.all(
+          snapshot.docs.map((doc) => {
+            let transcriptionRef = doc.ref;
+            let transcriptionID = doc.id;
+            let { orgID, documentID, outputPath, timecodesPath } = doc.data();
+            if (timecodesPath) {
+              // This transcription already has the timecodes file.
+              return;
+            }
+
+            let orgRef = db.collection("organizations").doc(orgID);
+            let documentRef = orgRef.collection("documents").doc(documentID);
+            let revisionsRef = documentRef.collection("revisions");
+            return revisionsRef
+              .where("timestamp", ">", new admin.firestore.Timestamp(0, 0))
+              .orderBy("timestamp", "asc")
+              .limit(1)
+              .get()
+              .then((snapshot) => {
+                if (snapshot.empty) {
+                  return;
+                }
+                let revisionID = snapshot.docs[0].id;
+                let timecodesPath = `${orgID}/transcriptions/${transcriptionID}/output/timecodes-${revisionID}.json`;
+                return createRevisionAndTimecodesForTranscript(outputPath).then(
+                  ({ timecodes }) => {
+                    const tmpobj = tmp.fileSync();
+                    fs.writeFileSync(tmpobj.name, JSON.stringify(timecodes));
+                    return admin
+                      .storage()
+                      .bucket()
+                      .upload(tmpobj.name, {
+                        destination: timecodesPath,
+                      })
+                      .then(() => {
+                        return transcriptionRef.set(
+                          {
+                            timecodesPath: timecodesPath,
+                          },
+                          { merge: true }
+                        );
+                      });
+                  }
+                );
+              });
+          })
+        );
       });
   });

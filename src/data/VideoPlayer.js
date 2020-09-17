@@ -49,7 +49,7 @@ export default function VideoPlayer({
   }, [documentRef]);
 
   useEffect(() => {
-    if (!revisionID) return;
+    if (!revisionID || doc.pending) return;
 
     // Download timecodes file and set state.
     firebase
@@ -62,27 +62,24 @@ export default function VideoPlayer({
         let xhr = new XMLHttpRequest();
         xhr.responseType = "blob";
         xhr.onerror = (error) => {
-          console.error("error loading timecodes blob", error);
+          console.warn("error loading timecodes blob", error);
         };
         xhr.onload = (event) => {
           try {
-            console.log("xhr.response", xhr.response);
             xhr.response.text().then((jsonString) => {
               setTimecodes(JSON.parse(jsonString));
             });
           } catch (error) {
-            console.error("error parsing timecodes blob", error);
+            console.warn("error parsing timecodes blob", error);
           }
         };
         xhr.open("GET", url);
         xhr.send();
       });
-  }, [revisionID, doc.transcription, firebase, orgID]);
+  }, [revisionID, doc.transcription, doc.pending, firebase, orgID]);
 
   useEffect(() => {
     if (!timecodes) return;
-
-    console.debug("timecodes", timecodes);
 
     let newIndexTree = new IntervalTree();
     let newTimeTree = new IntervalTree();
@@ -107,7 +104,6 @@ export default function VideoPlayer({
       initialRevision,
       currentRevision
     );
-    console.log("time", time);
     if (time) {
       playerRef.current.seekTo(time);
     }
@@ -130,8 +126,6 @@ export default function VideoPlayer({
     }
 
     let [startIndex, endIndex] = indexes;
-
-    console.log(currentPlayhead);
     if (currentPlayhead && currentPlayhead.startIndex !== startIndex) {
       // Unset playhead formatting.
       editor.formatText(
