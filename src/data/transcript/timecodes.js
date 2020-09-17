@@ -12,9 +12,9 @@ export function timeToIndex(t, timeTree, originalRevision, currentRevision) {
 
   let result = results[0];
 
-  let [i] = result;
+  let [i, j] = result;
   let diff = originalRevision.diff(currentRevision);
-  return diff.transformPosition(i);
+  return [diff.transformPosition(i), diff.transformPosition(j)];
 }
 
 // Returns a time for a given index based on the supplied interval tree mapping
