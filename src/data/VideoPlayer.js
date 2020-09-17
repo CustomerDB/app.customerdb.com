@@ -51,6 +51,8 @@ export default function VideoPlayer({
   useEffect(() => {
     if (!revisionID || doc.pending) return;
 
+    console.debug("downloading timecodes file for transcript");
+
     // Download timecodes file and set state.
     firebase
       .storage()
@@ -76,7 +78,7 @@ export default function VideoPlayer({
         xhr.open("GET", url);
         xhr.send();
       });
-  }, [revisionID, doc.transcription, doc.pending, firebase, orgID]);
+  }, [revisionID, doc, doc.transcription, doc.pending, firebase, orgID]);
 
   useEffect(() => {
     if (!timecodes) return;
