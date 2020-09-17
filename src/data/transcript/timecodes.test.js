@@ -27,25 +27,25 @@ describe("timeToIndex function", () => {
     let result;
 
     result = timeToIndex(0.0, timeTree, initialRevision, initialRevision);
-    expect(result).toBe(0);
+    expect(result).toStrictEqual([0, 3]);
 
     result = timeToIndex(0.5, timeTree, initialRevision, initialRevision);
-    expect(result).toBe(0);
+    expect(result).toStrictEqual([0, 3]);
 
     result = timeToIndex(1.0, timeTree, initialRevision, initialRevision);
-    expect(result).toBe(0);
+    expect(result).toStrictEqual([0, 3]);
 
     result = timeToIndex(1.5, timeTree, initialRevision, initialRevision);
-    expect(result).toBe(5);
+    expect(result).toStrictEqual([5, 6]);
 
     result = timeToIndex(2.0, timeTree, initialRevision, initialRevision);
-    expect(result).toBe(5);
+    expect(result).toStrictEqual([5, 6]);
 
     result = timeToIndex(2.1, timeTree, initialRevision, initialRevision);
-    expect(result).toBe(8);
+    expect(result).toStrictEqual([8, 8]);
 
     result = timeToIndex(2.7, timeTree, initialRevision, initialRevision);
-    expect(result).toBe(10);
+    expect(result).toStrictEqual([10, 19]);
 
     result = timeToIndex(2.3, timeTree, initialRevision, initialRevision);
     expect(result).toBeUndefined();
@@ -61,25 +61,25 @@ describe("timeToIndex function", () => {
     let result;
 
     result = timeToIndex(0.0, timeTree, initialRevision, currentRevision);
-    expect(result).toBe(0);
+    expect(result).toStrictEqual([0, 3]);
 
     result = timeToIndex(0.5, timeTree, initialRevision, currentRevision);
-    expect(result).toBe(0);
+    expect(result).toStrictEqual([0, 3]);
 
     result = timeToIndex(1.0, timeTree, initialRevision, currentRevision);
-    expect(result).toBe(0);
+    expect(result).toStrictEqual([0, 3]);
 
     result = timeToIndex(1.5, timeTree, initialRevision, currentRevision);
-    expect(result).toBe(5);
+    expect(result).toStrictEqual([5, 6]);
 
     result = timeToIndex(2.0, timeTree, initialRevision, currentRevision);
-    expect(result).toBe(5);
+    expect(result).toStrictEqual([5, 6]);
 
     result = timeToIndex(2.1, timeTree, initialRevision, currentRevision);
-    expect(result).toBe(8);
+    expect(result).toStrictEqual([8, 8]);
 
     result = timeToIndex(2.7, timeTree, initialRevision, currentRevision);
-    expect(result).toBe(15);
+    expect(result).toStrictEqual([15, 24]);
 
     result = timeToIndex(2.3, timeTree, initialRevision, currentRevision);
     expect(result).toBeUndefined();
