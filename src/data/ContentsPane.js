@@ -16,7 +16,6 @@ import Archive from "@material-ui/icons/Archive";
 import CollabEditor from "../editor/CollabEditor.js";
 import Collaborators from "../util/Collaborators.js";
 import ContentEditable from "react-contenteditable";
-import Delta from "quill-delta";
 import DocumentDeleteDialog from "./DocumentDeleteDialog.js";
 import DocumentSidebar from "./DocumentSidebar.js";
 import FirebaseContext from "../util/FirebaseContext.js";
@@ -627,9 +626,6 @@ export default function ContentsPane(props) {
                         editor={props.editor}
                         id="quill-editor"
                         theme="snow"
-                        staticDeltas={
-                          new Delta({ retain: 10, attributes: { bold: true } })
-                        }
                         placeholder="Start typing here and select to mark highlights"
                         onChange={onChange}
                         onChangeSelection={onChangeSelection}
