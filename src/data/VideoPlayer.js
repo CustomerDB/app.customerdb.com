@@ -28,7 +28,7 @@ export default function VideoPlayer({
   const [currentPlayhead, setCurrentPlayhead] = useState();
 
   useEffect(() => {
-    if (!documentRef) {
+    if (!documentRef || !doc || doc.pending) {
       return;
     }
     documentRef
@@ -46,10 +46,11 @@ export default function VideoPlayer({
         setInitialRevision(revision);
         setRevisionID(snapshot.docs[0].id);
       });
-  }, [documentRef]);
+  }, [documentRef, doc, doc.pending]);
 
   useEffect(() => {
-    if (!revisionID || doc.pending) return;
+    console.debug({ revisionID, doc, firebase, orgID });
+    if (!revisionID || !doc || doc.pending) return;
 
     console.debug("downloading timecodes file for transcript");
 
