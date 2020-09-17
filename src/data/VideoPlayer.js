@@ -49,7 +49,6 @@ export default function VideoPlayer({
   }, [documentRef, doc, doc.pending]);
 
   useEffect(() => {
-    console.debug({ revisionID, doc, firebase, orgID });
     if (!revisionID || !doc || doc.pending) return;
 
     console.debug("downloading timecodes file for transcript");
