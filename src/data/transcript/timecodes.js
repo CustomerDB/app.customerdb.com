@@ -38,6 +38,6 @@ export function indexToTime(
 
   let result = results[0];
 
-  let [s, e] = result;
+  let [s] = result;
   return s;
 }

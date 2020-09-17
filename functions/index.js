@@ -1039,6 +1039,9 @@ exports.deltaForTranscript = functions.firestore
         let lastSpeaker;
 
         let ops = [];
+        let timecodes = [];
+
+        let deltaOffset = 0;
 
         alternatives.forEach((alternative) => {
           let words = alternative["alternatives"][0]["words"];
@@ -1054,13 +1057,31 @@ exports.deltaForTranscript = functions.firestore
             let speakerTag = word["speakerTag"];
             if (speakerTag != lastSpeaker) {
               lastSpeaker = speakerTag;
+              let speakerPrefix = `\nSpeaker ${lastSpeaker} `;
+              deltaOffset += speakerPrefix.length;
               ops.push({
-                insert: `\nSpeaker ${lastSpeaker} `,
+                insert: speakerPrefix,
                 attributes: { bold: true },
               });
             }
 
-            ops.push({ insert: word["word"] + " " });
+            let transcriptWord = word.word + " ";
+            ops.push({ insert: transcriptWord });
+
+            let startIndex = deltaOffset;
+            deltaOffset += transcriptWord.length;
+            let endIndex = deltaOffset - 1;
+
+            let startTime = parseInt(word.startTime.seconds);
+            if (word.startTime.nanos) {
+              startTime += word.startTime.nanos / 1e9;
+            }
+            let endTime = parseInt(word.endTime.seconds);
+            if (word.endTime.nanos) {
+              endTime += word.endTime.nanos / 1e9;
+            }
+
+            timecodes.push([startTime, endTime, startIndex, endIndex]);
           });
         });
 
@@ -1081,6 +1102,14 @@ exports.deltaForTranscript = functions.firestore
               ops: ops,
             },
             timestamp: admin.firestore.FieldValue.serverTimestamp(),
+          })
+          .then(() => {
+            const outputPath = `${context.params.orgID}/transcriptions/${context.params.transcriptionID}/output/timecodes-${revisionID}.json`;
+            const tmpobj = tmp.fileSync();
+            fs.writeFileSync(tmpobj.name, JSON.stringify(timecodes));
+            return admin.storage().bucket().upload(tmpobj.name, {
+              destination: outputPath,
+            });
           })
           .then(() => {
             // Lastly, unlock the document.

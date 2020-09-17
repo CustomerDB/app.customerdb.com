@@ -78,7 +78,7 @@ export default function ContentsPane(props) {
 
   const [tagIDsInSelection, setTagIDsInSelection] = useState(new Set());
 
-  const currentSelection = useRef();
+  const [currentSelection, setCurrentSelection] = useState();
   const quillContainerRef = useRef();
 
   const highlights = useRef();
@@ -217,7 +217,7 @@ export default function ContentsPane(props) {
     }
 
     console.debug("current selection range", range);
-    currentSelection.current = range;
+    setCurrentSelection(range);
     setTagIDsInSelection(computeTagIDsInSelection(range));
   };
 
@@ -226,11 +226,11 @@ export default function ContentsPane(props) {
   const onTagControlChange = (tag, checked) => {
     console.debug("onTagControlChange", tag, checked, currentSelection);
 
-    if (currentSelection.current === undefined) {
+    if (currentSelection === undefined) {
       return;
     }
 
-    let selection = currentSelection.current;
+    let selection = currentSelection;
 
     if (checked) {
       console.debug("formatting highlight with tag ", tag);
@@ -270,7 +270,7 @@ export default function ContentsPane(props) {
       length: 0,
     };
     props.editor.setSelection(newRange, "user");
-    currentSelection.current = newRange;
+    setCurrentSelection(newRange);
     setTagIDsInSelection(computeTagIDsInSelection(newRange));
   };
 
@@ -647,7 +647,7 @@ export default function ContentsPane(props) {
 
                       <SelectionFAB
                         toolbarHeight={toolbarHeight}
-                        selection={currentSelection.current}
+                        selection={currentSelection}
                         quillContainerRef={quillContainerRef}
                         tags={tags}
                         tagIDsInSelection={tagIDsInSelection}
@@ -671,7 +671,9 @@ export default function ContentsPane(props) {
 
       <Hidden smDown>
         <DocumentSidebar
+          editor={props.editor}
           document={props.document}
+          selection={currentSelection}
           tagGroupName={tagGroupName}
         />
       </Hidden>
