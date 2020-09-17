@@ -163,8 +163,8 @@ button.addButton {
   font-size: large;
 }
 
-#progress-indicator {
-  border-bottom: 3px solid green;
+.inline-playhead {
+  border-bottom: 3px solid #ff5252;
 }
 
 .ql-container {

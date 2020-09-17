@@ -3,6 +3,20 @@ import Quill from "quill";
 // Declare a custom blot subclass to represent highlighted text.
 let Inline = Quill.import("blots/inline");
 
+Inline.order = [
+  "playhead",
+  "cursor",
+  "inline", // Must be lower
+  "link", // Chrome wants <a> to be lower
+  "underline",
+  "strike",
+  "italic",
+  "bold",
+  "script",
+  "code",
+  "highlight",
+];
+
 export default class HighlightBlot extends Inline {
   static blotName = "highlight";
   static className = "inline-highlight";

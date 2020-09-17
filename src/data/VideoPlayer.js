@@ -25,7 +25,7 @@ export default function VideoPlayer({
   const [indexTree, setIndexTree] = useState();
   const [timeTree, setTimeTree] = useState();
   const playerRef = useRef();
-  const [indicatorRange, setIndicatorRange] = useState();
+  const [currentPlayhead, setCurrentPlayhead] = useState();
 
   useEffect(() => {
     if (!documentRef) {
@@ -80,12 +80,6 @@ export default function VideoPlayer({
   }, [revisionID, doc.transcription, firebase, orgID]);
 
   useEffect(() => {
-    if (!indicatorRange) {
-      return;
-    }
-  }, [indicatorRange]);
-
-  useEffect(() => {
     if (!timecodes) return;
 
     console.debug("timecodes", timecodes);
@@ -124,24 +118,46 @@ export default function VideoPlayer({
       return;
     }
     let currentRevision = editor.getContents();
-    let index = timeToIndex(
+    let indexes = timeToIndex(
       playedSeconds,
       timeTree,
       initialRevision,
       currentRevision
     );
-    console.log("index", index);
-    if (index) {
-      let [blot, offset] = editor.getLeaf(index);
-      console.debug("blot", blot);
-      console.debug("offset", offset);
-      let range = document.createRange();
-      range.selectNode(blot.domNode);
-      range.setStart(blot.domNode, offset);
-      range.setEnd(blot.domNode, offset + 1);
-      setIndicatorRange(range);
+
+    if (!indexes) {
+      return;
     }
+
+    let [startIndex, endIndex] = indexes;
+
+    console.log(currentPlayhead);
+    if (currentPlayhead && currentPlayhead.startIndex !== startIndex) {
+      // Unset playhead formatting.
+      editor.formatText(
+        currentPlayhead.startIndex,
+        currentPlayhead.endIndex - currentPlayhead.startIndex,
+        "playhead",
+        false, // unsets the target format
+        "api"
+      );
+    }
+    setCurrentPlayhead({ startIndex, endIndex });
   };
+
+  useEffect(() => {
+    if (!currentPlayhead || !editor) {
+      return;
+    }
+
+    editor.formatText(
+      currentPlayhead.startIndex,
+      currentPlayhead.endIndex - currentPlayhead.startIndex,
+      "playhead",
+      true,
+      "api"
+    );
+  }, [currentPlayhead, editor]);
 
   return (
     <>
@@ -149,7 +165,7 @@ export default function VideoPlayer({
         ref={playerRef}
         url={transcriptionVideo}
         onProgress={onVideoProgress}
-        progressInterval={250}
+        progressInterval={100}
         controls
         width="100%"
         height="100%"

@@ -16,6 +16,7 @@ import Archive from "@material-ui/icons/Archive";
 import CollabEditor from "../editor/CollabEditor.js";
 import Collaborators from "../util/Collaborators.js";
 import ContentEditable from "react-contenteditable";
+import Delta from "quill-delta";
 import DocumentDeleteDialog from "./DocumentDeleteDialog.js";
 import DocumentSidebar from "./DocumentSidebar.js";
 import FirebaseContext from "../util/FirebaseContext.js";
@@ -27,6 +28,7 @@ import IconButton from "@material-ui/core/IconButton";
 import LinearProgress from "@material-ui/core/LinearProgress";
 import Moment from "react-moment";
 import Paper from "@material-ui/core/Paper";
+import PlayheadBlot from "./PlayheadBlot.js";
 import Quill from "quill";
 import Scrollable from "../shell/Scrollable.js";
 import SelectionFAB from "./SelectionFAB.js";
@@ -39,6 +41,7 @@ import { useParams } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 
 Quill.register("formats/highlight", HighlightBlot);
+Quill.register("formats/playhead", PlayheadBlot);
 
 // Synchronize every second (1000ms).
 const syncPeriod = 1000;
@@ -620,6 +623,9 @@ export default function ContentsPane(props) {
                         editor={props.editor}
                         id="quill-editor"
                         theme="snow"
+                        staticDeltas={
+                          new Delta({ retain: 10, attributes: { bold: true } })
+                        }
                         placeholder="Start typing here and select to mark highlights"
                         onChange={onChange}
                         onChangeSelection={onChangeSelection}
