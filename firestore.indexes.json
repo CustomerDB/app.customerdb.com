@@ -44,14 +44,14 @@
     },
     {
       "collectionGroup": "documents",
-      "queryScope": "COLLECTION",
+      "queryScope": "COLLECTION_GROUP",
       "fields": [
         {
           "fieldPath": "deletionTimestamp",
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "transcript",
+          "fieldPath": "transcription",
           "order": "ASCENDING"
         }
       ]
