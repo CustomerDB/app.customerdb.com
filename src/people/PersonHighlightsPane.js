@@ -97,8 +97,8 @@ export default function PersonHighlightsPane(props) {
   if (highlights.length + pinnedHighlights.length === 0) {
     return (
       <div className={classes.helpText}>
-        Clips in linked customer data will appear here. Pin the most important
-        clips to build rich customer profiles.
+        Clips in linked customer interviews will appear here. Pin the most
+        important clips to build rich customer profiles.
       </div>
     );
   }
@@ -142,7 +142,7 @@ function HighlightCard(props) {
       <Card
         className={classes.quoteCard}
         onClick={() => {
-          navigate(`/orgs/${orgID}/data/${props.highlight.documentID}`);
+          navigate(`/orgs/${orgID}/interviews/${props.highlight.documentID}`);
         }}
       >
         <CardActionArea>

@@ -3,14 +3,15 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import Avatar from "@material-ui/core/Avatar";
 import ContentsHelp from "./ContentsHelp.js";
-import DataHelp from "./DataHelp.js";
 import DescriptionIcon from "@material-ui/icons/Description";
 import Document from "./Document.js";
 import DocumentCreateModal from "./DocumentCreateModal.js";
-import FileCopyIcon from "@material-ui/icons/FileCopy";
+import AddIcon from "@material-ui/icons/Add";
 import FirebaseContext from "../util/FirebaseContext.js";
+import Fab from "@material-ui/core/Fab";
 import Grid from "@material-ui/core/Grid";
 import Hidden from "@material-ui/core/Hidden";
+import InterviewsHelp from "./InterviewsHelp.js";
 import List from "@material-ui/core/List";
 import ListContainer from "../shell/ListContainer";
 import ListItem from "@material-ui/core/ListItem";
@@ -19,9 +20,6 @@ import ListItemText from "@material-ui/core/ListItemText";
 import Moment from "react-moment";
 import Scrollable from "../shell/Scrollable.js";
 import Shell from "../shell/Shell.js";
-import SpeedDial from "@material-ui/lab/SpeedDial";
-import SpeedDialAction from "@material-ui/lab/SpeedDialAction";
-import SpeedDialIcon from "@material-ui/lab/SpeedDialIcon";
 import TheatersIcon from "@material-ui/icons/Theaters";
 import UploadVideoDialog from "./UploadVideoDialog.js";
 import UserAuthContext from "../auth/UserAuthContext.js";
@@ -38,23 +36,9 @@ const useStyles = makeStyles((theme) => ({
     transform: "translateZ(0px)",
     flexGrow: 1,
   },
-  dialWrapper: {
-    position: "absolute",
-    bottom: "15px",
-    right: "15px",
-    marginTop: theme.spacing(3),
-    height: 380,
-  },
-  speedDial: {
-    position: "absolute",
-    "&.MuiSpeedDial-directionUp": {
-      bottom: theme.spacing(2),
-      right: theme.spacing(2),
-    },
-  },
 }));
 
-export default function Data(props) {
+export default function Interviews(props) {
   const [addModalShow, setAddModalShow] = useState(false);
   const [uploadModalShow, setUploadModalShow] = useState(false);
   const [documents, setDocuments] = useState([]);
@@ -108,7 +92,7 @@ export default function Data(props) {
   }, [documentsRef]);
 
   const onAddDocument = () => {
-    event(firebase, "create_data", {
+    event(firebase, "create_interview", {
       orgID: oauthClaims.orgID,
       userID: oauthClaims.user_id,
     });
@@ -119,7 +103,7 @@ export default function Data(props) {
       .doc(documentID)
       .set({
         ID: documentID,
-        name: "Untitled Document",
+        name: "Untitled Interview",
         createdBy: oauthClaims.email,
         creationTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
 
@@ -150,7 +134,7 @@ export default function Data(props) {
           });
       })
       .then(() => {
-        navigate(`/orgs/${orgID}/data/${documentID}`);
+        navigate(`/orgs/${orgID}/interviews/${documentID}`);
       });
   };
 
@@ -164,7 +148,7 @@ export default function Data(props) {
       key={ID}
       selected={ID === documentID}
       onClick={() => {
-        navigate(`/orgs/${orgID}/data/${ID}`);
+        navigate(`/orgs/${orgID}/interviews/${ID}`);
       }}
     >
       <ListItemAvatar>
@@ -202,54 +186,24 @@ export default function Data(props) {
         {showResults ? (
           <SearchResults />
         ) : (
-          <List>{documentItems.length > 0 ? documentItems : <DataHelp />}</List>
+          <List>
+            {documentItems.length > 0 ? documentItems : <InterviewsHelp />}
+          </List>
         )}
       </Scrollable>
-
-      <div className={classes.dialWrapper}>
-        <SpeedDial
-          ariaLabel="SpeedDial example"
-          className={classes.speedDial}
-          icon={<SpeedDialIcon />}
-          onClose={() => setOpenDial(false)}
-          FabProps={{
-            color: "secondary",
-          }}
-          onOpen={() => setOpenDial(true)}
-          open={openDial}
-          direction="up"
-        >
-          <SpeedDialAction
-            key="Create document"
-            icon={<DescriptionIcon />}
-            tooltipTitle="Create document"
-            onClick={() => {
-              onAddDocument();
-              setOpenDial(false);
-            }}
-          />
-          <SpeedDialAction
-            key="Create document from template"
-            icon={<FileCopyIcon />}
-            tooltipTitle="Create document from template"
-            onClick={() => {
-              onAddDocument().then(() => {
-                setAddModalShow(true);
-              });
-              setOpenDial(false);
-            }}
-          />
-          <SpeedDialAction
-            key="Transcribe video"
-            icon={<TheatersIcon />}
-            tooltipTitle="Transcribe video"
-            onClick={() => {
-              onUploadVideo();
-              setOpenDial(false);
-            }}
-          />
-        </SpeedDial>
-      </div>
+      <Fab
+        style={{ position: "absolute", bottom: "15px", right: "15px" }}
+        color="secondary"
+        aria-label="add"
+        onClick={() => {
+          onAddDocument().then(() => {
+            setAddModalShow(true);
+          });
+          setOpenDial(false);
+        }}
+      >
+        <AddIcon />
+      </Fab>
     </ListContainer>
   );
 
@@ -307,7 +261,7 @@ export default function Data(props) {
   }
 
   return (
-    <Shell title="Data" search={searchConfig}>
+    <Shell title="Interviews" search={searchConfig}>
       <Grid container className="fullHeight">
         {list}
         {content}

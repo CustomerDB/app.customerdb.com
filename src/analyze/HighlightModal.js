@@ -20,7 +20,7 @@ export default function HighlightModal(props) {
     >
       <Modal.Header closeButton>
         <Modal.Title id="contained-modal-title-vcenter">
-          <Link to={`/orgs/${orgID}/data/${props.data.card.documentID}`}>
+          <Link to={`/orgs/${orgID}/interviews/${props.data.card.documentID}`}>
             <small>{props.data.document.name}</small>
           </Link>
         </Modal.Title>

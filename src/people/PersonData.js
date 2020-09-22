@@ -59,7 +59,7 @@ export default function PersonData(props) {
       button
       key={doc.ID}
       onClick={() => {
-        navigate(`/orgs/${orgID}/data/${doc.ID}`);
+        navigate(`/orgs/${orgID}/interviews/${doc.ID}`);
       }}
     >
       <ListItemAvatar>

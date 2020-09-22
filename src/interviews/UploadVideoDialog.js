@@ -150,7 +150,7 @@ export default function UploadVideoDialog({ open, setOpen }) {
                 transcription: transcriptionID,
               })
               .then(() => {
-                navigate(`/orgs/${orgID}/data/${documentID}`);
+                navigate(`/orgs/${orgID}/interviews/${documentID}`);
                 cancel();
               });
           }

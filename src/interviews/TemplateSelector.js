@@ -46,7 +46,7 @@ export default function TemplateSelector(props) {
 
   const onTemplateChange = (e) => {
     console.log("onTagGroupChange", e);
-    event(firebase, "change_data_template", {
+    event(firebase, "change_interview_template", {
       orgID: oauthClaims.orgID,
       userID: oauthClaims.user_id,
     });
@@ -89,7 +89,7 @@ export default function TemplateSelector(props) {
 
   return (
     <FormControl fullWidth variant="outlined">
-      <InputLabel id="template-select-label">Template</InputLabel>
+      <InputLabel id="template-select-label">Guide</InputLabel>
       <Select
         labelId="template-select-label"
         id="template-select"

@@ -55,7 +55,7 @@ export default function TagGroupSelector(props) {
 
   const onTagGroupChange = (e) => {
     console.log("onTagGroupChange", e);
-    event(firebase, "change_data_tag_group", {
+    event(firebase, "change_interview_tag_group", {
       orgID: oauthClaims.orgID,
       userID: oauthClaims.user_id,
     });
