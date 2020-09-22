@@ -1206,3 +1206,67 @@ exports.transcriptRepair = functions.pubsub
         );
       });
   });
+
+// Migrate deltas, revisions and highlights for existing transcripts.
+exports.migrateTranscripts = functions.pubsub
+  .topic("migrate-transcripts")
+  .onPublish((message) => {
+    const db = admin.firestore();
+
+    const copyCollection = (oldColRef, newColRef) => {
+      return oldColRef
+        .get()
+        .then((snapshot) =>
+          Promise.all(
+            snapshot.docs.map((d) => newColRef.doc(d.id).set(d.data()))
+          )
+        );
+    };
+
+    let transcriptDocumentsRef = db
+      .collectionGroup("documents")
+      .where("deletionTimestamp", "==", "") // exclude deleted documents
+      .orderBy("transcription"); // exclude documents without this field
+
+    return transcriptDocumentsRef.get().then((snapshot) =>
+      Promise.all(
+        snapshot.docs.map((doc) => {
+          // Skip this document if it does not have a transcription
+          if (doc.data().transcription === "") {
+            console.debug(
+              "skipping document because transcription field is empty",
+              doc.id
+            );
+            return;
+          }
+
+          let oldDeltas = doc.ref.collection("deltas");
+          let newDeltas = doc.ref.collection("transcriptDeltas");
+
+          let oldRevisions = doc.ref.collection("revisions");
+          let newRevisions = doc.ref.collection("transcriptRevisions");
+
+          let oldHighlights = doc.ref.collection("highlights");
+          let newHighlights = doc.ref.collection("transcriptHighlights");
+
+          return newRevisions.get().then((newRevisionsSnapshot) => {
+            if (newRevisionsSnapshot.size > 0) {
+              console.debug(
+                "skipping document because it already has transcriptRevisions",
+                doc.id
+              );
+              return;
+            }
+
+            return copyCollection(oldDeltas, newDeltas)
+              .then(() => {
+                return copyCollection(oldRevisions, newRevisions);
+              })
+              .then(() => {
+                return copyCollection(oldHighlights, newHighlights);
+              });
+          });
+        })
+      )
+    );
+  });
