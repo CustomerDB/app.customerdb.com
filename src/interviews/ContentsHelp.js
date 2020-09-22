@@ -17,7 +17,7 @@ export default function ContentsHelp(props) {
               <img
                 style={{ width: "100%" }}
                 src={dataGraphic}
-                alt="Data illustration"
+                alt="Contents illustration"
               />
             </div>
             <div
@@ -27,8 +27,8 @@ export default function ContentsHelp(props) {
               <h4>Keep track of your customer notes and conversations</h4>
               <br />
               <h5>
-                Tag customer data with themes here. Find patterns in the voice
-                of the customer in the analysis tab.
+                Tag customer interviews with themes here. Find patterns in the
+                voice of the customer in the analysis tab.
               </h5>
             </div>
           </div>

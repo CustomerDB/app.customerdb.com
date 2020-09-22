@@ -169,11 +169,11 @@ export default function Shell(props) {
               </ListItemIcon>
               <ListItemText primary="Customers" />
             </NavListItem>
-            <NavListItem key="Data" to={`/orgs/${orgID}/data`}>
+            <NavListItem key="Interviews" to={`/orgs/${orgID}/interviews`}>
               <ListItemIcon>
                 <RecordVoiceOverIcon />
               </ListItemIcon>
-              <ListItemText primary="Data" />
+              <ListItemText primary="Interviews" />
             </NavListItem>
             <NavListItem key="Analysis" to={`/orgs/${orgID}/analyze`}>
               <ListItemIcon>

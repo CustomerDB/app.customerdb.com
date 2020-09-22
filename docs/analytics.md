@@ -6,10 +6,10 @@
 * edit_person
 * delete_person
 
-## Data
+## Interviews
 
-* create_data
-* delete_data
+* create_interview
+* delete_interview
 
 * link_data_to_person
 * change_data_tag_group

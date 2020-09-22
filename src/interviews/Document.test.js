@@ -138,7 +138,7 @@ const cleanupData = async () => {
 };
 
 const renderDocument = async (route, container) => {
-  const path = "/org/:orgID/data/:documentID";
+  const path = "/org/:orgID/interviews/:documentID";
   if (!container) {
     container = document.createElement("div");
     document.body.appendChild(container);
@@ -179,7 +179,9 @@ const renderDocument = async (route, container) => {
 };
 
 it("can render an existing document", async () => {
-  let [container] = await renderDocument(`/org/acme-0001/data/${documentID}`);
+  let [container] = await renderDocument(
+    `/org/acme-0001/interviews/${documentID}`
+  );
 
   await wait(() => {
     const name = container.querySelector("#documentTitle");
@@ -193,7 +195,9 @@ it("can render an existing document", async () => {
 });
 
 it("can edit a document", async () => {
-  let [container] = await renderDocument(`/org/acme-0001/data/${documentID}`);
+  let [container] = await renderDocument(
+    `/org/acme-0001/interviews/${documentID}`
+  );
   await wait(() => {
     const editorNode = container.querySelector(".ql-editor");
     return expect(editorNode.textContent).toBe("Hello");
@@ -226,7 +230,9 @@ it("can edit a document", async () => {
     return expect(editorNode.textContent).toBe("Goodbye");
   });
 
-  let [container2] = await renderDocument(`/org/acme-0001/data/${documentID}`);
+  let [container2] = await renderDocument(
+    `/org/acme-0001/interviews/${documentID}`
+  );
   await wait(() => {
     let editorNode = container2.querySelector(".ql-editor");
     return expect(editorNode.textContent).toBe("Goodbye");
@@ -234,7 +240,9 @@ it("can edit a document", async () => {
 });
 
 it("can delete a document", async () => {
-  let [container] = await renderDocument(`/org/acme-0001/data/${documentID}`);
+  let [container] = await renderDocument(
+    `/org/acme-0001/interviews/${documentID}`
+  );
   await wait(() => {
     const editorNode = container.querySelector(".ql-editor");
     return expect(editorNode.textContent).toBe("Hello");
@@ -279,7 +287,9 @@ it("can delete a document", async () => {
 });
 
 it("can receive and render highlights in a document", async () => {
-  let [container] = await renderDocument(`/org/acme-0001/data/${documentID}`);
+  let [container] = await renderDocument(
+    `/org/acme-0001/interviews/${documentID}`
+  );
   await wait(() => {
     const editorNode = container.querySelector(".ql-editor");
     return expect(editorNode.textContent).toBe("Hello");

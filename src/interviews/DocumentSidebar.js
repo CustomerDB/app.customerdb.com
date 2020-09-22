@@ -168,7 +168,7 @@ export default function DocumentSidebar(props) {
                   index={process.env.REACT_APP_ALGOLIA_PEOPLE_INDEX}
                   default={person ? person.name : ""}
                   onChange={(ID, name) => {
-                    event(firebase, "link_data_to_person", {
+                    event(firebase, "link_interview_to_person", {
                       orgID: oauthClaims.orgID,
                       userID: oauthClaims.user_id,
                     });

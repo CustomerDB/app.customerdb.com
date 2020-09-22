@@ -14,7 +14,8 @@ export default function AnalyzeHelp(props) {
       </div>
       <div>
         <b>
-          Create an analysis to start exploring patterns in your customer data.
+          Create an analysis to start exploring patterns in your customer
+          interviews.
         </b>
       </div>
       <br />

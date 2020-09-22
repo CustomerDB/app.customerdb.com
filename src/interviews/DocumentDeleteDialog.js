@@ -39,7 +39,7 @@ export default function AlertDialog({ open, setOpen, document }) {
       return;
     }
 
-    event(firebase, "delete_data", {
+    event(firebase, "delete_interview", {
       orgID: oauthClaims.orgID,
       userID: oauthClaims.user_id,
     });
@@ -50,7 +50,7 @@ export default function AlertDialog({ open, setOpen, document }) {
         deletionTimestamp: firebaseClient.firestore.FieldValue.serverTimestamp(),
       })
       .then(() => {
-        navigate(`/orgs/${orgID}/data`);
+        navigate(`/orgs/${orgID}/interviews`);
         setOpen(false);
       });
   };
@@ -62,10 +62,10 @@ export default function AlertDialog({ open, setOpen, document }) {
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-description"
     >
-      <DialogTitle id="alert-dialog-title">{`Archive this document?`}</DialogTitle>
+      <DialogTitle id="alert-dialog-title">{`Archive this interview?`}</DialogTitle>
       <DialogContent>
         <DialogContentText id="alert-dialog-description">
-          Mark this document for deletion. This document will no longer be
+          Mark this interview for deletion. This interview will no longer be
           visible and will be permanently deleted after thirty days.
         </DialogContentText>
       </DialogContent>

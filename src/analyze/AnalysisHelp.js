@@ -24,7 +24,7 @@ export default function AnalysisHelp(props) {
               style={{ maxWidth: "25rem" }}
               className="justify-content-center align-self-center"
             >
-              <h4>Analyze your customer data</h4>
+              <h4>Analyze your customer interviews</h4>
               <br />
               <h5>
                 Collaborate with your team to find patterns in verbatims from
