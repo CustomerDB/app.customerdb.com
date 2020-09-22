@@ -1104,7 +1104,7 @@ exports.deltaForTranscript = functions.firestore
           .doc(context.params.orgID)
           .collection("documents");
         let documentRef = documentsRef.doc(operation.documentID);
-        let revisionsRef = documentRef.collection("revisions");
+        let revisionsRef = documentRef.collection("transcriptRevisions");
 
         let revisionID = uuidv4();
 
@@ -1169,7 +1169,7 @@ exports.transcriptRepair = functions.pubsub
 
             let orgRef = db.collection("organizations").doc(orgID);
             let documentRef = orgRef.collection("documents").doc(documentID);
-            let revisionsRef = documentRef.collection("revisions");
+            let revisionsRef = documentRef.collection("transcriptRevisions");
             return revisionsRef
               .where("timestamp", ">", new admin.firestore.Timestamp(0, 0))
               .orderBy("timestamp", "asc")
