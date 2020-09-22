@@ -1206,3 +1206,49 @@ exports.transcriptRepair = functions.pubsub
         );
       });
   });
+
+// Migrate deltas, revisions and highlights for existing transcripts.
+exports.migrateTranscripts = functions.pubsub
+  .topic("migrate-transcripts")
+  .onPublish((message) => {
+    const db = admin.firestore();
+
+    const copyCollection = (oldColRef, newColRef) => {
+      return oldColRef
+        .get()
+        .then((snapshot) =>
+          Promise.all(
+            snapshot.docs.map((d) => newColRef.doc(d.id).set(d.data()))
+          )
+        );
+    };
+
+    let transcriptDocumentsRef = db
+      .collectionGroup("documents")
+      .where("deletionTimestamp", "==", "") // exclude deleted documents
+      .orderBy("transcription") // exclude documents without this field
+      .where("transcription", "!=", "");
+
+    return transcriptDocumentsRef.get().then((snapshot) =>
+      Promise.all(
+        snapshot.docs.map((doc) => {
+          let oldDeltas = doc.ref.collection("deltas");
+          let newDeltas = doc.ref.collection("transcriptDeltas");
+
+          let oldRevisions = doc.ref.collection("revisions");
+          let newRevisions = doc.ref.collection("transcriptRevisions");
+
+          let oldHighlights = doc.ref.collection("highlights");
+          let newHighlights = doc.ref.collection("transcriptHighlights");
+
+          return copyCollection(oldDeltas, newDeltas)
+            .then(() => {
+              copyCollection(oldRevisions, newRevisions);
+            })
+            .then(() => {
+              copyCollection(oldHighlights, newHighlights);
+            });
+        })
+      )
+    );
+  });

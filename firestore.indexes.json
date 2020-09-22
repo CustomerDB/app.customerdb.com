@@ -43,6 +43,20 @@
       ]
     },
     {
+      "collectionGroup": "documents",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "deletionTimestamp",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "transcript",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "snapshots",
       "queryScope": "COLLECTION",
       "fields": [
