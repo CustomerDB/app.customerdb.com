@@ -1226,28 +1226,37 @@ exports.migrateTranscripts = functions.pubsub
     let transcriptDocumentsRef = db
       .collectionGroup("documents")
       .where("deletionTimestamp", "==", "") // exclude deleted documents
-      .orderBy("transcription") // exclude documents without this field
-      .where("transcription", "!=", "");
+      .orderBy("transcription"); // exclude documents without this field
 
     return transcriptDocumentsRef.get().then((snapshot) =>
       Promise.all(
         snapshot.docs.map((doc) => {
-          let oldDeltas = doc.ref.collection("deltas");
-          let newDeltas = doc.ref.collection("transcriptDeltas");
+          // Skip this document if it does not have a transcription
+          if (doc.data().transcription === "") return;
 
-          let oldRevisions = doc.ref.collection("revisions");
-          let newRevisions = doc.ref.collection("transcriptRevisions");
+          return doc.ref.listCollections().then((collections) => {
+            // Skip this document if it already has been migrated
+            console.debug("document collections", collections);
+            if (!collections.find((c) => c.id === "transcriptRevisions"))
+              return;
 
-          let oldHighlights = doc.ref.collection("highlights");
-          let newHighlights = doc.ref.collection("transcriptHighlights");
+            let oldDeltas = doc.ref.collection("deltas");
+            let newDeltas = doc.ref.collection("transcriptDeltas");
 
-          return copyCollection(oldDeltas, newDeltas)
-            .then(() => {
-              copyCollection(oldRevisions, newRevisions);
-            })
-            .then(() => {
-              copyCollection(oldHighlights, newHighlights);
-            });
+            let oldRevisions = doc.ref.collection("revisions");
+            let newRevisions = doc.ref.collection("transcriptRevisions");
+
+            let oldHighlights = doc.ref.collection("highlights");
+            let newHighlights = doc.ref.collection("transcriptHighlights");
+
+            return copyCollection(oldDeltas, newDeltas)
+              .then(() => {
+                copyCollection(oldRevisions, newRevisions);
+              })
+              .then(() => {
+                copyCollection(oldHighlights, newHighlights);
+              });
+          });
         })
       )
     );
