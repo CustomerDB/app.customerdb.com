@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { addTagStyles, removeTagStyles } from "./Tags.js";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -51,9 +51,10 @@ export default function Document(props) {
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [selectedTab, setSelectedTab] = useState();
 
-  // TODO(NN): Make sure the right editor sets the current selection for
-  //           video progress bar.
-  const [currentSelection, setCurrentSelection] = useState();
+  const [
+    currentTranscriptSelection,
+    setCurrentTranscriptSelection,
+  ] = useState();
   const [tagGroupName, setTagGroupName] = useState();
 
   const classes = useStyles();
@@ -61,14 +62,26 @@ export default function Document(props) {
   const handleTabChange = (e, newValue) => {
     // setSelectedTab(newValue);
     let tab = "";
-    if (newValue == 0) {
+    if (newValue === 0) {
       tab = "notes";
     }
-    if (newValue == 1) {
+    if (newValue === 1) {
       tab = "transcript";
     }
     navigate(`/orgs/${orgID}/interviews/${documentID}/${tab}`);
   };
+
+  const [transcriptEditor, seTranscriptEditor] = useState();
+  const reactQuillTranscriptRef = useCallback(
+    (current) => {
+      if (!current) {
+        seTranscriptEditor();
+        return;
+      }
+      seTranscriptEditor(current.getEditor());
+    },
+    [seTranscriptEditor]
+  );
 
   useEffect(() => {
     if (!tabID) {
@@ -76,11 +89,11 @@ export default function Document(props) {
       return;
     }
 
-    if (tabID == "notes") {
+    if (tabID === "notes") {
       setSelectedTab(0);
     }
 
-    if (tabID == "transcript") {
+    if (tabID === "transcript") {
       setSelectedTab(1);
     }
   }, [tabID]);
@@ -260,21 +273,24 @@ export default function Document(props) {
                     </Tabs>
                   </Grid>
 
-                  {selectedTab == 0 && (
+                  {selectedTab === 0 && (
                     <Notes
                       document={document}
                       tags={tags}
-                      reactQuillRef={props.reactQuillRef}
-                      editor={props.editor}
+                      reactQuillRef={props.reactQuillNotesRef}
+                      editor={props.notesEditor}
                     />
                   )}
 
-                  {selectedTab == 1 && (
+                  {selectedTab === 1 && (
                     <Transcript
                       document={document}
                       tags={tags}
-                      reactQuillRef={props.reactQuillRef}
-                      editor={props.editor}
+                      reactQuillRef={reactQuillTranscriptRef}
+                      setCurrentSelectionCallback={
+                        setCurrentTranscriptSelection
+                      }
+                      editor={transcriptEditor}
                     />
                   )}
                 </Grid>
@@ -286,9 +302,9 @@ export default function Document(props) {
 
       <Hidden smDown>
         <DocumentSidebar
-          editor={props.editor}
+          transcriptEditor={transcriptEditor}
           document={document}
-          selection={currentSelection}
+          selection={currentTranscriptSelection}
           tagGroupName={tagGroupName}
         />
       </Hidden>

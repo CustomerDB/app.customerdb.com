@@ -25,7 +25,6 @@ import UserAuthContext from "../auth/UserAuthContext.js";
 import { connectHits } from "react-instantsearch-dom";
 import event from "../analytics/event.js";
 import { initialDelta } from "../editor/delta.js";
-import { makeStyles } from "@material-ui/core/styles";
 import useFirestore from "../db/Firestore.js";
 import { useOrganization } from "../organization/hooks.js";
 import { v4 as uuidv4 } from "uuid";
@@ -44,16 +43,19 @@ export default function Interviews(props) {
   let { oauthClaims } = useContext(UserAuthContext);
   let firebase = useContext(FirebaseContext);
 
-  const [editor, setEditor] = useState();
-  const reactQuillRef = useCallback(
+  // We have to create a handle for the notes editor here
+  // as using guides will have to set the contents during
+  // interview creation.
+  const [notesEditor, setNotesEditor] = useState();
+  const reactQuillNotesRef = useCallback(
     (current) => {
       if (!current) {
-        setEditor();
+        setNotesEditor();
         return;
       }
-      setEditor(current.getEditor());
+      setNotesEditor(current.getEditor());
     },
-    [setEditor]
+    [setNotesEditor]
   );
 
   useEffect(() => {
@@ -202,8 +204,8 @@ export default function Interviews(props) {
         key={documentID}
         navigate={navigate}
         user={oauthClaims}
-        reactQuillRef={reactQuillRef}
-        editor={editor}
+        reactQuillNotesRef={reactQuillNotesRef}
+        notesEditor={notesEditor}
       />
     );
   } else if (documentItems.length > 0) {
@@ -220,7 +222,7 @@ export default function Interviews(props) {
       onHide={() => {
         setAddModalShow(false);
       }}
-      editor={editor}
+      editor={notesEditor}
     />
   );
 

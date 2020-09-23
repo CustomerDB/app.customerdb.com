@@ -96,7 +96,13 @@ export default function VideoPlayer({
   }, [timecodes]);
 
   useEffect(() => {
-    if (!selection || !initialRevision || !indexTree || !playerRef.current) {
+    if (
+      !selection ||
+      !initialRevision ||
+      !indexTree ||
+      !playerRef.current ||
+      !editor
+    ) {
       return;
     }
     let currentRevision = editor.getContents();
@@ -112,7 +118,7 @@ export default function VideoPlayer({
   }, [indexTree, selection, editor, initialRevision]);
 
   const onVideoProgress = ({ playedSeconds }) => {
-    if (!initialRevision || !timeTree) {
+    if (!initialRevision || !timeTree || !editor) {
       return;
     }
     let currentRevision = editor.getContents();

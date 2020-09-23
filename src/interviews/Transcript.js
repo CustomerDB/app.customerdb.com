@@ -50,7 +50,6 @@ export default function Transcript(props) {
   const [transcriptionProgress, setTranscriptionProgress] = useState();
   const [operation, setOperation] = useState();
   const [tagIDsInSelection, setTagIDsInSelection] = useState(new Set());
-  const [currentSelection, setCurrentSelection] = useState();
   const [uploadModalShow, setUploadModalShow] = useState(false);
   const quillContainerRef = useRef();
 
@@ -194,20 +193,20 @@ export default function Transcript(props) {
     }
 
     console.debug("current selection range", range);
-    setCurrentSelection(range);
+    props.setCurrentSelectionCallback(range);
     setTagIDsInSelection(computeTagIDsInSelection(range));
   };
 
   // onTagControlChange is invoked when the user checks or unchecks one of the
   // tag input elements.
   const onTagControlChange = (tag, checked) => {
-    console.debug("onTagControlChange", tag, checked, currentSelection);
+    console.debug("onTagControlChange", tag, checked, props.currentSelection);
 
-    if (currentSelection === undefined) {
+    if (props.currentSelection === undefined) {
       return;
     }
 
-    let selection = currentSelection;
+    let selection = props.currentSelection;
 
     if (checked) {
       console.debug("formatting highlight with tag ", tag);
@@ -247,16 +246,13 @@ export default function Transcript(props) {
       length: 0,
     };
     props.editor.setSelection(newRange, "user");
-    setCurrentSelection(newRange);
+    props.setCurrentSelectionCallback(newRange);
     setTagIDsInSelection(computeTagIDsInSelection(newRange));
   };
 
   useEffect(() => {
-    if (
-      !transcriptionsRef ||
-      !props.document.pending ||
-      !props.document.transcription
-    ) {
+    console.log("Getting operation");
+    if (!transcriptionsRef || !props.document.transcription) {
       return;
     }
 
@@ -264,13 +260,12 @@ export default function Transcript(props) {
       .doc(props.document.transcription)
       .onSnapshot((doc) => {
         let operation = doc.data();
-        console.debug("Transcript operation: ", operation);
         setOperation(operation);
         if (operation.progress) {
           setTranscriptionProgress(operation.progress);
         }
       });
-  }, [props.document.pending, transcriptionsRef, props.document.transcription]);
+  }, [transcriptionsRef, props.document.transcription]);
 
   // Register timers to periodically sync local changes with firestore.
   useEffect(() => {
@@ -535,7 +530,7 @@ export default function Transcript(props) {
 
           <SelectionFAB
             toolbarHeight={toolbarHeight}
-            selection={currentSelection}
+            selection={props.currentSelection}
             quillContainerRef={quillContainerRef}
             tags={props.tags}
             tagIDsInSelection={tagIDsInSelection}

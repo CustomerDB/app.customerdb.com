@@ -105,7 +105,7 @@ export default function DocumentSidebar(props) {
           <VideoPlayer
             doc={props.document}
             transcriptionVideo={transcriptionVideo}
-            editor={props.editor}
+            editor={props.transcriptEditor}
             selection={props.selection}
           />
         </Card>
