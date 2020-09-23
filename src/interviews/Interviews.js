@@ -21,7 +21,6 @@ import Moment from "react-moment";
 import Scrollable from "../shell/Scrollable.js";
 import Shell from "../shell/Shell.js";
 import TheatersIcon from "@material-ui/icons/Theaters";
-import UploadVideoDialog from "./UploadVideoDialog.js";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import { connectHits } from "react-instantsearch-dom";
 import event from "../analytics/event.js";
@@ -31,23 +30,12 @@ import useFirestore from "../db/Firestore.js";
 import { useOrganization } from "../organization/hooks.js";
 import { v4 as uuidv4 } from "uuid";
 
-const useStyles = makeStyles((theme) => ({
-  root: {
-    transform: "translateZ(0px)",
-    flexGrow: 1,
-  },
-}));
-
 export default function Interviews(props) {
   const [addModalShow, setAddModalShow] = useState(false);
-  const [uploadModalShow, setUploadModalShow] = useState(false);
   const [documents, setDocuments] = useState([]);
   const [showResults, setShowResults] = useState();
-  const [openDial, setOpenDial] = useState(false);
 
   const { defaultTagGroupID } = useOrganization();
-
-  const classes = useStyles();
 
   const navigate = useNavigate();
 
@@ -138,10 +126,6 @@ export default function Interviews(props) {
       });
   };
 
-  const onUploadVideo = () => {
-    setUploadModalShow(true);
-  };
-
   const dataListItem = (ID, name, date, transcript) => (
     <ListItem
       button
@@ -199,7 +183,6 @@ export default function Interviews(props) {
           onAddDocument().then(() => {
             setAddModalShow(true);
           });
-          setOpenDial(false);
         }}
       >
         <AddIcon />
@@ -241,15 +224,6 @@ export default function Interviews(props) {
     />
   );
 
-  let uploadModal = (
-    <UploadVideoDialog
-      open={uploadModalShow}
-      setOpen={(value) => {
-        setUploadModalShow(value);
-      }}
-    />
-  );
-
   let searchConfig;
   if (process.env.REACT_APP_ALGOLIA_DOCUMENTS_INDEX) {
     searchConfig = {
@@ -266,7 +240,6 @@ export default function Interviews(props) {
         {list}
         {content}
         {addModal}
-        {uploadModal}
       </Grid>
     </Shell>
   );

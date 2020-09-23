@@ -158,6 +158,8 @@ export default function UploadVideoDialog({ open, setOpen }) {
       });
   };
 
+  console.log("Upload video render: ", open);
+
   return (
     <Dialog
       open={open}

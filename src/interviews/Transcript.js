@@ -11,6 +11,7 @@ import React, {
   useState,
 } from "react";
 
+import Button from "@material-ui/core/Button";
 import CollabEditor from "../editor/CollabEditor.js";
 import FirebaseContext from "../util/FirebaseContext.js";
 import Grid from "@material-ui/core/Grid";
@@ -20,6 +21,7 @@ import LinearProgress from "@material-ui/core/LinearProgress";
 import PlayheadBlot from "./PlayheadBlot.js";
 import Quill from "quill";
 import SelectionFAB from "./SelectionFAB.js";
+import UploadVideoDialog from "./UploadVideoDialog.js";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
 import useFirestore from "../db/Firestore.js";
@@ -46,9 +48,10 @@ export default function Transcript(props) {
   const [reflowHints, setReflowHints] = useState(uuidv4());
   const [toolbarHeight, setToolbarHeight] = useState(40);
   const [transcriptionProgress, setTranscriptionProgress] = useState();
-
+  const [operation, setOperation] = useState();
   const [tagIDsInSelection, setTagIDsInSelection] = useState(new Set());
   const [currentSelection, setCurrentSelection] = useState();
+  const [uploadModalShow, setUploadModalShow] = useState(false);
   const quillContainerRef = useRef();
 
   const highlights = useRef();
@@ -262,6 +265,7 @@ export default function Transcript(props) {
       .onSnapshot((doc) => {
         let operation = doc.data();
         console.debug("Transcript operation: ", operation);
+        setOperation(operation);
         if (operation.progress) {
           setTranscriptionProgress(operation.progress);
         }
@@ -445,6 +449,36 @@ export default function Transcript(props) {
       }
     });
   }, [highlightsRef]);
+
+  if (!operation) {
+    return (
+      <Grid
+        item
+        xs={12}
+        style={{
+          position: "relative",
+          textAlign: "center",
+          paddingTop: "2rem",
+        }}
+      >
+        <Button
+          variant="contained"
+          color="secondary"
+          onClick={() => {
+            setUploadModalShow(true);
+          }}
+        >
+          Upload interview video to transcribe
+        </Button>
+        <UploadVideoDialog
+          open={uploadModalShow}
+          setOpen={(value) => {
+            setUploadModalShow(value);
+          }}
+        />
+      </Grid>
+    );
+  }
 
   if (!documentRef) {
     return <></>;
