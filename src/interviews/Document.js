@@ -18,6 +18,7 @@ import Paper from "@material-ui/core/Paper";
 import Scrollable from "../shell/Scrollable.js";
 import Tab from "@material-ui/core/Tab";
 import Tabs from "@material-ui/core/Tabs";
+import Transcript from "./Transcript.js";
 import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
 import useFirestore from "../db/Firestore.js";
@@ -268,7 +269,14 @@ export default function Document(props) {
                     />
                   )}
 
-                  {selectedTab == 1 && <p>Transcript goes here</p>}
+                  {selectedTab == 1 && (
+                    <Transcript
+                      document={document}
+                      tags={tags}
+                      reactQuillRef={props.reactQuillRef}
+                      editor={props.editor}
+                    />
+                  )}
                 </Grid>
               </Paper>
             </Grid>

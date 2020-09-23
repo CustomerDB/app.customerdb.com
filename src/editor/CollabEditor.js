@@ -45,7 +45,8 @@ const defaultSyncPeriod = 1000;
 // cached edits that haven't been sent back to firestore yet.
 export default function CollabEditor({
   quillRef,
-  objectRef,
+  deltasRef,
+  revisionsRef,
   editor,
   onLoad,
   onChange,
@@ -55,8 +56,6 @@ export default function CollabEditor({
   const [editorID] = useState(uuidv4());
   const [revisionDelta, setRevisionDelta] = useState();
   const [revisionTimestamp, setRevisionTimestamp] = useState();
-  const [revisionsRef, setRevisionsRef] = useState();
-  const [deltasRef, setDeltasRef] = useState();
 
   const { oauthClaims } = useContext(UserAuthContext);
 
@@ -64,13 +63,6 @@ export default function CollabEditor({
   const latestDeltaTimestamp = useRef();
 
   const deltaSyncPeriod = syncPeriod || defaultSyncPeriod;
-
-  useEffect(() => {
-    if (!objectRef) return;
-
-    setRevisionsRef(objectRef.collection("revisions"));
-    setDeltasRef(objectRef.collection("deltas"));
-  }, [objectRef]);
 
   // Subscribe to the latest revision
   useEffect(() => {
