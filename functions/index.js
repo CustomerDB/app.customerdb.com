@@ -589,7 +589,36 @@ const markForIndexing = (collectionName) => {
                               }
                             });
                         });
-                      });
+                      })
+                      .then(
+                        doc.ref
+                          .collection("transcriptRevisions")
+                          .orderBy("timestamp", "desc")
+                          .limit(1)
+                          .get()
+                          .then((snapshot) => {
+                            snapshot.forEach((latestRevisionDoc) => {
+                              let latestRevision = latestRevisionDoc.data();
+                              return doc.ref
+                                .collection("transcriptDeltas")
+                                .where(
+                                  "timestamp",
+                                  ">",
+                                  latestRevision.timestamp
+                                )
+                                .get()
+                                .then((deltas) => {
+                                  if (deltas.size > 0) {
+                                    // Mark this document for indexing
+                                    return doc.ref.set(
+                                      { needsIndex: true },
+                                      { merge: true }
+                                    );
+                                  }
+                                });
+                            });
+                          })
+                      );
                   })
                 );
               });
