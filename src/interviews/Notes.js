@@ -450,7 +450,6 @@ export default function Notes(props) {
       <SelectionFAB
         toolbarHeight={toolbarHeight}
         selection={currentSelection}
-        quillContainerRef={quillContainerRef}
         tags={props.tags}
         tagIDsInSelection={tagIDsInSelection}
         onTagControlChange={onTagControlChange}

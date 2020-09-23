@@ -287,6 +287,7 @@ export default function Document(props) {
                       document={document}
                       tags={tags}
                       reactQuillRef={reactQuillTranscriptRef}
+                      currentSelection={currentTranscriptSelection}
                       setCurrentSelectionCallback={
                         setCurrentTranscriptSelection
                       }

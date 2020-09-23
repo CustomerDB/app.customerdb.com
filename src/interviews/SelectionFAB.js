@@ -13,7 +13,6 @@ import { useTheme } from "@material-ui/core/styles";
 export default function SelectionFAB({
   toolbarHeight,
   selection,
-  quillContainerRef,
   tags,
   tagIDsInSelection,
   onTagControlChange,
@@ -71,6 +70,7 @@ export default function SelectionFAB({
   }, [browserSelection, selection]);
 
   useEffect(() => {
+    console.log("SelectionFAB: selection ", selection);
     if (selection) {
       setBrowserSelection(document.getSelection());
     }

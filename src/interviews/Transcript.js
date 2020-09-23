@@ -479,6 +479,8 @@ export default function Transcript(props) {
     return <></>;
   }
 
+  console.log("Transcript: props", props);
+
   return (
     <>
       {props.document.pending ? (
@@ -531,7 +533,6 @@ export default function Transcript(props) {
           <SelectionFAB
             toolbarHeight={toolbarHeight}
             selection={props.currentSelection}
-            quillContainerRef={quillContainerRef}
             tags={props.tags}
             tagIDsInSelection={tagIDsInSelection}
             onTagControlChange={onTagControlChange}
