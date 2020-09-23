@@ -452,8 +452,9 @@ const updateRevision = (revisionDelta, revisionTimestamp, deltasRef) => {
     .get()
     .then((deltasSnapshot) => {
       deltasSnapshot.forEach((deltaDoc) => {
-        result = result.compose(new Delta(deltaDoc.data().ops));
-        timestamp = delta.timestamp;
+        let data = deltaDoc.data();
+        result = result.compose(new Delta(data.ops));
+        timestamp = data.timestamp;
       });
       return {
         delta: result,
