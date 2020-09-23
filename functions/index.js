@@ -423,6 +423,53 @@ const deltaToPlaintext = (delta) => {
   }, "");
 };
 
+const latestRevision = (collectionRef) => {
+  return collectionRef
+    .orderBy("timestamp", "desc")
+    .limit(1)
+    .get()
+    .then((snapshot) => {
+      if (snapshot.size === 0) {
+        return {
+          delta: new Delta([{ insert: "\n" }]),
+          timestamp: new admin.firestore.Timestamp(0, 0),
+        };
+      }
+      let data = snapshot.docs[0].data();
+      return {
+        delta: new Delta(data.delta.ops),
+        timestamp: data.timestamp,
+      };
+    });
+};
+
+const updateRevision = (revisionDelta, revisionTimestamp, deltasRef) => {
+  let result = revisionDelta;
+  let timestamp = revisionTimestamp;
+
+  return deltasRef
+    .where("timestamp", ">", timestamp)
+    .get()
+    .then((deltasSnapshot) => {
+      deltasSnapshot.forEach((deltaDoc) => {
+        result = result.compose(new Delta(deltaDoc.data().ops));
+        timestamp = delta.timestamp;
+      });
+      return {
+        delta: result,
+        timestamp: timestamp,
+      };
+    });
+};
+
+const maxTimestamp = (a, b) => {
+  let result = a;
+  if (b.valueOf() > a.valueOf()) {
+    result = b.timestamp;
+  }
+  return result;
+};
+
 const indexUpdated = (index) => {
   return (change, context) => {
     if (!change.after.exists || change.after.data().deletionTimestamp != "") {
@@ -432,75 +479,63 @@ const indexUpdated = (index) => {
     }
 
     let data = change.after.data();
+    let revisionsRef = change.after.ref.collection("revisions");
+    let deltasRef = change.after.ref.collection("deltas");
+    let transcriptRevisionsRef = change.after.ref.collection(
+      "transcriptRevisions"
+    );
+    let transcriptDeltasRef = change.after.ref.collection("transcriptDeltas");
 
-    return change.after.ref
-      .collection("revisions")
-      .orderBy("timestamp", "desc")
-      .limit(1)
-      .get()
-      .then((snapshot) => {
-        let latestRevisionDelta;
-        let ts;
-
-        if (snapshot.size === 0) {
-          latestRevisionDelta = new Delta([{ insert: "\n" }]);
-          ts = new admin.firestore.Timestamp(0, 0);
-        }
-
-        // nb: limit(1) -- iterating over list of 1
-        snapshot.forEach((latestRevisionDoc) => {
-          let revisionData = latestRevisionDoc.data();
-          latestRevisionDelta = new Delta(revisionData.delta.ops);
-          ts = revisionData.timestamp;
-        });
-
+    return latestRevision(revisionsRef).then((notes) => {
+      return latestRevision(transcriptRevisionsRef).then((transcript) => {
         if (data.needsIndex === true) {
-          return change.after.ref
-            .collection("deltas")
-            .where("timestamp", ">", ts)
-            .get()
-            .then((deltasSnapshot) => {
-              deltasSnapshot.forEach((deltaDoc) => {
-                let delta = deltaDoc.data();
-                let ops = delta.ops;
-                latestRevisionDelta = latestRevisionDelta.compose(
-                  new Delta(ops)
-                );
-                ts = delta.timestamp;
+          return updateRevision(notes.delta, notes.timestamp, deltasRef).then(
+            (notes) => {
+              updateRevision(
+                transcript.delta,
+                transcript.timestamp,
+                transcriptDeltasRef
+              ).then((transcript) => {
+                // Index the new content
+                let docToIndex = {
+                  // Add an 'objectID' field which Algolia requires
+                  objectID: change.after.id,
+                  orgID: context.params.orgID,
+                  name: data.name,
+                  createdBy: data.createdBy,
+                  creationTimestamp: data.creationTimestamp.seconds,
+                  latestSnapshotTimestamp: maxTimestamp(
+                    notes.timestamp,
+                    transcript.timestamp
+                  ).seconds,
+                  notesText: deltaToPlaintext(notes.delta),
+                  transcriptText: deltaToPlaintext(transcript.delta),
+                };
+
+                return index.saveObject(docToIndex).then(() => {
+                  // Write the snapshot, timestamp and index state back to document
+
+                  return revisionsRef
+                    .add({
+                      delta: { ops: notes.delta.ops },
+                      timestamp: notes.timestamp,
+                    })
+                    .then(() => {
+                      transcriptRevisionsRef.add({
+                        delta: { ops: transcript.delta.ops },
+                        timestamp: transcript.timestamp,
+                      });
+                    })
+                    .then(() => {
+                      return change.after.ref.set(
+                        { needsIndex: false },
+                        { merge: true }
+                      );
+                    });
+                });
               });
-
-              // Convert the consolidated document delta snapshot to text.
-              let docText = deltaToPlaintext(latestRevisionDelta);
-
-              // Index the new content
-              let docToIndex = {
-                // Add an 'objectID' field which Algolia requires
-                objectID: change.after.id,
-                orgID: context.params.orgID,
-                name: data.name,
-                createdBy: data.createdBy,
-                creationTimestamp: data.creationTimestamp.seconds,
-                latestSnapshotTimestamp: ts.seconds,
-                text: docText,
-              };
-
-              return index.saveObject(docToIndex).then(() => {
-                // Write the snapshot, timestamp and index state back to document
-
-                return change.after.ref
-                  .collection("revisions")
-                  .add({
-                    delta: { ops: latestRevisionDelta.ops },
-                    timestamp: ts,
-                  })
-                  .then(() => {
-                    return change.after.ref.set(
-                      { needsIndex: false },
-                      { merge: true }
-                    );
-                  });
-              });
-            });
+            }
+          );
         }
 
         // Otherwise, just proceed with updating the index with the
@@ -512,10 +547,15 @@ const indexUpdated = (index) => {
           name: data.name,
           createdBy: data.createdBy,
           creationTimestamp: data.creationTimestamp.seconds,
-          latestSnapshotTimestamp: ts.seconds,
-          text: deltaToPlaintext(latestRevisionDelta),
+          latestSnapshotTimestamp: maxTimestamp(
+            notes.timestamp,
+            transcript.timestamp
+          ).seconds,
+          notesText: deltaToPlaintext(notes.delta),
+          transcriptText: deltaToPlaintext(transcript.delta),
         });
       });
+    });
   };
 };
 
