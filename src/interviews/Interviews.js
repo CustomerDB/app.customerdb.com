@@ -202,8 +202,6 @@ export default function Interviews(props) {
     content = (
       <Document
         key={documentID}
-        navigate={navigate}
-        user={oauthClaims}
         reactQuillNotesRef={reactQuillNotesRef}
         notesEditor={notesEditor}
       />

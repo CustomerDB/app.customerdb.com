@@ -215,7 +215,18 @@ it("can edit a document", async () => {
     .collection("documents")
     .doc(documentID)
     .collection("deltas")
+    .orderBy("timestamp")
+    .where("timestamp", ">", new firebase.firestore.Timestamp(0, 0))
     .onSnapshot((snapshot) => {
+      console.debug(
+        "deltas:",
+        snapshot.docs.map((d) => {
+          return {
+            ops: JSON.stringify(d.data().ops),
+            timestamp: d.data().timestamp,
+          };
+        })
+      );
       numDeltas = snapshot.size;
     });
 
@@ -372,5 +383,5 @@ const DocumentWrapper = ({ onEditor }) => {
     [setEditor]
   );
 
-  return <Document editor={editor} reactQuillRef={reactQuillRef} />;
+  return <Document notesEditor={editor} reactQuillNotesRef={reactQuillRef} />;
 };

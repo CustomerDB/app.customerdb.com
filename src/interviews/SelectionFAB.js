@@ -70,7 +70,6 @@ export default function SelectionFAB({
   }, [browserSelection, selection]);
 
   useEffect(() => {
-    console.log("SelectionFAB: selection ", selection);
     if (selection) {
       setBrowserSelection(document.getSelection());
     }
@@ -101,7 +100,6 @@ export default function SelectionFAB({
   }, [tagIDsInSelection, selection, browserSelection]);
 
   const expandTagControls = () => {
-    console.log("fab clicked");
     setShowFabAdd(false);
     setShowMenu(true);
   };

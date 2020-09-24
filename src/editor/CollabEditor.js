@@ -80,16 +80,14 @@ export default function CollabEditor({
           return;
         }
 
-        // hint: limit 1 -- iterating over a list of exactly 1
-        snapshot.forEach((doc) => {
-          let revision = doc.data();
-          setRevisionDelta(new Delta(revision.delta.ops));
-          if (!revision.timestamp) {
-            setRevisionTimestamp(new firebaseClient.firestore.Timestamp(0, 0));
-            return;
-          }
-          setRevisionTimestamp(revision.timestamp);
-        });
+        let revision = snapshot.docs[0].data();
+        setRevisionDelta(new Delta(revision.delta.ops));
+        if (!revision.timestamp) {
+          setRevisionTimestamp(new firebaseClient.firestore.Timestamp(0, 0));
+          return;
+        }
+
+        setRevisionTimestamp(revision.timestamp);
       });
   }, [revisionsRef]);
 
@@ -111,10 +109,8 @@ export default function CollabEditor({
 
     return deltasRef
       .orderBy("timestamp", "asc")
-      .where("timestamp", ">", latestDeltaTimestamp.current)
+      .where("timestamp", ">", revisionTimestamp)
       .onSnapshot((snapshot) => {
-        // console.debug("Delta snapshot received");
-
         let newDeltas = [];
         snapshot.forEach((delta) => {
           let data = delta.data();
@@ -154,7 +150,10 @@ export default function CollabEditor({
           return;
         }
 
-        console.debug("applying deltas to editor", newDeltas);
+        console.debug(
+          "applying deltas to editor",
+          JSON.stringify(newDeltas.flatMap((d) => d.ops))
+        );
 
         // What we have:
         // - localDelta: the buffered local edits that haven't been uploaded yet
@@ -172,21 +171,22 @@ export default function CollabEditor({
         console.debug("inverseLocalDelta", inverseLocalDelta);
 
         // Undo local edits
+        selectionIndex = inverseLocalDelta.transformPosition(selectionIndex);
         console.debug("unapplying local delta");
         editor.updateContents(inverseLocalDelta);
-        selectionIndex = inverseLocalDelta.transformPosition(selectionIndex);
 
+        const serverFirst = true;
         newDeltas.forEach((delta) => {
           editor.updateContents(delta);
           selectionIndex = delta.transformPosition(selectionIndex);
-
-          console.debug("transform local delta");
-          const serverFirst = true;
           localDelta.current = delta.transform(localDelta.current, serverFirst);
         });
 
         // Reapply local edits
-        console.debug("applying transformed local delta", localDelta.current);
+        console.debug(
+          "re-applying transformed local delta",
+          localDelta.current
+        );
         editor.updateContents(localDelta.current);
         selectionIndex = localDelta.current.transformPosition(selectionIndex);
 
