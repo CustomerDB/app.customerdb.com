@@ -1,17 +1,17 @@
 import "./style.css";
 
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { Search, SearchInput } from "./Search.js";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 import AppBar from "@material-ui/core/AppBar";
+import Avatar from "@material-ui/core/Avatar";
 import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
 import ChevronRightIcon from "@material-ui/icons/ChevronRight";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import Divider from "@material-ui/core/Divider";
 import Drawer from "@material-ui/core/Drawer";
-import ExitToAppIcon from "@material-ui/icons/ExitToApp";
 import ExploreIcon from "@material-ui/icons/Explore";
 import GroupIcon from "@material-ui/icons/Group";
 import IconButton from "@material-ui/core/IconButton";
@@ -19,12 +19,15 @@ import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
 import ListItemText from "@material-ui/core/ListItemText";
+import Menu from "@material-ui/core/Menu";
 import MenuIcon from "@material-ui/icons/Menu";
+import MenuItem from "@material-ui/core/MenuItem";
 import MultilineChartIcon from "@material-ui/icons/MultilineChart";
 import RecordVoiceOverIcon from "@material-ui/icons/RecordVoiceOver";
 import SettingsIcon from "@material-ui/icons/Settings";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
+import UserAuthContext from "../auth/UserAuthContext.js";
 import clsx from "clsx";
 import logo from "../assets/images/logo.svg";
 import logoDarkBG from "../assets/images/logo-dark-bg.svg";
@@ -97,15 +100,22 @@ const useStyles = makeStyles((theme) => ({
     flexGrow: 1,
     height: "calc(100vh - 64px)",
   },
+  grow: {
+    flexGrow: 1,
+  },
 }));
 
 export default function Shell(props) {
+  const { oauthUser } = useContext(UserAuthContext);
+
   const { orgID } = useParams();
 
   const [open, setOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = React.useState(null);
 
   const classes = useStyles();
   const theme = useTheme();
+  const navigate = useNavigate();
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -116,6 +126,14 @@ export default function Shell(props) {
   };
 
   const lgBreakpoint = useMediaQuery(theme.breakpoints.up("lg"));
+
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
 
   let app = (
     <Search search={props.search}>
@@ -145,6 +163,45 @@ export default function Shell(props) {
               </Typography>
             )}
             {props.search && <SearchInput />}
+            <div className={classes.grow} />
+            <IconButton
+              edge="end"
+              aria-label="account of current user"
+              aria-haspopup="true"
+              aria-controls="profile-menu"
+              onClick={handleClick}
+              color="inherit"
+            >
+              <Avatar
+                key={oauthUser.email}
+                alt={oauthUser.displayName}
+                src={oauthUser.photoURL}
+              />
+            </IconButton>
+            <Menu
+              id="profile-menu"
+              anchorEl={anchorEl}
+              keepMounted
+              open={Boolean(anchorEl)}
+              onClose={handleClose}
+            >
+              <MenuItem
+                onClick={() => {
+                  setAnchorEl(null);
+                  navigate(`/orgs/${orgID}/settings/profile`);
+                }}
+              >
+                Profile
+              </MenuItem>
+              <MenuItem
+                onClick={() => {
+                  setAnchorEl(null);
+                  navigate(`/logout`);
+                }}
+              >
+                Logout
+              </MenuItem>
+            </Menu>
           </Toolbar>
         </AppBar>
         <Drawer
@@ -212,12 +269,6 @@ export default function Shell(props) {
                 <SettingsIcon />
               </ListItemIcon>
               <ListItemText primary="Settings" />
-            </NavListItem>
-            <NavListItem key="Logout" to={`/logout`}>
-              <ListItemIcon>
-                <ExitToAppIcon />
-              </ListItemIcon>
-              <ListItemText primary="Log out" />
             </NavListItem>
           </List>
         </Drawer>
