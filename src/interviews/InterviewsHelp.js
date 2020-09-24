@@ -2,7 +2,7 @@ import { Link, useParams } from "react-router-dom";
 
 import React from "react";
 import arrowDown from "../assets/images/handdrawn-arrow-down.svg";
-import dataGraphic from "../assets/images/data.svg";
+import interviewGraphic from "../assets/images/interview.svg";
 
 export default function InterviewsHelp(props) {
   const { orgID } = useParams();
@@ -12,7 +12,7 @@ export default function InterviewsHelp(props) {
       <div>
         <img
           style={{ width: "100%" }}
-          src={dataGraphic}
+          src={interviewGraphic}
           alt="Interviews illustration"
         />
       </div>

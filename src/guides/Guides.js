@@ -19,6 +19,7 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import Fab from "@material-ui/core/Fab";
 import FirebaseContext from "../util/FirebaseContext.js";
 import Grid from "@material-ui/core/Grid";
+import GuideHelp from "./GuideHelp.js";
 import Hidden from "@material-ui/core/Hidden";
 import IconButton from "@material-ui/core/IconButton";
 import List from "@material-ui/core/List";
@@ -163,22 +164,21 @@ export default function Guides(props) {
   );
 
   if (guideID) {
-    list = <Hidden smDown>{list}</Hidden>;
+    list = <Hidden mdDown>{list}</Hidden>;
   }
 
-  let content = templatesRef && guideID && (
-    <Guide templateRef={templatesRef.doc(guideID)} key={guideID} />
+  let content = (
+    <Hidden smDown>
+      <GuideHelp />
+    </Hidden>
   );
+  if (templatesRef && guideID) {
+    content = <Guide templateRef={templatesRef.doc(guideID)} key={guideID} />;
+  }
 
   return (
     <Shell title="Guides">
-      <Grid
-        container
-        direction="column"
-        justify="flex-start"
-        alignItems="flex-start"
-        style={{ height: "100%" }}
-      >
+      <Grid container className="fullHeight">
         <Grid container item xs style={{ width: "100%" }}>
           {list}
           {content}

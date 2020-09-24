@@ -3,7 +3,6 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import AddIcon from "@material-ui/icons/Add";
 import Avatar from "@material-ui/core/Avatar";
-import ContentsHelp from "./ContentsHelp.js";
 import DescriptionIcon from "@material-ui/icons/Description";
 import Document from "./Document.js";
 import DocumentCreateModal from "./DocumentCreateModal.js";
@@ -11,6 +10,7 @@ import Fab from "@material-ui/core/Fab";
 import FirebaseContext from "../util/FirebaseContext.js";
 import Grid from "@material-ui/core/Grid";
 import Hidden from "@material-ui/core/Hidden";
+import InterviewHelp from "./InterviewHelp.js";
 import InterviewsHelp from "./InterviewsHelp.js";
 import List from "@material-ui/core/List";
 import ListContainer from "../shell/ListContainer";
@@ -208,8 +208,8 @@ export default function Interviews(props) {
     );
   } else if (documentItems.length > 0) {
     content = (
-      <Hidden mdDown>
-        <ContentsHelp />
+      <Hidden smDown>
+        <InterviewHelp />
       </Hidden>
     );
   }

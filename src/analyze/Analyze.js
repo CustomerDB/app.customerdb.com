@@ -72,7 +72,12 @@ export default function Analyze(props) {
     return <></>;
   }
 
-  let content;
+  let content = listTotal > 0 && (
+    <Hidden smDown>
+      <AnalysisHelp />
+    </Hidden>
+  );
+
   if (analysisID && analysisMap) {
     let analysis = analysisMap[analysisID];
     let analysisRef = analysesRef.doc(analysisID);
@@ -83,12 +88,6 @@ export default function Analyze(props) {
         analysis={analysis}
         analysisRef={analysisRef}
       />
-    );
-  } else if (listTotal > 0) {
-    content = (
-      <Hidden mdDown>
-        <AnalysisHelp />
-      </Hidden>
     );
   }
 

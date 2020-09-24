@@ -1,6 +1,6 @@
 import Grid from "@material-ui/core/Grid";
 import React from "react";
-import analyzeGraphic from "../assets/images/analyze.svg";
+import interviewGraphic from "../assets/images/interview.svg";
 import { makeStyles } from "@material-ui/core/styles";
 
 const useStyles = makeStyles({
@@ -9,7 +9,7 @@ const useStyles = makeStyles({
   },
 });
 
-export default function AnalysisHelp(props) {
+export default function InterviewHelp(props) {
   const classes = useStyles();
 
   return (
@@ -25,16 +25,16 @@ export default function AnalysisHelp(props) {
       <Grid container item md={5} lg={4}>
         <img
           style={{ width: "100%" }}
-          src={analyzeGraphic}
+          src={interviewGraphic}
           alt="Contents illustration"
         />
       </Grid>
       <Grid item md={5} lg={4} className={classes.helpText}>
-        <h3>Analyze your customer interviews</h3>
+        <h3>Keep track of your customer notes and conversations</h3>
         <br />
         <h5>
-          Collaborate with your team to find patterns in verbatims from multiple
-          customers.
+          Tag customer interviews with themes here. Find patterns in the voice
+          of the customer in the analysis tab.
         </h5>
       </Grid>
     </Grid>
