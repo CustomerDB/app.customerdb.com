@@ -128,8 +128,6 @@ export default function UploadVideoDialog({ open, setOpen }) {
             setUploading(false);
             setSuccess(true);
 
-            console.log(`Setting transcription on document ${documentID}`);
-
             // Create pending document
             documentsRef
               .doc(documentID)
