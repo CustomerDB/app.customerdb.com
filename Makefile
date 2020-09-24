@@ -38,9 +38,12 @@ check-format:
 	yarn prettier --check src/
 	yarn prettier --check functions/
 
+# Example:
+#
+# make test WHAT="-t existing src/interviews/Document.test.js"
 test:
 	GOOGLE_APPLICATION_CREDENTIALS=$(FIREBASE_CREDENTIALS_FILE) \
-		firebase --project=customerdb-development emulators:exec "yarn test --watchAll=false --forceExit"
+		firebase --project=customerdb-development emulators:exec "yarn test --watchAll=false --forceExit $(WHAT)"
 
 install-git-hooks:
 	cp scripts/pre-commit .git/hooks/pre-commit
