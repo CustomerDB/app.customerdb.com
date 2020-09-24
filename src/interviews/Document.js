@@ -34,6 +34,14 @@ const useStyles = makeStyles({
   tabs: {
     width: "100%",
   },
+  tabsContainer: {
+    position: "sticky",
+    top: 0,
+    background: "#fff",
+    zIndex: 1,
+    height: "3rem",
+    width: "100%",
+  },
   detailsParagraph: {
     marginBottom: "0.35rem",
   },
@@ -247,11 +255,11 @@ export default function Document(props) {
                     </Grid>
                   </Grid>
 
-                  <Grid item xs={12}>
+                  <Grid item xs={12} class={classes.tabsContainer}>
                     <Tabs
                       value={selectedTab}
                       onChange={handleTabChange}
-                      indicatorColor="primary"
+                      indicatorColor="secondary"
                       textColor="primary"
                       variant="fullWidth"
                       aria-label="full width"
