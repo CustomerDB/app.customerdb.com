@@ -182,6 +182,13 @@ button.addButton {
   z-index: 1;
 }
 
+.guideQuill .ql-toolbar {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 1;
+}
+
 .ql-snow .ql-editor blockquote {
   margin: 0 !important;
   padding-top: 5px;

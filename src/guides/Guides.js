@@ -396,6 +396,7 @@ function Guide({ templateRef }) {
                       ref={reactQuillRef}
                       defaultValue={templateRevision}
                       theme="snow"
+                      className="guideQuill"
                       placeholder="Start typing here"
                       onChange={onEdit}
                       modules={{
