@@ -164,44 +164,48 @@ export default function Shell(props) {
             )}
             {props.search && <SearchInput />}
             <div className={classes.grow} />
-            <IconButton
-              edge="end"
-              aria-label="account of current user"
-              aria-haspopup="true"
-              aria-controls="profile-menu"
-              onClick={handleClick}
-              color="inherit"
-            >
-              <Avatar
-                key={oauthUser.email}
-                alt={oauthUser.displayName}
-                src={oauthUser.photoURL}
-              />
-            </IconButton>
-            <Menu
-              id="profile-menu"
-              anchorEl={anchorEl}
-              keepMounted
-              open={Boolean(anchorEl)}
-              onClose={handleClose}
-            >
-              <MenuItem
-                onClick={() => {
-                  setAnchorEl(null);
-                  navigate(`/orgs/${orgID}/settings/profile`);
-                }}
-              >
-                Profile
-              </MenuItem>
-              <MenuItem
-                onClick={() => {
-                  setAnchorEl(null);
-                  navigate(`/logout`);
-                }}
-              >
-                Logout
-              </MenuItem>
-            </Menu>
+            {oauthUser && (
+              <>
+                <IconButton
+                  edge="end"
+                  aria-label="account of current user"
+                  aria-haspopup="true"
+                  aria-controls="profile-menu"
+                  onClick={handleClick}
+                  color="inherit"
+                >
+                  <Avatar
+                    key={oauthUser.email}
+                    alt={oauthUser.displayName}
+                    src={oauthUser.photoURL}
+                  />
+                </IconButton>
+                <Menu
+                  id="profile-menu"
+                  anchorEl={anchorEl}
+                  keepMounted
+                  open={Boolean(anchorEl)}
+                  onClose={handleClose}
+                >
+                  <MenuItem
+                    onClick={() => {
+                      setAnchorEl(null);
+                      navigate(`/orgs/${orgID}/settings/profile`);
+                    }}
+                  >
+                    Profile
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => {
+                      setAnchorEl(null);
+                      navigate(`/logout`);
+                    }}
+                  >
+                    Logout
+                  </MenuItem>
+                </Menu>
+              </>
+            )}
           </Toolbar>
         </AppBar>
         <Drawer
