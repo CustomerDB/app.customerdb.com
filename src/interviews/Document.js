@@ -60,7 +60,6 @@ export default function Document(props) {
   const classes = useStyles();
 
   const handleTabChange = (e, newValue) => {
-    // setSelectedTab(newValue);
     let tab = "";
     if (newValue === 0) {
       tab = "notes";
@@ -169,8 +168,6 @@ export default function Document(props) {
       </div>
     );
   }
-
-  console.log("Selected tab: ", selectedTab);
 
   return (
     <Grid container item md={12} lg={9} xl={10} spacing={0}>
