@@ -679,6 +679,53 @@ exports.markSnapshotsForIndexing = functions.pubsub
   .schedule("every 2 minutes")
   .onRun(markForIndexing("snapshots"));
 
+// Update highlights if an interview's personID changes.
+exports.updateHighlightPeopleForDocument = functions.firestore
+  .document("organizations/{orgID}/documents/{documentID}")
+  .onUpdate((change) => {
+    let documentRef = change.after.ref;
+    let highlightsRef = documentRef.collection("highlights");
+    let transcriptHighlightsRef = documentRef.collection(
+      "transcriptHighlights"
+    );
+
+    let before = change.before.data();
+    let after = change.after.data();
+
+    if (before.personID !== after.personID) {
+      let newPersonID = after.personID || "";
+
+      return highlightsRef
+        .get()
+        .then((snapshot) =>
+          Promise.all(
+            snapshot.docs.map((doc) =>
+              doc.ref.set(
+                {
+                  personID: newPersonID,
+                },
+                { merge: true }
+              )
+            )
+          )
+        )
+        .then(() =>
+          transcriptHighlightsRef.get().then((snapshot) =>
+            Promise.all(
+              snapshot.docs.map((doc) =>
+                doc.ref.set(
+                  {
+                    personID: newPersonID,
+                  },
+                  { merge: true }
+                )
+              )
+            )
+          )
+        );
+    }
+  });
+
 //////////////////////////////////////////////////////////////////////////////
 //
 //   New user invitations
