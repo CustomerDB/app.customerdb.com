@@ -1,5 +1,4 @@
 import React, { useContext, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
 
 import Alert from "@material-ui/lab/Alert";
 import Button from "@material-ui/core/Button";
@@ -14,11 +13,11 @@ import Grid from "@material-ui/core/Grid";
 import InputLabel from "@material-ui/core/InputLabel";
 import MenuItem from "@material-ui/core/MenuItem";
 import Select from "@material-ui/core/Select";
-import TextField from "@material-ui/core/TextField";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import { green } from "@material-ui/core/colors";
 import { makeStyles } from "@material-ui/core/styles";
 import useFirestore from "../db/Firestore.js";
+import { useParams } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 
 const useStyles = makeStyles((theme) => ({
@@ -44,27 +43,24 @@ export default function UploadVideoDialog({ open, setOpen }) {
   const classes = useStyles();
 
   let { oauthClaims } = useContext(UserAuthContext);
-  let { orgID } = useParams();
+  let { orgID, documentID } = useParams();
   const firebase = useContext(FirebaseContext);
 
   let uploadTask = useRef();
 
   let storageRef = firebase.storage().ref();
 
-  const navigate = useNavigate();
   const { transcriptionsRef, documentsRef } = useFirestore();
 
   const [uploading, setUploading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [progress, setProgress] = useState();
   const [file, setFile] = useState();
-  const [name, setName] = useState();
   const [speakers, setSpeakers] = useState(2);
   const [error, setError] = useState();
 
   const cancel = () => {
     setFile();
-    setName();
     setSpeakers(2);
     setUploading(false);
 
@@ -92,7 +88,6 @@ export default function UploadVideoDialog({ open, setOpen }) {
 
     // Store name, speaker count and path in operation document.
     let transcriptionID = uuidv4();
-    let documentID = uuidv4();
 
     // TODO: Find official google storage rules for allowed object names.
     let fileName = file.name.replace(/[ !@#$%^&*()+[]{}<>]/g, "-");
@@ -102,7 +97,6 @@ export default function UploadVideoDialog({ open, setOpen }) {
       .doc(transcriptionID)
       .set({
         ID: transcriptionID,
-        name: name,
         speakers: speakers,
         createdBy: oauthClaims.email,
         creationTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
@@ -137,20 +131,14 @@ export default function UploadVideoDialog({ open, setOpen }) {
             // Create pending document
             documentsRef
               .doc(documentID)
-              .set({
-                ID: documentID,
-                name: name,
-                createdBy: oauthClaims.email,
-                creationTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                tagGroupID: "",
-                templateID: "",
-                needsIndex: false,
-                deletionTimestamp: "",
-                pending: true,
-                transcription: transcriptionID,
-              })
+              .set(
+                {
+                  pending: true,
+                  transcription: transcriptionID,
+                },
+                { merge: true }
+              )
               .then(() => {
-                navigate(`/orgs/${orgID}/interviews/${documentID}`);
                 cancel();
               });
           }
@@ -181,21 +169,6 @@ export default function UploadVideoDialog({ open, setOpen }) {
           ) : (
             <></>
           )}
-          <Grid container item>
-            <Grid item xs={12}>
-              <TextField
-                variant="outlined"
-                id="name"
-                label="Name"
-                fullWidth
-                value={name}
-                margin="dense"
-                onChange={(e) => {
-                  setName(e.target.value);
-                }}
-              />
-            </Grid>
-          </Grid>
           <Grid container item>
             <Grid item xs={12}>
               <FormControl variant="outlined" style={{ width: "10rem" }}>
@@ -243,7 +216,7 @@ export default function UploadVideoDialog({ open, setOpen }) {
           <Button
             variant="contained"
             color="primary"
-            disabled={uploading || !file || !name || !speakers}
+            disabled={uploading || !file || !speakers}
             onClick={startUpload}
           >
             {success ? "Continue" : "Upload"}

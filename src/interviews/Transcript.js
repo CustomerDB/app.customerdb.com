@@ -479,8 +479,6 @@ export default function Transcript(props) {
     return <></>;
   }
 
-  console.log("Transcript: props", props);
-
   return (
     <>
       {props.document.pending ? (
