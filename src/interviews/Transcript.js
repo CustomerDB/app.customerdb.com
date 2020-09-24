@@ -11,13 +11,17 @@ import React, {
   useState,
 } from "react";
 
+import Button from "@material-ui/core/Button";
 import CollabEditor from "../editor/CollabEditor.js";
 import FirebaseContext from "../util/FirebaseContext.js";
 import Grid from "@material-ui/core/Grid";
 import HighlightBlot from "./HighlightBlot.js";
 import HighlightHints from "./HighlightHints.js";
+import LinearProgress from "@material-ui/core/LinearProgress";
+import PlayheadBlot from "./PlayheadBlot.js";
 import Quill from "quill";
 import SelectionFAB from "./SelectionFAB.js";
+import UploadVideoDialog from "./UploadVideoDialog.js";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
 import useFirestore from "../db/Firestore.js";
@@ -25,25 +29,34 @@ import { useParams } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 
 Quill.register("formats/highlight", HighlightBlot);
+Quill.register("formats/playhead", PlayheadBlot);
 
 // Synchronize every second (1000ms).
 const syncPeriod = 1000;
 
-// Notes augments a collaborative editor with tags and text highlights.
-export default function Notes(props) {
+// Transcript augments a collaborative editor with tags, text highlights and video integration.
+export default function Transcript(props) {
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
   const { orgID } = useParams();
-  const { documentRef, highlightsRef } = useFirestore();
+  const {
+    documentRef,
+    transcriptHighlightsRef,
+    transcriptionsRef,
+  } = useFirestore();
 
   const [reflowHints, setReflowHints] = useState(uuidv4());
   const [toolbarHeight, setToolbarHeight] = useState(40);
-
+  const [transcriptionProgress, setTranscriptionProgress] = useState();
+  const [operation, setOperation] = useState();
   const [tagIDsInSelection, setTagIDsInSelection] = useState(new Set());
-  const [currentSelection, setCurrentSelection] = useState();
+  const [uploadModalShow, setUploadModalShow] = useState(false);
   const quillContainerRef = useRef();
 
   const highlights = useRef();
+
+  // TODO(NN): Replace this.
+  const highlightsRef = transcriptHighlightsRef;
 
   const updateHints = () => {
     setReflowHints(uuidv4());
@@ -53,7 +66,7 @@ export default function Notes(props) {
   // recomputed if the browser zoom level changes.
   useEffect(() => {
     const onResize = () => {
-      let editorNode = document.getElementById("quill-notes-editor");
+      let editorNode = document.getElementById("quill-transcript-editor");
       if (editorNode) {
         let toolbarNodes = editorNode.getElementsByClassName("ql-toolbar");
         if (toolbarNodes.length > 0) {
@@ -77,7 +90,7 @@ export default function Notes(props) {
   // in the current editor.
   const getHighlightIDsFromEditor = () => {
     let result = new Set();
-    let editorNode = document.getElementById("quill-notes-editor");
+    let editorNode = document.getElementById("quill-transcript-editor");
     if (editorNode) {
       let domNodes = editorNode.getElementsByClassName("inline-highlight");
       for (let i = 0; i < domNodes.length; i++) {
@@ -180,20 +193,20 @@ export default function Notes(props) {
     }
 
     console.debug("current selection range", range);
-    setCurrentSelection(range);
+    props.setCurrentSelectionCallback(range);
     setTagIDsInSelection(computeTagIDsInSelection(range));
   };
 
   // onTagControlChange is invoked when the user checks or unchecks one of the
   // tag input elements.
   const onTagControlChange = (tag, checked) => {
-    console.debug("onTagControlChange", tag, checked, currentSelection);
+    console.debug("onTagControlChange", tag, checked, props.currentSelection);
 
-    if (currentSelection === undefined) {
+    if (props.currentSelection === undefined) {
       return;
     }
 
-    let selection = currentSelection;
+    let selection = props.currentSelection;
 
     if (checked) {
       console.debug("formatting highlight with tag ", tag);
@@ -233,13 +246,35 @@ export default function Notes(props) {
       length: 0,
     };
     props.editor.setSelection(newRange, "user");
-    setCurrentSelection(newRange);
+    props.setCurrentSelectionCallback(newRange);
     setTagIDsInSelection(computeTagIDsInSelection(newRange));
   };
 
+  useEffect(() => {
+    console.log("Getting operation");
+    if (!transcriptionsRef || !props.document.transcription) {
+      return;
+    }
+
+    return transcriptionsRef
+      .doc(props.document.transcription)
+      .onSnapshot((doc) => {
+        let operation = doc.data();
+        setOperation(operation);
+        if (operation.progress) {
+          setTranscriptionProgress(operation.progress);
+        }
+      });
+  }, [transcriptionsRef, props.document.transcription]);
+
   // Register timers to periodically sync local changes with firestore.
   useEffect(() => {
-    if (!highlightsRef || !props.document.ID || !oauthClaims.email) {
+    if (
+      !highlightsRef ||
+      !props.document.ID ||
+      !oauthClaims.email ||
+      props.document.pending
+    ) {
       return;
     }
 
@@ -373,6 +408,7 @@ export default function Notes(props) {
     props.document.deletionTimestamp,
     props.document.personID,
     props.editor,
+    props.document.pending,
     firebase,
   ]);
 
@@ -409,58 +445,107 @@ export default function Notes(props) {
     });
   }, [highlightsRef]);
 
+  if (!operation) {
+    return (
+      <Grid
+        item
+        xs={12}
+        style={{
+          position: "relative",
+          textAlign: "center",
+          paddingTop: "2rem",
+        }}
+      >
+        <Button
+          variant="contained"
+          color="secondary"
+          onClick={() => {
+            setUploadModalShow(true);
+          }}
+        >
+          Upload interview video to transcribe
+        </Button>
+        <UploadVideoDialog
+          open={uploadModalShow}
+          setOpen={(value) => {
+            setUploadModalShow(value);
+          }}
+        />
+      </Grid>
+    );
+  }
+
   if (!documentRef) {
     return <></>;
   }
 
+  console.log("Transcript: props", props);
+
   return (
-    <Grid
-      ref={quillContainerRef}
-      item
-      xs={12}
-      style={{ position: "relative" }}
-      spacing={0}
-    >
-      <CollabEditor
-        revisionsRef={documentRef.collection("revisions")}
-        deltasRef={documentRef.collection("deltas")}
-        quillRef={props.reactQuillRef}
-        editor={props.editor}
-        id="quill-notes-editor"
-        theme="snow"
-        placeholder="Start typing here and select to mark highlights"
-        onChange={onChange}
-        onChangeSelection={onChangeSelection}
-        modules={{
-          toolbar: [
-            [{ header: [1, 2, false] }],
-            ["bold", "italic", "underline", "strike", "blockquote"],
-            [
-              { list: "ordered" },
-              { list: "bullet" },
-              { indent: "-1" },
-              { indent: "+1" },
-            ],
-            ["link", "image"],
-            ["clean"],
-          ],
-        }}
-      />
+    <>
+      {props.document.pending ? (
+        <Grid item xs={12} style={{ position: "relative" }}>
+          <p>
+            <i>Transcribing video</i>
+          </p>
+          {transcriptionProgress ? (
+            <LinearProgress
+              variant="determinate"
+              value={transcriptionProgress}
+            />
+          ) : (
+            <LinearProgress />
+          )}
+        </Grid>
+      ) : (
+        <Grid
+          ref={quillContainerRef}
+          item
+          xs={12}
+          style={{ position: "relative" }}
+          spacing={0}
+        >
+          <CollabEditor
+            revisionsRef={documentRef.collection("transcriptRevisions")}
+            deltasRef={documentRef.collection("transcriptDeltas")}
+            quillRef={props.reactQuillRef}
+            editor={props.editor}
+            id="quill-transcript-editor"
+            theme="snow"
+            onChange={onChange}
+            onChangeSelection={onChangeSelection}
+            modules={{
+              toolbar: [
+                [{ header: [1, 2, false] }],
+                ["bold", "italic", "underline", "strike", "blockquote"],
+                [
+                  { list: "ordered" },
+                  { list: "bullet" },
+                  { indent: "-1" },
+                  { indent: "+1" },
+                ],
+                ["link", "image"],
+                ["clean"],
+              ],
+            }}
+          />
 
-      <SelectionFAB
-        toolbarHeight={toolbarHeight}
-        selection={currentSelection}
-        tags={props.tags}
-        tagIDsInSelection={tagIDsInSelection}
-        onTagControlChange={onTagControlChange}
-      />
+          <SelectionFAB
+            toolbarHeight={toolbarHeight}
+            selection={props.currentSelection}
+            tags={props.tags}
+            tagIDsInSelection={tagIDsInSelection}
+            onTagControlChange={onTagControlChange}
+          />
 
-      <HighlightHints
-        key={reflowHints}
-        toolbarHeight={toolbarHeight}
-        highlights={highlights.current}
-        tags={props.tags}
-      />
-    </Grid>
+          <HighlightHints
+            key={reflowHints}
+            toolbarHeight={toolbarHeight}
+            highlights={highlights.current}
+            tags={props.tags}
+          />
+        </Grid>
+      )}
+    </>
   );
 }

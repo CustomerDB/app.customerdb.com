@@ -21,33 +21,20 @@ import Moment from "react-moment";
 import Scrollable from "../shell/Scrollable.js";
 import Shell from "../shell/Shell.js";
 import TheatersIcon from "@material-ui/icons/Theaters";
-import UploadVideoDialog from "./UploadVideoDialog.js";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import { connectHits } from "react-instantsearch-dom";
 import event from "../analytics/event.js";
 import { initialDelta } from "../editor/delta.js";
-import { makeStyles } from "@material-ui/core/styles";
 import useFirestore from "../db/Firestore.js";
 import { useOrganization } from "../organization/hooks.js";
 import { v4 as uuidv4 } from "uuid";
 
-const useStyles = makeStyles((theme) => ({
-  root: {
-    transform: "translateZ(0px)",
-    flexGrow: 1,
-  },
-}));
-
 export default function Interviews(props) {
   const [addModalShow, setAddModalShow] = useState(false);
-  const [uploadModalShow, setUploadModalShow] = useState(false);
   const [documents, setDocuments] = useState([]);
   const [showResults, setShowResults] = useState();
-  const [openDial, setOpenDial] = useState(false);
 
   const { defaultTagGroupID } = useOrganization();
-
-  const classes = useStyles();
 
   const navigate = useNavigate();
 
@@ -56,16 +43,19 @@ export default function Interviews(props) {
   let { oauthClaims } = useContext(UserAuthContext);
   let firebase = useContext(FirebaseContext);
 
-  const [editor, setEditor] = useState();
-  const reactQuillRef = useCallback(
+  // We have to create a handle for the notes editor here
+  // as using guides will have to set the contents during
+  // interview creation.
+  const [notesEditor, setNotesEditor] = useState();
+  const reactQuillNotesRef = useCallback(
     (current) => {
       if (!current) {
-        setEditor();
+        setNotesEditor();
         return;
       }
-      setEditor(current.getEditor());
+      setNotesEditor(current.getEditor());
     },
-    [setEditor]
+    [setNotesEditor]
   );
 
   useEffect(() => {
@@ -138,10 +128,6 @@ export default function Interviews(props) {
       });
   };
 
-  const onUploadVideo = () => {
-    setUploadModalShow(true);
-  };
-
   const dataListItem = (ID, name, date, transcript) => (
     <ListItem
       button
@@ -199,7 +185,6 @@ export default function Interviews(props) {
           onAddDocument().then(() => {
             setAddModalShow(true);
           });
-          setOpenDial(false);
         }}
       >
         <AddIcon />
@@ -217,10 +202,8 @@ export default function Interviews(props) {
     content = (
       <Document
         key={documentID}
-        navigate={navigate}
-        user={oauthClaims}
-        reactQuillRef={reactQuillRef}
-        editor={editor}
+        reactQuillNotesRef={reactQuillNotesRef}
+        notesEditor={notesEditor}
       />
     );
   } else if (documentItems.length > 0) {
@@ -237,16 +220,7 @@ export default function Interviews(props) {
       onHide={() => {
         setAddModalShow(false);
       }}
-      editor={editor}
-    />
-  );
-
-  let uploadModal = (
-    <UploadVideoDialog
-      open={uploadModalShow}
-      setOpen={(value) => {
-        setUploadModalShow(value);
-      }}
+      editor={notesEditor}
     />
   );
 
@@ -266,7 +240,6 @@ export default function Interviews(props) {
         {list}
         {content}
         {addModal}
-        {uploadModal}
       </Grid>
     </Shell>
   );
