@@ -88,7 +88,7 @@ export default function TagGroupSelector(props) {
           maxHighlightIndex = Math.max(maxHighlightIndex, endIndex);
         });
 
-        if (maxHighlightIndex == 0) {
+        if (maxHighlightIndex === 0) {
           return;
         }
 
