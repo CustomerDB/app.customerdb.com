@@ -18,6 +18,7 @@ import Grid from "@material-ui/core/Grid";
 import HighlightBlot from "./HighlightBlot.js";
 import HighlightHints from "./HighlightHints.js";
 import LinearProgress from "@material-ui/core/LinearProgress";
+import Moment from "react-moment";
 import PlayheadBlot from "./PlayheadBlot.js";
 import Quill from "quill";
 import SelectionFAB from "./SelectionFAB.js";
@@ -51,6 +52,7 @@ export default function Transcript(props) {
   const [operation, setOperation] = useState();
   const [tagIDsInSelection, setTagIDsInSelection] = useState(new Set());
   const [uploadModalShow, setUploadModalShow] = useState(false);
+  const [eta, setEta] = useState();
   const quillContainerRef = useRef();
 
   const highlights = useRef();
@@ -263,6 +265,14 @@ export default function Transcript(props) {
         setOperation(operation);
         if (operation.progress) {
           setTranscriptionProgress(operation.progress);
+
+          let startDate = operation.creationTimestamp.toDate();
+          let now = Date.now();
+          let elapsed = now - startDate;
+          let totalTime = (elapsed / operation.progress) * 100;
+          let _eta = new Date();
+          _eta.setTime(startDate.getTime() + totalTime);
+          setEta(_eta);
         }
       });
   }, [transcriptionsRef, props.document.transcription]);
@@ -484,7 +494,14 @@ export default function Transcript(props) {
       {props.document.pending ? (
         <Grid item xs={12} style={{ position: "relative" }}>
           <p>
-            <i>Transcribing video</i>
+            <i>
+              Transcribing video.{" "}
+              {eta && (
+                <>
+                  Estimated completion <Moment fromNow date={eta} />
+                </>
+              )}
+            </i>
           </p>
           {transcriptionProgress ? (
             <LinearProgress
