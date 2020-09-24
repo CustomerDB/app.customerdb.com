@@ -6,6 +6,9 @@ import { useNavigate, useParams } from "react-router-dom";
 import AddIcon from "@material-ui/icons/Add";
 import Archive from "@material-ui/icons/Archive";
 import Button from "@material-ui/core/Button";
+import Card from "@material-ui/core/Card";
+import CardActions from "@material-ui/core/CardActions";
+import CardContent from "@material-ui/core/CardContent";
 import ContentEditable from "react-contenteditable";
 import Delta from "quill-delta";
 import Dialog from "@material-ui/core/Dialog";
@@ -28,6 +31,7 @@ import Paper from "@material-ui/core/Paper";
 import ReactQuill from "react-quill";
 import Scrollable from "../shell/Scrollable.js";
 import Shell from "../shell/Shell.js";
+import TagGroupSelector from "./TagGroupSelector.js";
 import Typography from "@material-ui/core/Typography";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
@@ -49,6 +53,10 @@ const useStyles = makeStyles({
   },
   detailsParagraph: {
     marginBottom: "0.35rem",
+  },
+  documentSidebarCard: {
+    margin: "0rem 2rem 1rem 1rem",
+    padding: "1rem 1rem 0rem 1rem",
   },
 });
 
@@ -184,11 +192,15 @@ function Guide({ templateRef }) {
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
   const { guideID } = useParams();
-  const { templatesRef } = useFirestore();
+  const { templatesRef, tagGroupsRef } = useFirestore();
 
   const [template, setTemplate] = useState();
   const [templateRevision, setTemplateRevision] = useState();
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+
+  const [editTagGroup, setEditTagGroup] = useState(false);
+  const [tagGroupName, setTagGroupName] = useState();
+
   const dirty = useRef(false);
 
   const reactQuillRef = useRef(null);
@@ -223,6 +235,19 @@ function Guide({ templateRef }) {
         });
       });
   }, [templatesRef, guideID]);
+
+  // Subscribe to the name of the tag group
+  useEffect(() => {
+    if (!template || !tagGroupsRef) return;
+    if (!template.tagGroupID) {
+      setTagGroupName();
+      return;
+    }
+    return tagGroupsRef.doc(template.tagGroupID).onSnapshot((doc) => {
+      let data = doc.data();
+      setTagGroupName(data.name);
+    });
+  }, [template, tagGroupsRef]);
 
   // Periodically save local template changes
   useEffect(() => {
@@ -296,14 +321,14 @@ function Guide({ templateRef }) {
   }
 
   return (
-    <>
+    <Grid container item md={12} lg={9} xl={10} spacing={0}>
       <Grid
         style={{ position: "relative", height: "100%" }}
         container
         item
         sm={12}
-        md={9}
-        xl={10}
+        md={8}
+        xl={9}
       >
         <Scrollable>
           <Grid container item spacing={0} xs={12}>
@@ -401,8 +426,77 @@ function Guide({ templateRef }) {
           </Grid>
         </Scrollable>
       </Grid>
+
+      <Hidden smDown>
+        <Grid
+          container
+          item
+          md={4}
+          xl={3}
+          direction="column"
+          justify="flex-start"
+          alignItems="stretch"
+          spacing={0}
+          style={{
+            overflowX: "hidden",
+            paddingTop: "1rem",
+          }}
+        >
+          <Card elevation={2} className={classes.documentSidebarCard}>
+            <CardContent>
+              {tagGroupName && !editTagGroup ? (
+                <>
+                  <Typography gutterBottom color="textSecondary">
+                    Tags
+                  </Typography>
+                  <Typography gutterBottom variant="h5" component="h2">
+                    {tagGroupName}
+                  </Typography>
+                </>
+              ) : (
+                <>
+                  <Typography gutterBottom color="textSecondary">
+                    Tags
+                  </Typography>
+                  <TagGroupSelector
+                    onChange={() => {
+                      setEditTagGroup(false);
+                    }}
+                  />
+                </>
+              )}
+            </CardContent>
+            <CardActions>
+              {!editTagGroup && (
+                <Button
+                  size="small"
+                  color="primary"
+                  onClick={() => {
+                    setEditTagGroup(true);
+                  }}
+                >
+                  Change
+                </Button>
+              )}
+
+              {editTagGroup && (
+                <Button
+                  size="small"
+                  color="primary"
+                  onClick={() => {
+                    setEditTagGroup(false);
+                  }}
+                >
+                  Cancel
+                </Button>
+              )}
+            </CardActions>
+          </Card>
+        </Grid>
+      </Hidden>
+
       {archiveDialog}
-    </>
+    </Grid>
   );
 }
 
