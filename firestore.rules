@@ -76,6 +76,20 @@ service cloud.firestore {
                     && activeOrgMember(request.resource.data.organizationID);
     }
 
+    // Active users can read transcript highlights from their org via the
+    // transcriptHighlights collectionGroup index.
+    match /{path=**}/transcriptHighlights/{document} {
+      allow read, delete: if signedInAndVerified()
+                          && activeOrgMember(resource.data.organizationID);
+
+      allow update: if signedInAndVerified()
+                    && activeOrgMember(resource.data.organizationID)
+                    && !('organizationID' in request.resource.data) || request.resource.data.organizationID == resource.data.organizationID;
+
+      allow create: if signedInAndVerified()
+                    && activeOrgMember(request.resource.data.organizationID);
+    }
+
     // Active users can read tags from their org via the
     // tags collectionGroup index.
     match /{path=**}/tags/{document} {
@@ -140,12 +154,6 @@ service cloud.firestore {
 
     // Active non-admin users can write **DOCUMENT TRANSCRIPT DELTAS** in the org.
     match /organizations/{orgID}/documents/{document}/transcriptDeltas/{delta} {
-      allow write: if signedInAndVerified()
-                   && activeOrgMember(orgID);
-    }
-
-    // Active non-admin users can write **DOCUMENT TRANSCRIPT HIGHLIGHTS** in the org.
-    match /organizations/{orgID}/documents/{document}/transcriptHighlights/{highlight} {
       allow write: if signedInAndVerified()
                    && activeOrgMember(orgID);
     }
