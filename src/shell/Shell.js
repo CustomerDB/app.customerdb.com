@@ -27,6 +27,8 @@ import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
 import clsx from "clsx";
 import logo from "../assets/images/logo.svg";
+import logoDarkBG from "../assets/images/logo-dark-bg.svg";
+import useMediaQuery from "@material-ui/core/useMediaQuery";
 
 const drawerWidth = 240;
 
@@ -77,13 +79,19 @@ const useStyles = makeStyles((theme) => ({
     [theme.breakpoints.up("sm")]: {
       width: theme.spacing(9) + 1,
     },
+    [theme.breakpoints.up("lg")]: {
+      width: drawerWidth,
+    },
   },
   toolbar: {
     display: "flex",
     alignItems: "center",
-    justifyContent: "flex-end",
+    justifyContent: "center",
     padding: theme.spacing(0, 1),
     ...theme.mixins.toolbar,
+    [theme.breakpoints.up("lg")]: {
+      backgroundColor: "#1b2a4e",
+    },
   },
   content: {
     flexGrow: 1,
@@ -107,6 +115,8 @@ export default function Shell(props) {
     setOpen(false);
   };
 
+  const lgBreakpoint = useMediaQuery(theme.breakpoints.up("lg"));
+
   let app = (
     <Search search={props.search}>
       <div className={classes.root}>
@@ -114,7 +124,7 @@ export default function Shell(props) {
         <AppBar
           position="fixed"
           className={clsx(classes.appBar, {
-            [classes.appBarShift]: open,
+            [classes.appBarShift]: open || lgBreakpoint,
           })}
         >
           <Toolbar>
@@ -124,14 +134,16 @@ export default function Shell(props) {
               onClick={handleDrawerOpen}
               edge="start"
               className={clsx(classes.menuButton, {
-                [classes.hide]: open,
+                [classes.hide]: open || lgBreakpoint,
               })}
             >
               <MenuIcon />
             </IconButton>
-            <Typography variant="h6" noWrap>
-              {props.title}
-            </Typography>
+            {!lgBreakpoint && (
+              <Typography variant="h6" noWrap>
+                {props.title}
+              </Typography>
+            )}
             {props.search && <SearchInput />}
           </Toolbar>
         </AppBar>
@@ -151,16 +163,18 @@ export default function Shell(props) {
           <div className={classes.toolbar}>
             <img
               style={{ width: "80%" }}
-              src={logo}
+              src={lgBreakpoint ? logoDarkBG : logo}
               alt="CustomerDB product logo"
             />
-            <IconButton onClick={handleDrawerClose}>
-              {theme.direction === "rtl" ? (
-                <ChevronRightIcon />
-              ) : (
-                <ChevronLeftIcon />
-              )}
-            </IconButton>
+            {!lgBreakpoint && (
+              <IconButton onClick={handleDrawerClose}>
+                {theme.direction === "rtl" ? (
+                  <ChevronRightIcon />
+                ) : (
+                  <ChevronLeftIcon />
+                )}
+              </IconButton>
+            )}
           </div>
           <Divider />
           <List>
