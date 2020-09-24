@@ -27,6 +27,7 @@ import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
 import clsx from "clsx";
 import logo from "../assets/images/logo.svg";
+import useMediaQuery from "@material-ui/core/useMediaQuery";
 
 const drawerWidth = 240;
 
@@ -77,11 +78,14 @@ const useStyles = makeStyles((theme) => ({
     [theme.breakpoints.up("sm")]: {
       width: theme.spacing(9) + 1,
     },
+    [theme.breakpoints.up("lg")]: {
+      width: drawerWidth,
+    },
   },
   toolbar: {
     display: "flex",
     alignItems: "center",
-    justifyContent: "flex-end",
+    justifyContent: "center",
     padding: theme.spacing(0, 1),
     ...theme.mixins.toolbar,
   },
@@ -107,6 +111,8 @@ export default function Shell(props) {
     setOpen(false);
   };
 
+  const lgBreakpoint = useMediaQuery(theme.breakpoints.up("lg"));
+
   let app = (
     <Search search={props.search}>
       <div className={classes.root}>
@@ -114,7 +120,7 @@ export default function Shell(props) {
         <AppBar
           position="fixed"
           className={clsx(classes.appBar, {
-            [classes.appBarShift]: open,
+            [classes.appBarShift]: open || lgBreakpoint,
           })}
         >
           <Toolbar>
@@ -124,7 +130,7 @@ export default function Shell(props) {
               onClick={handleDrawerOpen}
               edge="start"
               className={clsx(classes.menuButton, {
-                [classes.hide]: open,
+                [classes.hide]: open || lgBreakpoint,
               })}
             >
               <MenuIcon />
@@ -154,13 +160,15 @@ export default function Shell(props) {
               src={logo}
               alt="CustomerDB product logo"
             />
-            <IconButton onClick={handleDrawerClose}>
-              {theme.direction === "rtl" ? (
-                <ChevronRightIcon />
-              ) : (
-                <ChevronLeftIcon />
-              )}
-            </IconButton>
+            {!lgBreakpoint && (
+              <IconButton onClick={handleDrawerClose}>
+                {theme.direction === "rtl" ? (
+                  <ChevronRightIcon />
+                ) : (
+                  <ChevronLeftIcon />
+                )}
+              </IconButton>
+            )}
           </div>
           <Divider />
           <List>
