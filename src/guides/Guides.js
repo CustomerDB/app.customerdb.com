@@ -27,6 +27,7 @@ import Moment from "react-moment";
 import Paper from "@material-ui/core/Paper";
 import ReactQuill from "react-quill";
 import Scrollable from "../shell/Scrollable.js";
+import Shell from "../shell/Shell.js";
 import Typography from "@material-ui/core/Typography";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
@@ -51,11 +52,11 @@ const useStyles = makeStyles({
   },
 });
 
-export default function Templates(props) {
+export default function Guides(props) {
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
   const [templates, setTemplates] = useState();
-  const { orgID, templateID } = useParams();
+  const { orgID, guideID } = useParams();
   const { templatesRef } = useFirestore();
 
   const navigate = useNavigate();
@@ -84,24 +85,24 @@ export default function Templates(props) {
   }
 
   const onAdd = () => {
-    event(firebase, "create_template", {
+    event(firebase, "create_guide", {
       orgID: oauthClaims.orgID,
       userID: oauthClaims.user_id,
     });
 
-    let newTemplateID = uuidv4();
+    let newGuideID = uuidv4();
     templatesRef
-      .doc(newTemplateID)
+      .doc(newGuideID)
       .set({
-        ID: newTemplateID,
-        name: "Untitled Template",
+        ID: newGuideID,
+        name: "Untitled Guide",
         createdBy: oauthClaims.email,
         creationTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
         deletionTimestamp: "",
       })
       .then(() => {
         return templatesRef
-          .doc(newTemplateID)
+          .doc(newGuideID)
           .collection("snapshots")
           .doc()
           .set({
@@ -111,7 +112,7 @@ export default function Templates(props) {
           });
       })
       .then((newTemplateRef) => {
-        navigate(`/orgs/${orgID}/settings/templates/${newTemplateID}`);
+        navigate(`/orgs/${orgID}/guides/${newGuideID}`);
       });
   };
 
@@ -121,9 +122,9 @@ export default function Templates(props) {
       <ListItem
         button
         key={t.ID}
-        selected={t.ID === templateID}
+        selected={t.ID === guideID}
         onClick={() => {
-          navigate(`/orgs/${orgID}/settings/templates/${t.ID}`);
+          navigate(`/orgs/${orgID}/guides/${t.ID}`);
         }}
       >
         <ListItemText
@@ -153,26 +154,36 @@ export default function Templates(props) {
     </ListContainer>
   );
 
-  if (templateID) {
+  if (guideID) {
     list = <Hidden smDown>{list}</Hidden>;
   }
 
-  let content = templatesRef && templateID && (
-    <Template templateRef={templatesRef.doc(templateID)} key={templateID} />
+  let content = templatesRef && guideID && (
+    <Guide templateRef={templatesRef.doc(guideID)} key={guideID} />
   );
 
   return (
-    <Grid container item xs={12} style={{ height: "100%" }}>
-      {list}
-      {content}
-    </Grid>
+    <Shell title="Guides">
+      <Grid
+        container
+        direction="column"
+        justify="flex-start"
+        alignItems="flex-start"
+        style={{ height: "100%" }}
+      >
+        <Grid container item xs style={{ width: "100%" }}>
+          {list}
+          {content}
+        </Grid>
+      </Grid>
+    </Shell>
   );
 }
 
-function Template({ templateRef }) {
+function Guide({ templateRef }) {
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
-  const { templateID } = useParams();
+  const { guideID } = useParams();
   const { templatesRef } = useFirestore();
 
   const [template, setTemplate] = useState();
@@ -188,18 +199,18 @@ function Template({ templateRef }) {
   useEffect(() => {
     if (!templatesRef) return;
 
-    return templatesRef.doc(templateID).onSnapshot((doc) => {
+    return templatesRef.doc(guideID).onSnapshot((doc) => {
       console.debug("received template snapshot");
       setTemplate(doc.data());
     });
-  }, [templatesRef, templateID]);
+  }, [templatesRef, guideID]);
 
   // Subscribe to latest template snapshot
   useEffect(() => {
-    if (!templatesRef || !templateID) return;
+    if (!templatesRef || !guideID) return;
 
     return templatesRef
-      .doc(templateID)
+      .doc(guideID)
       .collection("snapshots") // TODO: Migrate this collection to "revisions"
       .orderBy("timestamp", "desc")
       .limit(1)
@@ -211,11 +222,11 @@ function Template({ templateRef }) {
           setTemplateRevision(delta);
         });
       });
-  }, [templatesRef, templateID]);
+  }, [templatesRef, guideID]);
 
   // Periodically save local template changes
   useEffect(() => {
-    if (!templatesRef || !templateID) {
+    if (!templatesRef || !guideID) {
       return;
     }
 
@@ -224,7 +235,7 @@ function Template({ templateRef }) {
         return;
       }
 
-      event(firebase, "edit_template", {
+      event(firebase, "edit_guide", {
         orgID: oauthClaims.orgID,
         userID: oauthClaims.user_id,
       });
@@ -235,7 +246,7 @@ function Template({ templateRef }) {
       console.log("uploading new snapshot delta", currentDelta);
 
       return templatesRef
-        .doc(templateID)
+        .doc(guideID)
         .collection("snapshots")
         .doc()
         .set({
@@ -257,7 +268,7 @@ function Template({ templateRef }) {
   }, [
     templatesRef,
     reactQuillRef,
-    templateID,
+    guideID,
     oauthClaims.email,
     oauthClaims.orgID,
     oauthClaims.user_id,
@@ -272,8 +283,8 @@ function Template({ templateRef }) {
   };
 
   let archiveDialog = (
-    <TemplateDeleteDialog
-      templateRef={templatesRef && templatesRef.doc(templateID)}
+    <GuideDeleteDialog
+      templateRef={templatesRef && templatesRef.doc(guideID)}
       open={openDeleteDialog}
       setOpen={setOpenDeleteDialog}
       template={template}
@@ -395,7 +406,7 @@ function Template({ templateRef }) {
   );
 }
 
-function TemplateDeleteDialog({ templateRef, open, setOpen, template }) {
+function GuideDeleteDialog({ templateRef, open, setOpen, template }) {
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
   const { orgID } = useParams();
@@ -420,7 +431,7 @@ function TemplateDeleteDialog({ templateRef, open, setOpen, template }) {
 
     console.debug("archiving template");
 
-    event(firebase, "delete_template", {
+    event(firebase, "delete_guide", {
       orgID: oauthClaims.orgID,
       userID: oauthClaims.user_id,
     });
@@ -432,7 +443,7 @@ function TemplateDeleteDialog({ templateRef, open, setOpen, template }) {
       { merge: true }
     );
 
-    navigate(`/orgs/${orgID}/settings/templates`);
+    navigate(`/orgs/${orgID}/guides`);
   };
 
   return (
@@ -442,11 +453,11 @@ function TemplateDeleteDialog({ templateRef, open, setOpen, template }) {
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-description"
     >
-      <DialogTitle id="alert-dialog-title">{`Archive this template?`}</DialogTitle>
+      <DialogTitle id="alert-dialog-title">{`Archive this guide?`}</DialogTitle>
       <DialogContent>
         <DialogContentText id="alert-dialog-description">
-          Mark this template for deletion. This template will no longer be
-          visible and will be permanently deleted after thirty days.
+          Mark this guide for deletion. This guide will no longer be visible and
+          will be permanently deleted after thirty days.
         </DialogContentText>
       </DialogContent>
       <DialogActions>

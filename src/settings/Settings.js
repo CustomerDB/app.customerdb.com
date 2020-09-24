@@ -10,7 +10,6 @@ import Shell from "../shell/Shell.js";
 import Tab from "@material-ui/core/Tab";
 import Tabs from "@material-ui/core/Tabs";
 import Tags from "./Tags.js";
-import Templates from "./Templates.js";
 import UserAuthContext from "../auth/UserAuthContext";
 
 export default function Settings(props) {
@@ -20,14 +19,12 @@ export default function Settings(props) {
 
   const PROFILE = "profile";
   const TAGS = "tags";
-  const TEMPLATES = "templates";
   const IMPORT = "import";
   const MEMBERS = "members";
 
   const tabs = [
     <Tab key={PROFILE} value={PROFILE} label="Profile" />,
     <Tab key={TAGS} value={TAGS} label="Tags" />,
-    <Tab key={TEMPLATES} value={TEMPLATES} label="Templates" />,
     <Tab key={IMPORT} value={IMPORT} label="Bulk Import" />,
   ];
 
@@ -53,15 +50,6 @@ export default function Settings(props) {
       <Routes>
         <Route key="tags" path="/" element={<Tags />} />
         <Route key=":tagGroupID" path=":tagGroupID" element={<Tags />} />
-      </Routes>
-    );
-  }
-
-  if (currentTab === TEMPLATES) {
-    content = (
-      <Routes>
-        <Route key="templates" path="/" element={<Templates />} />
-        <Route key=":templateID" path=":templateID" element={<Templates />} />
       </Routes>
     );
   }
