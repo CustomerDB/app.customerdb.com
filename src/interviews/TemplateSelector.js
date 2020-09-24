@@ -10,12 +10,14 @@ import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
 import { initialDelta } from "../editor/delta.js";
 import useFirestore from "../db/Firestore.js";
+import { useOrganization } from "../organization/hooks.js";
 
 export default function TemplateSelector(props) {
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
   const [doc, setDoc] = useState();
   const [templates, setTemplates] = useState();
+  const { defaultTagGroupID } = useOrganization();
 
   const { documentRef, templatesRef } = useFirestore();
 
@@ -58,27 +60,51 @@ export default function TemplateSelector(props) {
 
     // Handle setting the template to `None`.
     if (newTemplateID === "") {
-      return documentRef.set({ templateID: "" }, { merge: true }).then(() => {
-        props.editor.setContents(initialDelta(), "user");
-      });
+      return documentRef
+        .set(
+          {
+            templateID: "",
+            tagGroupID: defaultTagGroupID,
+          },
+          { merge: true }
+        )
+        .then(() => {
+          props.editor.setContents(initialDelta(), "user");
+        });
     }
 
     if (newTemplateID !== doc.templateID) {
       return templatesRef
         .doc(newTemplateID)
-        .collection("snapshots")
-        .orderBy("timestamp", "desc")
-        .limit(1)
         .get()
-        .then((snapshot) => {
-          snapshot.forEach((doc) => {
-            let data = doc.data();
-            return documentRef
-              .set({ templateID: newTemplateID }, { merge: true })
-              .then(() => {
-                props.editor.setContents(new Delta(data.delta.ops), "user");
-              });
-          });
+        .then((templateDoc) => {
+          let template = templateDoc.data();
+
+          return templatesRef
+            .doc(newTemplateID)
+            .collection("snapshots")
+            .orderBy("timestamp", "desc")
+            .limit(1)
+            .get()
+            .then((snapshot) => {
+              if (snapshot.size === 0) return;
+
+              let templateSnapshot = snapshot.docs[0].data();
+              return documentRef
+                .set(
+                  {
+                    templateID: newTemplateID,
+                    tagGroupID: template.tagGroupID || defaultTagGroupID,
+                  },
+                  { merge: true }
+                )
+                .then(() => {
+                  props.editor.setContents(
+                    new Delta(templateSnapshot.delta.ops),
+                    "user"
+                  );
+                });
+            });
         });
     }
   };
