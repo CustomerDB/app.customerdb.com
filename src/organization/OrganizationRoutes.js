@@ -1,6 +1,7 @@
 import { Navigate, Outlet, Route, Routes } from "react-router-dom";
 
 import Analyze from "../analyze/Analyze.js";
+import Guides from "../guides/Guides.js";
 import Interviews from "../interviews/Interviews.js";
 import People from "../people/People.js";
 import React from "react";
@@ -22,6 +23,11 @@ export default function OrganizationRoutes(props) {
           <Route path="/" element={<Interviews />} />
           <Route path=":documentID" element={<Interviews />} />
           <Route path=":documentID/:tabID" element={<Interviews />} />
+        </Route>
+
+        <Route path="guides/*">
+          <Route path="/" element={<Guides />} />
+          <Route path=":guideID" element={<Guides />} />
         </Route>
 
         <Route path="analyze/*">

@@ -12,6 +12,7 @@ import CssBaseline from "@material-ui/core/CssBaseline";
 import Divider from "@material-ui/core/Divider";
 import Drawer from "@material-ui/core/Drawer";
 import ExitToAppIcon from "@material-ui/icons/ExitToApp";
+import ExploreIcon from "@material-ui/icons/Explore";
 import GroupIcon from "@material-ui/icons/Group";
 import IconButton from "@material-ui/core/IconButton";
 import List from "@material-ui/core/List";
@@ -163,17 +164,23 @@ export default function Shell(props) {
           </div>
           <Divider />
           <List>
-            <NavListItem key="Customers" to={`/orgs/${orgID}/people`}>
-              <ListItemIcon>
-                <GroupIcon />
-              </ListItemIcon>
-              <ListItemText primary="Customers" />
-            </NavListItem>
             <NavListItem key="Interviews" to={`/orgs/${orgID}/interviews`}>
               <ListItemIcon>
                 <RecordVoiceOverIcon />
               </ListItemIcon>
               <ListItemText primary="Interviews" />
+            </NavListItem>
+            <NavListItem key="Guides" to={`/orgs/${orgID}/guides`}>
+              <ListItemIcon>
+                <ExploreIcon />
+              </ListItemIcon>
+              <ListItemText primary="Guides" />
+            </NavListItem>
+            <NavListItem key="Customers" to={`/orgs/${orgID}/people`}>
+              <ListItemIcon>
+                <GroupIcon />
+              </ListItemIcon>
+              <ListItemText primary="Customers" />
             </NavListItem>
             <NavListItem key="Analysis" to={`/orgs/${orgID}/analyze`}>
               <ListItemIcon>
