@@ -158,12 +158,6 @@ service cloud.firestore {
                    && activeOrgMember(orgID);
     }
 
-    // Active non-admin users can write **DOCUMENT TRANSCRIPT HIGHLIGHTS** in the org.
-    match /organizations/{orgID}/documents/{document}/transcriptHighlights/{highlight} {
-      allow write: if signedInAndVerified()
-                   && activeOrgMember(orgID);
-    }
-
     // Active non-admin users can read and write **DOCUMENT COLLABORATORS** in the org.
     match /organizations/{orgID}/documents/{document}/collaborators/{collaborator} {
       allow read, write: if signedInAndVerified()
