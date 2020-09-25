@@ -137,7 +137,12 @@ export default function DocumentSidebar(props) {
                     md={12}
                     style={{ marginBottom: "1rem", paddingRight: "1rem" }}
                   >
-                    <Avatar size={70} name={person.name} round={true} />
+                    <Avatar
+                      size={70}
+                      name={person.name}
+                      round={true}
+                      src={person.imageData}
+                    />
                   </Grid>
                   <Grid item xl={9} md={12} style={{ marginBottom: "1rem" }}>
                     <Typography gutterBottom variant="h5" component="h2">

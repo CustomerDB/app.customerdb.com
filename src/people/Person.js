@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 
 import Archive from "@material-ui/icons/Archive";
 import Avatar from "react-avatar";
-import AvatarEdit from "react-avatar-edit";
 import Badge from "react-bootstrap/Badge";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
@@ -10,6 +9,7 @@ import Col from "react-bootstrap/Col";
 import Create from "@material-ui/icons/Create";
 import Grid from "@material-ui/core/Grid";
 import IconButton from "@material-ui/core/IconButton";
+import ImageDialog from "./ImageDialog.js";
 import Linkify from "react-linkify";
 import { Loading } from "../util/Utils.js";
 import PersonData from "./PersonData.js";
@@ -51,6 +51,8 @@ export default function Person(props) {
 
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
+
+  const [imageDialogOpen, setImageDialogOpen] = useState(false);
 
   const classes = useStyles();
 
@@ -125,21 +127,25 @@ export default function Person(props) {
           <Card className={classes.nameCard}>
             <CardContent>
               <div style={{ position: "relative" }}>
-                <Avatar size={70} name={person.name} round={true} />
+                <Avatar
+                  size={70}
+                  name={person.name}
+                  src={person.imageData}
+                  round={true}
+                />
                 <div
-                  style={{
-                    position: "absolute",
-                    top: "50%",
-                    left: "50%",
-                    transform: "translate(-50%, -50%)",
-                    width: "70px",
-                    height: "70px",
-                    backgroundColor: "rgba(255,255,255,0.5)",
+                  class="profileImageCover"
+                  onClick={() => {
+                    setImageDialogOpen(true);
                   }}
                 >
-                  Edit
+                  Upload
                 </div>
               </div>
+              <ImageDialog
+                open={imageDialogOpen}
+                setOpen={setImageDialogOpen}
+              />
               <Typography gutterBottom variant="h5" component="h2">
                 {person.name}
               </Typography>
