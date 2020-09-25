@@ -1405,42 +1405,53 @@ exports.repairAnalysis = functions.pubsub
             let analysesRef = orgRef.collection("analyses");
             let documentsRef = orgRef.collection("documents");
 
-            return analysesRef.get().then((snapshot) =>
-              Promise.all(
-                snapshot.docs.map((doc) => {
-                  let analysisRef = doc.ref;
-                  let analysis = doc.data();
-                  let analysisDocsRef = documentsRef.where(
-                    "ID",
-                    "in",
-                    analysis.documentIDs
-                  );
+            return analysesRef
+              .where("deletionTimestamp", "==", "")
+              .get()
+              .then((snapshot) =>
+                Promise.all(
+                  snapshot.docs.map((doc) => {
+                    let analysisRef = doc.ref;
+                    let analysis = doc.data();
 
-                  return analysisDocsRef.get().then((snapshot) => {
-                    let needsUpdate = false;
-                    let newDocumentIDs = [];
-
-                    snapshot.docs.forEach((doc) => {
-                      let document = doc.data();
-                      if (document.deletionTimestamp !== "") {
-                        needsUpdate = true;
-                        return;
-                      }
-                      newDocumentIDs.push(doc.id);
-                    });
-
-                    if (needsUpdate) {
-                      return analysisRef.set(
-                        {
-                          documentIDs: newDocumentIDs,
-                        },
-                        { merge: true }
-                      );
+                    if (
+                      !analysis.documentIDs ||
+                      analysis.documentIDs.length === 0
+                    ) {
+                      return;
                     }
-                  });
-                })
-              )
-            );
+
+                    let analysisDocsRef = documentsRef.where(
+                      "ID",
+                      "in",
+                      analysis.documentIDs
+                    );
+
+                    return analysisDocsRef.get().then((snapshot) => {
+                      let needsUpdate = false;
+                      let newDocumentIDs = [];
+
+                      snapshot.docs.forEach((doc) => {
+                        let document = doc.data();
+                        if (document.deletionTimestamp !== "") {
+                          needsUpdate = true;
+                          return;
+                        }
+                        newDocumentIDs.push(doc.id);
+                      });
+
+                      if (needsUpdate) {
+                        return analysisRef.set(
+                          {
+                            documentIDs: newDocumentIDs,
+                          },
+                          { merge: true }
+                        );
+                      }
+                    });
+                  })
+                )
+              );
           })
         )
       );
