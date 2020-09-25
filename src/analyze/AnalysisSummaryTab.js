@@ -21,7 +21,6 @@ export default function AnalysisSummaryTab(props) {
     documentsRef,
     cardsRef,
     groupsRef,
-    allHighlightsRef,
     allTagsRef,
     peopleRef,
   } = useFirestore();
@@ -140,14 +139,7 @@ export default function AnalysisSummaryTab(props) {
       });
   }, [peopleRef, documents, firebase.firestore.FieldPath]);
 
-  if (
-    !documentsRef ||
-    !cardsRef ||
-    !allHighlightsRef ||
-    !groupsRef ||
-    !allTagsRef ||
-    !peopleRef
-  ) {
+  if (!documentsRef || !cardsRef || !groupsRef || !allTagsRef || !peopleRef) {
     return <Loading />;
   }
 
