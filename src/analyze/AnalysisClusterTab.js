@@ -26,6 +26,7 @@ export default function AnalysisClusterTab(props) {
   const {
     documentsRef,
     allHighlightsRef,
+    allTranscriptHighlightsRef,
     cardsRef,
     groupsRef,
     activeUsersRef,
@@ -49,6 +50,7 @@ export default function AnalysisClusterTab(props) {
     !documentsRef ||
     !cardsRef ||
     !allHighlightsRef ||
+    !allTranscriptHighlightsRef ||
     !groupsRef ||
     !activeUsersRef
   ) {
@@ -70,6 +72,11 @@ export default function AnalysisClusterTab(props) {
   // NB: the `in` clause is limited to ten values for filtering.
   //     For now, we support clustering highlights from up to ten documents.
   let highlightsRef = allHighlightsRef
+    .where("organizationID", "==", orgID)
+    .where("documentID", "in", props.analysis.documentIDs)
+    .where("tagID", "==", tagID);
+
+  let transcriptHighlightsRef = allTranscriptHighlightsRef
     .where("organizationID", "==", orgID)
     .where("documentID", "in", props.analysis.documentIDs)
     .where("tagID", "==", tagID);
@@ -148,6 +155,7 @@ export default function AnalysisClusterTab(props) {
           tagID={tagID}
           documentsRef={analysisDocumentsRef}
           highlightsRef={highlightsRef}
+          transcriptHighlightsRef={transcriptHighlightsRef}
           cardsRef={cardsRef}
           groupsRef={groupsRef}
           activeUsersRef={activeUsersRef}

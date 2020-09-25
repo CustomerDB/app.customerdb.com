@@ -32,7 +32,7 @@ export default function VideoPlayer({
       return;
     }
     documentRef
-      .collection("revisions")
+      .collection("transcriptRevisions")
       .where("timestamp", ">", new firebaseClient.firestore.Timestamp(0, 0))
       .orderBy("timestamp", "asc")
       .limit(1)
@@ -51,14 +51,12 @@ export default function VideoPlayer({
   useEffect(() => {
     if (!revisionID || !doc || doc.pending) return;
 
-    console.debug("downloading timecodes file for transcript");
-
     // Download timecodes file and set state.
+    const path = `${orgID}/transcriptions/${doc.transcription}/output/timecodes-${revisionID}.json`;
+    console.debug(`downloading timecodes file for transcript: ${path}`);
     firebase
       .storage()
-      .ref(
-        `${orgID}/transcriptions/${doc.transcription}/output/timecodes-${revisionID}.json`
-      )
+      .ref(path)
       .getDownloadURL()
       .then((url) => {
         let xhr = new XMLHttpRequest();
@@ -96,7 +94,13 @@ export default function VideoPlayer({
   }, [timecodes]);
 
   useEffect(() => {
-    if (!selection || !initialRevision || !indexTree || !playerRef.current) {
+    if (
+      !selection ||
+      !initialRevision ||
+      !indexTree ||
+      !playerRef.current ||
+      !editor
+    ) {
       return;
     }
     let currentRevision = editor.getContents();
@@ -112,7 +116,7 @@ export default function VideoPlayer({
   }, [indexTree, selection, editor, initialRevision]);
 
   const onVideoProgress = ({ playedSeconds }) => {
-    if (!initialRevision || !timeTree) {
+    if (!initialRevision || !timeTree || !editor) {
       return;
     }
     let currentRevision = editor.getContents();

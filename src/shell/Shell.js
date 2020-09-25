@@ -1,31 +1,37 @@
 import "./style.css";
 
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { Search, SearchInput } from "./Search.js";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 import AppBar from "@material-ui/core/AppBar";
+import Avatar from "@material-ui/core/Avatar";
 import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
 import ChevronRightIcon from "@material-ui/icons/ChevronRight";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import Divider from "@material-ui/core/Divider";
 import Drawer from "@material-ui/core/Drawer";
-import ExitToAppIcon from "@material-ui/icons/ExitToApp";
+import ExploreIcon from "@material-ui/icons/Explore";
 import GroupIcon from "@material-ui/icons/Group";
 import IconButton from "@material-ui/core/IconButton";
 import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
 import ListItemText from "@material-ui/core/ListItemText";
+import Menu from "@material-ui/core/Menu";
 import MenuIcon from "@material-ui/icons/Menu";
+import MenuItem from "@material-ui/core/MenuItem";
 import MultilineChartIcon from "@material-ui/icons/MultilineChart";
 import RecordVoiceOverIcon from "@material-ui/icons/RecordVoiceOver";
 import SettingsIcon from "@material-ui/icons/Settings";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
+import UserAuthContext from "../auth/UserAuthContext.js";
 import clsx from "clsx";
 import logo from "../assets/images/logo.svg";
+import logoDarkBG from "../assets/images/logo-dark-bg.svg";
+import useMediaQuery from "@material-ui/core/useMediaQuery";
 
 const drawerWidth = 240;
 
@@ -76,27 +82,40 @@ const useStyles = makeStyles((theme) => ({
     [theme.breakpoints.up("sm")]: {
       width: theme.spacing(9) + 1,
     },
+    [theme.breakpoints.up("lg")]: {
+      width: drawerWidth,
+    },
   },
   toolbar: {
     display: "flex",
     alignItems: "center",
-    justifyContent: "flex-end",
+    justifyContent: "center",
     padding: theme.spacing(0, 1),
     ...theme.mixins.toolbar,
+    [theme.breakpoints.up("lg")]: {
+      backgroundColor: "#1b2a4e",
+    },
   },
   content: {
     flexGrow: 1,
     height: "calc(100vh - 64px)",
   },
+  grow: {
+    flexGrow: 1,
+  },
 }));
 
 export default function Shell(props) {
+  const { oauthUser } = useContext(UserAuthContext);
+
   const { orgID } = useParams();
 
   const [open, setOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = React.useState(null);
 
   const classes = useStyles();
   const theme = useTheme();
+  const navigate = useNavigate();
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -106,6 +125,16 @@ export default function Shell(props) {
     setOpen(false);
   };
 
+  const lgBreakpoint = useMediaQuery(theme.breakpoints.up("lg"));
+
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
   let app = (
     <Search search={props.search}>
       <div className={classes.root}>
@@ -113,7 +142,7 @@ export default function Shell(props) {
         <AppBar
           position="fixed"
           className={clsx(classes.appBar, {
-            [classes.appBarShift]: open,
+            [classes.appBarShift]: open || lgBreakpoint,
           })}
         >
           <Toolbar>
@@ -123,15 +152,60 @@ export default function Shell(props) {
               onClick={handleDrawerOpen}
               edge="start"
               className={clsx(classes.menuButton, {
-                [classes.hide]: open,
+                [classes.hide]: open || lgBreakpoint,
               })}
             >
               <MenuIcon />
             </IconButton>
-            <Typography variant="h6" noWrap>
-              {props.title}
-            </Typography>
+            {!lgBreakpoint && (
+              <Typography variant="h6" noWrap>
+                {props.title}
+              </Typography>
+            )}
             {props.search && <SearchInput />}
+            <div className={classes.grow} />
+            {oauthUser && (
+              <>
+                <IconButton
+                  edge="end"
+                  aria-label="account of current user"
+                  aria-haspopup="true"
+                  aria-controls="profile-menu"
+                  onClick={handleClick}
+                  color="inherit"
+                >
+                  <Avatar
+                    key={oauthUser.email}
+                    alt={oauthUser.displayName}
+                    src={oauthUser.photoURL}
+                  />
+                </IconButton>
+                <Menu
+                  id="profile-menu"
+                  anchorEl={anchorEl}
+                  keepMounted
+                  open={Boolean(anchorEl)}
+                  onClose={handleClose}
+                >
+                  <MenuItem
+                    onClick={() => {
+                      setAnchorEl(null);
+                      navigate(`/orgs/${orgID}/settings/profile`);
+                    }}
+                  >
+                    Profile
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => {
+                      setAnchorEl(null);
+                      navigate(`/logout`);
+                    }}
+                  >
+                    Logout
+                  </MenuItem>
+                </Menu>
+              </>
+            )}
           </Toolbar>
         </AppBar>
         <Drawer
@@ -150,30 +224,38 @@ export default function Shell(props) {
           <div className={classes.toolbar}>
             <img
               style={{ width: "80%" }}
-              src={logo}
+              src={lgBreakpoint ? logoDarkBG : logo}
               alt="CustomerDB product logo"
             />
-            <IconButton onClick={handleDrawerClose}>
-              {theme.direction === "rtl" ? (
-                <ChevronRightIcon />
-              ) : (
-                <ChevronLeftIcon />
-              )}
-            </IconButton>
+            {!lgBreakpoint && (
+              <IconButton onClick={handleDrawerClose}>
+                {theme.direction === "rtl" ? (
+                  <ChevronRightIcon />
+                ) : (
+                  <ChevronLeftIcon />
+                )}
+              </IconButton>
+            )}
           </div>
           <Divider />
           <List>
+            <NavListItem key="Interviews" to={`/orgs/${orgID}/interviews`}>
+              <ListItemIcon>
+                <RecordVoiceOverIcon />
+              </ListItemIcon>
+              <ListItemText primary="Interviews" />
+            </NavListItem>
+            <NavListItem key="Guides" to={`/orgs/${orgID}/guides`}>
+              <ListItemIcon>
+                <ExploreIcon />
+              </ListItemIcon>
+              <ListItemText primary="Guides" />
+            </NavListItem>
             <NavListItem key="Customers" to={`/orgs/${orgID}/people`}>
               <ListItemIcon>
                 <GroupIcon />
               </ListItemIcon>
               <ListItemText primary="Customers" />
-            </NavListItem>
-            <NavListItem key="Data" to={`/orgs/${orgID}/data`}>
-              <ListItemIcon>
-                <RecordVoiceOverIcon />
-              </ListItemIcon>
-              <ListItemText primary="Data" />
             </NavListItem>
             <NavListItem key="Analysis" to={`/orgs/${orgID}/analyze`}>
               <ListItemIcon>
@@ -191,12 +273,6 @@ export default function Shell(props) {
                 <SettingsIcon />
               </ListItemIcon>
               <ListItemText primary="Settings" />
-            </NavListItem>
-            <NavListItem key="Logout" to={`/logout`}>
-              <ListItemIcon>
-                <ExitToAppIcon />
-              </ListItemIcon>
-              <ListItemText primary="Log out" />
             </NavListItem>
           </List>
         </Drawer>

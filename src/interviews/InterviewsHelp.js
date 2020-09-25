@@ -2,9 +2,9 @@ import { Link, useParams } from "react-router-dom";
 
 import React from "react";
 import arrowDown from "../assets/images/handdrawn-arrow-down.svg";
-import dataGraphic from "../assets/images/data.svg";
+import interviewGraphic from "../assets/images/interview.svg";
 
-export default function DataHelp(props) {
+export default function InterviewsHelp(props) {
   const { orgID } = useParams();
 
   return (
@@ -12,22 +12,23 @@ export default function DataHelp(props) {
       <div>
         <img
           style={{ width: "100%" }}
-          src={dataGraphic}
-          alt="Data illustration"
+          src={interviewGraphic}
+          alt="Interviews illustration"
         />
       </div>
       <div>
-        <b>Get started by adding a customer note or conversation.</b>
+        <b>Get started by adding a customer interview.</b>
       </div>
       <br />
       <div>
         <p>
-          Link customer data to <Link to={`/orgs/${orgID}/people`}>people</Link>
-          . Then find patterns in your data using the{" "}
+          Link customer interviews to{" "}
+          <Link to={`/orgs/${orgID}/people`}>people</Link>. Then find patterns
+          in your interviews using the{" "}
           <Link to={`/orgs/${orgID}/analyze`}>analyze</Link> tab.
         </p>
         <p>
-          New documents start with a default tag group. You can set up tag
+          New interviews start with a default tag group. You can set up tag
           groups for your organization in{" "}
           <Link to={`/orgs/${orgID}/settings/tags`}>settings</Link>.
         </p>

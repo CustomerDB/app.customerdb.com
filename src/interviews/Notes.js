@@ -10,82 +10,40 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { addTagStyles, removeTagStyles } from "./Tags.js";
 
-import Archive from "@material-ui/icons/Archive";
 import CollabEditor from "../editor/CollabEditor.js";
-import Collaborators from "../util/Collaborators.js";
-import ContentEditable from "react-contenteditable";
-import DocumentDeleteDialog from "./DocumentDeleteDialog.js";
-import DocumentSidebar from "./DocumentSidebar.js";
 import FirebaseContext from "../util/FirebaseContext.js";
 import Grid from "@material-ui/core/Grid";
-import Hidden from "@material-ui/core/Hidden";
 import HighlightBlot from "./HighlightBlot.js";
 import HighlightHints from "./HighlightHints.js";
-import IconButton from "@material-ui/core/IconButton";
-import LinearProgress from "@material-ui/core/LinearProgress";
-import Moment from "react-moment";
-import Paper from "@material-ui/core/Paper";
-import PlayheadBlot from "./PlayheadBlot.js";
 import Quill from "quill";
-import Scrollable from "../shell/Scrollable.js";
 import SelectionFAB from "./SelectionFAB.js";
-import Typography from "@material-ui/core/Typography";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
-import { makeStyles } from "@material-ui/core/styles";
 import useFirestore from "../db/Firestore.js";
 import { useParams } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 
 Quill.register("formats/highlight", HighlightBlot);
-Quill.register("formats/playhead", PlayheadBlot);
 
 // Synchronize every second (1000ms).
 const syncPeriod = 1000;
 
-const useStyles = makeStyles({
-  documentPaper: {
-    margin: "1rem 1rem 1rem 2rem",
-    padding: "1rem 2rem 4rem 2rem",
-    minHeight: "48rem",
-    width: "100%",
-    maxWidth: "80rem",
-  },
-  detailsParagraph: {
-    marginBottom: "0.35rem",
-  },
-});
-
-// ContentsPane augments a collaborative editor with tags and text highlights.
-export default function ContentsPane(props) {
+// Notes augments a collaborative editor with tags and text highlights.
+export default function Notes(props) {
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
   const { orgID } = useParams();
-  const {
-    tagGroupsRef,
-    documentRef,
-    highlightsRef,
-    transcriptionsRef,
-  } = useFirestore();
+  const { documentRef, highlightsRef } = useFirestore();
 
-  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
-
-  const [tagGroupName, setTagGroupName] = useState();
-  const [tags, setTags] = useState();
   const [reflowHints, setReflowHints] = useState(uuidv4());
   const [toolbarHeight, setToolbarHeight] = useState(40);
-  const [transcriptionProgress, setTranscriptionProgress] = useState();
 
   const [tagIDsInSelection, setTagIDsInSelection] = useState(new Set());
-
   const [currentSelection, setCurrentSelection] = useState();
   const quillContainerRef = useRef();
 
   const highlights = useRef();
-
-  const classes = useStyles();
 
   const updateHints = () => {
     setReflowHints(uuidv4());
@@ -95,7 +53,7 @@ export default function ContentsPane(props) {
   // recomputed if the browser zoom level changes.
   useEffect(() => {
     const onResize = () => {
-      let editorNode = document.getElementById("quill-editor");
+      let editorNode = document.getElementById("quill-notes-editor");
       if (editorNode) {
         let toolbarNodes = editorNode.getElementsByClassName("ql-toolbar");
         if (toolbarNodes.length > 0) {
@@ -119,11 +77,14 @@ export default function ContentsPane(props) {
   // in the current editor.
   const getHighlightIDsFromEditor = () => {
     let result = new Set();
-    let domNodes = document.getElementsByClassName("inline-highlight");
-    for (let i = 0; i < domNodes.length; i++) {
-      let highlightID = domNodes[i].dataset.highlightID;
-      if (highlightID) {
-        result.add(highlightID);
+    let editorNode = document.getElementById("quill-notes-editor");
+    if (editorNode) {
+      let domNodes = editorNode.getElementsByClassName("inline-highlight");
+      for (let i = 0; i < domNodes.length; i++) {
+        let highlightID = domNodes[i].dataset.highlightID;
+        if (highlightID) {
+          result.add(highlightID);
+        }
       }
     }
     return result;
@@ -276,74 +237,9 @@ export default function ContentsPane(props) {
     setTagIDsInSelection(computeTagIDsInSelection(newRange));
   };
 
-  useEffect(() => {
-    if (
-      !transcriptionsRef ||
-      !props.document.pending ||
-      !props.document.transcription
-    ) {
-      return;
-    }
-
-    return transcriptionsRef
-      .doc(props.document.transcription)
-      .onSnapshot((doc) => {
-        let operation = doc.data();
-        console.debug("Transcript operation: ", operation);
-        if (operation.progress) {
-          setTranscriptionProgress(operation.progress);
-        }
-      });
-  }, [props.document.pending, transcriptionsRef, props.document.transcription]);
-
-  // Subscribe to tags for the document's tag group.
-  useEffect(() => {
-    if (!tagGroupsRef) {
-      return;
-    }
-    if (!props.document.tagGroupID) {
-      setTagGroupName();
-      setTags();
-      removeTagStyles();
-      return;
-    }
-
-    let tagGroupRef = tagGroupsRef.doc(props.document.tagGroupID);
-
-    let unsubscribeTagGroup = tagGroupRef.onSnapshot((doc) => {
-      let tagGroupData = doc.data();
-      setTagGroupName(tagGroupData.name);
-    });
-
-    let unsubscribeTags = tagGroupsRef
-      .doc(props.document.tagGroupID)
-      .collection("tags")
-      .where("deletionTimestamp", "==", "")
-      .onSnapshot((snapshot) => {
-        let newTags = {};
-        snapshot.forEach((doc) => {
-          let data = doc.data();
-          data.ID = doc.id;
-          newTags[data.ID] = data;
-        });
-        setTags(newTags);
-        addTagStyles(newTags);
-      });
-    return () => {
-      removeTagStyles();
-      unsubscribeTagGroup();
-      unsubscribeTags();
-    };
-  }, [props.document.tagGroupID, tagGroupsRef]);
-
   // Register timers to periodically sync local changes with firestore.
   useEffect(() => {
-    if (
-      !highlightsRef ||
-      !props.document.ID ||
-      !oauthClaims.email ||
-      props.document.pending
-    ) {
+    if (!highlightsRef || !props.document.ID || !oauthClaims.email) {
       return;
     }
 
@@ -477,7 +373,6 @@ export default function ContentsPane(props) {
     props.document.deletionTimestamp,
     props.document.personID,
     props.editor,
-    props.document.pending,
     firebase,
   ]);
 
@@ -506,8 +401,6 @@ export default function ContentsPane(props) {
         }
       });
 
-      // console.debug("Received newHighlights ", newHighlights);
-
       highlights.current = newHighlights;
 
       if (hintsNeedReflow) {
@@ -521,174 +414,53 @@ export default function ContentsPane(props) {
   }
 
   return (
-    <>
-      <Grid
-        style={{ position: "relative", height: "100%" }}
-        container
-        item
-        sm={12}
-        md={8}
-        xl={9}
-      >
-        <Scrollable>
-          <Grid container item spacing={0} xs={12}>
-            <Grid container item justify="center">
-              <Paper elevation={5} className={classes.documentPaper}>
-                <Grid container>
-                  <Grid container item xs={12} alignItems="flex-start">
-                    <Grid item xs={11}>
-                      <Typography
-                        gutterBottom
-                        variant="h4"
-                        component="h2"
-                        id="documentTitle"
-                      >
-                        <ContentEditable
-                          html={props.document.name}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.target.blur();
-                            }
-                          }}
-                          onBlur={(e) => {
-                            if (documentRef) {
-                              let newName = e.target.innerText
-                                .replace(/(\r\n|\n|\r)/gm, " ")
-                                .replace(/\s+/g, " ")
-                                .trim();
-
-                              console.debug("setting document name", newName);
-
-                              documentRef.set(
-                                { name: newName },
-                                { merge: true }
-                              );
-                            }
-                          }}
-                        />
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        color="textSecondary"
-                        component="p"
-                        className={classes.detailsParagraph}
-                      >
-                        Created{" "}
-                        <Moment
-                          fromNow
-                          date={props.document.creationTimestamp.toDate()}
-                        />{" "}
-                        by {props.document.createdBy}
-                      </Typography>
-                    </Grid>
-
-                    <Grid item xs={1}>
-                      <IconButton
-                        id="archive-document-button"
-                        color="primary"
-                        aria-label="Archive document"
-                        onClick={() => {
-                          console.debug("confirm archive doc");
-                          setOpenDeleteDialog(true);
-                        }}
-                      >
-                        <Archive />
-                      </IconButton>
-                      <Collaborators dbRef={documentRef} />
-                    </Grid>
-                  </Grid>
-
-                  {props.document.pending ? (
-                    <Grid item xs={12} style={{ position: "relative" }}>
-                      <p>
-                        <i>Transcribing video</i>
-                      </p>
-                      {transcriptionProgress ? (
-                        <LinearProgress
-                          variant="determinate"
-                          value={transcriptionProgress}
-                        />
-                      ) : (
-                        <LinearProgress />
-                      )}
-                    </Grid>
-                  ) : (
-                    <Grid
-                      ref={quillContainerRef}
-                      item
-                      xs={12}
-                      style={{ position: "relative" }}
-                      spacing={0}
-                    >
-                      <CollabEditor
-                        objectRef={documentRef}
-                        quillRef={props.reactQuillRef}
-                        editor={props.editor}
-                        id="quill-editor"
-                        theme="snow"
-                        placeholder="Start typing here and select to mark highlights"
-                        onChange={onChange}
-                        onChangeSelection={onChangeSelection}
-                        modules={{
-                          toolbar: [
-                            [{ header: [1, 2, false] }],
-                            [
-                              "bold",
-                              "italic",
-                              "underline",
-                              "strike",
-                              "blockquote",
-                            ],
-                            [
-                              { list: "ordered" },
-                              { list: "bullet" },
-                              { indent: "-1" },
-                              { indent: "+1" },
-                            ],
-                            ["link", "image"],
-                            ["clean"],
-                          ],
-                        }}
-                      />
-
-                      <SelectionFAB
-                        toolbarHeight={toolbarHeight}
-                        selection={currentSelection}
-                        quillContainerRef={quillContainerRef}
-                        tags={tags}
-                        tagIDsInSelection={tagIDsInSelection}
-                        onTagControlChange={onTagControlChange}
-                      />
-
-                      <HighlightHints
-                        key={reflowHints}
-                        toolbarHeight={toolbarHeight}
-                        highlights={highlights.current}
-                        tags={tags}
-                      />
-                    </Grid>
-                  )}
-                </Grid>
-              </Paper>
-            </Grid>
-          </Grid>
-        </Scrollable>
-      </Grid>
-
-      <Hidden smDown>
-        <DocumentSidebar
-          editor={props.editor}
-          document={props.document}
-          selection={currentSelection}
-          tagGroupName={tagGroupName}
-        />
-      </Hidden>
-
-      <DocumentDeleteDialog
-        open={openDeleteDialog}
-        setOpen={setOpenDeleteDialog}
-        document={props.document}
+    <Grid
+      ref={quillContainerRef}
+      item
+      xs={12}
+      style={{ position: "relative" }}
+      spacing={0}
+    >
+      <CollabEditor
+        revisionsRef={documentRef.collection("revisions")}
+        deltasRef={documentRef.collection("deltas")}
+        quillRef={props.reactQuillRef}
+        editor={props.editor}
+        id="quill-notes-editor"
+        theme="snow"
+        placeholder="Start typing here and select to mark highlights"
+        onChange={onChange}
+        onChangeSelection={onChangeSelection}
+        modules={{
+          toolbar: [
+            [{ header: [1, 2, false] }],
+            ["bold", "italic", "underline", "strike", "blockquote"],
+            [
+              { list: "ordered" },
+              { list: "bullet" },
+              { indent: "-1" },
+              { indent: "+1" },
+            ],
+            ["link", "image"],
+            ["clean"],
+          ],
+        }}
       />
-    </>
+
+      <SelectionFAB
+        toolbarHeight={toolbarHeight}
+        selection={currentSelection}
+        tags={props.tags}
+        tagIDsInSelection={tagIDsInSelection}
+        onTagControlChange={onTagControlChange}
+      />
+
+      <HighlightHints
+        key={reflowHints}
+        toolbarHeight={toolbarHeight}
+        highlights={highlights.current}
+        tags={props.tags}
+      />
+    </Grid>
   );
 }

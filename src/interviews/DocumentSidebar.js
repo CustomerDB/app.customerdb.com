@@ -105,7 +105,7 @@ export default function DocumentSidebar(props) {
           <VideoPlayer
             doc={props.document}
             transcriptionVideo={transcriptionVideo}
-            editor={props.editor}
+            editor={props.transcriptEditor}
             selection={props.selection}
           />
         </Card>
@@ -137,7 +137,12 @@ export default function DocumentSidebar(props) {
                     md={12}
                     style={{ marginBottom: "1rem", paddingRight: "1rem" }}
                   >
-                    <Avatar size={70} name={person.name} round={true} />
+                    <Avatar
+                      size={70}
+                      name={person.name}
+                      round={true}
+                      src={person.imageData}
+                    />
                   </Grid>
                   <Grid item xl={9} md={12} style={{ marginBottom: "1rem" }}>
                     <Typography gutterBottom variant="h5" component="h2">
@@ -168,7 +173,7 @@ export default function DocumentSidebar(props) {
                   index={process.env.REACT_APP_ALGOLIA_PEOPLE_INDEX}
                   default={person ? person.name : ""}
                   onChange={(ID, name) => {
-                    event(firebase, "link_data_to_person", {
+                    event(firebase, "link_interview_to_person", {
                       orgID: oauthClaims.orgID,
                       userID: oauthClaims.user_id,
                     });

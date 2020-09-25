@@ -6,6 +6,9 @@ import { useNavigate, useParams } from "react-router-dom";
 import AddIcon from "@material-ui/icons/Add";
 import Archive from "@material-ui/icons/Archive";
 import Button from "@material-ui/core/Button";
+import Card from "@material-ui/core/Card";
+import CardActions from "@material-ui/core/CardActions";
+import CardContent from "@material-ui/core/CardContent";
 import ContentEditable from "react-contenteditable";
 import Delta from "quill-delta";
 import Dialog from "@material-ui/core/Dialog";
@@ -16,6 +19,7 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import Fab from "@material-ui/core/Fab";
 import FirebaseContext from "../util/FirebaseContext.js";
 import Grid from "@material-ui/core/Grid";
+import GuideHelp from "./GuideHelp.js";
 import Hidden from "@material-ui/core/Hidden";
 import IconButton from "@material-ui/core/IconButton";
 import List from "@material-ui/core/List";
@@ -27,6 +31,8 @@ import Moment from "react-moment";
 import Paper from "@material-ui/core/Paper";
 import ReactQuill from "react-quill";
 import Scrollable from "../shell/Scrollable.js";
+import Shell from "../shell/Shell.js";
+import TagGroupSelector from "./TagGroupSelector.js";
 import Typography from "@material-ui/core/Typography";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
@@ -49,13 +55,17 @@ const useStyles = makeStyles({
   detailsParagraph: {
     marginBottom: "0.35rem",
   },
+  documentSidebarCard: {
+    margin: "0rem 2rem 1rem 1rem",
+    padding: "1rem 1rem 0rem 1rem",
+  },
 });
 
-export default function Templates(props) {
+export default function Guides(props) {
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
   const [templates, setTemplates] = useState();
-  const { orgID, templateID } = useParams();
+  const { orgID, guideID } = useParams();
   const { templatesRef } = useFirestore();
 
   const navigate = useNavigate();
@@ -84,24 +94,24 @@ export default function Templates(props) {
   }
 
   const onAdd = () => {
-    event(firebase, "create_template", {
+    event(firebase, "create_guide", {
       orgID: oauthClaims.orgID,
       userID: oauthClaims.user_id,
     });
 
-    let newTemplateID = uuidv4();
+    let newGuideID = uuidv4();
     templatesRef
-      .doc(newTemplateID)
+      .doc(newGuideID)
       .set({
-        ID: newTemplateID,
-        name: "Untitled Template",
+        ID: newGuideID,
+        name: "Untitled Guide",
         createdBy: oauthClaims.email,
         creationTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
         deletionTimestamp: "",
       })
       .then(() => {
         return templatesRef
-          .doc(newTemplateID)
+          .doc(newGuideID)
           .collection("snapshots")
           .doc()
           .set({
@@ -111,7 +121,7 @@ export default function Templates(props) {
           });
       })
       .then((newTemplateRef) => {
-        navigate(`/orgs/${orgID}/settings/templates/${newTemplateID}`);
+        navigate(`/orgs/${orgID}/guides/${newGuideID}`);
       });
   };
 
@@ -121,9 +131,9 @@ export default function Templates(props) {
       <ListItem
         button
         key={t.ID}
-        selected={t.ID === templateID}
+        selected={t.ID === guideID}
         onClick={() => {
-          navigate(`/orgs/${orgID}/settings/templates/${t.ID}`);
+          navigate(`/orgs/${orgID}/guides/${t.ID}`);
         }}
       >
         <ListItemText
@@ -153,31 +163,44 @@ export default function Templates(props) {
     </ListContainer>
   );
 
-  if (templateID) {
-    list = <Hidden smDown>{list}</Hidden>;
+  if (guideID) {
+    list = <Hidden mdDown>{list}</Hidden>;
   }
 
-  let content = templatesRef && templateID && (
-    <Template templateRef={templatesRef.doc(templateID)} key={templateID} />
+  let content = (
+    <Hidden smDown>
+      <GuideHelp />
+    </Hidden>
   );
+  if (templatesRef && guideID) {
+    content = <Guide templateRef={templatesRef.doc(guideID)} key={guideID} />;
+  }
 
   return (
-    <Grid container item xs={12} style={{ height: "100%" }}>
-      {list}
-      {content}
-    </Grid>
+    <Shell title="Guides">
+      <Grid container className="fullHeight">
+        <Grid container item xs style={{ width: "100%" }}>
+          {list}
+          {content}
+        </Grid>
+      </Grid>
+    </Shell>
   );
 }
 
-function Template({ templateRef }) {
+function Guide({ templateRef }) {
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
-  const { templateID } = useParams();
-  const { templatesRef } = useFirestore();
+  const { guideID } = useParams();
+  const { templatesRef, tagGroupsRef } = useFirestore();
 
   const [template, setTemplate] = useState();
   const [templateRevision, setTemplateRevision] = useState();
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+
+  const [editTagGroup, setEditTagGroup] = useState(false);
+  const [tagGroupName, setTagGroupName] = useState();
+
   const dirty = useRef(false);
 
   const reactQuillRef = useRef(null);
@@ -188,18 +211,18 @@ function Template({ templateRef }) {
   useEffect(() => {
     if (!templatesRef) return;
 
-    return templatesRef.doc(templateID).onSnapshot((doc) => {
+    return templatesRef.doc(guideID).onSnapshot((doc) => {
       console.debug("received template snapshot");
       setTemplate(doc.data());
     });
-  }, [templatesRef, templateID]);
+  }, [templatesRef, guideID]);
 
   // Subscribe to latest template snapshot
   useEffect(() => {
-    if (!templatesRef || !templateID) return;
+    if (!templatesRef || !guideID) return;
 
     return templatesRef
-      .doc(templateID)
+      .doc(guideID)
       .collection("snapshots") // TODO: Migrate this collection to "revisions"
       .orderBy("timestamp", "desc")
       .limit(1)
@@ -211,11 +234,24 @@ function Template({ templateRef }) {
           setTemplateRevision(delta);
         });
       });
-  }, [templatesRef, templateID]);
+  }, [templatesRef, guideID]);
+
+  // Subscribe to the name of the tag group
+  useEffect(() => {
+    if (!template || !tagGroupsRef) return;
+    if (!template.tagGroupID) {
+      setTagGroupName();
+      return;
+    }
+    return tagGroupsRef.doc(template.tagGroupID).onSnapshot((doc) => {
+      let data = doc.data();
+      setTagGroupName(data.name);
+    });
+  }, [template, tagGroupsRef]);
 
   // Periodically save local template changes
   useEffect(() => {
-    if (!templatesRef || !templateID) {
+    if (!templatesRef || !guideID) {
       return;
     }
 
@@ -224,7 +260,7 @@ function Template({ templateRef }) {
         return;
       }
 
-      event(firebase, "edit_template", {
+      event(firebase, "edit_guide", {
         orgID: oauthClaims.orgID,
         userID: oauthClaims.user_id,
       });
@@ -235,7 +271,7 @@ function Template({ templateRef }) {
       console.log("uploading new snapshot delta", currentDelta);
 
       return templatesRef
-        .doc(templateID)
+        .doc(guideID)
         .collection("snapshots")
         .doc()
         .set({
@@ -257,7 +293,7 @@ function Template({ templateRef }) {
   }, [
     templatesRef,
     reactQuillRef,
-    templateID,
+    guideID,
     oauthClaims.email,
     oauthClaims.orgID,
     oauthClaims.user_id,
@@ -272,8 +308,8 @@ function Template({ templateRef }) {
   };
 
   let archiveDialog = (
-    <TemplateDeleteDialog
-      templateRef={templatesRef && templatesRef.doc(templateID)}
+    <GuideDeleteDialog
+      templateRef={templatesRef && templatesRef.doc(guideID)}
       open={openDeleteDialog}
       setOpen={setOpenDeleteDialog}
       template={template}
@@ -285,14 +321,14 @@ function Template({ templateRef }) {
   }
 
   return (
-    <>
+    <Grid container item md={12} lg={9} xl={10} spacing={0}>
       <Grid
         style={{ position: "relative", height: "100%" }}
         container
         item
         sm={12}
-        md={9}
-        xl={10}
+        md={8}
+        xl={9}
       >
         <Scrollable>
           <Grid container item spacing={0} xs={12}>
@@ -360,6 +396,7 @@ function Template({ templateRef }) {
                       ref={reactQuillRef}
                       defaultValue={templateRevision}
                       theme="snow"
+                      className="guideQuill"
                       placeholder="Start typing here"
                       onChange={onEdit}
                       modules={{
@@ -390,12 +427,81 @@ function Template({ templateRef }) {
           </Grid>
         </Scrollable>
       </Grid>
+
+      <Hidden smDown>
+        <Grid
+          container
+          item
+          md={4}
+          xl={3}
+          direction="column"
+          justify="flex-start"
+          alignItems="stretch"
+          spacing={0}
+          style={{
+            overflowX: "hidden",
+            paddingTop: "1rem",
+          }}
+        >
+          <Card elevation={2} className={classes.documentSidebarCard}>
+            <CardContent>
+              {tagGroupName && !editTagGroup ? (
+                <>
+                  <Typography gutterBottom color="textSecondary">
+                    Tags
+                  </Typography>
+                  <Typography gutterBottom variant="h5" component="h2">
+                    {tagGroupName}
+                  </Typography>
+                </>
+              ) : (
+                <>
+                  <Typography gutterBottom color="textSecondary">
+                    Tags
+                  </Typography>
+                  <TagGroupSelector
+                    onChange={() => {
+                      setEditTagGroup(false);
+                    }}
+                  />
+                </>
+              )}
+            </CardContent>
+            <CardActions>
+              {!editTagGroup && (
+                <Button
+                  size="small"
+                  color="primary"
+                  onClick={() => {
+                    setEditTagGroup(true);
+                  }}
+                >
+                  Change
+                </Button>
+              )}
+
+              {editTagGroup && (
+                <Button
+                  size="small"
+                  color="primary"
+                  onClick={() => {
+                    setEditTagGroup(false);
+                  }}
+                >
+                  Cancel
+                </Button>
+              )}
+            </CardActions>
+          </Card>
+        </Grid>
+      </Hidden>
+
       {archiveDialog}
-    </>
+    </Grid>
   );
 }
 
-function TemplateDeleteDialog({ templateRef, open, setOpen, template }) {
+function GuideDeleteDialog({ templateRef, open, setOpen, template }) {
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
   const { orgID } = useParams();
@@ -420,7 +526,7 @@ function TemplateDeleteDialog({ templateRef, open, setOpen, template }) {
 
     console.debug("archiving template");
 
-    event(firebase, "delete_template", {
+    event(firebase, "delete_guide", {
       orgID: oauthClaims.orgID,
       userID: oauthClaims.user_id,
     });
@@ -432,7 +538,7 @@ function TemplateDeleteDialog({ templateRef, open, setOpen, template }) {
       { merge: true }
     );
 
-    navigate(`/orgs/${orgID}/settings/templates`);
+    navigate(`/orgs/${orgID}/guides`);
   };
 
   return (
@@ -442,11 +548,11 @@ function TemplateDeleteDialog({ templateRef, open, setOpen, template }) {
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-description"
     >
-      <DialogTitle id="alert-dialog-title">{`Archive this template?`}</DialogTitle>
+      <DialogTitle id="alert-dialog-title">{`Archive this guide?`}</DialogTitle>
       <DialogContent>
         <DialogContentText id="alert-dialog-description">
-          Mark this template for deletion. This template will no longer be
-          visible and will be permanently deleted after thirty days.
+          Mark this guide for deletion. This guide will no longer be visible and
+          will be permanently deleted after thirty days.
         </DialogContentText>
       </DialogContent>
       <DialogActions>

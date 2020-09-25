@@ -22,6 +22,7 @@ export default function useFirestore() {
     r.orgRef = db.collection("organizations").doc(orgID);
     r.allTagsRef = db.collectionGroup("tags");
     r.allHighlightsRef = db.collectionGroup("highlights");
+    r.allTranscriptHighlightsRef = db.collectionGroup("transcriptHighlights");
     r.apiKeysRef = r.orgRef.collection("apiKeys");
     r.analysesRef = r.orgRef.collection("analyses");
     r.documentsRef = r.orgRef.collection("documents");
@@ -54,6 +55,9 @@ export default function useFirestore() {
     let r = {};
     r.documentRef = orgRefs.documentsRef.doc(documentID);
     r.highlightsRef = r.documentRef.collection("highlights");
+    r.transcriptHighlightsRef = r.documentRef.collection(
+      "transcriptHighlights"
+    );
     setDocumentRefs(r);
   }, [orgRefs.documentsRef, documentID]);
 

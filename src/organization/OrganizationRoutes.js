@@ -1,7 +1,8 @@
 import { Navigate, Outlet, Route, Routes } from "react-router-dom";
 
 import Analyze from "../analyze/Analyze.js";
-import Data from "../data/Data.js";
+import Guides from "../guides/Guides.js";
+import Interviews from "../interviews/Interviews.js";
 import People from "../people/People.js";
 import React from "react";
 import Settings from "../settings/Settings.js";
@@ -10,7 +11,7 @@ export default function OrganizationRoutes(props) {
   return (
     <>
       <Routes>
-        <Route path="/" element={<Navigate to="data" />} />
+        <Route path="/" element={<Navigate to="interviews" />} />
 
         <Route path="people/*">
           <Route path="/" element={<People />} />
@@ -18,10 +19,15 @@ export default function OrganizationRoutes(props) {
           <Route path=":personID/:tabID" element={<People />} />
         </Route>
 
-        <Route path="data/*">
-          <Route path="/" element={<Data />} />
-          <Route path=":documentID" element={<Data />} />
-          <Route path=":documentID/:tabID" element={<Data />} />
+        <Route path="interviews/*">
+          <Route path="/" element={<Interviews />} />
+          <Route path=":documentID" element={<Interviews />} />
+          <Route path=":documentID/:tabID" element={<Interviews />} />
+        </Route>
+
+        <Route path="guides/*">
+          <Route path="/" element={<Guides />} />
+          <Route path=":guideID" element={<Guides />} />
         </Route>
 
         <Route path="analyze/*">

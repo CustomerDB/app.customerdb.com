@@ -423,6 +423,54 @@ const deltaToPlaintext = (delta) => {
   }, "");
 };
 
+const latestRevision = (collectionRef) => {
+  return collectionRef
+    .orderBy("timestamp", "desc")
+    .limit(1)
+    .get()
+    .then((snapshot) => {
+      if (snapshot.size === 0) {
+        return {
+          delta: new Delta([{ insert: "\n" }]),
+          timestamp: new admin.firestore.Timestamp(0, 0),
+        };
+      }
+      let data = snapshot.docs[0].data();
+      return {
+        delta: new Delta(data.delta.ops),
+        timestamp: data.timestamp,
+      };
+    });
+};
+
+const updateRevision = (revisionDelta, revisionTimestamp, deltasRef) => {
+  let result = revisionDelta;
+  let timestamp = revisionTimestamp;
+
+  return deltasRef
+    .where("timestamp", ">", timestamp)
+    .get()
+    .then((deltasSnapshot) => {
+      deltasSnapshot.forEach((deltaDoc) => {
+        let data = deltaDoc.data();
+        result = result.compose(new Delta(data.ops));
+        timestamp = data.timestamp;
+      });
+      return {
+        delta: result,
+        timestamp: timestamp,
+      };
+    });
+};
+
+const maxTimestamp = (a, b) => {
+  let result = a;
+  if (b.valueOf() > a.valueOf()) {
+    result = b.timestamp;
+  }
+  return result;
+};
+
 const indexUpdated = (index) => {
   return (change, context) => {
     if (!change.after.exists || change.after.data().deletionTimestamp != "") {
@@ -432,75 +480,63 @@ const indexUpdated = (index) => {
     }
 
     let data = change.after.data();
+    let revisionsRef = change.after.ref.collection("revisions");
+    let deltasRef = change.after.ref.collection("deltas");
+    let transcriptRevisionsRef = change.after.ref.collection(
+      "transcriptRevisions"
+    );
+    let transcriptDeltasRef = change.after.ref.collection("transcriptDeltas");
 
-    return change.after.ref
-      .collection("revisions")
-      .orderBy("timestamp", "desc")
-      .limit(1)
-      .get()
-      .then((snapshot) => {
-        let latestRevisionDelta;
-        let ts;
-
-        if (snapshot.size === 0) {
-          latestRevisionDelta = new Delta([{ insert: "\n" }]);
-          ts = new admin.firestore.Timestamp(0, 0);
-        }
-
-        // nb: limit(1) -- iterating over list of 1
-        snapshot.forEach((latestRevisionDoc) => {
-          let revisionData = latestRevisionDoc.data();
-          latestRevisionDelta = new Delta(revisionData.delta.ops);
-          ts = revisionData.timestamp;
-        });
-
+    return latestRevision(revisionsRef).then((notes) => {
+      return latestRevision(transcriptRevisionsRef).then((transcript) => {
         if (data.needsIndex === true) {
-          return change.after.ref
-            .collection("deltas")
-            .where("timestamp", ">", ts)
-            .get()
-            .then((deltasSnapshot) => {
-              deltasSnapshot.forEach((deltaDoc) => {
-                let delta = deltaDoc.data();
-                let ops = delta.ops;
-                latestRevisionDelta = latestRevisionDelta.compose(
-                  new Delta(ops)
-                );
-                ts = delta.timestamp;
+          return updateRevision(notes.delta, notes.timestamp, deltasRef).then(
+            (notes) => {
+              updateRevision(
+                transcript.delta,
+                transcript.timestamp,
+                transcriptDeltasRef
+              ).then((transcript) => {
+                // Index the new content
+                let docToIndex = {
+                  // Add an 'objectID' field which Algolia requires
+                  objectID: change.after.id,
+                  orgID: context.params.orgID,
+                  name: data.name,
+                  createdBy: data.createdBy,
+                  creationTimestamp: data.creationTimestamp.seconds,
+                  latestSnapshotTimestamp: maxTimestamp(
+                    notes.timestamp,
+                    transcript.timestamp
+                  ).seconds,
+                  notesText: deltaToPlaintext(notes.delta),
+                  transcriptText: deltaToPlaintext(transcript.delta),
+                };
+
+                return index.saveObject(docToIndex).then(() => {
+                  // Write the snapshot, timestamp and index state back to document
+
+                  return revisionsRef
+                    .add({
+                      delta: { ops: notes.delta.ops },
+                      timestamp: notes.timestamp,
+                    })
+                    .then(() => {
+                      transcriptRevisionsRef.add({
+                        delta: { ops: transcript.delta.ops },
+                        timestamp: transcript.timestamp,
+                      });
+                    })
+                    .then(() => {
+                      return change.after.ref.set(
+                        { needsIndex: false },
+                        { merge: true }
+                      );
+                    });
+                });
               });
-
-              // Convert the consolidated document delta snapshot to text.
-              let docText = deltaToPlaintext(latestRevisionDelta);
-
-              // Index the new content
-              let docToIndex = {
-                // Add an 'objectID' field which Algolia requires
-                objectID: change.after.id,
-                orgID: context.params.orgID,
-                name: data.name,
-                createdBy: data.createdBy,
-                creationTimestamp: data.creationTimestamp.seconds,
-                latestSnapshotTimestamp: ts.seconds,
-                text: docText,
-              };
-
-              return index.saveObject(docToIndex).then(() => {
-                // Write the snapshot, timestamp and index state back to document
-
-                return change.after.ref
-                  .collection("revisions")
-                  .add({
-                    delta: { ops: latestRevisionDelta.ops },
-                    timestamp: ts,
-                  })
-                  .then(() => {
-                    return change.after.ref.set(
-                      { needsIndex: false },
-                      { merge: true }
-                    );
-                  });
-              });
-            });
+            }
+          );
         }
 
         // Otherwise, just proceed with updating the index with the
@@ -512,10 +548,15 @@ const indexUpdated = (index) => {
           name: data.name,
           createdBy: data.createdBy,
           creationTimestamp: data.creationTimestamp.seconds,
-          latestSnapshotTimestamp: ts.seconds,
-          text: deltaToPlaintext(latestRevisionDelta),
+          latestSnapshotTimestamp: maxTimestamp(
+            notes.timestamp,
+            transcript.timestamp
+          ).seconds,
+          notesText: deltaToPlaintext(notes.delta),
+          transcriptText: deltaToPlaintext(transcript.delta),
         });
       });
+    });
   };
 };
 
@@ -589,7 +630,36 @@ const markForIndexing = (collectionName) => {
                               }
                             });
                         });
-                      });
+                      })
+                      .then(
+                        doc.ref
+                          .collection("transcriptRevisions")
+                          .orderBy("timestamp", "desc")
+                          .limit(1)
+                          .get()
+                          .then((snapshot) => {
+                            snapshot.forEach((latestRevisionDoc) => {
+                              let latestRevision = latestRevisionDoc.data();
+                              return doc.ref
+                                .collection("transcriptDeltas")
+                                .where(
+                                  "timestamp",
+                                  ">",
+                                  latestRevision.timestamp
+                                )
+                                .get()
+                                .then((deltas) => {
+                                  if (deltas.size > 0) {
+                                    // Mark this document for indexing
+                                    return doc.ref.set(
+                                      { needsIndex: true },
+                                      { merge: true }
+                                    );
+                                  }
+                                });
+                            });
+                          })
+                      );
                   })
                 );
               });
@@ -608,6 +678,53 @@ exports.markDocumentsForIndexing = functions.pubsub
 exports.markSnapshotsForIndexing = functions.pubsub
   .schedule("every 2 minutes")
   .onRun(markForIndexing("snapshots"));
+
+// Update highlights if an interview's personID changes.
+exports.updateHighlightPeopleForDocument = functions.firestore
+  .document("organizations/{orgID}/documents/{documentID}")
+  .onUpdate((change) => {
+    let documentRef = change.after.ref;
+    let highlightsRef = documentRef.collection("highlights");
+    let transcriptHighlightsRef = documentRef.collection(
+      "transcriptHighlights"
+    );
+
+    let before = change.before.data();
+    let after = change.after.data();
+
+    if (before.personID !== after.personID) {
+      let newPersonID = after.personID || "";
+
+      return highlightsRef
+        .get()
+        .then((snapshot) =>
+          Promise.all(
+            snapshot.docs.map((doc) =>
+              doc.ref.set(
+                {
+                  personID: newPersonID,
+                },
+                { merge: true }
+              )
+            )
+          )
+        )
+        .then(() =>
+          transcriptHighlightsRef.get().then((snapshot) =>
+            Promise.all(
+              snapshot.docs.map((doc) =>
+                doc.ref.set(
+                  {
+                    personID: newPersonID,
+                  },
+                  { merge: true }
+                )
+              )
+            )
+          )
+        );
+    }
+  });
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -1104,7 +1221,7 @@ exports.deltaForTranscript = functions.firestore
           .doc(context.params.orgID)
           .collection("documents");
         let documentRef = documentsRef.doc(operation.documentID);
-        let revisionsRef = documentRef.collection("revisions");
+        let revisionsRef = documentRef.collection("transcriptRevisions");
 
         let revisionID = uuidv4();
 
@@ -1169,7 +1286,7 @@ exports.transcriptRepair = functions.pubsub
 
             let orgRef = db.collection("organizations").doc(orgID);
             let documentRef = orgRef.collection("documents").doc(documentID);
-            let revisionsRef = documentRef.collection("revisions");
+            let revisionsRef = documentRef.collection("transcriptRevisions");
             return revisionsRef
               .where("timestamp", ">", new admin.firestore.Timestamp(0, 0))
               .orderBy("timestamp", "asc")
@@ -1205,4 +1322,143 @@ exports.transcriptRepair = functions.pubsub
           })
         );
       });
+  });
+
+// Migrate deltas, revisions and highlights for existing transcripts.
+exports.migrateTranscripts = functions
+  .runWith({
+    timeoutSeconds: 300,
+    memory: "1GB",
+  })
+  .pubsub.topic("migrate-transcripts")
+  .onPublish((message) => {
+    const db = admin.firestore();
+
+    const copyCollection = (oldColRef, newColRef) => {
+      return oldColRef
+        .get()
+        .then((snapshot) =>
+          Promise.all(
+            snapshot.docs.map((d) => newColRef.doc(d.id).set(d.data()))
+          )
+        );
+    };
+
+    let transcriptDocumentsRef = db
+      .collectionGroup("documents")
+      .where("deletionTimestamp", "==", "") // exclude deleted documents
+      .orderBy("transcription"); // exclude documents without this field
+
+    return transcriptDocumentsRef.get().then((snapshot) =>
+      Promise.all(
+        snapshot.docs.map((doc) => {
+          // Skip this document if it does not have a transcription
+          if (doc.data().transcription === "") {
+            console.debug(
+              "skipping document because transcription field is empty",
+              doc.id
+            );
+            return;
+          }
+
+          let oldDeltas = doc.ref.collection("deltas");
+          let newDeltas = doc.ref.collection("transcriptDeltas");
+
+          let oldRevisions = doc.ref.collection("revisions");
+          let newRevisions = doc.ref.collection("transcriptRevisions");
+
+          let oldHighlights = doc.ref.collection("highlights");
+          let newHighlights = doc.ref.collection("transcriptHighlights");
+
+          return newRevisions.get().then((newRevisionsSnapshot) => {
+            return oldRevisions.get().then((oldRevisionsSnapshot) => {
+              if (newRevisionsSnapshot.size === oldRevisionsSnapshot.size) {
+                console.debug(
+                  "skipping document because it already has migrated revisions",
+                  doc.id
+                );
+                return;
+              }
+
+              return copyCollection(oldDeltas, newDeltas)
+                .then(() => {
+                  return copyCollection(oldHighlights, newHighlights);
+                })
+                .then(() => {
+                  return copyCollection(oldRevisions, newRevisions);
+                });
+            });
+          });
+        })
+      )
+    );
+  });
+
+// Remove deleted documents from analysis
+exports.repairAnalysis = functions.pubsub
+  .schedule("every 5 minutes")
+  .onRun((context) => {
+    const db = admin.firestore();
+
+    return db
+      .collection("organizations")
+      .get()
+      .then((snapshot) =>
+        Promise.all(
+          snapshot.docs.map((doc) => {
+            let orgID = doc.id;
+            let orgRef = db.collection("organizations").doc(orgID);
+            let analysesRef = orgRef.collection("analyses");
+            let documentsRef = orgRef.collection("documents");
+
+            return analysesRef
+              .where("deletionTimestamp", "==", "")
+              .get()
+              .then((snapshot) =>
+                Promise.all(
+                  snapshot.docs.map((doc) => {
+                    let analysisRef = doc.ref;
+                    let analysis = doc.data();
+
+                    if (
+                      !analysis.documentIDs ||
+                      analysis.documentIDs.length === 0
+                    ) {
+                      return;
+                    }
+
+                    let analysisDocsRef = documentsRef.where(
+                      "ID",
+                      "in",
+                      analysis.documentIDs
+                    );
+
+                    return analysisDocsRef.get().then((snapshot) => {
+                      let needsUpdate = false;
+                      let newDocumentIDs = [];
+
+                      snapshot.docs.forEach((doc) => {
+                        let document = doc.data();
+                        if (document.deletionTimestamp !== "") {
+                          needsUpdate = true;
+                          return;
+                        }
+                        newDocumentIDs.push(doc.id);
+                      });
+
+                      if (needsUpdate) {
+                        return analysisRef.set(
+                          {
+                            documentIDs: newDocumentIDs,
+                          },
+                          { merge: true }
+                        );
+                      }
+                    });
+                  })
+                )
+              );
+          })
+        )
+      );
   });

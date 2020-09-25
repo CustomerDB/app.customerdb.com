@@ -43,6 +43,25 @@ div.navLeft {
   z-index: 3;
 }
 
+div.profileImageCover {
+  opacity: 0;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 70px;
+  height: 70px;
+  background-color: rgba(255, 255, 255, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+
+div.profileImageCover:hover {
+  opacity: 1;
+}
+
 div.outerContainer {
   position: relative;
 }
@@ -176,6 +195,13 @@ button.addButton {
 }
 
 .ql-toolbar {
+  position: sticky;
+  top: 3rem;
+  background: #fff;
+  z-index: 1;
+}
+
+.guideQuill .ql-toolbar {
   position: sticky;
   top: 0;
   background: #fff;

@@ -59,7 +59,7 @@ export default function PersonData(props) {
       button
       key={doc.ID}
       onClick={() => {
-        navigate(`/orgs/${orgID}/data/${doc.ID}`);
+        navigate(`/orgs/${orgID}/interviews/${doc.ID}`);
       }}
     >
       <ListItemAvatar>
@@ -77,7 +77,7 @@ export default function PersonData(props) {
   return docs && docs.length > 0 ? (
     <Card className={classes.card}>
       <Typography gutterBottom variant="h6" component="h2">
-        Data
+        Interviews
       </Typography>
       <Grid container>
         <Grid container item xs={12}>
