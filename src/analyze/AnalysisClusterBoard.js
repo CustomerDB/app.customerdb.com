@@ -42,7 +42,10 @@ export default class AnalysisClusterBoard extends React.Component {
     this.unsubscribeFromHighlights = () => {};
 
     this.subscribeToDocuments = this.subscribeToDocuments.bind(this);
-    this.subscribeToHighlights = this.subscribeToHighlights.bind(this);
+    this.subscribeToTranscriptHighlights = this.subscribeToTranscriptHighlights.bind(
+      this
+    );
+    this.subscribeToNoteHighlights = this.subscribeToNoteHighlights.bind(this);
 
     this.setCardDragging = this.setCardDragging.bind(this);
 
@@ -63,6 +66,7 @@ export default class AnalysisClusterBoard extends React.Component {
     this.modalCallBack = this.modalCallBack.bind(this);
 
     this.groupDataForCard = this.groupDataForCard.bind(this);
+    this.updateHighlights = this.updateHighlights.bind(this);
   }
 
   setCardDragging(isCardDragging) {
@@ -143,7 +147,8 @@ export default class AnalysisClusterBoard extends React.Component {
       )
     );
 
-    this.subscribeToHighlights();
+    this.subscribeToTranscriptHighlights();
+    this.subscribeToNoteHighlights();
 
     this.subscribeToDocuments();
   }
@@ -171,7 +176,80 @@ export default class AnalysisClusterBoard extends React.Component {
     );
   }
 
-  subscribeToHighlights() {
+  // Called when either new transcript highlights or note highlights are received.
+  updateHighlights() {
+    if (!this.state.transcriptHighlights || !this.state.noteHighlights) {
+      return;
+    }
+
+    // First make a copy of transcript highlights.
+    let combinedHighlights = Object.assign({}, this.state.transcriptHighlights);
+    // Then add note highlights.
+    Object.assign(combinedHighlights, this.state.noteHighlights);
+
+    this.setState({
+      highlights: combinedHighlights,
+      loadedHighlights: true,
+    });
+  }
+
+  subscribeToTranscriptHighlights() {
+    this.unsubscribeFromHighlights = this.props.transcriptHighlightsRef.onSnapshot(
+      function (querySnapshot) {
+        console.debug("received transcript highlights snapshot");
+
+        var highlights = {};
+        querySnapshot.forEach((doc) => {
+          let data = doc.data();
+          data.ID = doc.id;
+          highlights[data.ID] = data;
+
+          // Each highlight should have a card
+          let cardRef = this.props.cardsRef.doc(doc.id);
+          cardRef.get().then((cardSnapshot) => {
+            if (!cardSnapshot.exists) {
+              cardRef.set({
+                ID: doc.id,
+                minX: 0,
+                minY: 0,
+                maxX: 0,
+                maxY: 0,
+                kind: "card",
+                tagID: data.tagID,
+                documentID: data.documentID,
+                groupColor: "#000",
+                textColor: "#FFF",
+                source: "transcript",
+              });
+            }
+          });
+        });
+
+        this.setState({
+          transcriptHighlights: highlights,
+        });
+
+        // Delete cards without a matching highlight
+        Object.keys(this.state.cards).forEach((cardID) => {
+          if (this.state.cards[cardID].source !== "transcript") {
+            return;
+          }
+
+          if (!(cardID in this.state.highlights)) {
+            console.debug(
+              "deleting card for nonexisting highlight with ID",
+              cardID
+            );
+            this.props.cardsRef.doc(cardID).delete();
+          }
+        });
+
+        this.updateHighlights();
+      }.bind(this)
+    );
+  }
+
+  subscribeToNoteHighlights() {
     this.unsubscribeFromHighlights = this.props.highlightsRef.onSnapshot(
       function (querySnapshot) {
         console.debug("received highlights snapshot");
@@ -197,18 +275,22 @@ export default class AnalysisClusterBoard extends React.Component {
                 documentID: data.documentID,
                 groupColor: "#000",
                 textColor: "#FFF",
+                source: "notes",
               });
             }
           });
         });
 
         this.setState({
-          highlights: highlights,
-          loadedHighlights: true,
+          noteHighlights: highlights,
         });
 
         // Delete cards without a matching highlight
         Object.keys(this.state.cards).forEach((cardID) => {
+          if (this.state.cards[cardID].source !== "notes") {
+            return;
+          }
+
           if (!(cardID in this.state.highlights)) {
             console.debug(
               "deleting card for nonexisting highlight with ID",
@@ -217,6 +299,8 @@ export default class AnalysisClusterBoard extends React.Component {
             this.props.cardsRef.doc(cardID).delete();
           }
         });
+
+        this.updateHighlights();
       }.bind(this)
     );
   }
