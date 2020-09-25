@@ -1325,8 +1325,12 @@ exports.transcriptRepair = functions.pubsub
   });
 
 // Migrate deltas, revisions and highlights for existing transcripts.
-exports.migrateTranscripts = functions.pubsub
-  .topic("migrate-transcripts")
+exports.migrateTranscripts = functions
+  .runWith({
+    timeoutSeconds: 300,
+    memory: "1GB",
+  })
+  .pubsub.topic("migrate-transcripts")
   .onPublish((message) => {
     const db = admin.firestore();
 
