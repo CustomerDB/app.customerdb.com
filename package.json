@@ -29,6 +29,7 @@
     "rcolor": "^2.0.2",
     "react": "^16.13.1",
     "react-avatar": "^3.9.7",
+    "react-avatar-edit": "^0.8.3",
     "react-bootstrap": "^1.0.1",
     "react-color": "^2.18.1",
     "react-contenteditable": "^3.3.5",

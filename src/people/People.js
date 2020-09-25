@@ -87,7 +87,7 @@ export default function People(props) {
     />
   );
 
-  const personListItem = (ID, name, company) => (
+  const personListItem = (ID, name, imageData, company) => (
     <ListItem
       button
       key={ID}
@@ -97,7 +97,7 @@ export default function People(props) {
       }}
     >
       <ListItemAvatar>
-        <Avatar size={50} name={name} round={true} />
+        <Avatar size={50} name={name} round={true} src={imageData} />
       </ListItemAvatar>
       <ListItemText primary={name} secondary={company} />
     </ListItem>
@@ -105,7 +105,7 @@ export default function People(props) {
 
   const SearchResults = connectHits((result) => {
     return result.hits.map((hit) =>
-      personListItem(hit.objectID, hit.name, hit.company)
+      personListItem(hit.objectID, hit.name, undefined, hit.company)
     );
   });
 
@@ -130,7 +130,12 @@ export default function People(props) {
                 {peopleList
                   .slice(0, listLimit)
                   .map((person) =>
-                    personListItem(person.ID, person.name, person.company)
+                    personListItem(
+                      person.ID,
+                      person.name,
+                      person.imageData,
+                      person.company
+                    )
                   )}
               </Infinite>
             ) : (
