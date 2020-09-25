@@ -55,12 +55,6 @@ export default class Group extends React.Component {
 
     this.props.addGroupLocationCallback(this.props.group);
 
-    let documentIDs = new Set();
-    this.props.cards.forEach((card) => {
-      documentIDs.add(card.documentID);
-    });
-    let representation = documentIDs.size;
-
     let circle = circumscribingCircle(rect);
     let color = this.props.group.color;
 
@@ -114,7 +108,7 @@ export default class Group extends React.Component {
             </div>
           </div>
           <p>
-            {representation} out of {this.props.totalCardCount}
+            {this.props.numPeople} out of {this.props.totalPeople}
           </p>
         </div>
       </>
