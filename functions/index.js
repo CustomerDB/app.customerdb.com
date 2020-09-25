@@ -1377,10 +1377,10 @@ exports.migrateTranscripts = functions.pubsub
 
             return copyCollection(oldDeltas, newDeltas)
               .then(() => {
-                return copyCollection(oldRevisions, newRevisions);
+                return copyCollection(oldHighlights, newHighlights);
               })
               .then(() => {
-                return copyCollection(oldHighlights, newHighlights);
+                return copyCollection(oldRevisions, newRevisions);
               });
           });
         })
