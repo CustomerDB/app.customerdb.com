@@ -35,10 +35,24 @@ export default function PersonHighlightsPane(props) {
   const classes = useStyles();
 
   const [tags, setTags] = useState();
+
+  const [combinedHighlights, setCombinedHighlights] = useState();
+  const [combinedPinnedHighlights, setCombinedPinnedHighlights] = useState();
+
   const [pinnedHighlights, setPinnedHighlights] = useState();
   const [highlights, setHighlights] = useState();
 
-  const { allHighlightsRef, allTagsRef } = useFirestore();
+  const [
+    pinnedTranscriptHighlights,
+    setPinnedTranscriptHighlights,
+  ] = useState();
+  const [transcriptHighlights, setTranscriptHighlights] = useState();
+
+  const {
+    allHighlightsRef,
+    allTranscriptHighlightsRef,
+    allTagsRef,
+  } = useFirestore();
 
   useEffect(() => {
     if (!allTagsRef) {
@@ -58,13 +72,13 @@ export default function PersonHighlightsPane(props) {
   }, [allTagsRef, orgID]);
 
   useEffect(() => {
-    if (!props.person || !allHighlightsRef) {
+    if (!props.person || !allHighlightsRef || !allTranscriptHighlightsRef) {
       return;
     }
 
     console.log("props.person", props.person);
 
-    return allHighlightsRef
+    let unsubscribeHighlights = allHighlightsRef
       .where("personID", "==", props.person.ID)
       .where("organizationID", "==", orgID)
       .where("deletionTimestamp", "==", "")
@@ -74,7 +88,9 @@ export default function PersonHighlightsPane(props) {
         let newPinnedHighlights = [];
         snapshot.forEach((doc) => {
           let highlight = doc.data();
-          console.log("highlight", highlight);
+          highlight.ref = doc.ref;
+          highlight.source = "notes";
+          console.debug("highlight", highlight);
           highlight.ID = doc.id;
 
           if (highlight.pinned) {
@@ -86,15 +102,76 @@ export default function PersonHighlightsPane(props) {
         setHighlights(newHighlights);
         setPinnedHighlights(newPinnedHighlights);
       });
-  }, [orgID, props.person, allHighlightsRef]);
 
-  if (!highlights || !tags || !pinnedHighlights) {
+    let unsubscribeTranscriptHighlights = allTranscriptHighlightsRef
+      .where("personID", "==", props.person.ID)
+      .where("organizationID", "==", orgID)
+      .where("deletionTimestamp", "==", "")
+      .orderBy("creationTimestamp", "desc")
+      .onSnapshot((snapshot) => {
+        console.debug("transcript highlights snapshot", snapshot.docs);
+        let newHighlights = [];
+        let newPinnedHighlights = [];
+        snapshot.forEach((doc) => {
+          let highlight = doc.data();
+          highlight.ref = doc.ref;
+          highlight.source = "transcript";
+          console.debug("highlight", highlight);
+          highlight.ID = doc.id;
+
+          if (highlight.pinned) {
+            newPinnedHighlights.push(highlight);
+            return;
+          }
+          newHighlights.push(highlight);
+        });
+        setTranscriptHighlights(newHighlights);
+        setPinnedTranscriptHighlights(newPinnedHighlights);
+      });
+
+    return () => {
+      unsubscribeHighlights();
+      unsubscribeTranscriptHighlights();
+    };
+  }, [orgID, props.person, allHighlightsRef, allTranscriptHighlightsRef]);
+
+  // Subscribe to unpinned note and transcript highlights,
+  // combine into one sorted list.
+  useEffect(() => {
+    if (!highlights || !transcriptHighlights) return;
+
+    let combined = highlights.concat(transcriptHighlights);
+    combined.sort((a, b) => {
+      return (
+        a.creationTimestamp.toDate().valueOf() >
+        b.creationTimestamp.toDate().valueOf()
+      );
+    });
+    setCombinedHighlights(combined);
+  }, [highlights, transcriptHighlights]);
+
+  // Subscribe to pinned note and transcript highlights,
+  // combine into one sorted list.
+  useEffect(() => {
+    if (!pinnedHighlights || !pinnedTranscriptHighlights) return;
+
+    let combined = pinnedHighlights.concat(pinnedTranscriptHighlights);
+    combined.sort((a, b) => {
+      return (
+        a.creationTimestamp.toDate().valueOf() >
+        b.creationTimestamp.toDate().valueOf()
+      );
+    });
+    setCombinedPinnedHighlights(combined);
+  }, [pinnedHighlights, pinnedTranscriptHighlights]);
+
+  if (!combinedHighlights || !tags || !combinedPinnedHighlights) {
     return <Loading />;
   }
 
   console.log("Rendering clips");
 
-  if (highlights.length + pinnedHighlights.length === 0) {
+  if (combinedHighlights.length + combinedPinnedHighlights.length === 0) {
     return (
       <div className={classes.helpText}>
         Clips in linked customer interviews will appear here. Pin the most
@@ -105,21 +182,21 @@ export default function PersonHighlightsPane(props) {
 
   return (
     <Grid container className={classes.highlightsContainer}>
-      {pinnedHighlights.length > 0 && (
+      {combinedPinnedHighlights.length > 0 && (
         <Typography gutterBottom variant="body2" component="p">
           PINNED
         </Typography>
       )}
-      {pinnedHighlights.map((highlight) => (
+      {combinedPinnedHighlights.map((highlight) => (
         <HighlightCard tag={tags[highlight.tagID]} highlight={highlight} />
       ))}
-      {pinnedHighlights.length > 0 && (
+      {combinedPinnedHighlights.length > 0 && (
         <Typography gutterBottom variant="body2" component="p">
           OTHERS
         </Typography>
       )}
 
-      {highlights.map((highlight) => (
+      {combinedHighlights.map((highlight) => (
         <HighlightCard tag={tags[highlight.tagID]} highlight={highlight} />
       ))}
     </Grid>
@@ -142,7 +219,9 @@ function HighlightCard(props) {
       <Card
         className={classes.quoteCard}
         onClick={() => {
-          navigate(`/orgs/${orgID}/interviews/${props.highlight.documentID}`);
+          navigate(
+            `/orgs/${orgID}/interviews/${props.highlight.documentID}/${props.highlight.source}`
+          );
         }}
       >
         <CardActionArea>
@@ -166,16 +245,12 @@ function HighlightCard(props) {
                 return;
               }
 
-              documentsRef
-                .doc(props.highlight.documentID)
-                .collection("highlights")
-                .doc(props.highlight.ID)
-                .set(
-                  {
-                    pinned: !props.highlight.pinned,
-                  },
-                  { merge: true }
-                );
+              props.highlight.ref.set(
+                {
+                  pinned: !props.highlight.pinned,
+                },
+                { merge: true }
+              );
             }}
           >
             {props.highlight.pinned ? <TurnedInIcon /> : <TurnedInNotIcon />}
