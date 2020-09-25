@@ -1367,21 +1367,23 @@ exports.migrateTranscripts = functions.pubsub
           let newHighlights = doc.ref.collection("transcriptHighlights");
 
           return newRevisions.get().then((newRevisionsSnapshot) => {
-            if (newRevisionsSnapshot.size > 0) {
-              console.debug(
-                "skipping document because it already has transcriptRevisions",
-                doc.id
-              );
-              return;
-            }
+            return oldRevisions.get().then((oldRevisionsSnapshot) => {
+              if (newRevisionsSnapshot.size === oldRevisionsSnapshot.size) {
+                console.debug(
+                  "skipping document because it already has migrated revisions",
+                  doc.id
+                );
+                return;
+              }
 
-            return copyCollection(oldDeltas, newDeltas)
-              .then(() => {
-                return copyCollection(oldHighlights, newHighlights);
-              })
-              .then(() => {
-                return copyCollection(oldRevisions, newRevisions);
-              });
+              return copyCollection(oldDeltas, newDeltas)
+                .then(() => {
+                  return copyCollection(oldHighlights, newHighlights);
+                })
+                .then(() => {
+                  return copyCollection(oldRevisions, newRevisions);
+                });
+            });
           });
         })
       )
