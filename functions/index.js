@@ -1387,3 +1387,61 @@ exports.migrateTranscripts = functions.pubsub
       )
     );
   });
+
+// Remove deleted documents from analysis
+exports.repairAnalysis = functions.pubsub
+  .schedule("every 5 minutes")
+  .onRun((context) => {
+    const db = admin.firestore();
+
+    return db
+      .collection("organizations")
+      .get()
+      .then((snapshot) =>
+        Promise.all(
+          snapshot.docs.map((doc) => {
+            let orgID = doc.id;
+            let orgRef = db.collection("organizations").doc(orgID);
+            let analysesRef = orgRef.collection("analyses");
+            let documentsRef = orgRef.collection("documents");
+
+            return analysesRef.get().then((snapshot) =>
+              Promise.all(
+                snapshot.docs.map((doc) => {
+                  let analysisRef = doc.ref;
+                  let analysis = doc.data();
+                  let analysisDocsRef = documentsRef.where(
+                    "ID",
+                    "in",
+                    analysis.documentIDs
+                  );
+
+                  return analysisDocsRef.get().then((snapshot) => {
+                    let needsUpdate = false;
+                    let newDocumentIDs = [];
+
+                    snapshot.docs.forEach((doc) => {
+                      let document = doc.data();
+                      if (document.deletionTimestamp !== "") {
+                        needsUpdate = true;
+                        return;
+                      }
+                      newDocumentIDs.push(doc.id);
+                    });
+
+                    if (needsUpdate) {
+                      return analysisRef.set(
+                        {
+                          documentIDs: newDocumentIDs,
+                        },
+                        { merge: true }
+                      );
+                    }
+                  });
+                })
+              )
+            );
+          })
+        )
+      );
+  });
