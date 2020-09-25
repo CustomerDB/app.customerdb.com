@@ -599,11 +599,29 @@ export default class AnalysisClusterBoard extends React.Component {
       y++;
     });
 
+    const countPeople = (objs) => {
+      let personIDs = new Set();
+      let representationFactor = 0;
+      objs.forEach((o) => {
+        if (personIDs.has(o.personID)) return;
+        representationFactor++;
+        if (!o.personID) return;
+        personIDs.add(o.personID);
+      });
+      return representationFactor;
+    };
+
+    let totalPeople = countPeople(Object.values(this.state.documents));
+    console.debug("totalPeople", totalPeople, this.state.documents);
+
     let groupComponents = Object.values(this.state.groups).map((group) => {
       let cards = Object.values(this.state.cards).filter((card) => {
         return card.groupID === group.ID;
       });
       let groupRef = this.props.groupsRef.doc(group.ID);
+
+      let cardHighlights = cards.map((card) => this.state.highlights[card.ID]);
+      let numPeople = countPeople(cardHighlights);
 
       return (
         <Group
@@ -612,7 +630,8 @@ export default class AnalysisClusterBoard extends React.Component {
           group={group}
           cards={cards}
           renameGroupModalCallback={this.props.renameGroupModalCallback}
-          totalCardCount={Object.values(this.state.documents).length}
+          numPeople={numPeople}
+          totalPeople={totalPeople}
           groupRef={groupRef}
           addGroupLocationCallback={this.addGroupLocation}
           removeGroupLocationCallback={this.removeGroupLocation}
