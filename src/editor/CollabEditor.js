@@ -47,7 +47,6 @@ export default function CollabEditor({
   quillRef,
   deltasRef,
   revisionsRef,
-  editor,
   onLoad,
   onChange,
   syncPeriod,
@@ -94,9 +93,14 @@ export default function CollabEditor({
   // Document will contain the latest cached and compressed version of the delta document.
   // Subscribe to deltas from other remote clients.
   useEffect(() => {
-    if (!editorID || !editor || !deltasRef || !revisionTimestamp) {
+    if (!editorID || !deltasRef || !revisionTimestamp) {
       return;
     }
+
+    if (!quillRef || !quillRef.current) {
+      return;
+    }
+    let editor = quillRef.current.getEditor();
 
     if (!latestDeltaTimestamp.current) {
       latestDeltaTimestamp.current = revisionTimestamp;
@@ -195,7 +199,7 @@ export default function CollabEditor({
           editor.setSelection(selectionIndex, selection.length);
         }
       });
-  }, [editorID, editor, revisionTimestamp, deltasRef]);
+  }, [editorID, revisionTimestamp, deltasRef]);
 
   // Register timers to periodically sync local changes with firestore.
   useEffect(() => {

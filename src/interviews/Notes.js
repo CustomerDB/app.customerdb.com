@@ -36,7 +36,6 @@ export default function Notes(props) {
   const { orgID } = useParams();
   const { documentRef, highlightsRef } = useFirestore();
 
-  const [reflowHints, setReflowHints] = useState(uuidv4());
   const [toolbarHeight, setToolbarHeight] = useState(40);
 
   const [tagIDsInSelection, doSetTagIDsInSelection] = useState(new Set());
@@ -78,10 +77,6 @@ export default function Notes(props) {
   }, [highlightsRef]);
 
   useEffect(() => {
-    console.debug("changed: reflowHints");
-  }, [reflowHints]);
-
-  useEffect(() => {
     console.debug("changed: toolbarHeight", toolbarHeight);
   }, [toolbarHeight]);
 
@@ -94,10 +89,6 @@ export default function Notes(props) {
   }, [currentSelection]);
 
   const highlights = useRef();
-
-  const updateHints = () => {
-    setReflowHints(uuidv4());
-  };
 
   // Subscribe to window resize events because hint offsets need to be
   // recomputed if the browser zoom level changes.
@@ -113,7 +104,6 @@ export default function Notes(props) {
           }
         }
       }
-      updateHints();
     };
 
     window.addEventListener("resize", onResize);
@@ -126,6 +116,11 @@ export default function Notes(props) {
   // Returns the index and length of the highlight with the supplied ID
   // in the current editor.
   const getHighlightIDsFromEditor = () => {
+    if (!props.reactQuillRef || !props.reactQuillRef.current) {
+      return;
+    }
+    let editor = props.reactQuillRef.current.getEditor();
+
     let result = new Set();
     let editorNode = document.getElementById("quill-notes-editor");
     if (editorNode) {
@@ -145,12 +140,22 @@ export default function Notes(props) {
     let intersectingHighlights = computeHighlightsInSelection(selection);
 
     let result = new Set();
+    if (!intersectingHighlights) {
+      return result;
+    }
+
     intersectingHighlights.forEach((h) => result.add(h.tagID));
     return result;
   };
 
   // selection: a range object with fields 'index' and 'length'
   const computeHighlightsInSelection = (selection) => {
+    if (!props.reactQuillRef || !props.reactQuillRef.current) {
+      return [];
+    }
+
+    let editor = props.reactQuillRef.current.getEditor();
+
     let result = [];
 
     if (selection === undefined) {
@@ -158,7 +163,7 @@ export default function Notes(props) {
     }
 
     let length = selection.length > 0 ? selection.length : 1;
-    let selectionDelta = props.editor.getContents(selection.index, length);
+    let selectionDelta = editor.getContents(selection.index, length);
     let selectedHighlightIDs = [];
 
     selectionDelta.ops.forEach((op) => {
@@ -174,56 +179,52 @@ export default function Notes(props) {
     });
   };
 
-  const getHighlightFromEditor = useCallback(
-    (highlightID) => {
-      let domNodes = document.getElementsByClassName(
-        `highlight-${highlightID}`
-      );
+  const getHighlightFromEditor = (highlightID) => {
+    if (!props.reactQuillRef || !props.reactQuillRef.current) {
+      return;
+    }
+    let editor = props.reactQuillRef.current.getEditor();
 
-      if (!domNodes || domNodes.length === 0) return undefined;
+    let domNodes = document.getElementsByClassName(`highlight-${highlightID}`);
 
-      let index = Number.MAX_VALUE;
-      let end = 0;
-      let textSegments = [];
-      let tagID = "";
+    if (!domNodes || domNodes.length === 0) return undefined;
 
-      for (let i = 0; i < domNodes.length; i++) {
-        let domNode = domNodes[i];
-        tagID = domNode.dataset.tagID;
+    let index = Number.MAX_VALUE;
+    let end = 0;
+    let textSegments = [];
+    let tagID = "";
 
-        let blot = Quill.find(domNode, false);
-        if (!blot) continue;
+    for (let i = 0; i < domNodes.length; i++) {
+      let domNode = domNodes[i];
+      tagID = domNode.dataset.tagID;
 
-        let blotIndex = props.editor.getIndex(blot);
-        index = Math.min(index, blotIndex);
-        end = Math.max(end, blotIndex + blot.length());
-        textSegments.push(props.editor.getText(blotIndex, blot.length()));
-      }
+      let blot = Quill.find(domNode, false);
+      if (!blot) continue;
 
-      if (textSegments.length === 0) return undefined;
+      let blotIndex = editor.getIndex(blot);
+      index = Math.min(index, blotIndex);
+      end = Math.max(end, blotIndex + blot.length());
+      textSegments.push(editor.getText(blotIndex, blot.length()));
+    }
 
-      let text = textSegments.join(" ");
+    if (textSegments.length === 0) return undefined;
 
-      let length = end - index;
+    let text = textSegments.join(" ");
 
-      return {
-        tagID: tagID,
-        selection: {
-          index: index,
-          length: length,
-        },
-        text: text,
-      };
-    },
-    [props.editor]
-  );
+    let length = end - index;
+
+    return {
+      tagID: tagID,
+      selection: {
+        index: index,
+        length: length,
+      },
+      text: text,
+    };
+  };
 
   const setEqual = (a, b) =>
     a.size === b.size && [...a].every((value) => b.has(value));
-
-  const onChange = (content, delta, source, editor) => {
-    // updateHints();
-  };
 
   // onChangeSelection is invoked when the content selection changes, including
   // whenever the cursor changes position.
@@ -237,7 +238,7 @@ export default function Notes(props) {
 
     let newTagIDs = computeTagIDsInSelection(range);
     if (!setEqual(newTagIDs, tagIDsInSelection)) {
-      setTagIDsInSelection();
+      setTagIDsInSelection(newTagIDs);
     }
   };
 
@@ -245,6 +246,11 @@ export default function Notes(props) {
   // tag input elements.
   const onTagControlChange = (tag, checked) => {
     console.debug("onTagControlChange", tag, checked, currentSelection);
+    if (!props.reactQuillRef || !props.reactQuillRef.current) {
+      console.log("Doesn't have the quill ref - quitting");
+      return;
+    }
+    let editor = props.reactQuillRef.current.getEditor();
 
     if (currentSelection === undefined) {
       return;
@@ -257,7 +263,7 @@ export default function Notes(props) {
 
       let highlightID = uuidv4();
 
-      props.editor.formatText(
+      editor.formatText(
         selection.index,
         selection.length,
         "highlight",
@@ -275,7 +281,7 @@ export default function Notes(props) {
           tag
         );
 
-        props.editor.formatText(
+        editor.formatText(
           h.selection.index,
           h.selection.length,
           "highlight",
@@ -289,7 +295,7 @@ export default function Notes(props) {
       index: selection.index + selection.length,
       length: 0,
     };
-    props.editor.setSelection(newRange, "user");
+    editor.setSelection(newRange, "user");
     setCurrentSelection(newRange);
     setTagIDsInSelection(computeTagIDsInSelection(newRange));
   };
@@ -302,7 +308,7 @@ export default function Notes(props) {
 
     // This function sends any new highlights to the database.
     const syncHighlightsCreate = () => {
-      if (!props.editor) {
+      if (!props.reactQuillRef || !props.reactQuillRef.current) {
         return;
       }
 
@@ -345,8 +351,6 @@ export default function Notes(props) {
           });
 
           highlightsRef.doc(highlightID).set(newHighlight);
-
-          updateHints();
         }
       });
     };
@@ -354,7 +358,7 @@ export default function Notes(props) {
     // This function sends any local updates to highlight content relative
     // to the local editor to the database.
     const syncHighlightsUpdate = () => {
-      if (!props.editor) {
+      if (!props.reactQuillRef || !props.reactQuillRef.current) {
         return;
       }
 
@@ -376,8 +380,6 @@ export default function Notes(props) {
           });
 
           highlightsRef.doc(h.ID).delete();
-
-          updateHints();
           return;
         }
 
@@ -429,7 +431,6 @@ export default function Notes(props) {
     props.document.ID,
     props.document.deletionTimestamp,
     props.document.personID,
-    props.editor,
     firebase,
   ]);
 
@@ -442,27 +443,13 @@ export default function Notes(props) {
     return highlightsRef.onSnapshot((snapshot) => {
       let newHighlights = {};
 
-      let hintsNeedReflow = highlights.current === undefined;
-
       snapshot.forEach((highlightDoc) => {
         let data = highlightDoc.data();
         data["ID"] = highlightDoc.id;
         newHighlights[data.ID] = data;
-
-        if (
-          !hintsNeedReflow &&
-          highlights.current &&
-          !highlights.current[data.ID]
-        ) {
-          hintsNeedReflow = true;
-        }
       });
 
       highlights.current = newHighlights;
-
-      if (hintsNeedReflow) {
-        updateHints();
-      }
     });
   }, [highlightsRef]);
 
@@ -482,11 +469,9 @@ export default function Notes(props) {
         revisionsRef={documentRef.collection("revisions")}
         deltasRef={documentRef.collection("deltas")}
         quillRef={props.reactQuillRef}
-        editor={props.editor}
         id="quill-notes-editor"
         theme="snow"
         placeholder="Start typing here and select to mark highlights"
-        onChange={onChange}
         onChangeSelection={onChangeSelection}
         modules={{
           toolbar: [
@@ -513,7 +498,6 @@ export default function Notes(props) {
       />
 
       <HighlightHints
-        key={reflowHints}
         toolbarHeight={toolbarHeight}
         highlights={highlights.current}
         tags={props.tags}
