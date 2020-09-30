@@ -47,6 +47,12 @@ export default function TemplateSelector(props) {
   }, [templatesRef]);
 
   const onTemplateChange = (e) => {
+    let editor;
+    if (!props.reactQuillNotesRef || !props.reactQuillNotesRef.current) {
+      return;
+    }
+    editor = props.reactQuillNotesRef.current.getEditor();
+
     console.log("onTagGroupChange", e);
     event(firebase, "change_interview_template", {
       orgID: oauthClaims.orgID,
@@ -69,7 +75,7 @@ export default function TemplateSelector(props) {
           { merge: true }
         )
         .then(() => {
-          props.editor.setContents(initialDelta(), "user");
+          editor.setContents(initialDelta(), "user");
         });
     }
 
@@ -99,7 +105,7 @@ export default function TemplateSelector(props) {
                   { merge: true }
                 )
                 .then(() => {
-                  props.editor.setContents(
+                  editor.setContents(
                     new Delta(templateSnapshot.delta.ops),
                     "user"
                   );
@@ -109,7 +115,7 @@ export default function TemplateSelector(props) {
     }
   };
 
-  if (!doc || !templates || !props.editor) {
+  if (!doc || !templates) {
     return <></>;
   }
 

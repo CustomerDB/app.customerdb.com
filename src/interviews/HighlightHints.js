@@ -1,8 +1,22 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import Chip from "@material-ui/core/Chip";
+import { v4 as uuidv4 } from "uuid";
 
 export default function HighlightHints({ toolbarHeight, highlights, tags }) {
+  const [reflow, setReflow] = useState();
+
+  useEffect(() => {}, [reflow]);
+
+  useEffect(() => {
+    const syncInterval = 500;
+    let timer = setInterval(() => {
+      setReflow(uuidv4());
+    }, syncInterval);
+
+    return () => clearInterval(timer);
+  });
+
   if (!highlights || !tags) {
     return <></>;
   }
@@ -38,7 +52,6 @@ export default function HighlightHints({ toolbarHeight, highlights, tags }) {
 
 function Hint({ tag, offsetTop }) {
   const [expand, setExpand] = useState(false);
-
   let label = expand ? tag.name : tag.name[0];
 
   let chip = (

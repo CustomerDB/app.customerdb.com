@@ -283,7 +283,6 @@ export default function Document(props) {
                       document={document}
                       tags={tags}
                       reactQuillRef={props.reactQuillNotesRef}
-                      editor={props.notesEditor}
                     />
                   )}
 
