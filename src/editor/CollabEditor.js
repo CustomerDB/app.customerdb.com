@@ -95,7 +95,7 @@ export default function CollabEditor({
   // Document will contain the latest cached and compressed version of the delta document.
   // Subscribe to deltas from other remote clients.
   useEffect(() => {
-    if (!editorID || !deltasRef || !revisionTimestamp) {
+    if (!editorID || !deltasRef || !revisionDelta || !revisionTimestamp) {
       return;
     }
 
