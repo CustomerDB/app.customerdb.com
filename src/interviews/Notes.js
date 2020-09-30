@@ -39,9 +39,59 @@ export default function Notes(props) {
   const [reflowHints, setReflowHints] = useState(uuidv4());
   const [toolbarHeight, setToolbarHeight] = useState(40);
 
-  const [tagIDsInSelection, setTagIDsInSelection] = useState(new Set());
-  const [currentSelection, setCurrentSelection] = useState();
+  const [tagIDsInSelection, doSetTagIDsInSelection] = useState(new Set());
+  const [currentSelection, doSetCurrentSelection] = useState();
   const quillContainerRef = useRef();
+
+  const setTagIDsInSelection = (value) => {
+    console.debug("setTagIDsInSelection", value);
+    doSetTagIDsInSelection(value);
+  };
+
+  const setCurrentSelection = (value) => {
+    console.debug("setCurrentSelection", value);
+    doSetCurrentSelection(value);
+  };
+
+  useEffect(() => {
+    console.debug("changed: oauthClaims", oauthClaims);
+  }, [oauthClaims]);
+
+  useEffect(() => {
+    console.debug("changed: firebase");
+  }, [firebase]);
+
+  useEffect(() => {
+    console.debug("changed: orgID");
+  }, [orgID]);
+
+  useEffect(() => {
+    console.debug("changed: props", props);
+  }, [props]);
+
+  useEffect(() => {
+    console.debug("changed: documentRef");
+  }, [documentRef]);
+
+  useEffect(() => {
+    console.debug("changed: highlightsRef");
+  }, [highlightsRef]);
+
+  useEffect(() => {
+    console.debug("changed: reflowHints");
+  }, [reflowHints]);
+
+  useEffect(() => {
+    console.debug("changed: toolbarHeight", toolbarHeight);
+  }, [toolbarHeight]);
+
+  useEffect(() => {
+    console.debug("changed: tagIDsInSelection", tagIDsInSelection);
+  }, [tagIDsInSelection]);
+
+  useEffect(() => {
+    console.debug("changed: currentSelection", currentSelection);
+  }, [currentSelection]);
 
   const highlights = useRef();
 
@@ -168,8 +218,11 @@ export default function Notes(props) {
     [props.editor]
   );
 
+  const setEqual = (a, b) =>
+    a.size === b.size && [...a].every((value) => b.has(value));
+
   const onChange = (content, delta, source, editor) => {
-    updateHints();
+    // updateHints();
   };
 
   // onChangeSelection is invoked when the content selection changes, including
@@ -181,7 +234,11 @@ export default function Notes(props) {
 
     console.debug("current selection range", range);
     setCurrentSelection(range);
-    setTagIDsInSelection(computeTagIDsInSelection(range));
+
+    let newTagIDs = computeTagIDsInSelection(range);
+    if (!setEqual(newTagIDs, tagIDsInSelection)) {
+      setTagIDsInSelection();
+    }
   };
 
   // onTagControlChange is invoked when the user checks or unchecks one of the
