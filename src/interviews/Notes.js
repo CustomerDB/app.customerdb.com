@@ -52,42 +52,6 @@ export default function Notes(props) {
     doSetCurrentSelection(value);
   };
 
-  useEffect(() => {
-    console.debug("changed: oauthClaims", oauthClaims);
-  }, [oauthClaims]);
-
-  useEffect(() => {
-    console.debug("changed: firebase");
-  }, [firebase]);
-
-  useEffect(() => {
-    console.debug("changed: orgID");
-  }, [orgID]);
-
-  useEffect(() => {
-    console.debug("changed: props", props);
-  }, [props]);
-
-  useEffect(() => {
-    console.debug("changed: documentRef");
-  }, [documentRef]);
-
-  useEffect(() => {
-    console.debug("changed: highlightsRef");
-  }, [highlightsRef]);
-
-  useEffect(() => {
-    console.debug("changed: toolbarHeight", toolbarHeight);
-  }, [toolbarHeight]);
-
-  useEffect(() => {
-    console.debug("changed: tagIDsInSelection", tagIDsInSelection);
-  }, [tagIDsInSelection]);
-
-  useEffect(() => {
-    console.debug("changed: currentSelection", currentSelection);
-  }, [currentSelection]);
-
   const highlights = useRef();
 
   // Subscribe to window resize events because hint offsets need to be
