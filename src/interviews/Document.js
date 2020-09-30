@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { addTagStyles, removeTagStyles } from "./Tags.js";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -78,17 +78,7 @@ export default function Document(props) {
     navigate(`/orgs/${orgID}/interviews/${documentID}/${tab}`);
   };
 
-  const [transcriptEditor, seTranscriptEditor] = useState();
-  const reactQuillTranscriptRef = useCallback(
-    (current) => {
-      if (!current) {
-        seTranscriptEditor();
-        return;
-      }
-      seTranscriptEditor(current.getEditor());
-    },
-    [seTranscriptEditor]
-  );
+  const reactQuillTranscriptRef = useRef();
 
   useEffect(() => {
     if (!tabID) {
@@ -295,7 +285,6 @@ export default function Document(props) {
                       setCurrentSelectionCallback={
                         setCurrentTranscriptSelection
                       }
-                      editor={transcriptEditor}
                     />
                   )}
                 </Grid>
@@ -307,7 +296,7 @@ export default function Document(props) {
 
       <Hidden smDown>
         <DocumentSidebar
-          transcriptEditor={transcriptEditor}
+          reactQuillRef={reactQuillTranscriptRef}
           document={document}
           selection={currentTranscriptSelection}
           tagGroupName={tagGroupName}
