@@ -118,7 +118,6 @@ export default function CollabEditor({
       .where("timestamp", ">", revisionTimestamp)
       .onSnapshot((snapshot) => {
         // filter out newly committed deltas from uncommittedDeltas
-        let oldUncommittedDeltas = uncommittedDeltas.current;
         let newUncommittedDeltas = uncommittedDeltas.current;
         snapshot.docs.forEach((deltaDoc) => {
           newUncommittedDeltas = newUncommittedDeltas.filter(
@@ -178,7 +177,9 @@ export default function CollabEditor({
         // Re-apply the transformed local delta to the editor
 
         // Transform the local delta buffer by diff
-        localDelta.current = diff.transform(localDelta.current);
+        console.debug("pre-transformed local delta", localDelta.current);
+        localDelta.current = new Delta(diff.transform(localDelta.current).ops);
+        console.debug("transformed local delta", localDelta.current);
         selectionIndex = localDelta.current.transformPosition(selectionIndex);
         console.debug("re-applying transformed local delta");
         editor.updateContents(localDelta.current);
@@ -188,7 +189,7 @@ export default function CollabEditor({
           editor.setSelection(selectionIndex, selection.length);
         }
       });
-  }, [editorID, revisionTimestamp, deltasRef, quillRef]);
+  }, [editorID, revisionDelta, revisionTimestamp, deltasRef, quillRef]);
 
   //  return deltasRef
   //    .orderBy("timestamp", "asc")
