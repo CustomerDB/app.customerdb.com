@@ -116,11 +116,6 @@ export default function Notes(props) {
   // Returns the index and length of the highlight with the supplied ID
   // in the current editor.
   const getHighlightIDsFromEditor = () => {
-    if (!props.reactQuillRef || !props.reactQuillRef.current) {
-      return;
-    }
-    let editor = props.reactQuillRef.current.getEditor();
-
     let result = new Set();
     let editorNode = document.getElementById("quill-notes-editor");
     if (editorNode) {
@@ -179,49 +174,54 @@ export default function Notes(props) {
     });
   };
 
-  const getHighlightFromEditor = (highlightID) => {
-    if (!props.reactQuillRef || !props.reactQuillRef.current) {
-      return;
-    }
-    let editor = props.reactQuillRef.current.getEditor();
+  const getHighlightFromEditor = useCallback(
+    (highlightID) => {
+      if (!props.reactQuillRef || !props.reactQuillRef.current) {
+        return;
+      }
+      let editor = props.reactQuillRef.current.getEditor();
 
-    let domNodes = document.getElementsByClassName(`highlight-${highlightID}`);
+      let domNodes = document.getElementsByClassName(
+        `highlight-${highlightID}`
+      );
 
-    if (!domNodes || domNodes.length === 0) return undefined;
+      if (!domNodes || domNodes.length === 0) return undefined;
 
-    let index = Number.MAX_VALUE;
-    let end = 0;
-    let textSegments = [];
-    let tagID = "";
+      let index = Number.MAX_VALUE;
+      let end = 0;
+      let textSegments = [];
+      let tagID = "";
 
-    for (let i = 0; i < domNodes.length; i++) {
-      let domNode = domNodes[i];
-      tagID = domNode.dataset.tagID;
+      for (let i = 0; i < domNodes.length; i++) {
+        let domNode = domNodes[i];
+        tagID = domNode.dataset.tagID;
 
-      let blot = Quill.find(domNode, false);
-      if (!blot) continue;
+        let blot = Quill.find(domNode, false);
+        if (!blot) continue;
 
-      let blotIndex = editor.getIndex(blot);
-      index = Math.min(index, blotIndex);
-      end = Math.max(end, blotIndex + blot.length());
-      textSegments.push(editor.getText(blotIndex, blot.length()));
-    }
+        let blotIndex = editor.getIndex(blot);
+        index = Math.min(index, blotIndex);
+        end = Math.max(end, blotIndex + blot.length());
+        textSegments.push(editor.getText(blotIndex, blot.length()));
+      }
 
-    if (textSegments.length === 0) return undefined;
+      if (textSegments.length === 0) return undefined;
 
-    let text = textSegments.join(" ");
+      let text = textSegments.join(" ");
 
-    let length = end - index;
+      let length = end - index;
 
-    return {
-      tagID: tagID,
-      selection: {
-        index: index,
-        length: length,
-      },
-      text: text,
-    };
-  };
+      return {
+        tagID: tagID,
+        selection: {
+          index: index,
+          length: length,
+        },
+        text: text,
+      };
+    },
+    [props.reactQuillRef]
+  );
 
   const setEqual = (a, b) =>
     a.size === b.size && [...a].every((value) => b.has(value));
@@ -431,6 +431,7 @@ export default function Notes(props) {
     props.document.ID,
     props.document.deletionTimestamp,
     props.document.personID,
+    props.reactQuillRef,
     firebase,
   ]);
 

@@ -199,7 +199,7 @@ export default function CollabEditor({
           editor.setSelection(selectionIndex, selection.length);
         }
       });
-  }, [editorID, revisionTimestamp, deltasRef]);
+  }, [editorID, revisionTimestamp, deltasRef, quillRef]);
 
   // Register timers to periodically sync local changes with firestore.
   useEffect(() => {
