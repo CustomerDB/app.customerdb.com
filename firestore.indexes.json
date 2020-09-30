@@ -15,6 +15,20 @@
       ]
     },
     {
+      "collectionGroup": "deltas",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "timestamp",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "editorID",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "documents",
       "queryScope": "COLLECTION",
       "fields": [
