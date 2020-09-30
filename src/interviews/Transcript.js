@@ -218,7 +218,6 @@ export default function Transcript(props) {
   const onTagControlChange = (tag, checked) => {
     console.debug("onTagControlChange", tag, checked, props.currentSelection);
     if (!props.reactQuillRef || !props.reactQuillRef.current) {
-      console.log("Doesn't have the quill ref - quitting");
       return;
     }
     let editor = props.reactQuillRef.current.getEditor();

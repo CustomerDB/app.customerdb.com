@@ -211,7 +211,6 @@ export default function Notes(props) {
   const onTagControlChange = (tag, checked) => {
     console.debug("onTagControlChange", tag, checked, currentSelection);
     if (!props.reactQuillRef || !props.reactQuillRef.current) {
-      console.log("Doesn't have the quill ref - quitting");
       return;
     }
     let editor = props.reactQuillRef.current.getEditor();
