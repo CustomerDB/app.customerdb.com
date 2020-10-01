@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import AddIcon from "@material-ui/icons/Add";
@@ -46,17 +46,7 @@ export default function Interviews(props) {
   // We have to create a handle for the notes editor here
   // as using guides will have to set the contents during
   // interview creation.
-  const [notesEditor, setNotesEditor] = useState();
-  const reactQuillNotesRef = useCallback(
-    (current) => {
-      if (!current) {
-        setNotesEditor();
-        return;
-      }
-      setNotesEditor(current.getEditor());
-    },
-    [setNotesEditor]
-  );
+  const reactQuillNotesRef = useRef();
 
   useEffect(() => {
     if (!documentsRef) {
@@ -67,7 +57,7 @@ export default function Interviews(props) {
       .where("deletionTimestamp", "==", "")
       .orderBy("creationTimestamp", "desc")
       .onSnapshot((snapshot) => {
-        console.log("documents snapshot received");
+        console.debug("documents snapshot received");
 
         let newDocuments = [];
 
@@ -200,11 +190,7 @@ export default function Interviews(props) {
   let content = undefined;
   if (documentID) {
     content = (
-      <Document
-        key={documentID}
-        reactQuillNotesRef={reactQuillNotesRef}
-        notesEditor={notesEditor}
-      />
+      <Document key={documentID} reactQuillNotesRef={reactQuillNotesRef} />
     );
   } else if (documentItems.length > 0) {
     content = (
@@ -220,7 +206,7 @@ export default function Interviews(props) {
       onHide={() => {
         setAddModalShow(false);
       }}
-      editor={notesEditor}
+      reactQuillNotesRef={reactQuillNotesRef}
     />
   );
 

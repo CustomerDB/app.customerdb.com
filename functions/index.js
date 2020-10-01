@@ -466,7 +466,7 @@ const updateRevision = (revisionDelta, revisionTimestamp, deltasRef) => {
 const maxTimestamp = (a, b) => {
   let result = a;
   if (b.valueOf() > a.valueOf()) {
-    result = b.timestamp;
+    result = b;
   }
   return result;
 };

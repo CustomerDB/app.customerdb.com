@@ -13,7 +13,7 @@ import { useParams } from "react-router-dom";
 export default function VideoPlayer({
   doc,
   transcriptionVideo,
-  editor,
+  reactQuillRef,
   selection,
 }) {
   const firebase = useContext(FirebaseContext);
@@ -99,11 +99,12 @@ export default function VideoPlayer({
       !initialRevision ||
       !indexTree ||
       !playerRef.current ||
-      !editor
+      !reactQuillRef ||
+      !reactQuillRef.current
     ) {
       return;
     }
-    let currentRevision = editor.getContents();
+    let currentRevision = reactQuillRef.current.getEditor().getContents();
     let time = indexToTime(
       selection.index,
       indexTree,
@@ -113,12 +114,18 @@ export default function VideoPlayer({
     if (time) {
       playerRef.current.seekTo(time);
     }
-  }, [indexTree, selection, editor, initialRevision]);
+  }, [indexTree, selection, reactQuillRef, initialRevision]);
 
   const onVideoProgress = ({ playedSeconds }) => {
-    if (!initialRevision || !timeTree || !editor) {
+    if (
+      !initialRevision ||
+      !timeTree ||
+      !reactQuillRef ||
+      !reactQuillRef.current
+    ) {
       return;
     }
+    let editor = reactQuillRef.current.getEditor();
     let currentRevision = editor.getContents();
     let indexes = timeToIndex(
       playedSeconds,
@@ -135,8 +142,8 @@ export default function VideoPlayer({
     if (currentPlayhead && currentPlayhead.startIndex !== startIndex) {
       // Unset playhead formatting.
       editor.formatText(
-        currentPlayhead.startIndex,
-        currentPlayhead.endIndex - currentPlayhead.startIndex,
+        0,
+        editor.getLength(),
         "playhead",
         false, // unsets the target format
         "api"
@@ -146,9 +153,10 @@ export default function VideoPlayer({
   };
 
   useEffect(() => {
-    if (!currentPlayhead || !editor) {
+    if (!currentPlayhead || !reactQuillRef || !reactQuillRef.current) {
       return;
     }
+    let editor = reactQuillRef.current.getEditor();
 
     editor.formatText(
       currentPlayhead.startIndex,
@@ -157,7 +165,7 @@ export default function VideoPlayer({
       true,
       "api"
     );
-  }, [currentPlayhead, editor]);
+  }, [currentPlayhead, reactQuillRef]);
 
   return (
     <>

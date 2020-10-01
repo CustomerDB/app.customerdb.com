@@ -9,7 +9,11 @@ import Grid from "@material-ui/core/Grid";
 import TemplateSelector from "./TemplateSelector.js";
 import useFirestore from "../db/Firestore.js";
 
-export default function DocumentCreateModal({ show, onHide, editor }) {
+export default function DocumentCreateModal({
+  show,
+  onHide,
+  reactQuillNotesRef,
+}) {
   const [name, setName] = useState();
   const { documentRef } = useFirestore();
 
@@ -50,7 +54,7 @@ export default function DocumentCreateModal({ show, onHide, editor }) {
         <Grid container spacing={2}>
           <Grid container item>
             <Grid item xs={12}>
-              <TemplateSelector editor={editor} />
+              <TemplateSelector reactQuillNotesRef={reactQuillNotesRef} />
             </Grid>
           </Grid>
         </Grid>

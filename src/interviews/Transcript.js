@@ -116,6 +116,12 @@ export default function Transcript(props) {
 
   // selection: a range object with fields 'index' and 'length'
   const computeHighlightsInSelection = (selection) => {
+    if (!props.reactQuillRef || !props.reactQuillRef.current) {
+      return [];
+    }
+
+    let editor = props.reactQuillRef.current.getEditor();
+
     let result = [];
 
     if (selection === undefined) {
@@ -123,7 +129,7 @@ export default function Transcript(props) {
     }
 
     let length = selection.length > 0 ? selection.length : 1;
-    let selectionDelta = props.editor.getContents(selection.index, length);
+    let selectionDelta = editor.getContents(selection.index, length);
     let selectedHighlightIDs = [];
 
     selectionDelta.ops.forEach((op) => {
@@ -141,6 +147,11 @@ export default function Transcript(props) {
 
   const getHighlightFromEditor = useCallback(
     (highlightID) => {
+      if (!props.reactQuillRef || !props.reactQuillRef.current) {
+        return;
+      }
+      let editor = props.reactQuillRef.current.getEditor();
+
       let domNodes = document.getElementsByClassName(
         `highlight-${highlightID}`
       );
@@ -159,10 +170,10 @@ export default function Transcript(props) {
         let blot = Quill.find(domNode, false);
         if (!blot) continue;
 
-        let blotIndex = props.editor.getIndex(blot);
+        let blotIndex = editor.getIndex(blot);
         index = Math.min(index, blotIndex);
         end = Math.max(end, blotIndex + blot.length());
-        textSegments.push(props.editor.getText(blotIndex, blot.length()));
+        textSegments.push(editor.getText(blotIndex, blot.length()));
       }
 
       if (textSegments.length === 0) return undefined;
@@ -180,12 +191,11 @@ export default function Transcript(props) {
         text: text,
       };
     },
-    [props.editor]
+    [props.reactQuillRef]
   );
 
-  const onChange = (content, delta, source, editor) => {
-    updateHints();
-  };
+  const setEqual = (a, b) =>
+    a.size === b.size && [...a].every((value) => b.has(value));
 
   // onChangeSelection is invoked when the content selection changes, including
   // whenever the cursor changes position.
@@ -196,13 +206,21 @@ export default function Transcript(props) {
 
     console.debug("current selection range", range);
     props.setCurrentSelectionCallback(range);
-    setTagIDsInSelection(computeTagIDsInSelection(range));
+
+    let newTagIDs = computeTagIDsInSelection(range);
+    if (!setEqual(newTagIDs, tagIDsInSelection)) {
+      setTagIDsInSelection(newTagIDs);
+    }
   };
 
   // onTagControlChange is invoked when the user checks or unchecks one of the
   // tag input elements.
   const onTagControlChange = (tag, checked) => {
     console.debug("onTagControlChange", tag, checked, props.currentSelection);
+    if (!props.reactQuillRef || !props.reactQuillRef.current) {
+      return;
+    }
+    let editor = props.reactQuillRef.current.getEditor();
 
     if (props.currentSelection === undefined) {
       return;
@@ -215,7 +233,7 @@ export default function Transcript(props) {
 
       let highlightID = uuidv4();
 
-      props.editor.formatText(
+      editor.formatText(
         selection.index,
         selection.length,
         "highlight",
@@ -233,7 +251,7 @@ export default function Transcript(props) {
           tag
         );
 
-        props.editor.formatText(
+        editor.formatText(
           h.selection.index,
           h.selection.length,
           "highlight",
@@ -247,7 +265,7 @@ export default function Transcript(props) {
       index: selection.index + selection.length,
       length: 0,
     };
-    props.editor.setSelection(newRange, "user");
+    editor.setSelection(newRange, "user");
     props.setCurrentSelectionCallback(newRange);
     setTagIDsInSelection(computeTagIDsInSelection(newRange));
   };
@@ -333,8 +351,6 @@ export default function Transcript(props) {
           });
 
           highlightsRef.doc(highlightID).set(newHighlight);
-
-          updateHints();
         }
       });
     };
@@ -364,8 +380,6 @@ export default function Transcript(props) {
           });
 
           highlightsRef.doc(h.ID).delete();
-
-          updateHints();
           return;
         }
 
@@ -431,27 +445,13 @@ export default function Transcript(props) {
     return highlightsRef.onSnapshot((snapshot) => {
       let newHighlights = {};
 
-      let hintsNeedReflow = highlights.current === undefined;
-
       snapshot.forEach((highlightDoc) => {
         let data = highlightDoc.data();
         data["ID"] = highlightDoc.id;
         newHighlights[data.ID] = data;
-
-        if (
-          !hintsNeedReflow &&
-          highlights.current &&
-          !highlights.current[data.ID]
-        ) {
-          hintsNeedReflow = true;
-        }
       });
 
       highlights.current = newHighlights;
-
-      if (hintsNeedReflow) {
-        updateHints();
-      }
     });
   }, [highlightsRef]);
 
@@ -524,10 +524,8 @@ export default function Transcript(props) {
             revisionsRef={documentRef.collection("transcriptRevisions")}
             deltasRef={documentRef.collection("transcriptDeltas")}
             quillRef={props.reactQuillRef}
-            editor={props.editor}
             id="quill-transcript-editor"
             theme="snow"
-            onChange={onChange}
             onChangeSelection={onChangeSelection}
             modules={{
               toolbar: [

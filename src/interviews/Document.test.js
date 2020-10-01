@@ -2,7 +2,7 @@ import "mutationobserver-shim";
 
 import * as firebase from "@firebase/testing";
 
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { Route, MemoryRouter as Router, Routes } from "react-router-dom";
 
 import Document from "./Document.js";
@@ -66,7 +66,9 @@ beforeEach(async () => {
 
 afterEach(async () => {
   containers.forEach((c) => {
-    document.body.removeChild(c);
+    if (!ReactDOM.unmountComponentAtNode(c)) {
+      console.warn(`failed to unmount component at ${c}`);
+    }
   });
   containers = [];
   await cleanupData();
@@ -170,16 +172,11 @@ const renderDocument = async (route, container) => {
       container
     );
   });
-
-  await wait(() => {
-    return expect(editor).toBeTruthy();
-  });
-
-  return [container, editor];
+  return container;
 };
 
 it("can render an existing document", async () => {
-  let [container] = await renderDocument(
+  let container = await renderDocument(
     `/org/acme-0001/interviews/${documentID}`
   );
 
@@ -195,7 +192,7 @@ it("can render an existing document", async () => {
 });
 
 it("can edit a document", async () => {
-  let [container] = await renderDocument(
+  let container = await renderDocument(
     `/org/acme-0001/interviews/${documentID}`
   );
   await wait(() => {
@@ -241,7 +238,7 @@ it("can edit a document", async () => {
     return expect(editorNode.textContent).toBe("Goodbye");
   });
 
-  let [container2] = await renderDocument(
+  let container2 = await renderDocument(
     `/org/acme-0001/interviews/${documentID}`
   );
   await wait(() => {
@@ -251,7 +248,7 @@ it("can edit a document", async () => {
 });
 
 it("can delete a document", async () => {
-  let [container] = await renderDocument(
+  let container = await renderDocument(
     `/org/acme-0001/interviews/${documentID}`
   );
   await wait(() => {
@@ -298,7 +295,7 @@ it("can delete a document", async () => {
 });
 
 it("can receive and render highlights in a document", async () => {
-  let [container] = await renderDocument(
+  let container = await renderDocument(
     `/org/acme-0001/interviews/${documentID}`
   );
   await wait(() => {
@@ -368,20 +365,6 @@ it("can receive and render highlights in a document", async () => {
 });
 
 const DocumentWrapper = ({ onEditor }) => {
-  const [editor, setEditor] = useState();
-  const reactQuillRef = useCallback(
-    (current) => {
-      if (!current) {
-        setEditor();
-        onEditor();
-        return;
-      }
-      let newEditor = current.getEditor();
-      setEditor(newEditor);
-      onEditor(newEditor);
-    },
-    [setEditor]
-  );
-
-  return <Document notesEditor={editor} reactQuillNotesRef={reactQuillRef} />;
+  const reactQuillRef = useRef();
+  return <Document reactQuillNotesRef={reactQuillRef} />;
 };
