@@ -172,11 +172,6 @@ const renderDocument = async (route, container) => {
       container
     );
   });
-
-  //await wait(() => {
-  //  return expect(editor).toBeTruthy();
-  //});
-
   return container;
 };
 
