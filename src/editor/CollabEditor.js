@@ -93,6 +93,13 @@ export default function CollabEditor({
       });
   }, [revisionsRef]);
 
+  useEffect(() => {
+    deltasRef.onSnapshot((snapshot) => {
+      console.log(`Database contains ${snapshot.size} deltas`);
+      console.log(JSON.stringify(snapshot.docs.map((doc) => doc.data())));
+    });
+  });
+
   // Document will contain the latest cached and compressed version of the
   // delta document. Subscribe to deltas from other remote clients.
   useEffect(() => {
