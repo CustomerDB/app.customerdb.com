@@ -93,6 +93,23 @@ export default function CollabEditor({
       });
   }, [revisionsRef]);
 
+  // Returns true if the supplied delta is a document;
+  // that is, it contains only insert operations.
+  const isDocument = (delta) => {
+    if (delta.ops.length === 0) {
+      return false;
+    }
+    let result = true;
+    for (let i = 0; i < delta.ops.length; i++) {
+      let op = delta.ops[i];
+      if (!op.insert) {
+        result = false;
+        break;
+      }
+    }
+    return result;
+  };
+
   // Document will contain the latest cached and compressed version of the
   // delta document. Subscribe to deltas from other remote clients.
   useEffect(() => {
@@ -152,6 +169,15 @@ export default function CollabEditor({
         console.debug("remote", remote);
 
         // Compute update patch from local to remote
+        if (!isDocument(local)) {
+          console.debug("local is not a document -- quitting");
+          return;
+        }
+        if (!isDocument(remote)) {
+          console.debug("remote is not a document -- quitting");
+          return;
+        }
+
         let diff = local.diff(remote);
         console.debug("diff", diff);
 

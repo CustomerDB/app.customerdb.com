@@ -57,7 +57,7 @@ export default function Interviews(props) {
       .where("deletionTimestamp", "==", "")
       .orderBy("creationTimestamp", "desc")
       .onSnapshot((snapshot) => {
-        console.log("documents snapshot received");
+        console.debug("documents snapshot received");
 
         let newDocuments = [];
 
