@@ -66,7 +66,9 @@ beforeEach(async () => {
 
 afterEach(async () => {
   containers.forEach((c) => {
-    document.body.removeChild(c);
+    if (!ReactDOM.unmountComponentAtNode(c)) {
+      console.warn(`failed to unmount component at ${c}`);
+    }
   });
   containers = [];
   await cleanupData();
