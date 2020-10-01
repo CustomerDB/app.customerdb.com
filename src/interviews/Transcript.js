@@ -308,7 +308,7 @@ export default function Transcript(props) {
 
     // This function sends any new highlights to the database.
     const syncHighlightsCreate = () => {
-      if (!props.editor) {
+      if (!props.reactQuillRef || !props.reactQuillRef.current) {
         return;
       }
 
@@ -358,7 +358,7 @@ export default function Transcript(props) {
     // This function sends any local updates to highlight content relative
     // to the local editor to the database.
     const syncHighlightsUpdate = () => {
-      if (!props.editor) {
+      if (!props.reactQuillRef || !props.reactQuillRef.current) {
         return;
       }
 
