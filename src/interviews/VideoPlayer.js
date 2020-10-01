@@ -142,8 +142,8 @@ export default function VideoPlayer({
     if (currentPlayhead && currentPlayhead.startIndex !== startIndex) {
       // Unset playhead formatting.
       editor.formatText(
-        currentPlayhead.startIndex,
-        currentPlayhead.endIndex - currentPlayhead.startIndex,
+        0,
+        editor.getLength(),
         "playhead",
         false, // unsets the target format
         "api"
