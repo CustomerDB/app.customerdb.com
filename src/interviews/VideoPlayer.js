@@ -14,7 +14,7 @@ export default function VideoPlayer({
   doc,
   transcriptionVideo,
   reactQuillRef,
-  selection,
+  selectionChannelPort,
 }) {
   const firebase = useContext(FirebaseContext);
   const { orgID } = useParams();
@@ -26,6 +26,12 @@ export default function VideoPlayer({
   const [timeTree, setTimeTree] = useState();
   const playerRef = useRef();
   const [currentPlayhead, setCurrentPlayhead] = useState();
+  const [selection, setSelection] = useState();
+
+  selectionChannelPort.onmessage = (msg) => {
+    console.debug("selectionChannelPort: received", msg);
+    setSelection(msg.data);
+  };
 
   useEffect(() => {
     if (!documentRef || !doc || doc.pending) {

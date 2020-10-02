@@ -106,7 +106,7 @@ export default function DocumentSidebar(props) {
             doc={props.document}
             transcriptionVideo={transcriptionVideo}
             reactQuillRef={props.reactQuillRef}
-            selection={props.selection}
+            selectionChannelPort={props.selectionChannelPort}
           />
         </Card>
       ) : (
