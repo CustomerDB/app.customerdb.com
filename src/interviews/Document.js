@@ -167,12 +167,6 @@ export default function Document(props) {
     );
   }
 
-  console.debug(
-    "Document: setting up channel ports",
-    transcriptSelectionSend,
-    transcriptSelectionReceive
-  );
-
   return (
     <Grid container item md={12} lg={9} xl={10} spacing={0}>
       <Grid

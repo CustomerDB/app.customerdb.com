@@ -29,8 +29,6 @@ const useStyles = makeStyles({
 });
 
 export default function DocumentSidebar(props) {
-  console.debug("DocumentSidebar (props)", props);
-
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
   const { orgID } = useParams();
