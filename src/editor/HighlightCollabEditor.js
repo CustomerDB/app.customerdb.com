@@ -29,7 +29,9 @@ export default function HighlightCollabEditor({
   onChangeSelection,
   ...otherProps
 }) {
-  const selectionRef = useRef();
+  const selectionChannel = new MessageChannel();
+  const selectionChannelSend = selectionChannel.port1;
+  const selectionChannelReceive = selectionChannel.port2;
 
   // thisOnChangeSelection is invoked when the content selection changes, including
   // whenever the cursor changes position.
@@ -37,10 +39,9 @@ export default function HighlightCollabEditor({
     if (source !== "user" || range === null) {
       return;
     }
-    selectionRef.current = range;
-    if (onChangeSelection) {
-      onChangeSelection(range, source, editor);
-    }
+    selectionChannelSend.postMessage(range);
+
+    onChangeSelection(range, source, editor);
   };
 
   return (
@@ -52,7 +53,7 @@ export default function HighlightCollabEditor({
       />
       <HighlightControls
         quillRef={quillRef}
-        selectionRef={selectionRef}
+        selectionChannelPort={selectionChannelReceive}
         highlightsRef={highlightsRef}
         highlightDocument={document}
         tags={tags}
@@ -66,7 +67,7 @@ const syncPeriod = 1000;
 
 function HighlightControls({
   quillRef,
-  selectionRef,
+  selectionChannelPort,
   highlightsRef,
   highlightDocument,
   tags,
@@ -76,7 +77,6 @@ function HighlightControls({
   const { orgID } = useParams();
   const [toolbarHeight, setToolbarHeight] = useState(40);
   const [selection, setSelection] = useState();
-  const selectionCache = useRef();
   const [highlights, setHighlights] = useState();
   const highlightsCache = useRef();
   const [tagIDsInSelection, setTagIDsInSelection] = useState(new Set());
@@ -185,31 +185,9 @@ function HighlightControls({
     };
   }, []);
 
-  // Periodically update selection state
-  useEffect(() => {
-    if (!selectionCache) return;
-
-    const cancel = setInterval(() => {
-      let newSelection = selectionRef.current;
-      if (!newSelection) return;
-      if (
-        !selectionCache.current ||
-        newSelection.index !== selectionCache.current.index ||
-        newSelection.length !== selectionCache.current.length
-      ) {
-        console.debug(
-          "setting selection range (old, new)",
-          selectionCache.current,
-          newSelection
-        );
-        selectionCache.current = newSelection;
-        setSelection(newSelection);
-      }
-    }, 500);
-    return () => {
-      clearInterval(cancel);
-    };
-  }, [selectionRef, selectionCache]);
+  selectionChannelPort.onmessage = (msg) => {
+    setSelection(msg.data);
+  };
 
   // Selection
   useEffect(() => {
