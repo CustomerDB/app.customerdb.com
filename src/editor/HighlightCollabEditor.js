@@ -41,7 +41,9 @@ export default function HighlightCollabEditor({
     }
     selectionChannelSend.postMessage(range);
 
-    onChangeSelection(range, source, editor);
+    if (onChangeSelection) {
+      onChangeSelection(range, source, editor);
+    }
   };
 
   return (
