@@ -12,6 +12,7 @@ import UserAuthContext from "../auth/UserAuthContext.js";
 import { act } from "react-dom/test-utils";
 import { v4 as uuidv4 } from "uuid";
 import { wait } from "@testing-library/react";
+import worker from "worker_threads";
 
 let app;
 let adminApp;
@@ -32,6 +33,8 @@ const documentID = "fake-document-id";
 
 beforeEach(async () => {
   window.document.getSelection = function () {};
+
+  window.MessageChannel = worker.MessageChannel;
 
   containers = [];
 
