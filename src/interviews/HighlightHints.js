@@ -5,17 +5,16 @@ import { v4 as uuidv4 } from "uuid";
 
 export default function HighlightHints({ toolbarHeight, highlights, tags }) {
   const [reflow, setReflow] = useState();
-
   useEffect(() => {}, [reflow]);
 
   useEffect(() => {
-    const syncInterval = 500;
-    let timer = setInterval(() => {
+    let cancel = setInterval(() => {
       setReflow(uuidv4());
-    }, syncInterval);
-
-    return () => clearInterval(timer);
-  });
+    }, 500);
+    return () => {
+      clearInterval(cancel);
+    };
+  }, []);
 
   if (!highlights || !tags) {
     return <></>;
