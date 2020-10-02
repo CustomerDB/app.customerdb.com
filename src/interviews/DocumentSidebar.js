@@ -29,6 +29,8 @@ const useStyles = makeStyles({
 });
 
 export default function DocumentSidebar(props) {
+  console.debug("DocumentSidebar (props)", props);
+
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
   const { orgID } = useParams();
@@ -106,7 +108,7 @@ export default function DocumentSidebar(props) {
             doc={props.document}
             transcriptionVideo={transcriptionVideo}
             reactQuillRef={props.reactQuillRef}
-            selection={props.selection}
+            selectionChannelPort={props.selectionChannelPort}
           />
         </Card>
       ) : (

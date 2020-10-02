@@ -20,7 +20,7 @@ export default function Transcript({
   reactQuillRef,
   tags,
   document,
-  setCurrentSelectionCallback,
+  selectionChannelPort,
 }) {
   const {
     documentRef,
@@ -39,9 +39,7 @@ export default function Transcript({
     if (source !== "user" || range === null) {
       return;
     }
-
-    console.debug("current selection range", range);
-    setCurrentSelectionCallback(range);
+    selectionChannelPort.postMessage(range);
   };
 
   useEffect(() => {

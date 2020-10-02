@@ -59,10 +59,10 @@ export default function Document(props) {
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [selectedTab, setSelectedTab] = useState();
 
-  const [
-    currentTranscriptSelection,
-    setCurrentTranscriptSelection,
-  ] = useState();
+  const transcriptSelectionChan = new MessageChannel();
+  const transcriptSelectionSend = transcriptSelectionChan.port1;
+  const transcriptSelectionReceive = transcriptSelectionChan.port2;
+
   const [tagGroupName, setTagGroupName] = useState();
 
   const classes = useStyles();
@@ -166,6 +166,12 @@ export default function Document(props) {
       </div>
     );
   }
+
+  console.debug(
+    "Document: setting up channel ports",
+    transcriptSelectionSend,
+    transcriptSelectionReceive
+  );
 
   return (
     <Grid container item md={12} lg={9} xl={10} spacing={0}>
@@ -281,10 +287,7 @@ export default function Document(props) {
                       document={document}
                       tags={tags}
                       reactQuillRef={reactQuillTranscriptRef}
-                      currentSelection={currentTranscriptSelection}
-                      setCurrentSelectionCallback={
-                        setCurrentTranscriptSelection
-                      }
+                      selectionChannelPort={transcriptSelectionSend}
                     />
                   )}
                 </Grid>
@@ -298,7 +301,7 @@ export default function Document(props) {
         <DocumentSidebar
           reactQuillRef={reactQuillTranscriptRef}
           document={document}
-          selection={currentTranscriptSelection}
+          selectionChannelPort={transcriptSelectionReceive}
           tagGroupName={tagGroupName}
         />
       </Hidden>
