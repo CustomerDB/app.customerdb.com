@@ -40,3 +40,4 @@ steps:
   - 'BUILD=$BUILD_ID'
   - 'PROJECT=$PROJECT_ID'
   - 'REV=$REVISION_ID'
+timeout: 30m
