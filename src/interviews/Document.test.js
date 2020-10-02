@@ -2,6 +2,10 @@ import "mutationobserver-shim";
 
 import * as firebase from "@firebase/testing";
 
+import {
+  MessageChannelPolyfill,
+  MessagePortPolyfill,
+} from "message-port-polyfill";
 import React, { useCallback, useRef, useState } from "react";
 import { Route, MemoryRouter as Router, Routes } from "react-router-dom";
 
