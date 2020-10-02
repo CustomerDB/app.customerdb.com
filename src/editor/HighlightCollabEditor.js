@@ -40,6 +40,8 @@ export default function HighlightCollabEditor({
       return;
     }
     selectionChannelSend.postMessage(range);
+
+    onChangeSelection(range, source, editor);
   };
 
   return (

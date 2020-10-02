@@ -39,6 +39,7 @@ export default function Transcript({
     if (source !== "user" || range === null) {
       return;
     }
+    console.log("selectionChannelPort: sending", range);
     selectionChannelPort.postMessage(range);
   };
 
