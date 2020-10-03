@@ -13,6 +13,7 @@ import Logout from "./auth/Logout.js";
 import Organization from "./organization/Organization.js";
 import React from "react";
 import { BrowserRouter as Router } from "react-router-dom";
+import Validate from "./auth/Validate.js";
 import WithOauthUser from "./auth/WithOauthUser.js";
 
 export default function App() {
@@ -93,6 +94,9 @@ export default function App() {
               <Route path="logout">
                 <Logout />
               </Route>
+
+              <Route path="validate" element={<Validate />} />
+
               <Route path="*" element={<Navigate to="/404" />} />
             </Routes>
           </ThemeProvider>
