@@ -28,8 +28,8 @@ export default function Organization() {
 
     if (oauthClaims) {
       if (!oauthClaims.orgID || oauthClaims.orgID !== orgID) {
-        console.debug("user not authorized");
-        navigate("/logout");
+        console.debug("user not authorized", oauthClaims);
+        // navigate("/logout");
         setAuthorized(false);
         return;
       }

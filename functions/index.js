@@ -42,6 +42,8 @@ exports.onMemberWritten = functions.firestore
         .auth()
         .getUserByEmail(email)
         .then((userRecord) => {
+          console.log("userRecord: ", JSON.stringify(userRecord));
+          let uid = userRecord.uid;
           let db = admin.firestore();
           let orgRef = db.collection("organizations").doc(orgID);
           let memberRef = orgRef.collection("members").doc(email);
@@ -62,7 +64,7 @@ exports.onMemberWritten = functions.firestore
               );
             })
             .then(() => {
-              return userRecord.uid;
+              return uid;
             });
         });
     } else {
@@ -110,10 +112,13 @@ exports.onMemberWritten = functions.firestore
           let needsClaims = after.active && missingClaims;
 
           // True if a user is writing their own member uid (join org operation)
-          let memberJoined = !before.uid && before.uid !== after.uid;
+          console.log("Before: ", before);
+          console.log("After: ", after);
+          let memberJoined =
+            !before || (!before.uid && before.uid !== after.uid);
 
           // True if the member admin bit changed
-          let adminChanged = before.admin !== after.admin;
+          let adminChanged = !before || before.admin !== after.admin;
 
           if (needsClaims || memberJoined || adminChanged) {
             console.log("writing new custom claims", newCustomClaims);

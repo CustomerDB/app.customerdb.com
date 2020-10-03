@@ -77,21 +77,22 @@ export default function Members(props) {
   };
 
   const onEmailInvite = (name, email) => {
-    return membersRef
-      .doc(email)
-      .set({
-        invited: false,
-        active: true,
-        displayName: name,
-        email: email,
-        inviteSentTimestamp: "",
-      })
+    let actionCodeSettings = {
+      url: "http://localhost:3000/validate",
+      handleCodeInApp: true,
+    };
+    firebase
+      .auth()
+      .sendSignInLinkToEmail(email, actionCodeSettings)
       .then(() => {
-        let actionCodeSettings = {
-          url: "http://localhost:3000/validate",
-          handleCodeInApp: true,
-        };
-        return firebase.auth().sendSignInLinkToEmail(email, actionCodeSettings);
+        return membersRef.doc(email).set({
+          invited: false,
+          active: true,
+          admin: false,
+          displayName: name,
+          email: email,
+          inviteSentTimestamp: "",
+        });
       });
   };
 
