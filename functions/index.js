@@ -443,12 +443,35 @@ const latestRevision = (collectionRef) => {
     });
 };
 
+const isDocument = (delta) => {
+  if (delta.ops.length === 0) {
+    return false;
+  }
+  let result = true;
+  for (let i = 0; i < delta.ops.length; i++) {
+    let op = delta.ops[i];
+    if (!op.insert) {
+      result = false;
+      break;
+    }
+  }
+  return result;
+};
+
 const updateRevision = (revisionDelta, revisionTimestamp, deltasRef) => {
   let result = revisionDelta;
   let timestamp = revisionTimestamp;
 
+  if (!isDocument(revisionDelta)) {
+    console.error(
+      "Revision delta is not a document ",
+      JSON.stringify(revisionDelta)
+    );
+  }
+
   return deltasRef
     .where("timestamp", ">", timestamp)
+    .orderBy("timestamp", "asc")
     .get()
     .then((deltasSnapshot) => {
       deltasSnapshot.forEach((deltaDoc) => {
@@ -456,6 +479,14 @@ const updateRevision = (revisionDelta, revisionTimestamp, deltasRef) => {
         result = result.compose(new Delta(data.ops));
         timestamp = data.timestamp;
       });
+
+      if (!isDocument(result)) {
+        console.error(
+          "New revision delta is not a document ",
+          JSON.stringify(result)
+        );
+      }
+
       return {
         delta: result,
         timestamp: timestamp,
