@@ -10,6 +10,14 @@ import UserAuthContext from "../auth/UserAuthContext.js";
 import { initialDelta } from "./delta.js";
 import { v4 as uuidv4 } from "uuid";
 
+// Returns true if `a` precedes `b` in time.
+const timestampsAreOrdered = (a, b) => {
+  return (
+    a.seconds < b.seconds ||
+    (a.seconds === b.seconds && a.nanoseconds <= b.nanoseconds)
+  );
+};
+
 // Synchronize every second by default (1000ms).
 const defaultSyncPeriod = 1000;
 
@@ -45,8 +53,18 @@ const defaultSyncPeriod = 1000;
 // 5) Apply the diff to the editor.
 // 6) Re-apply the transformed local delta buffer to editor
 //
-export default function CollabEditor({
+export default function CollabEditor(props) {
+  // revisionCache.current value is an object with fields:
+  // - delta: full document delta
+  // - timestamp: ts of the last edit
+  const revisionCache = useRef();
+
+  return <CollabEditorWithCache revisionCache={revisionCache} {...props} />;
+}
+
+function CollabEditorWithCache({
   quillRef,
+  revisionCache,
   deltasRef,
   revisionsRef,
   onLoad,
@@ -55,14 +73,21 @@ export default function CollabEditor({
   ...otherProps
 }) {
   const [editorID] = useState(uuidv4());
-  const [revisionDelta, setRevisionDelta] = useState();
-  const [revisionTimestamp, setRevisionTimestamp] = useState();
 
+  // revision.current value is an object with fields:
+  // - delta: full document delta
+  // - timestamp: ts of the last edit
+  const [revision, setRevision] = useState();
+
+  // uncommitted Deltas have been sent to the database
+  // but not yet seen in the canonical edit stream
   const uncommittedDeltas = useRef([]);
 
-  const { oauthClaims } = useContext(UserAuthContext);
-
+  // localDelta is a buffer of local changes, not yet
+  // sent to the database.
   const localDelta = useRef(new Delta([]));
+
+  const { oauthClaims } = useContext(UserAuthContext);
 
   const deltaSyncPeriod = syncPeriod || defaultSyncPeriod;
 
@@ -76,22 +101,33 @@ export default function CollabEditor({
       .orderBy("timestamp", "desc")
       .limit(1)
       .onSnapshot((snapshot) => {
+        let newRevision = {
+          delta: initialDelta(),
+          timestamp: new firebaseClient.firestore.Timestamp(0, 0),
+        };
         if (snapshot.size === 0) {
-          setRevisionDelta(initialDelta());
-          setRevisionTimestamp(new firebaseClient.firestore.Timestamp(0, 0));
+          revisionCache.current = newRevision;
+          setRevision(newRevision);
           return;
         }
 
-        let revision = snapshot.docs[0].data();
-        setRevisionDelta(new Delta(revision.delta.ops));
-        if (!revision.timestamp) {
-          setRevisionTimestamp(new firebaseClient.firestore.Timestamp(0, 0));
-          return;
+        let revisionData = snapshot.docs[0].data();
+        newRevision.delta = new Delta(revisionData.delta.ops);
+        if (revisionData.timestamp) {
+          newRevision.timestamp = revisionData.timestamp;
         }
-
-        setRevisionTimestamp(revision.timestamp);
+        if (
+          !revisionCache.current ||
+          timestampsAreOrdered(
+            revisionCache.current.timestamp,
+            newRevision.timestamp
+          )
+        ) {
+          revisionCache.current = newRevision;
+        }
+        setRevision(newRevision);
       });
-  }, [revisionsRef]);
+  }, [revisionsRef, revisionCache]);
 
   // Returns true if the supplied delta is a document;
   // that is, it contains only insert operations.
@@ -110,10 +146,16 @@ export default function CollabEditor({
     return result;
   };
 
+  // Returns a delta that contains (only) all of the
+  // insert operations in the supplied delta.
+  const justInsertOperations = (delta) => {
+    return new Delta(delta.filter((op) => op.insert));
+  };
+
   // Document will contain the latest cached and compressed version of the
   // delta document. Subscribe to deltas from other remote clients.
   useEffect(() => {
-    if (!editorID || !deltasRef || !revisionDelta || !revisionTimestamp) {
+    if (!editorID || !deltasRef || !revision) {
       return;
     }
 
@@ -124,12 +166,12 @@ export default function CollabEditor({
 
     console.debug(
       "Subscribing to remote deltas since",
-      revisionTimestamp.toDate()
+      revision.timestamp.toDate()
     );
 
     return deltasRef
       .orderBy("timestamp", "asc")
-      .where("timestamp", ">", revisionTimestamp)
+      .where("timestamp", ">", revision.timestamp)
       .onSnapshot((snapshot) => {
         // filter out newly committed deltas from uncommittedDeltas
         let newUncommittedDeltas = uncommittedDeltas.current;
@@ -140,9 +182,18 @@ export default function CollabEditor({
         });
         uncommittedDeltas.current = newUncommittedDeltas;
 
-        let committedDeltas = [];
         snapshot.forEach((deltaDoc) => {
-          committedDeltas.push(new Delta(deltaDoc.data().ops));
+          let data = deltaDoc.data();
+          let dt = data.timestamp;
+          let rct = revisionCache.current.timestamp;
+          let delta = new Delta(data.ops);
+          if (timestampsAreOrdered(dt, rct)) {
+            return;
+          }
+          revisionCache.current.delta = revisionCache.current.delta.compose(
+            delta
+          );
+          revisionCache.current.timestamp = data.timestamp;
         });
 
         let editorContents = editor.getContents();
@@ -159,16 +210,17 @@ export default function CollabEditor({
 
         // Compute remote: latest revision + new committed deltas +
         //                 new uncommitted deltas
-        let remote = revisionDelta;
-        committedDeltas.forEach((delta) => {
-          remote = remote.compose(delta);
-        });
+        let remote = revisionCache.current.delta;
         newUncommittedDeltas.forEach((delta) => {
           remote = remote.compose(delta);
         });
-        console.debug("remote", remote);
 
         // Compute update patch from local to remote
+
+        // Filter trailing delete ops.
+        local = justInsertOperations(local);
+        remote = justInsertOperations(remote);
+
         if (!isDocument(local)) {
           console.debug("local is not a document -- quitting");
           return;
@@ -214,7 +266,7 @@ export default function CollabEditor({
           editor.setSelection(selectionIndex, selection.length);
         }
       });
-  }, [editorID, revisionDelta, revisionTimestamp, deltasRef, quillRef]);
+  }, [editorID, revision, revisionCache, deltasRef, quillRef]);
 
   // Register timers to periodically sync local changes with firestore.
   useEffect(() => {
@@ -273,13 +325,13 @@ export default function CollabEditor({
     }
   };
 
-  if (!revisionDelta) return <></>;
+  if (!revision) return <></>;
 
   return (
     <ReactQuill
       ref={quillRef}
       onChange={onEdit}
-      defaultValue={revisionDelta}
+      defaultValue={revisionCache.delta}
       {...otherProps}
     />
   );
