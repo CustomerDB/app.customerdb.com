@@ -80,7 +80,6 @@ exports.avatarImageDataRemove = functions.pubsub
   .onPublish((message) => {
     // Search for people with imageData set but no imageURL.
     const db = admin.firestore();
-    let bucket = admin.storage().bucket();
 
     return db
       .collection("organizations")
