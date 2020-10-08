@@ -13,6 +13,8 @@ const adminClient = new firestore.v1.FirestoreAdminClient();
 
 admin.initializeApp();
 
+exports.repairJobs = require("./repairJobs");
+
 //////////////////////////////////////////////////////////////////////////////
 //
 //   Authentication

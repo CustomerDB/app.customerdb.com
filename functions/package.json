@@ -16,11 +16,13 @@
     "@sendgrid/mail": "^7.2.1",
     "algoliasearch": "^4.3.1",
     "csv-parser": "^2.3.3",
+    "data-uri-to-file": "^0.1.8",
     "firebase-admin": "^8.10.0",
     "firebase-functions": "^3.8.0",
     "quill-delta": "^4.2.2",
     "tmp": "^0.2.1",
-    "uuid": "^8.3.0"
+    "uuid": "^8.3.0",
+    "uuid-v4": "^0.1.0"
   },
   "private": true
 }
