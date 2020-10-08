@@ -75,5 +75,41 @@ exports.avatarImageUpload = functions.pubsub
       });
   });
 
-// TODO(NN): After imageURL is available and front-end change deployed,
-//           deploy job to remove imageData field.
+exports.avatarImageUpload = functions.pubsub
+  .topic("avatar-data-remove")
+  .onPublish((message) => {
+    // Search for people with imageData set but no imageURL.
+    const db = admin.firestore();
+    let bucket = admin.storage().bucket();
+
+    return db
+      .collection("organizations")
+      .get()
+      .then((orgsSnapshot) => {
+        return Promise.all(
+          orgsSnapshot.docs.map((orgRef) => {
+            let orgID = orgRef.id;
+
+            return db
+              .collection("organizations")
+              .doc(orgID)
+              .collection("people")
+              .where("deletionTimestamp", "==", "")
+              .orderBy("imageData")
+              .get()
+              .then((peopleSnapshot) => {
+                return Promise.all(
+                  peopleSnapshot.docs.map((personRef) => {
+                    return personRef.ref.set(
+                      {
+                        imageData: "",
+                      },
+                      { merge: true }
+                    );
+                  })
+                );
+              });
+          })
+        );
+      });
+  });
