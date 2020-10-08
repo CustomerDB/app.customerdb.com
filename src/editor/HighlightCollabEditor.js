@@ -28,11 +28,16 @@ export default function HighlightCollabEditor({
   highlightsRef,
   tags,
   onChangeSelection,
+  onReady,
   ...otherProps
 }) {
   const selectionChannel = new MessageChannel();
   const selectionChannelSend = selectionChannel.port1;
   const selectionChannelReceive = selectionChannel.port2;
+
+  const readyChannel = new MessageChannel();
+  const readyChannelSend = readyChannel.port1;
+  const readyChannelReceive = readyChannel.port2;
 
   const initialScrollRef = useRef();
 
@@ -49,17 +54,26 @@ export default function HighlightCollabEditor({
     }
   };
 
+  const thisOnReady = () => {
+    readyChannelSend.postMessage({});
+    if (onReady) {
+      onReady();
+    }
+  };
+
   return (
     <>
       <CollabEditor
         quillRef={quillRef}
         onChangeSelection={thisOnChangeSelection}
+        onReady={thisOnReady}
         {...otherProps}
       />
       <HighlightControls
         quillRef={quillRef}
         initialScrollRef={initialScrollRef}
         selectionChannelPort={selectionChannelReceive}
+        readyChannelPort={readyChannelReceive}
         highlightsRef={highlightsRef}
         highlightDocument={document}
         tags={tags}
@@ -75,6 +89,7 @@ function HighlightControls({
   quillRef,
   initialScrollRef,
   selectionChannelPort,
+  readyChannelPort,
   highlightsRef,
   highlightDocument,
   tags,
@@ -83,6 +98,7 @@ function HighlightControls({
   const { oauthClaims } = useContext(UserAuthContext);
   const { orgID } = useParams();
   const [toolbarHeight, setToolbarHeight] = useState(40);
+  const [editor, setEditor] = useState();
   const [selection, setSelection] = useState();
   const [highlights, setHighlights] = useState();
   const highlightsCache = useRef();
@@ -97,59 +113,42 @@ function HighlightControls({
     }
   }, [query, initialScrollRef]);
 
+  readyChannelPort.onmessage = () => {
+    setEditor(quillRef.current.getEditor());
+  };
+
   // Scroll to quote ID from URL on load.
   useEffect(() => {
     if (
+      initialScrollRef.current ||
       !query ||
       !query.has("quote") ||
-      initialScrollRef.current ||
+      !editor ||
       !highlights
     ) {
       return;
     }
 
-    if (selection) {
+    const highlightID = query.get("quote");
+    let highlight = highlights[highlightID];
+    if (!highlight) {
       return;
     }
 
-    const highlightID = query.get("quote");
+    let highlightNodes = document.getElementsByClassName(
+      `highlight-${highlightID}`
+    );
+    if (!highlightNodes || highlightNodes.length === 0) return;
+    let highlightNode = highlightNodes[0];
 
-    let interval;
-
-    interval = setInterval(() => {
-      if (!quillRef || !quillRef.current) return;
-
-      let highlight = highlights[query.get("quote")];
-      if (initialScrollRef.current || !highlight) {
-        clearInterval(interval);
-        return;
-      }
-
-      let editor = quillRef.current.getEditor();
-      let highlightNodes = document.getElementsByClassName(
-        `highlight-${highlightID}`
-      );
-      if (!highlightNodes || highlightNodes.length === 0) return;
-      let highlightNode = highlightNodes[0];
-      setTimeout(() => {
-        console.debug("scrolling to highlight", highlightID, highlightNode);
-        highlightNode.scrollIntoView({ behavior: "smooth", block: "center" });
-        initialScrollRef.current = true;
-        editor.setSelection(highlight.selection.index);
-      }, 500);
-    }, 500);
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, [selection, query, highlights, initialScrollRef, quillRef]);
+    console.debug("scrolling to highlight", highlightID, highlightNode);
+    highlightNode.scrollIntoView({ behavior: "smooth", block: "center" });
+    initialScrollRef.current = true;
+    editor.setSelection(highlight.selection.index);
+  }, [editor, query, highlights, initialScrollRef]);
 
   const getHighlightFromEditor = useCallback(
     (highlightID) => {
-      if (!quillRef || !quillRef.current) {
-        return;
-      }
-      let editor = quillRef.current.getEditor();
       let domNodes = document.getElementsByClassName(
         `highlight-${highlightID}`
       );
@@ -182,16 +181,15 @@ function HighlightControls({
         text: text,
       };
     },
-    [quillRef]
+    [editor]
   );
 
   // selection: a range object with fields 'index' and 'length'
   const computeHighlightsInSelection = useCallback(
     (selection) => {
-      if (!quillRef || !quillRef.current) {
+      if (!editor) {
         return [];
       }
-      let editor = quillRef.current.getEditor();
       let result = [];
       if (selection === undefined) {
         return result;
@@ -210,7 +208,7 @@ function HighlightControls({
         return [];
       });
     },
-    [quillRef, getHighlightFromEditor]
+    [editor, getHighlightFromEditor]
   );
 
   // selection: a range object with fields 'index' and 'length'
@@ -305,7 +303,7 @@ function HighlightControls({
 
     // This function sends any new highlights to the database.
     const syncHighlightsCreate = () => {
-      if (!quillRef || !quillRef.current || !highlightsCache.current) {
+      if (!editor || !highlightsCache.current) {
         return;
       }
       let editorHighlightIDs = getHighlightIDsFromEditor();
@@ -347,7 +345,7 @@ function HighlightControls({
     // This function sends any local updates to highlight content relative
     // to the local editor to the database.
     const syncHighlightsUpdate = () => {
-      if (!quillRef || !quillRef.current || !highlightsCache.current) {
+      if (!editor || !highlightsCache.current) {
         return;
       }
       // Update or delete highlights based on local edits.
@@ -416,7 +414,7 @@ function HighlightControls({
     highlightDocument.ID,
     highlightDocument.deletionTimestamp,
     highlightDocument.personID,
-    quillRef,
+    editor,
     firebase,
   ]);
 
@@ -425,10 +423,9 @@ function HighlightControls({
   const onTagControlChange = useCallback(
     (tag, checked) => {
       console.debug("onTagControlChange", tag, checked, selection);
-      if (!quillRef || !quillRef.current) {
+      if (!editor) {
         return;
       }
-      let editor = quillRef.current.getEditor();
 
       if (selection === undefined) {
         return;
@@ -474,12 +471,7 @@ function HighlightControls({
       setSelection(newRange);
       setTagIDsInSelection(computeTagIDsInSelection(newRange));
     },
-    [
-      quillRef,
-      selection,
-      computeHighlightsInSelection,
-      computeTagIDsInSelection,
-    ]
+    [editor, selection, computeHighlightsInSelection, computeTagIDsInSelection]
   );
 
   if (!highlights || !tags || !toolbarHeight) {
