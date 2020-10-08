@@ -36,14 +36,14 @@ export default function PersonEditDialog(props) {
       let person = doc.data();
       person.ID = doc.id;
 
-      setName(person.name);
-      setEmail(person.email);
-      setCompany(person.company);
-      setJob(person.job);
-      setPhone(person.phone);
-      setCountry(person.country);
-      setState(person.state);
-      setCity(person.city);
+      setName(person.name || "");
+      setEmail(person.email || "");
+      setCompany(person.company || "");
+      setJob(person.job || "");
+      setPhone(person.phone || "");
+      setCountry(person.country || "");
+      setState(person.state || "");
+      setCity(person.city || "");
 
       setCustomFields(person.customFields || {});
       setLabels(person.labels || {});
@@ -145,14 +145,14 @@ export default function PersonEditDialog(props) {
               userID: oauthClaims.user_id,
             });
 
-            if (name) person.name = name;
-            if (email) person.email = email;
-            if (company) person.company = company;
-            if (job) person.job = job;
-            if (phone) person.phone = phone;
-            if (country) person.country = country;
-            if (state) person.state = state;
-            if (city) person.city = city;
+            person.name = name;
+            person.email = email;
+            person.company = company;
+            person.job = job;
+            person.phone = phone;
+            person.country = country;
+            person.state = state;
+            person.city = city;
 
             person.customFields = customFields;
             person.labels = labels;
