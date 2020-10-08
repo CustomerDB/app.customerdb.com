@@ -130,7 +130,7 @@ export default function Person(props) {
                 <Avatar
                   size={70}
                   name={person.name}
-                  src={person.imageData}
+                  src={person.imageURL}
                   round={true}
                 />
                 <div
