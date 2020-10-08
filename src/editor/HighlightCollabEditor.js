@@ -10,13 +10,14 @@ import React, {
 
 import CollabEditor from "./CollabEditor.js";
 import FirebaseContext from "../util/FirebaseContext.js";
-import HighlightBlot from "../interviews/HighlightBlot.js";
-import HighlightHints from "../interviews/HighlightHints.js";
+import HighlightBlot from "./HighlightBlot.js";
+import HighlightHints from "./HighlightHints.js";
 import Quill from "quill";
-import SelectionFAB from "../interviews/SelectionFAB.js";
+import SelectionFAB from "./SelectionFAB.js";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
 import { useParams } from "react-router-dom";
+import { useQuery } from "../util/Query.js";
 import { v4 as uuidv4 } from "uuid";
 
 Quill.register("formats/highlight", HighlightBlot);
@@ -32,6 +33,8 @@ export default function HighlightCollabEditor({
   const selectionChannel = new MessageChannel();
   const selectionChannelSend = selectionChannel.port1;
   const selectionChannelReceive = selectionChannel.port2;
+
+  const initialScrollRef = useRef();
 
   // thisOnChangeSelection is invoked when the content selection changes, including
   // whenever the cursor changes position.
@@ -55,6 +58,7 @@ export default function HighlightCollabEditor({
       />
       <HighlightControls
         quillRef={quillRef}
+        initialScrollRef={initialScrollRef}
         selectionChannelPort={selectionChannelReceive}
         highlightsRef={highlightsRef}
         highlightDocument={document}
@@ -69,6 +73,7 @@ const syncPeriod = 1000;
 
 function HighlightControls({
   quillRef,
+  initialScrollRef,
   selectionChannelPort,
   highlightsRef,
   highlightDocument,
@@ -82,6 +87,62 @@ function HighlightControls({
   const [highlights, setHighlights] = useState();
   const highlightsCache = useRef();
   const [tagIDsInSelection, setTagIDsInSelection] = useState(new Set());
+
+  const query = useQuery();
+
+  // Reset scroll flag on navigate
+  useEffect(() => {
+    if (query.has("quote")) {
+      initialScrollRef.current = false;
+    }
+  }, [query, initialScrollRef]);
+
+  // Scroll to quote ID from URL on load.
+  useEffect(() => {
+    if (
+      !query ||
+      !query.has("quote") ||
+      initialScrollRef.current ||
+      !highlights
+    ) {
+      return;
+    }
+
+    if (selection) {
+      return;
+    }
+
+    const highlightID = query.get("quote");
+
+    let interval;
+
+    interval = setInterval(() => {
+      if (!quillRef || !quillRef.current) return;
+
+      let highlight = highlights[query.get("quote")];
+      if (initialScrollRef.current || !highlight) {
+        clearInterval(interval);
+        return;
+      }
+
+      let editor = quillRef.current.getEditor();
+      let highlightNodes = document.getElementsByClassName(
+        `highlight-${highlightID}`
+      );
+      if (!highlightNodes || highlightNodes.length === 0) return;
+      let highlightNode = highlightNodes[0];
+      setTimeout(() => {
+        console.debug("scrolling to highlight", highlightID, highlightNode);
+        highlightNode.scrollIntoView({ behavior: "smooth", block: "center" });
+        initialScrollRef.current = true;
+        editor.setSelection(highlight.selection.index);
+      }, 500);
+    }, 500);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [selection, query, highlights, initialScrollRef, quillRef]);
 
   const getHighlightFromEditor = useCallback(
     (highlightID) => {
@@ -239,22 +300,8 @@ function HighlightControls({
       !oauthClaims.email ||
       !highlightsCache
     ) {
-      console.debug(
-        "bailing",
-        highlightsRef,
-        highlightDocument.ID,
-        oauthClaims.email,
-        highlightsCache
-      );
       return;
     }
-    console.debug(
-      "not bailing",
-      highlightsRef,
-      highlightDocument.ID,
-      oauthClaims.email,
-      highlightsCache
-    );
 
     // This function sends any new highlights to the database.
     const syncHighlightsCreate = () => {

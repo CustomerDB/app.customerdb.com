@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { addTagStyles, removeTagStyles } from "./Tags.js";
+import { addTagStyles, removeTagStyles } from "../editor/Tags.js";
 import { useNavigate, useParams } from "react-router-dom";
 
 import Archive from "@material-ui/icons/Archive";
