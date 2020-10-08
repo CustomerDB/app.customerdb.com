@@ -75,7 +75,7 @@ exports.avatarImageUpload = functions.pubsub
       });
   });
 
-exports.avatarImageUpload = functions.pubsub
+exports.avatarImageDataRemove = functions.pubsub
   .topic("avatar-data-remove")
   .onPublish((message) => {
     // Search for people with imageData set but no imageURL.
