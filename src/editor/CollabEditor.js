@@ -59,11 +59,30 @@ export default function CollabEditor(props) {
   // - timestamp: ts of the last edit
   const revisionCache = useRef();
 
-  return <CollabEditorWithCache revisionCache={revisionCache} {...props} />;
+  const editorReady = useRef();
+
+  const readyChannel = new MessageChannel();
+  const readyChannelSend = readyChannel.port1;
+  const readyChannelReceive = readyChannel.port2;
+
+  readyChannelReceive.onmessage = () => {
+    if (!editorReady.current && props.onReady) {
+      props.onReady();
+    }
+  };
+
+  return (
+    <CollabEditorWithCache
+      readyPort={readyChannelSend}
+      revisionCache={revisionCache}
+      {...props}
+    />
+  );
 }
 
 function CollabEditorWithCache({
   quillRef,
+  readyPort,
   revisionCache,
   deltasRef,
   revisionsRef,
@@ -265,8 +284,10 @@ function CollabEditorWithCache({
           console.debug("updating selection index");
           editor.setSelection(selectionIndex, selection.length);
         }
+
+        readyPort.postMessage({});
       });
-  }, [editorID, revision, revisionCache, deltasRef, quillRef]);
+  }, [editorID, revision, revisionCache, deltasRef, quillRef, readyPort]);
 
   // Register timers to periodically sync local changes with firestore.
   useEffect(() => {
