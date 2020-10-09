@@ -6,6 +6,7 @@ import CardContent from "@material-ui/core/CardContent";
 import FirebaseContext from "../util/FirebaseContext.js";
 import Grid from "@material-ui/core/Grid";
 import { Loading } from "../util/Utils.js";
+import Scrollable from "../shell/Scrollable.js";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import { makeStyles } from "@material-ui/core/styles";
 import papa from "papaparse";
@@ -190,29 +191,38 @@ export default function BulkImport(props) {
   );
 
   let filePrompt = (
-    <Grid container item xs={12} spacing={0} justify="center">
-      <Card className={classes.fullWidthCard}>
-        <CardContent>
-          <Grid
-            container
-            item
-            direction="column"
-            justify="flex-start"
-            alignItems="center"
-            spacing={2}
-          >
-            <Grid container item>
-              <h3>Import contacts</h3>
+    <Grid
+      container
+      item
+      xs={12}
+      spacing={0}
+      justify="center"
+      style={{ position: "relative" }}
+    >
+      <Scrollable>
+        <Card className={classes.fullWidthCard}>
+          <CardContent>
+            <Grid
+              container
+              item
+              direction="column"
+              justify="flex-start"
+              alignItems="center"
+              spacing={2}
+            >
+              <Grid container item>
+                <h3>Import contacts</h3>
+              </Grid>
+              <Grid container item>
+                {contactZone}
+              </Grid>
+              <Grid container item>
+                {instructions}
+              </Grid>
             </Grid>
-            <Grid container item>
-              {contactZone}
-            </Grid>
-            <Grid container item>
-              {instructions}
-            </Grid>
-          </Grid>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </Scrollable>
     </Grid>
   );
 
@@ -240,87 +250,105 @@ export default function BulkImport(props) {
     }
 
     return (
-      <Grid container item xs={12} spacing={0} justify="center">
-        <Card className={classes.fullWidthCard}>
-          <CardContent>
-            <Grid container item>
-              <Grid item>
-                <h3>Import progress</h3>
+      <Grid
+        container
+        item
+        xs={12}
+        spacing={0}
+        justify="center"
+        style={{ position: "relative" }}
+      >
+        <Scrollable>
+          <Card className={classes.fullWidthCard}>
+            <CardContent>
+              <Grid container item>
+                <Grid item>
+                  <h3>Import progress</h3>
+                </Grid>
               </Grid>
-            </Grid>
 
-            <Grid container item>
-              <Grid item>
-                <p>
-                  {importProgress} of {records.length}
-                </p>
+              <Grid container item>
+                <Grid item>
+                  <p>
+                    {importProgress} of {records.length}
+                  </p>
+                </Grid>
               </Grid>
-            </Grid>
 
-            <Grid container item>
-              <Grid item>{okButton}</Grid>
-            </Grid>
-          </CardContent>
-        </Card>
+              <Grid container item>
+                <Grid item>{okButton}</Grid>
+              </Grid>
+            </CardContent>
+          </Card>
+        </Scrollable>
       </Grid>
     );
   }
 
   return (
-    <Grid container item xs={12} spacing={0} justify="center">
-      <Card className={classes.fullWidthCard}>
-        <CardContent>
-          <Grid container item>
-            <Grid item>
-              <h3>Import preview</h3>
+    <Grid
+      container
+      item
+      xs={12}
+      spacing={0}
+      justify="center"
+      style={{ position: "relative" }}
+    >
+      <Scrollable>
+        <Card className={classes.fullWidthCard}>
+          <CardContent>
+            <Grid container item>
+              <Grid item>
+                <h3>Import preview</h3>
+              </Grid>
             </Grid>
-          </Grid>
 
-          <Grid container item>
-            <ContactPreview record={randomRecord} />
-          </Grid>
+            <Grid container item>
+              <ContactPreview record={randomRecord} />
+            </Grid>
 
-          <Grid container item>
-            <Grid item>
-              <Button
-                style={{ minWidth: "18rem" }}
-                key="random"
-                onClick={chooseRandomRecord}
-              >
-                Preview another random record
-              </Button>
+            <Grid container item>
+              <Grid item>
+                <Button
+                  style={{ minWidth: "18rem" }}
+                  key="random"
+                  onClick={chooseRandomRecord}
+                >
+                  Preview another random record
+                </Button>
+              </Grid>
             </Grid>
-          </Grid>
-          <Grid container item>
-            <Grid item>
-              <Button
-                style={{ minWidth: "18rem" }}
-                key="cancel"
-                variant="contained"
-                onClick={() => setRecords(undefined)}
-              >
-                Cancel
-              </Button>
+            <Grid container item>
+              <Grid item>
+                <Button
+                  style={{ minWidth: "18rem" }}
+                  key="cancel"
+                  variant="contained"
+                  onClick={() => setRecords(undefined)}
+                >
+                  Cancel
+                </Button>
+              </Grid>
             </Grid>
-          </Grid>
 
-          <Grid container item>
-            <Grid item>
-              <Button
-                style={{ minWidth: "18rem" }}
-                key="import"
-                color="primary"
-                variant="contained"
-                onClick={() => {
-                  setImportProgress(0);
-                }}
-              >
-                Import {records.length} records
-              </Button>
+            <Grid container item>
+              <Grid item>
+                <Button
+                  style={{ minWidth: "18rem" }}
+                  key="import"
+                  color="primary"
+                  variant="contained"
+                  onClick={() => {
+                    setImportProgress(0);
+                  }}
+                >
+                  Import {records.length} records
+                </Button>
+              </Grid>
             </Grid>
-          </Grid>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </Scrollable>
     </Grid>
   );
 }
