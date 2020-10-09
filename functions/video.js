@@ -1,6 +1,8 @@
 const functions = require("firebase-functions");
 const glob = require("glob");
 const tmp = require("tmp");
+const spawn = require("child-process-promise").spawn;
+const ffmpegPath = require("@ffmpeg-installer/ffmpeg").path;
 
 const generateFromVideo = (file, imageHeight, outputPrefix) => {
   // ffmpeg -i input.mp4 -f image2 -vf fps=1/10,scale=-1:192 thumb-%d.png
@@ -18,8 +20,12 @@ const generateFromVideo = (file, imageHeight, outputPrefix) => {
         `fps=1/10,scale=-1:${imageHeight}`,
         `${outputPrefix}/thumb-%d.png`,
       ]);
-      // promise.childProcess.stdout.on('data', (data) => console.info('[spawn] stdout: ', data.toString()));
-      // promise.childProcess.stderr.on('data', (data) => console.info('[spawn] stderr: ', data.toString()));
+      promise.childProcess.stdout.on("data", (data) =>
+        console.info("[spawn] stdout: ", data.toString())
+      );
+      promise.childProcess.stderr.on("data", (data) =>
+        console.info("[spawn] stderr: ", data.toString())
+      );
       return promise;
     });
 };
