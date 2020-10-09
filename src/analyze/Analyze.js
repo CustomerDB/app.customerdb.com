@@ -122,7 +122,7 @@ export default function Analyze(props) {
   };
 
   let list = (
-    <ListContainer>
+    <ListContainer sm={3}>
       <Scrollable>
         {listTotal === 0 && <AnalyzeHelp />}
         <List>
@@ -205,7 +205,7 @@ export default function Analyze(props) {
 
   if (analysisID) {
     // Optionally hide the list if the viewport is too small
-    list = <Hidden mdDown>{list}</Hidden>;
+    // list = <Hidden smDown>{list}</Hidden>;
   }
 
   return (

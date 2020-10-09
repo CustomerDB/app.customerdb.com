@@ -105,7 +105,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function Shell(props) {
+export default function Shell({ search, title, children, ...otherProps }) {
   const { oauthUser } = useContext(UserAuthContext);
 
   const { orgID } = useParams();
@@ -136,7 +136,7 @@ export default function Shell(props) {
   };
 
   let app = (
-    <Search search={props.search}>
+    <Search search={search}>
       <div className={classes.root}>
         <CssBaseline />
         <AppBar
@@ -159,10 +159,10 @@ export default function Shell(props) {
             </IconButton>
             {!lgBreakpoint && (
               <Typography variant="h6" noWrap>
-                {props.title}
+                {title}
               </Typography>
             )}
-            {props.search && <SearchInput />}
+            {search && <SearchInput />}
             <div className={classes.grow} />
             {oauthUser && (
               <>
@@ -278,7 +278,7 @@ export default function Shell(props) {
         </Drawer>
         <main className={classes.content}>
           <div className={classes.toolbar} />
-          {props.children}
+          {children}
         </main>
       </div>
     </Search>
