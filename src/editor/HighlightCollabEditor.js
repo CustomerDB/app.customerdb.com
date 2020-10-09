@@ -102,50 +102,51 @@ function HighlightControls({
   const [selection, setSelection] = useState();
   const [highlights, setHighlights] = useState();
   const highlightsCache = useRef();
+  const [scrollHighlightID, setScrollHighlightID] = useState();
   const [tagIDsInSelection, setTagIDsInSelection] = useState(new Set());
 
   const query = useQuery();
-
-  // Reset scroll flag on navigate
-  useEffect(() => {
-    if (query.has("quote")) {
-      initialScrollRef.current = false;
-    }
-  }, [query, initialScrollRef]);
 
   readyChannelPort.onmessage = () => {
     setEditor(quillRef.current.getEditor());
   };
 
+  // Reset scroll flag on navigate
+  useEffect(() => {
+    let highlightID = query.get("quote");
+    initialScrollRef.current = false;
+    setScrollHighlightID(highlightID);
+  }, [query, initialScrollRef]);
+
   // Scroll to quote ID from URL on load.
   useEffect(() => {
     if (
       initialScrollRef.current ||
-      !query ||
-      !query.has("quote") ||
+      !scrollHighlightID ||
       !editor ||
-      !highlights
+      !highlights ||
+      !highlights[scrollHighlightID]
     ) {
       return;
     }
 
-    const highlightID = query.get("quote");
-    let highlight = highlights[highlightID];
-    if (!highlight) {
-      return;
+    let highlight = highlights[scrollHighlightID];
+
+    let highlightNode = document.getElementsByClassName(
+      `highlight-${scrollHighlightID}`
+    )[0];
+
+    const scrollToHighlightNode = () => {
+      console.debug("scrolling to highlight node", highlightNode);
+      editor.setSelection(highlight.selection.index, "user");
+      highlightNode.scrollIntoView({ behavior: "smooth", block: "center" });
+      initialScrollRef.current = true;
+    };
+
+    if (document.body.contains(highlightNode)) {
+      scrollToHighlightNode();
     }
-
-    let highlightNodes = document.getElementsByClassName(
-      `highlight-${highlightID}`
-    );
-    if (!highlightNodes || highlightNodes.length === 0) return;
-    let highlightNode = highlightNodes[0];
-
-    console.debug("scrolling to highlight", highlightID, highlightNode);
-    highlightNode.scrollIntoView({ behavior: "smooth", block: "center" });
-    initialScrollRef.current = true;
-    editor.setSelection(highlight.selection.index);
-  }, [editor, query, highlights, initialScrollRef]);
+  }, [editor, scrollHighlightID, highlights, initialScrollRef]);
 
   const getHighlightFromEditor = useCallback(
     (highlightID) => {
