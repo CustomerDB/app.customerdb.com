@@ -29,7 +29,6 @@ export default function VideoPlayer({
   const [selection, setSelection] = useState();
 
   selectionChannelPort.onmessage = (msg) => {
-    console.debug("selectionChannelPort: received", msg);
     setSelection(msg.data);
   };
 
