@@ -11,6 +11,7 @@ import Grid from "@material-ui/core/Grid";
 import InviteMemberDialog from "./InviteMemberDialog.js";
 import { Loading } from "../util/Utils.js";
 import Options from "../shell/Options.js";
+import Scrollable from "../shell/Scrollable.js";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -242,8 +243,15 @@ export default function Members(props) {
   );
 
   return (
-    <>
-      <Grid container item xs={12} spacing={0} justify="center">
+    <Grid
+      container
+      item
+      xs={12}
+      spacing={0}
+      justify="center"
+      style={{ position: "relative" }}
+    >
+      <Scrollable>
         <Card className={classes.fullWidthCard}>
           <CardContent>
             <Grid item xs>
@@ -260,22 +268,22 @@ export default function Members(props) {
             </Button>
           </CardActions>
         </Card>
-        <InviteMemberDialog
-          show={inviteModalShow}
-          onInvite={onInvite}
-          onHide={() => {
-            setInviteModalShow(false);
-          }}
-        />
-        <DeleteMemberDialog
-          show={deleteModalShow}
-          member={member}
-          onDelete={onDelete}
-          onHide={() => {
-            setDeleteModalShow(false);
-          }}
-        />
-      </Grid>
-    </>
+      </Scrollable>
+      <InviteMemberDialog
+        show={inviteModalShow}
+        onInvite={onInvite}
+        onHide={() => {
+          setInviteModalShow(false);
+        }}
+      />
+      <DeleteMemberDialog
+        show={deleteModalShow}
+        member={member}
+        onDelete={onDelete}
+        onHide={() => {
+          setDeleteModalShow(false);
+        }}
+      />
+    </Grid>
   );
 }
