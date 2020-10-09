@@ -343,6 +343,7 @@ exports.onPersonWritten = functions.firestore
       labels: person.labels,
       customFields: person.customFields,
       createdBy: person.createdBy,
+      imageURL: person.imageURL,
       creationTimestamp: person.creationTimestamp.seconds,
     };
 
