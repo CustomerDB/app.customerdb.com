@@ -30,9 +30,6 @@ exports.avatarImageUpload = functions.pubsub
                 return Promise.all(
                   peopleSnapshot.docs.map((personRef) => {
                     let person = personRef.data();
-                    if (person.imageURL) {
-                      return;
-                    }
 
                     const tmpobj = tmp.fileSync();
                     let img = person.imageData;
