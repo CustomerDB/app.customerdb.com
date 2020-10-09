@@ -105,7 +105,7 @@ export default function People(props) {
 
   const SearchResults = connectHits((result) => {
     return result.hits.map((hit) =>
-      personListItem(hit.objectID, hit.name, undefined, hit.company)
+      personListItem(hit.objectID, hit.name, hit.imageURL, hit.company)
     );
   });
 
