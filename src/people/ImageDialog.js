@@ -43,7 +43,7 @@ export default function ImageDialog({ open, setOpen }) {
     task.on(
       "state_changed",
       (snapshot) => {
-        console.log((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+        console.debug((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
       },
       (error) => {
         console.error(error);
