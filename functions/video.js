@@ -1,19 +1,23 @@
 const functions = require("firebase-functions");
 const glob = require("glob");
 const tmp = require("tmp");
+const admin = require("firebase-admin");
 const spawn = require("child-process-promise").spawn;
 const ffmpegPath = require("@ffmpeg-installer/ffmpeg").path;
+const { v4: uuidv4 } = require("uuid");
 
 const generateFromVideo = (file, imageHeight, outputPrefix) => {
   // ffmpeg -i input.mp4 -f image2 -vf fps=1/10,scale=-1:192 thumb-%d.png
 
+  const videoobj = tmp.fileSync();
   return file
-    .getSignedUrl({ action: "read", expires: "05-24-2999" })
-    .then((signedUrl) => {
-      const fileUrl = signedUrl[0];
+    .download({
+      destination: videoobj.name,
+    })
+    .then(() => {
       const promise = spawn(ffmpegPath, [
         "-i",
-        fileUrl,
+        videoobj.name,
         "-f",
         "image2",
         "-vf",
@@ -63,28 +67,48 @@ exports.renderThumbnails = functions.storage
 
     // Generate thumbnail images for every 10s of video.
     let imageHeight = 192;
-    generateFromVideo(object, imageHeight, tmpobj.name)
+    let file = admin.storage().bucket().file(filePath);
+
+    let db = admin.firestore();
+    let token = uuidv4();
+
+    return generateFromVideo(file, imageHeight, tmpobj.name)
       .then(() => {
         // Upload thumbnails to cloud storage
         let thumbnailUploadPrefix = `${orgID}/transcriptions/${transcriptionID}/output/thumbnails`;
-        let opts = {};
-        return glob(`${tmpobj.name}/*.png`, opts, (err, files) => {
-          if (err) {
-            console.error("failed to list thumbnail images", err);
-            return;
-          }
-          return Promise.all(
-            files.map((thumbPath) => {
-              let name = thumbPath.slice(tmpobj.name.length);
-              return admin
-                .storage()
-                .bucket()
-                .upload(thumbPath, {
-                  destination: `${thumbnailUploadPrefix}/${name}`,
-                });
-            })
-          );
-        });
+
+        console.debug("thumbnailUploadPrefix", thumbnailUploadPrefix);
+        let files = glob.sync(`${tmpobj.name}/*.png`);
+        return Promise.all(
+          files.map((thumbPath) => {
+            console.debug("thumbPath", thumbPath);
+            let name = thumbPath.slice(tmpobj.name.length);
+            let destination = `${thumbnailUploadPrefix}/${name}`;
+            console.debug("name", name);
+            console.debug("destination", destination);
+
+            return admin
+              .storage()
+              .bucket()
+              .upload(thumbPath, {
+                destination: destination,
+                metadata: {
+                  cacheControl: "max-age=31536000",
+                  metadata: {
+                    firebaseStorageDownloadTokens: token,
+                  },
+                },
+              })
+              .then(() =>
+                db
+                  .collection("organizations")
+                  .doc(orgID)
+                  .collection("transcriptions")
+                  .doc(transcriptionID)
+                  .set({ thumbnailToken: token }, { merge: true })
+              );
+          })
+        );
       })
       .then(tmpobj.removeCallback);
   });
