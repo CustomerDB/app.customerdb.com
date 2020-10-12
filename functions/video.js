@@ -114,3 +114,11 @@ exports.renderThumbnails = functions
       );
     });
   });
+
+// One time.
+// TODO: Create empty thumbnail token field in transcription (without it already set)
+
+// Repair old videos without thumbnails
+// TODO: Go through each org
+// TODO: Get transcriptions without thumbnailToken
+// TODO: Mark for thumbnailing
