@@ -119,6 +119,7 @@ export default function UploadVideoDialog({ open, setOpen }) {
           },
           (error) => {
             // Handle unsuccessful uploads
+            console.log(error);
             setError(error);
             setUploading(false);
           },

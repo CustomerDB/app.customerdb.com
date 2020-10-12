@@ -12,12 +12,15 @@
     "node": "10"
   },
   "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.0.20",
     "@google-cloud/video-intelligence": "^3.0.1",
     "@sendgrid/mail": "^7.2.1",
     "algoliasearch": "^4.3.1",
+    "child-process-promise": "^2.2.1",
     "csv-parser": "^2.3.3",
     "firebase-admin": "^8.10.0",
     "firebase-functions": "^3.8.0",
+    "glob": "^7.1.6",
     "quill-delta": "^4.2.2",
     "tmp": "^0.2.1",
     "uuid": "^8.3.0"
