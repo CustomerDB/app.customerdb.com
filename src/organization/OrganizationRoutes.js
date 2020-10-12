@@ -4,6 +4,7 @@ import Analyze from "../analyze/Analyze.js";
 import Guides from "../guides/Guides.js";
 import Interviews from "../interviews/Interviews.js";
 import People from "../people/People.js";
+import Quotes from "../quotes/Quotes.js";
 import React from "react";
 import Settings from "../settings/Settings.js";
 
@@ -23,6 +24,10 @@ export default function OrganizationRoutes(props) {
           <Route path="/" element={<Interviews />} />
           <Route path=":documentID" element={<Interviews />} />
           <Route path=":documentID/:tabID" element={<Interviews />} />
+        </Route>
+
+        <Route path="quotes/*">
+          <Route path="/" element={<Quotes />} />
         </Route>
 
         <Route path="guides/*">
