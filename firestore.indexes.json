@@ -107,6 +107,20 @@
       "queryScope": "COLLECTION_GROUP",
       "fields": [
         {
+          "fieldPath": "organizationID",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "lastUpdateTimestamp",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "highlights",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
           "fieldPath": "documentID",
           "order": "ASCENDING"
         },
@@ -188,6 +202,20 @@
         },
         {
           "fieldPath": "organizationID",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "transcriptHighlights",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "organizationID",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "lastUpdateTimestamp",
           "order": "ASCENDING"
         }
       ]

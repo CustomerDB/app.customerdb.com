@@ -12,6 +12,7 @@
     "node": "10"
   },
   "dependencies": {
+    "@flatten-js/interval-tree": "^1.0.12",
     "@ffmpeg-installer/ffmpeg": "^1.0.20",
     "@google-cloud/video-intelligence": "^3.0.1",
     "@sendgrid/mail": "^7.2.1",
