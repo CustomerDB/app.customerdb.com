@@ -190,15 +190,26 @@ function indexHighlight(source, orgID, highlightID, highlightRef) {
                       });
                     })
                     .then(() => {
-                      let startTime = transcript.indexToTime(
-                        highlight.selection.index,
-                        indexTree,
-                        initialRevision,
-                        currentRevision
-                      );
+                      let endIndex =
+                        highlight.selection.index + highlight.selection.length;
+
+                      let startTime;
+
+                      for (
+                        let i = highlight.selection.index;
+                        i <= endIndex && startTime === undefined;
+                        i++
+                      ) {
+                        startTime = transcript.indexToTime(
+                          i,
+                          indexTree,
+                          initialRevision,
+                          currentRevision
+                        );
+                      }
 
                       let endTime = transcript.indexToTime(
-                        highlight.selection.index + highlight.selection.length,
+                        endIndex,
                         indexTree,
                         initialRevision,
                         currentRevision
