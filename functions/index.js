@@ -1007,6 +1007,19 @@ exports.startTranscription = functions.storage
     const filePath = object.name;
     const contentType = object.contentType;
 
+    const [mediaType, mediaEncoding] = contentType.split("/", 2);
+
+    if (
+      !contentType.startsWith("video/") ||
+      !contentType.startsWith("audio/")
+    ) {
+      console.log(
+        "object content type is not video or audio -- skipping",
+        contentType
+      );
+      return;
+    }
+
     console.log(`bucket ${fileBucket} path ${filePath} type ${contentType}`);
     const video = new Video.VideoIntelligenceServiceClient();
 
@@ -1063,6 +1076,8 @@ exports.startTranscription = functions.storage
         {
           status: "pending",
           gcpOperationName: operation.name,
+          mediaType: mediaType || "",
+          mediaEncoding: mediaEncoding || "",
         },
         { merge: true }
       );

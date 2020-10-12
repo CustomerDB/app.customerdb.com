@@ -459,6 +459,20 @@
           "order": "ASCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "transcriptions",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "mediaType",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "thumbnailToken",
+          "order": "ASCENDING"
+        }
+      ]
     }
   ],
   "fieldOverrides": [
