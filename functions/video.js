@@ -34,8 +34,12 @@ const generateFromVideo = (file, imageHeight, outputPrefix) => {
     });
 };
 
-exports.renderThumbnails = functions.storage
-  .object()
+exports.renderThumbnails = functions
+  .runWith({
+    timeoutSeconds: 300,
+    memory: "1GB",
+  })
+  .storage.object()
   .onFinalize(async (object) => {
     const fileBucket = object.bucket;
     const filePath = object.name;
@@ -72,43 +76,41 @@ exports.renderThumbnails = functions.storage
     let db = admin.firestore();
     let token = uuidv4();
 
-    return generateFromVideo(file, imageHeight, tmpobj.name)
-      .then(() => {
-        // Upload thumbnails to cloud storage
-        let thumbnailUploadPrefix = `${orgID}/transcriptions/${transcriptionID}/output/thumbnails`;
+    return generateFromVideo(file, imageHeight, tmpobj.name).then(() => {
+      // Upload thumbnails to cloud storage
+      let thumbnailUploadPrefix = `${orgID}/transcriptions/${transcriptionID}/output/thumbnails`;
 
-        console.debug("thumbnailUploadPrefix", thumbnailUploadPrefix);
-        let files = glob.sync(`${tmpobj.name}/*.png`);
-        return Promise.all(
-          files.map((thumbPath) => {
-            console.debug("thumbPath", thumbPath);
-            let name = thumbPath.slice(tmpobj.name.length);
-            let destination = `${thumbnailUploadPrefix}/${name}`;
-            console.debug("name", name);
-            console.debug("destination", destination);
+      console.debug("thumbnailUploadPrefix", thumbnailUploadPrefix);
+      let files = glob.sync(`${tmpobj.name}/*.png`);
+      return Promise.all(
+        files.map((thumbPath) => {
+          console.debug("thumbPath", thumbPath);
+          let name = thumbPath.slice(tmpobj.name.length);
+          let destination = `${thumbnailUploadPrefix}${name}`;
+          console.debug("name", name);
+          console.debug("destination", destination);
 
-            return admin
-              .storage()
-              .bucket()
-              .upload(thumbPath, {
-                destination: destination,
+          return admin
+            .storage()
+            .bucket()
+            .upload(thumbPath, {
+              destination: destination,
+              metadata: {
+                cacheControl: "max-age=31536000",
                 metadata: {
-                  cacheControl: "max-age=31536000",
-                  metadata: {
-                    firebaseStorageDownloadTokens: token,
-                  },
+                  firebaseStorageDownloadTokens: token,
                 },
-              })
-              .then(() =>
-                db
-                  .collection("organizations")
-                  .doc(orgID)
-                  .collection("transcriptions")
-                  .doc(transcriptionID)
-                  .set({ thumbnailToken: token }, { merge: true })
-              );
-          })
-        );
-      })
-      .then(tmpobj.removeCallback);
+              },
+            })
+            .then(() =>
+              db
+                .collection("organizations")
+                .doc(orgID)
+                .collection("transcriptions")
+                .doc(transcriptionID)
+                .set({ thumbnailToken: token }, { merge: true })
+            );
+        })
+      );
+    });
   });
