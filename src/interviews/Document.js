@@ -177,7 +177,7 @@ export default function Document(props) {
         md={8}
         xl={9}
       >
-        <Scrollable>
+        <Scrollable id="editorScrollContainer">
           <Grid container item spacing={0} xs={12}>
             <Grid container item justify="center">
               <Paper elevation={5} className={classes.documentPaper}>
