@@ -49,7 +49,7 @@ export default function Quote({ hit }) {
   let linkedTitle = <Link to={quoteURL}>{hit.documentName}</Link>;
 
   return (
-    <Grid container item xs={4}>
+    <Grid container item xs={12} md={6} lg={4}>
       <Card
         style={{
           width: "100%",
