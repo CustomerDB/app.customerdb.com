@@ -102,6 +102,7 @@ export default function UploadVideoDialog({ open, setOpen }) {
         creationTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
         deletionTimestamp: "",
         inputPath: storagePath,
+        thumbnailToken: "",
         orgID: orgID,
         documentID: documentID,
       })

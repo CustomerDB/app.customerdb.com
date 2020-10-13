@@ -34,12 +34,8 @@ const generateFromVideo = (file, imageHeight, outputPrefix) => {
     });
 };
 
-exports.renderThumbnails = functions
-  .runWith({
-    timeoutSeconds: 300,
-    memory: "1GB",
-  })
-  .storage.object()
+exports.renderThumbnails = functions.storage
+  .object()
   .onFinalize(async (object) => {
     const fileBucket = object.bucket;
     const filePath = object.name;
@@ -50,10 +46,6 @@ exports.renderThumbnails = functions
     let matches = filePath.match(/(.+)\/transcriptions\/(.+)\/input\/(.+)/);
 
     if (!matches || matches.length != 4) {
-      console.log(
-        "File path doesn't match pattern for image thumbnails: ",
-        filePath
-      );
       return;
     }
 
@@ -65,52 +57,133 @@ exports.renderThumbnails = functions
     let orgID = matches[1];
     let transcriptionID = matches[2];
 
+    return db
+      .collection("organizations")
+      .doc(orgID)
+      .collection("transcriptions")
+      .doc(transcriptionID)
+      .set(
+        {
+          thumbnailRequestedTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+        },
+        { merge: true }
+      );
+  });
+
+// Periodically generate videos without thumbnails:
+//
+// Function one: mark periodically
+// - For every transcription with mediaType video and empty thumbnailToken:
+//   If thumbnailRequestedTimestamp is missing or too old:
+//     set thumbnailRequestedTimestamp to now.
+
+exports.markTranscriptsForThumbnail = functions.pubsub
+  .schedule("every 15 minutes")
+  .onRun((context) => {
+    let db = admin.firestore();
+
+    return db
+      .collectionGroup("transcriptions")
+      .where("mediaType", "==", "video")
+      .where("thumbnailToken", "==", "")
+      .get()
+      .then((snapshot) => {
+        return Promise.all(
+          snapshot.docs.map((doc) => {
+            let data = doc.data();
+            if (data.thumbnailRequestedTimestamp) {
+              const now = new Date();
+              const oldRequestTime = data.thumbnailRequestedTimestamp.toDate();
+              const elapsedMillis = now.getTime() - oldRequestTime.getTime();
+              // nb: 30m
+              const minAge = 30 * 60 * 1000;
+              if (elapsedMillis <= minAge) {
+                return;
+              }
+            }
+
+            return doc.ref.set(
+              {
+                thumbnailRequestedTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+              },
+              { merge: true }
+            );
+          })
+        );
+      });
+  });
+
+// Function two: trigger
+// - If thumbnailToken is set, return.
+// - Do thumbnail rendering
+// - Set thumbnailToken
+exports.renderThumbnailsForTranscription = functions
+  .runWith({
+    timeoutSeconds: 300,
+    memory: "2GB",
+  })
+  .firestore.document("organizations/{orgID}/transcriptions/{transcriptionID}")
+  .onUpdate((change, context) => {
+    console.log("handling update (params):", context.params);
+
+    const transcription = change.after.data();
+
+    if (
+      !transcription.inputPath ||
+      !transcription.mediaType ||
+      !transcription.mediaType === "video" ||
+      transcription.thumbnailToken ||
+      !transcription.thumbnailRequestedTimestamp
+    ) {
+      return;
+    }
+
+    let { orgID, transcriptionID } = context.params;
+
     // Create temp directory
     const tmpobj = tmp.dirSync();
     console.log("using tmp dir: ", tmpobj.name);
 
     // Generate thumbnail images for every 10s of video.
     let imageHeight = 192;
-    let file = admin.storage().bucket().file(filePath);
+    let file = admin.storage().bucket().file(transcription.inputPath);
 
-    let db = admin.firestore();
     let token = uuidv4();
 
-    return generateFromVideo(file, imageHeight, tmpobj.name).then(() => {
-      // Upload thumbnails to cloud storage
-      let thumbnailUploadPrefix = `${orgID}/transcriptions/${transcriptionID}/output/thumbnails`;
+    return generateFromVideo(file, imageHeight, tmpobj.name)
+      .then(() => {
+        // Upload thumbnails to cloud storage
+        let thumbnailUploadPrefix = `${orgID}/transcriptions/${transcriptionID}/output/thumbnails`;
 
-      console.debug("thumbnailUploadPrefix", thumbnailUploadPrefix);
-      let files = glob.sync(`${tmpobj.name}/*.png`);
-      return Promise.all(
-        files.map((thumbPath) => {
-          console.debug("thumbPath", thumbPath);
-          let name = thumbPath.slice(tmpobj.name.length);
-          let destination = `${thumbnailUploadPrefix}${name}`;
-          console.debug("name", name);
-          console.debug("destination", destination);
+        console.debug("thumbnailUploadPrefix", thumbnailUploadPrefix);
+        let files = glob.sync(`${tmpobj.name}/*.png`);
+        return Promise.all(
+          files.map((thumbPath) => {
+            console.debug("thumbPath", thumbPath);
+            let name = thumbPath.slice(tmpobj.name.length);
+            let destination = `${thumbnailUploadPrefix}${name}`;
+            console.debug("name", name);
+            console.debug("destination", destination);
 
-          return admin
-            .storage()
-            .bucket()
-            .upload(thumbPath, {
-              destination: destination,
-              metadata: {
-                cacheControl: "max-age=31536000",
+            return admin
+              .storage()
+              .bucket()
+              .upload(thumbPath, {
+                destination: destination,
                 metadata: {
-                  firebaseStorageDownloadTokens: token,
+                  cacheControl: "max-age=31536000",
+                  metadata: {
+                    firebaseStorageDownloadTokens: token,
+                  },
                 },
-              },
-            })
-            .then(() =>
-              db
-                .collection("organizations")
-                .doc(orgID)
-                .collection("transcriptions")
-                .doc(transcriptionID)
-                .set({ thumbnailToken: token }, { merge: true })
-            );
-        })
-      );
-    });
+              })
+              .then(() =>
+                change.after.ref.set({ thumbnailToken: token }, { merge: true })
+              );
+          })
+        );
+      })
+      .catch((error) => {
+        console.warn("failed to generate thumbnails", error);
+      });
   });
