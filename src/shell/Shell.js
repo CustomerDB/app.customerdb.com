@@ -13,6 +13,7 @@ import CssBaseline from "@material-ui/core/CssBaseline";
 import Divider from "@material-ui/core/Divider";
 import Drawer from "@material-ui/core/Drawer";
 import ExploreIcon from "@material-ui/icons/Explore";
+import FormatQuoteIcon from "@material-ui/icons/FormatQuote";
 import GroupIcon from "@material-ui/icons/Group";
 import IconButton from "@material-ui/core/IconButton";
 import List from "@material-ui/core/List";
@@ -244,6 +245,12 @@ export default function Shell({ search, title, children, ...otherProps }) {
                 <RecordVoiceOverIcon />
               </ListItemIcon>
               <ListItemText primary="Interviews" />
+            </NavListItem>
+            <NavListItem key="Quotes" to={`/orgs/${orgID}/quotes`}>
+              <ListItemIcon>
+                <FormatQuoteIcon />
+              </ListItemIcon>
+              <ListItemText primary="Quotes" />
             </NavListItem>
             <NavListItem key="Guides" to={`/orgs/${orgID}/guides`}>
               <ListItemIcon>
