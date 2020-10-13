@@ -111,157 +111,187 @@ function indexHighlight(source, orgID, highlightID, highlightRef) {
       transcriptionPromise = Promise.resolve();
     }
 
-    return transcriptionPromise.then((transcription) =>
-      db
+    let personPromise;
+    if (highlight.personID) {
+      personPromise = db
         .collection("organizations")
         .doc(orgID)
-        .collection("tagGroups")
-        .doc(document.tagGroupID)
-        .collection("tags")
-        .doc(highlight.tagID)
+        .collection("people")
+        .doc(highlight.personID)
         .get()
-        .then((doc) => {
-          if (!doc.exists) {
-            console.warn(
-              `Tag ${highlight.tagID} not found in org ${orgID} -- skipping index`
-            );
+        .then((personRef) => {
+          if (!personRef.exists) {
             return;
           }
-          let tag = doc.data();
 
-          let highlightToIndex = {
-            // Add an 'objectID' field which Algolia requires
-            objectID: highlightRef.id,
-            orgID: orgID,
-            documentID: highlight.documentID,
-            documentName: document.name,
-            documentCreationTimestamp: document.creationTimestamp.seconds,
-            tagName: tag.name,
-            tagColor: tag.color,
-            tagTextColor: tag.textColor,
-            personID: highlight.personID,
-            text: highlight.text,
-            tagID: highlight.tagID,
-            createdBy: highlight.createdBy,
-            creationTimestamp: highlight.creationTimestamp.seconds,
-            lastUpdateTimestamp: highlight.lastUpdateTimestamp.seconds,
-            source: source,
-          };
+          let person = personRef.data();
+          return person;
+        });
+    } else {
+      personPromise = Promise.resolve();
+    }
 
-          let highlightTime = Promise.resolve();
+    return transcriptionPromise.then((transcription) =>
+      personPromise.then((person) => {
+        return db
+          .collection("organizations")
+          .doc(orgID)
+          .collection("tagGroups")
+          .doc(document.tagGroupID)
+          .collection("tags")
+          .doc(highlight.tagID)
+          .get()
+          .then((doc) => {
+            if (!doc.exists) {
+              console.warn(
+                `Tag ${highlight.tagID} not found in org ${orgID} -- skipping index`
+              );
+              return;
+            }
+            let tag = doc.data();
 
-          if (transcription && transcription.inputPath) {
-            highlightToIndex.mediaPath = transcription.inputPath;
+            let highlightToIndex = {
+              // Add an 'objectID' field which Algolia requires
+              objectID: highlightRef.id,
+              orgID: orgID,
+              documentID: highlight.documentID,
+              documentName: document.name,
+              documentCreationTimestamp: document.creationTimestamp.seconds,
+              tagName: tag.name,
+              tagColor: tag.color,
+              tagTextColor: tag.textColor,
+              personID: highlight.personID,
+              text: highlight.text,
+              tagID: highlight.tagID,
+              createdBy: highlight.createdBy,
+              creationTimestamp: highlight.creationTimestamp.seconds,
+              lastUpdateTimestamp: highlight.lastUpdateTimestamp.seconds,
+              source: source,
+            };
 
-            highlightTime = documentRef
-              .collection("transcriptRevisions")
-              .where("timestamp", ">", new admin.firestore.Timestamp(0, 0))
-              .orderBy("timestamp", "asc")
-              .limit(1)
-              .get()
-              .then((snapshot) => {
-                if (snapshot.empty) {
-                  return;
-                }
-                let revData = snapshot.docs[0].data();
-                let revisionID = snapshot.docs[0].id;
-                let initialRevision = new Delta(revData.delta.ops);
-                let currentRevision = initialRevision;
+            let highlightTime = Promise.resolve();
 
-                // Download timecodes for current transcript.
-                const timecodePath = `${orgID}/transcriptions/${document.transcription}/output/timecodes-${revisionID}.json`;
-                return getTimecodes(timecodePath).then((timecodes) => {
-                  // Construct index interval tree
-                  let indexTree = new IntervalTree();
-                  timecodes.forEach(([s, e, i, j]) => {
-                    indexTree.insert([i, j], [s, e]);
-                  });
+            if (person) {
+              highlightToIndex.personName = person.name;
+              highlightToIndex.personCompany = person.company;
+              highlightToIndex.personImageURL = person.imageURL;
+              highlightToIndex.personJob = person.job;
+            }
 
-                  // Compute the document revision at the time of the highlight
-                  return documentRef
-                    .collection("transcriptDeltas")
-                    .where("timestamp", "<", highlight.lastUpdateTimestamp)
-                    .orderBy("timestamp", "asc")
-                    .get()
-                    .then((snapshot) => {
-                      snapshot.docs.forEach((deltaDoc) => {
-                        let delta = new Delta(deltaDoc.ops);
-                        currentRevision = currentRevision.compose(delta);
-                      });
-                    })
-                    .then(() => {
-                      let endIndex =
-                        highlight.selection.index + highlight.selection.length;
+            if (transcription && transcription.inputPath) {
+              highlightToIndex.mediaPath = transcription.inputPath;
 
-                      let startTime;
+              highlightTime = documentRef
+                .collection("transcriptRevisions")
+                .where("timestamp", ">", new admin.firestore.Timestamp(0, 0))
+                .orderBy("timestamp", "asc")
+                .limit(1)
+                .get()
+                .then((snapshot) => {
+                  if (snapshot.empty) {
+                    return;
+                  }
+                  let revData = snapshot.docs[0].data();
+                  let revisionID = snapshot.docs[0].id;
+                  let initialRevision = new Delta(revData.delta.ops);
+                  let currentRevision = initialRevision;
 
-                      for (
-                        let i = highlight.selection.index;
-                        i <= endIndex && startTime === undefined;
-                        i++
-                      ) {
-                        startTime = transcript.indexToTime(
-                          i,
+                  // Download timecodes for current transcript.
+                  const timecodePath = `${orgID}/transcriptions/${document.transcription}/output/timecodes-${revisionID}.json`;
+                  return getTimecodes(timecodePath).then((timecodes) => {
+                    // Construct index interval tree
+                    let indexTree = new IntervalTree();
+                    timecodes.forEach(([s, e, i, j]) => {
+                      indexTree.insert([i, j], [s, e]);
+                    });
+
+                    // Compute the document revision at the time of the highlight
+                    return documentRef
+                      .collection("transcriptDeltas")
+                      .where("timestamp", "<", highlight.lastUpdateTimestamp)
+                      .orderBy("timestamp", "asc")
+                      .get()
+                      .then((snapshot) => {
+                        snapshot.docs.forEach((deltaDoc) => {
+                          let delta = new Delta(deltaDoc.ops);
+                          currentRevision = currentRevision.compose(delta);
+                        });
+                      })
+                      .then(() => {
+                        let endIndex =
+                          highlight.selection.index +
+                          highlight.selection.length;
+
+                        let startTime;
+
+                        for (
+                          let i = highlight.selection.index;
+                          i <= endIndex && startTime === undefined;
+                          i++
+                        ) {
+                          startTime = transcript.indexToTime(
+                            i,
+                            indexTree,
+                            initialRevision,
+                            currentRevision
+                          );
+                        }
+
+                        let endTime = transcript.indexToTime(
+                          endIndex,
                           indexTree,
                           initialRevision,
                           currentRevision
                         );
-                      }
 
-                      let endTime = transcript.indexToTime(
-                        endIndex,
-                        indexTree,
-                        initialRevision,
-                        currentRevision
-                      );
-
-                      return {
-                        startTime: startTime,
-                        endTime: endTime,
-                      };
-                    });
+                        return {
+                          startTime: startTime,
+                          endTime: endTime,
+                        };
+                      });
+                  });
                 });
-              });
-          }
-
-          // Attach time codes into highlightToIndex.
-          return highlightTime.then((time) => {
-            if (time) {
-              highlightToIndex.startTime = time.startTime;
-              highlightToIndex.endTime = time.endTime;
-
-              if (transcription && transcription.thumbnailToken) {
-                // Calculate sequence number from start time.
-                const thumbnailInterval = 10;
-                const sequence =
-                  Math.floor(time.startTime / thumbnailInterval) + 1;
-
-                // Generate URL using token from transcription.
-                let bucket = admin.storage().bucket();
-                let storagePath = `${orgID}/transcriptions/${transcription.ID}/output/thumbnails/thumb-${sequence}.png`;
-                let url = `https://firebasestorage.googleapis.com/v0/b/${
-                  bucket.name
-                }/o/${encodeURIComponent(storagePath)}?alt=media&token=${
-                  transcription.thumbnailToken
-                }`;
-
-                // Save URL in index object.
-                highlightToIndex.thumbnailURL = url;
-              }
             }
 
-            // Write to the algolia index
-            return index.saveObject(highlightToIndex).then(
-              // Update last indexed timestamp
-              highlightRef.ref.set(
-                {
-                  lastIndexTimestamp: admin.firestore.FieldValue.serverTimestamp(),
-                },
-                { merge: true }
-              )
-            );
+            // Attach time codes into highlightToIndex.
+            return highlightTime.then((time) => {
+              if (time) {
+                highlightToIndex.startTime = time.startTime;
+                highlightToIndex.endTime = time.endTime;
+
+                if (transcription && transcription.thumbnailToken) {
+                  // Calculate sequence number from start time.
+                  const thumbnailInterval = 10;
+                  const sequence =
+                    Math.floor(time.startTime / thumbnailInterval) + 1;
+
+                  // Generate URL using token from transcription.
+                  let bucket = admin.storage().bucket();
+                  let storagePath = `${orgID}/transcriptions/${transcription.ID}/output/thumbnails/thumb-${sequence}.png`;
+                  let url = `https://firebasestorage.googleapis.com/v0/b/${
+                    bucket.name
+                  }/o/${encodeURIComponent(storagePath)}?alt=media&token=${
+                    transcription.thumbnailToken
+                  }`;
+
+                  // Save URL in index object.
+                  highlightToIndex.thumbnailURL = url;
+                }
+              }
+
+              // Write to the algolia index
+              return index.saveObject(highlightToIndex).then(
+                // Update last indexed timestamp
+                highlightRef.ref.set(
+                  {
+                    lastIndexTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+                  },
+                  { merge: true }
+                )
+              );
+            });
           });
-        })
+      })
     );
   });
 }
