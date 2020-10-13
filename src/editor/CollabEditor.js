@@ -353,6 +353,7 @@ function CollabEditorWithCache({
       ref={quillRef}
       onChange={onEdit}
       defaultValue={revisionCache.delta}
+      scrollingContainer="#editorScrollContainer"
       {...otherProps}
     />
   );
