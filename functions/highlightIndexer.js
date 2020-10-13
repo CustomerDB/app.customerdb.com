@@ -95,7 +95,7 @@ function indexHighlight(source, orgID, highlightID, highlightRef) {
 
     // If the document has a transcription field, we should look for the presence.
     let transcriptionPromise;
-    if (document.transcription) {
+    if (document.transcription && source === "transcript") {
       transcriptionPromise = db
         .collection("organizations")
         .doc(orgID)
