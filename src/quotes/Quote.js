@@ -1,6 +1,7 @@
 import { Link, useParams } from "react-router-dom";
 import React, { useContext, useEffect, useRef, useState } from "react";
 
+import Avatar from "react-avatar";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import CardHeader from "@material-ui/core/CardHeader";
@@ -53,16 +54,20 @@ export default function Quote({ hit }) {
         style={{
           width: "100%",
           minHeight: "16rem",
-          // padding: "2rem",
           margin: "1rem",
         }}
       >
         <CardHeader
-          // avatar={
-          //   <Avatar aria-label="recipe" className={classes.avatar}>
-          //     R
-          //   </Avatar>
-          // }
+          avatar={
+            hit.personName && (
+              <Avatar
+                size={50}
+                name={hit.personName}
+                round={true}
+                src={hit.personImageURL}
+              />
+            )
+          }
           action={
             <IconButton aria-label="settings">
               <MoreVertIcon />
@@ -91,11 +96,13 @@ export default function Quote({ hit }) {
           <Typography variant="body2" color="textSecondary" component="p">
             {hit.text}
           </Typography>
-          <Chip
-            size="small"
-            label={hit.tagName}
-            style={{ backgroundColor: hit.tagColor }}
-          />
+          <div style={{ padding: "0.25rem" }}>
+            <Chip
+              size="small"
+              label={hit.tagName}
+              style={{ backgroundColor: hit.tagColor }}
+            />
+          </div>
         </CardContent>
       </Card>
     </Grid>
