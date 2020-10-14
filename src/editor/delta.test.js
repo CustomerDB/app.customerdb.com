@@ -113,7 +113,7 @@ it("can apply new committed deltas", async () => {
   );
 
   // Create a fake snapshot with two new committed insert deltas
-  let snapshot = makeDeltaSnapshot([
+  let snapshot1 = makeDeltaSnapshot([
     {
       ID: "a",
       timestamp: makeTimestamp(2, 0),
@@ -140,13 +140,40 @@ it("can apply new committed deltas", async () => {
   // Before receiving snapshot, the editor should have initial contents
   expect(editor.getContents()).toEqual(initialDelta());
 
-  callback(snapshot);
+  callback(snapshot1);
 
   // After receiving snapshot, the editor should contain inserted text
   expect(editor.getContents()).toEqual({
     ops: [
       {
         insert: "hello world\n",
+      },
+    ],
+  });
+
+  // Create a fake snapshot with one new delete delta
+  let snapshot2 = makeDeltaSnapshot([
+    {
+      ID: "c",
+      timestamp: makeTimestamp(4, 0),
+      ops: [
+        {
+          retain: 5,
+        },
+        {
+          delete: 6,
+        },
+      ],
+    },
+  ]);
+
+  callback(snapshot2);
+
+  // After receiving snapshot, the editor should contain one word
+  expect(editor.getContents()).toEqual({
+    ops: [
+      {
+        insert: "hello\n",
       },
     ],
   });
