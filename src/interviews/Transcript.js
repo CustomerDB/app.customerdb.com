@@ -10,10 +10,13 @@ import LinearProgress from "@material-ui/core/LinearProgress";
 import Moment from "react-moment";
 import PlayheadBlot from "./PlayheadBlot.js";
 import Quill from "quill";
+import ReactDOM from "react-dom";
+import SpeakerBlot from "./SpeakerBlot.js";
 import UploadVideoDialog from "./UploadVideoDialog.js";
 import useFirestore from "../db/Firestore.js";
 
 Quill.register("formats/playhead", PlayheadBlot);
+Quill.register("formats/speaker", SpeakerBlot);
 
 // Transcript augments a collaborative editor with tags, text highlights and video integration.
 export default function Transcript({
@@ -151,8 +154,40 @@ export default function Transcript({
               ],
             }}
           />
+          <Speakers quillContainerRef={reactQuillRef} />
         </Grid>
       )}
     </>
+  );
+}
+
+function Speakers({ quillContainerRef }) {
+  // operationRef for speaker mapping
+  // {ID: {name: ..., personID: ...}}
+  const [speakerNodes, setSpeakerNodes] = useState([]);
+
+  useEffect(() => {
+    const refreshNodes = () => {
+      if (!quillContainerRef.current) return;
+
+      let nodes = document.getElementsByClassName("speaker");
+
+      let newSpeakerNodes = [];
+      for (let i = 0; i < nodes.length; i++) {
+        let node = nodes[i];
+        if (node.dataset.speakerID) {
+          newSpeakerNodes.push(node);
+        }
+      }
+      setSpeakerNodes(newSpeakerNodes);
+    };
+    let interval = setInterval(refreshNodes, 1000);
+    return () => {
+      clearInterval(interval);
+    };
+  }, [quillContainerRef]);
+
+  return speakerNodes.map((sn) =>
+    ReactDOM.createPortal(<b>Speaker {sn.dataset.speakerID}</b>, sn)
   );
 }
