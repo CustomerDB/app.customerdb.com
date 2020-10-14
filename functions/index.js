@@ -1010,8 +1010,7 @@ exports.startTranscription = functions.storage
     const [mediaType, mediaEncoding] = contentType.split("/", 2);
 
     if (
-      !contentType.startsWith("video/") ||
-      !contentType.startsWith("audio/")
+      !(contentType.startsWith("video/") || contentType.startsWith("audio/"))
     ) {
       console.log(
         "object content type is not video or audio -- skipping",
