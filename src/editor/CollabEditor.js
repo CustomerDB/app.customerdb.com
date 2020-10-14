@@ -3,20 +3,16 @@ import "firebase/firestore";
 import * as firebaseClient from "firebase/app";
 
 import React, { useContext, useEffect, useRef, useState } from "react";
+import {
+  initialDelta,
+  onDeltaSnapshot,
+  timestampsAreOrdered,
+} from "./delta.js";
 
 import Delta from "quill-delta";
 import ReactQuill from "react-quill";
 import UserAuthContext from "../auth/UserAuthContext.js";
-import { initialDelta } from "./delta.js";
 import { v4 as uuidv4 } from "uuid";
-
-// Returns true if `a` precedes `b` in time.
-const timestampsAreOrdered = (a, b) => {
-  return (
-    a.seconds < b.seconds ||
-    (a.seconds === b.seconds && a.nanoseconds <= b.nanoseconds)
-  );
-};
 
 // Synchronize every second by default (1000ms).
 const defaultSyncPeriod = 1000;
@@ -148,29 +144,6 @@ function CollabEditorWithCache({
       });
   }, [revisionsRef, revisionCache]);
 
-  // Returns true if the supplied delta is a document;
-  // that is, it contains only insert operations.
-  const isDocument = (delta) => {
-    if (delta.ops.length === 0) {
-      return false;
-    }
-    let result = true;
-    for (let i = 0; i < delta.ops.length; i++) {
-      let op = delta.ops[i];
-      if (!op.insert) {
-        result = false;
-        break;
-      }
-    }
-    return result;
-  };
-
-  // Returns a delta that contains (only) all of the
-  // insert operations in the supplied delta.
-  const justInsertOperations = (delta) => {
-    return new Delta(delta.filter((op) => op.insert));
-  };
-
   // Document will contain the latest cached and compressed version of the
   // delta document. Subscribe to deltas from other remote clients.
   useEffect(() => {
@@ -191,102 +164,15 @@ function CollabEditorWithCache({
     return deltasRef
       .orderBy("timestamp", "asc")
       .where("timestamp", ">", revision.timestamp)
-      .onSnapshot((snapshot) => {
-        // filter out newly committed deltas from uncommittedDeltas
-        let newUncommittedDeltas = uncommittedDeltas.current;
-        snapshot.docs.forEach((deltaDoc) => {
-          newUncommittedDeltas = newUncommittedDeltas.filter(
-            (d) => d.ID !== deltaDoc.id
-          );
-        });
-        uncommittedDeltas.current = newUncommittedDeltas;
-
-        snapshot.forEach((deltaDoc) => {
-          let data = deltaDoc.data();
-          let dt = data.timestamp;
-          let rct = revisionCache.current.timestamp;
-          let delta = new Delta(data.ops);
-          if (timestampsAreOrdered(dt, rct)) {
-            return;
-          }
-          revisionCache.current.delta = revisionCache.current.delta.compose(
-            delta
-          );
-          revisionCache.current.timestamp = data.timestamp;
-        });
-
-        let editorContents = editor.getContents();
-
-        console.debug("localDelta.current", localDelta.current);
-        let inverseLocalDelta = localDelta.current.invert(editorContents);
-        console.debug("inverseLocalDelta", inverseLocalDelta);
-
-        // Compute local: latest revision + old committed deltas +
-        //                old uncommitted deltas
-        //                == editor content - local delta
-        let local = editorContents.compose(inverseLocalDelta);
-        console.debug("local", local);
-
-        // Compute remote: latest revision + new committed deltas +
-        //                 new uncommitted deltas
-        let remote = revisionCache.current.delta;
-        newUncommittedDeltas.forEach((delta) => {
-          remote = remote.compose(delta);
-        });
-
-        // Compute update patch from local to remote
-
-        // Filter trailing delete ops.
-        local = justInsertOperations(local);
-        remote = justInsertOperations(remote);
-
-        if (!isDocument(local)) {
-          console.debug("local is not a document -- quitting");
-          return;
-        }
-        if (!isDocument(remote)) {
-          console.debug("remote is not a document -- quitting");
-          return;
-        }
-
-        let diff = local.diff(remote);
-        console.debug("diff", diff);
-
-        if (diff.ops.length === 0) {
-          console.debug("diff is empty; nothing to do");
-          return;
-        }
-
-        // Unapply the local delta from the editor
-        let selection = editor.getSelection();
-        let selectionIndex = selection ? selection.index : 0;
-
-        selectionIndex = inverseLocalDelta.transformPosition(selectionIndex);
-        console.debug("unapplying local delta", inverseLocalDelta);
-        editor.updateContents(inverseLocalDelta);
-
-        // Apply the update patch to the editor
-        console.debug("applying remote update patch", diff);
-        selectionIndex = diff.transformPosition(selectionIndex);
-        editor.updateContents(diff);
-
-        // Re-apply the transformed local delta to the editor
-
-        // Transform the local delta buffer by diff
-        console.debug("pre-transformed local delta", localDelta.current);
-        localDelta.current = new Delta(diff.transform(localDelta.current).ops);
-        console.debug("transformed local delta", localDelta.current);
-        selectionIndex = localDelta.current.transformPosition(selectionIndex);
-        console.debug("re-applying transformed local delta");
-        editor.updateContents(localDelta.current);
-
-        if (selection) {
-          console.debug("updating selection index");
-          editor.setSelection(selectionIndex, selection.length);
-        }
-
-        readyPort.postMessage({});
-      });
+      .onSnapshot(
+        onDeltaSnapshot(
+          uncommittedDeltas,
+          revisionCache,
+          editor,
+          localDelta,
+          readyPort
+        )
+      );
   }, [editorID, revision, revisionCache, deltasRef, quillRef, readyPort]);
 
   // Register timers to periodically sync local changes with firestore.
