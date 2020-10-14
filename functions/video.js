@@ -37,6 +37,8 @@ const generateFromVideo = (file, imageHeight, outputPrefix) => {
 exports.renderThumbnails = functions.storage
   .object()
   .onFinalize(async (object) => {
+    let db = admin.firestore();
+
     const fileBucket = object.bucket;
     const filePath = object.name;
     const contentType = object.contentType;
