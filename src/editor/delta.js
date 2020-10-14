@@ -66,24 +66,28 @@ export function onDeltaSnapshot(
   readyPort
 ) {
   return (snapshot) => {
-    // filter out newly committed deltas from uncommittedDeltas
-    let newUncommittedDeltas = uncommittedDeltas.current;
-    snapshot.docs.forEach((deltaDoc) => {
-      newUncommittedDeltas = newUncommittedDeltas.filter(
-        (d) => d.ID !== deltaDoc.id
-      );
-    });
-    uncommittedDeltas.current = newUncommittedDeltas;
+    let newDeltas = [];
 
     snapshot.forEach((deltaDoc) => {
       let data = deltaDoc.data();
       let dt = data.timestamp;
       let rct = revisionCache.current.timestamp;
-      let delta = new Delta(data.ops);
       if (timestampsAreOrdered(dt, rct)) {
         console.debug("skipping delta that predates the revision cache", data);
         return;
       }
+      newDeltas.push(data);
+    });
+
+    console.debug("newDeltas", JSON.stringify(newDeltas, null, 2));
+
+    newDeltas.forEach((data) => {
+      // filter out newly committed deltas from uncommittedDeltas
+      uncommittedDeltas.current = uncommittedDeltas.current.filter(
+        (d) => d.ID !== data.ID
+      );
+
+      let delta = new Delta(data.ops);
       revisionCache.current.delta = revisionCache.current.delta.compose(delta);
       revisionCache.current.timestamp = data.timestamp;
     });
@@ -92,7 +96,6 @@ export function onDeltaSnapshot(
 
     console.debug("localDelta.current", localDelta.current);
     let inverseLocalDelta = localDelta.current.invert(editorContents);
-    console.debug("inverseLocalDelta", inverseLocalDelta);
 
     // Compute local: latest revision + old committed deltas +
     //                old uncommitted deltas
@@ -103,7 +106,12 @@ export function onDeltaSnapshot(
     // Compute remote: latest revision + new committed deltas +
     //                 new uncommitted deltas
     let remote = revisionCache.current.delta;
-    newUncommittedDeltas.forEach((delta) => {
+
+    if (uncommittedDeltas.current.length > 0) {
+      console.debug("uncommittedDeltas.current", uncommittedDeltas.current);
+    }
+
+    uncommittedDeltas.current.forEach((delta) => {
       remote = remote.compose(delta);
     });
 
@@ -149,7 +157,11 @@ export function onDeltaSnapshot(
 
     // Transform the local delta buffer by diff
     console.debug("pre-transformed local delta", localDelta.current);
-    localDelta.current = new Delta(diff.transform(localDelta.current).ops);
+
+    // serverFirst means the remote diff happened before the local delta
+    const serverFirst = true;
+
+    localDelta.current = diff.transform(localDelta.current, serverFirst);
     console.debug("transformed local delta", localDelta.current);
     selectionIndex = localDelta.current.transformPosition(selectionIndex);
     console.debug("re-applying transformed local delta");
