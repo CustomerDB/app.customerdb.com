@@ -321,11 +321,21 @@ it("can correctly handle in-flight deletes", async () => {
     readyPort
   );
 
-  let snapshot1 = makeDeltaSnapshot([]);
+  let snapshot1 = makeDeltaSnapshot([
+    {
+      ID: "a",
+      timestamp: makeTimestamp(3, 0),
+      ops: [
+        {
+          insert: "Jim, ",
+        },
+      ],
+    },
+  ]);
 
   callback(snapshot1);
 
   expect(editor.getContents()).toEqual({
-    ops: [{ insert: "hello\n" }],
+    ops: [{ insert: "Jim, hello\n" }],
   });
 });
