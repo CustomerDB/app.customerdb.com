@@ -161,7 +161,7 @@ const createRevisionAndTimecodesForTranscript = (outputPath) => {
       let alternatives = transcriptionJson["speechTranscriptions"];
       let lastSpeaker;
 
-      let ops = [];
+      let newRevision = new Delta([{ insert: "\n" }]);
       let timecodes = [];
 
       let deltaOffset = 0;
@@ -179,21 +179,22 @@ const createRevisionAndTimecodesForTranscript = (outputPath) => {
 
           let speakerTag = word["speakerTag"];
           if (speakerTag != lastSpeaker) {
-            ops.push({
-              insert: {
-                speaker: {
-                  ID: speakerTag,
-                },
-              },
-            });
+            newRevision = newRevision.compose(
+              new Delta([
+                { retain: deltaOffset },
+                { insert: { speaker: { ID: speakerTag } } },
+              ])
+            );
 
-            deltaOffset++;
+            deltaOffset++; // embed blots are of length 1
 
             lastSpeaker = speakerTag;
           }
 
           let transcriptWord = word.word + " ";
-          ops.push({ insert: transcriptWord });
+          newRevision = newRevision.compose(
+            new Delta([{ retain: deltaOffset }, { insert: transcriptWord }])
+          );
 
           let startIndex = deltaOffset;
           deltaOffset += transcriptWord.length;
@@ -213,15 +214,19 @@ const createRevisionAndTimecodesForTranscript = (outputPath) => {
       });
 
       return {
-        revision: new Delta(ops),
+        revision: newRevision,
         timecodes: timecodes,
       };
     });
 };
 
 // Create delta for completed transcription
-exports.deltaForTranscript = functions.firestore
-  .document("organizations/{orgID}/transcriptions/{transcriptionID}")
+exports.deltaForTranscript = functions
+  .runWith({
+    timeoutSeconds: 300,
+    memory: "1GB",
+  })
+  .firestore.document("organizations/{orgID}/transcriptions/{transcriptionID}")
   .onUpdate((change, context) => {
     // If operation changed from pending to finished.
     let before = change.before.data();

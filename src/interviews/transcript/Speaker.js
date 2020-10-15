@@ -94,7 +94,7 @@ export default function Speaker({
         <ListItemIcon>
           <PersonIcon />
         </ListItemIcon>
-        <ListItemText primary={speaker.name} />
+        <ListItemText primary={speaker.name || `Speaker ${speaker.ID}`} />
       </ListItem>
     );
   });
