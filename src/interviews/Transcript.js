@@ -162,7 +162,7 @@ export default function Transcript({
             }}
           />
           <Speakers
-            quillContainerRef={reactQuillRef}
+            quillRef={reactQuillRef}
             editorContainerRef={editorContainerRef}
             transcriptionID={document.transcription}
           />
