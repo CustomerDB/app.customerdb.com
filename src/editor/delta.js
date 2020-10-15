@@ -79,6 +79,11 @@ export function onDeltaSnapshot(
       newDeltas.push(data);
     });
 
+    console.debug("localDelta.current", localDelta.current);
+    let inverseLocalDelta = localDelta.current.invert(
+      revisionCache.current.delta
+    );
+
     console.debug("newDeltas", JSON.stringify(newDeltas, null, 2));
 
     newDeltas.forEach((data) => {
@@ -94,8 +99,7 @@ export function onDeltaSnapshot(
 
     let editorContents = editor.getContents();
 
-    console.debug("localDelta.current", localDelta.current);
-    let inverseLocalDelta = localDelta.current.invert(editorContents);
+    console.debug("Reverting local to", inverseLocalDelta);
 
     // Compute local: latest revision + old committed deltas +
     //                old uncommitted deltas
