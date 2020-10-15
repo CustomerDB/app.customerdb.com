@@ -1,7 +1,7 @@
 import "react-quill/dist/quill.snow.css";
 import "firebase/firestore";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import Button from "@material-ui/core/Button";
 import Grid from "@material-ui/core/Grid";
@@ -10,8 +10,8 @@ import LinearProgress from "@material-ui/core/LinearProgress";
 import Moment from "react-moment";
 import PlayheadBlot from "./PlayheadBlot.js";
 import Quill from "quill";
-import ReactDOM from "react-dom";
 import SpeakerBlot from "./SpeakerBlot.js";
+import Speakers from "./transcript/Speakers.js";
 import UploadVideoDialog from "./UploadVideoDialog.js";
 import useFirestore from "../db/Firestore.js";
 
@@ -35,6 +35,7 @@ export default function Transcript({
   const [operation, setOperation] = useState();
   const [uploadModalShow, setUploadModalShow] = useState(false);
   const [eta, setEta] = useState();
+  const editorContainerRef = useRef();
 
   // onChangeSelection is invoked when the content selection changes, including
   // whenever the cursor changes position.
@@ -42,7 +43,7 @@ export default function Transcript({
     if (source !== "user" || range === null) {
       return;
     }
-    console.log("selectionChannelPort: sending", range);
+    console.debug("selectionChannelPort: sending", range);
     selectionChannelPort.postMessage(range);
   };
 
@@ -127,7 +128,13 @@ export default function Transcript({
           )}
         </Grid>
       ) : (
-        <Grid item xs={12} style={{ position: "relative" }} spacing={0}>
+        <Grid
+          ref={editorContainerRef}
+          item
+          xs={12}
+          style={{ position: "relative" }}
+          spacing={0}
+        >
           <HighlightCollabEditor
             quillRef={reactQuillRef}
             document={document}
@@ -154,40 +161,13 @@ export default function Transcript({
               ],
             }}
           />
-          <Speakers quillContainerRef={reactQuillRef} />
+          <Speakers
+            quillContainerRef={reactQuillRef}
+            editorContainerRef={editorContainerRef}
+            transcriptionID={document.transcription}
+          />
         </Grid>
       )}
     </>
-  );
-}
-
-function Speakers({ quillContainerRef }) {
-  // operationRef for speaker mapping
-  // {ID: {name: ..., personID: ...}}
-  const [speakerNodes, setSpeakerNodes] = useState([]);
-
-  useEffect(() => {
-    const refreshNodes = () => {
-      if (!quillContainerRef.current) return;
-
-      let nodes = document.getElementsByClassName("speaker");
-
-      let newSpeakerNodes = [];
-      for (let i = 0; i < nodes.length; i++) {
-        let node = nodes[i];
-        if (node.dataset.speakerID) {
-          newSpeakerNodes.push(node);
-        }
-      }
-      setSpeakerNodes(newSpeakerNodes);
-    };
-    let interval = setInterval(refreshNodes, 1000);
-    return () => {
-      clearInterval(interval);
-    };
-  }, [quillContainerRef]);
-
-  return speakerNodes.map((sn) =>
-    ReactDOM.createPortal(<b>Speaker {sn.dataset.speakerID}</b>, sn)
   );
 }
