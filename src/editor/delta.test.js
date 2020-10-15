@@ -284,3 +284,48 @@ it("can correctly resolve parallel edits", async () => {
     cxt2.readyPort
   );
 });
+
+it("can correctly handle in-flight deletes", async () => {
+  let {
+    uncommittedDeltas,
+    revisionCache,
+    editor,
+    localDelta,
+    readyPort,
+  } = makeContext();
+
+  revisionCache.current = {
+    delta: new Delta([{ insert: "hello world\n" }]),
+    timestamp: makeTimestamp(1, 0),
+  };
+
+  editor.setContents(revisionCache.current.delta);
+
+  localDelta.current = new Delta([{ retain: 5 }, { delete: 6 }]);
+
+  expect(editor.getContents()).toEqual({
+    ops: [{ insert: "hello world\n" }],
+  });
+
+  editor.updateContents(localDelta.current);
+
+  expect(editor.getContents()).toEqual({
+    ops: [{ insert: "hello\n" }],
+  });
+
+  let callback = onDeltaSnapshot(
+    uncommittedDeltas,
+    revisionCache,
+    editor,
+    localDelta,
+    readyPort
+  );
+
+  let snapshot1 = makeDeltaSnapshot([]);
+
+  callback(snapshot1);
+
+  expect(editor.getContents()).toEqual({
+    ops: [{ insert: "hello\n" }],
+  });
+});
