@@ -55,7 +55,6 @@ export default function Speaker({
   };
 
   const onPopNameChange = (e) => {
-    console.debug("onPopNameChange", e.target.value);
     popName.current = e.target.value;
   };
 
@@ -63,7 +62,6 @@ export default function Speaker({
     if (!transcriptionsRef) {
       return;
     }
-    console.debug("renaming speaker", popName.current);
     const speakerRef = transcriptionsRef
       .doc(transcriptionID)
       .collection("speakers")
@@ -72,13 +70,11 @@ export default function Speaker({
   };
 
   const setSpeakerID = (newID) => {
-    console.log("setting speaker id", newID);
     if (!quillRef.current) return;
     let editor = quillRef.current.getEditor();
     let blot = Quill.find(speakerNode);
     if (!blot) return;
     let index = editor.getIndex(blot);
-    console.debug("computed editor index", index);
     let rewriteSpeakerDelta = new Delta([
       { retain: index },
       { delete: 1 },
@@ -143,7 +139,6 @@ export default function Speaker({
                   }}
                   html={popName.current}
                   onKeyDown={(e) => {
-                    console.debug(e);
                     if (e.key === "Enter") {
                       e.target.blur();
                       e.preventDefault();

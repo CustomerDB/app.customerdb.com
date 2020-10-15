@@ -15,6 +15,6 @@ export default class SpeakerBlot extends Embed {
   }
 
   static value(node) {
-    return node.dataset.speakerID;
+    return { ID: node.dataset.speakerID };
   }
 }
