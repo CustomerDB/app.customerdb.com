@@ -95,7 +95,9 @@ export function onDeltaSnapshot(
     let editorContents = editor.getContents();
 
     console.debug("localDelta.current", localDelta.current);
-    let inverseLocalDelta = localDelta.current.invert(editorContents);
+    let inverseLocalDelta = localDelta.current.invert(
+      revisionCache.current.delta
+    );
 
     console.debug("Reverting local to", inverseLocalDelta);
 
