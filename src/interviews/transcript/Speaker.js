@@ -103,6 +103,7 @@ export default function Speaker({
     <>
       <Chip
         ref={chipRef}
+        spellcheck="false"
         avatar={avatar}
         label={speakerName}
         variant="outlined"
