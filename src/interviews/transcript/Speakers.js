@@ -36,7 +36,11 @@ export default function Speakers({
     console.log("setting up observer for speakers", editorContainer);
     const observer = new MutationObserver(refreshNodes);
     observer.observe(editorContainer, { childList: true, subtree: true });
-    return observer.disconnect;
+    return () => {
+      if (document.body.contains(editorContainer)) {
+        observer.disconnect();
+      }
+    };
   }, [editorContainerRef]);
 
   // operationRef for speaker mapping
