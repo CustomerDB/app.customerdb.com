@@ -16,6 +16,7 @@ admin.initializeApp();
 exports.repairJobs = require("./repairJobs");
 exports.highlightIndex = require("./highlightIndexer.js");
 exports.video = require("./video");
+exports.garbageCollection = require("./garbageCollection");
 
 //////////////////////////////////////////////////////////////////////////////
 //
