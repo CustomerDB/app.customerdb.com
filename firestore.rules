@@ -202,6 +202,12 @@ service cloud.firestore {
                    && request.resource.data.orgID == orgID;
     }
 
+    // Active non-admin users can write **TRANSCRIPTION SPEAKERS** in the org.
+    match /organizations/{orgID}/transcriptions/{transcriptionID}/speakers/{document=**} {
+      allow write: if signedInAndVerified()
+                   && activeOrgMember(orgID);
+    }
+
     // Active non-admin users can write **ANALYSES** in the org.
     match /organizations/{orgID}/analyses/{document=**} {
       allow write: if signedInAndVerified()
