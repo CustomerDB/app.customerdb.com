@@ -75,7 +75,7 @@ export default function Validate(props) {
           .signInWithEmailLink(email, window.location.href)
           .then(() => {
             // TODO: Should redirect to password initialization.
-            navigate("/passwordReset");
+            navigate("/");
           });
       })
       .catch((err) => {

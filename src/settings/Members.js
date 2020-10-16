@@ -87,8 +87,8 @@ export default function Members(props) {
       .sendSignInLinkToEmail(email, actionCodeSettings)
       .then(() => {
         return membersRef.doc(email).set({
-          invited: false,
-          active: true,
+          invited: true,
+          active: false,
           admin: false,
           displayName: name,
           email: email,
@@ -213,8 +213,8 @@ export default function Members(props) {
           style={{ width: "4rem", height: "4rem" }}
         />
       ) : (
-          <></>
-        );
+        <></>
+      );
 
     return {
       ID: member.ID,
