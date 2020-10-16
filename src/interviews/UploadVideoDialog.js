@@ -102,6 +102,7 @@ export default function UploadVideoDialog({ open, setOpen }) {
         creationTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
         deletionTimestamp: "",
         inputPath: storagePath,
+        thumbnailToken: "",
         orgID: orgID,
         documentID: documentID,
       })
@@ -119,6 +120,7 @@ export default function UploadVideoDialog({ open, setOpen }) {
           },
           (error) => {
             // Handle unsuccessful uploads
+            console.log(error);
             setError(error);
             setUploading(false);
           },

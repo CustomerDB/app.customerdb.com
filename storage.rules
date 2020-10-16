@@ -14,5 +14,10 @@ service firebase.storage {
       allow read: if signedInAndVerified()
                   && request.auth.token.orgID == orgID;
     }
+
+      match /{orgID}/avatars/{personID}/{media} {
+      allow read, write: if signedInAndVerified()
+                         && request.auth.token.orgID == orgID;
+    }
   }
 }

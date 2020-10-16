@@ -13,6 +13,7 @@ import CssBaseline from "@material-ui/core/CssBaseline";
 import Divider from "@material-ui/core/Divider";
 import Drawer from "@material-ui/core/Drawer";
 import ExploreIcon from "@material-ui/icons/Explore";
+import FormatQuoteIcon from "@material-ui/icons/FormatQuote";
 import GroupIcon from "@material-ui/icons/Group";
 import IconButton from "@material-ui/core/IconButton";
 import List from "@material-ui/core/List";
@@ -105,7 +106,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function Shell(props) {
+export default function Shell({ search, title, children, ...otherProps }) {
   const { oauthUser } = useContext(UserAuthContext);
 
   const { orgID } = useParams();
@@ -136,7 +137,7 @@ export default function Shell(props) {
   };
 
   let app = (
-    <Search search={props.search}>
+    <Search search={search}>
       <div className={classes.root}>
         <CssBaseline />
         <AppBar
@@ -159,10 +160,10 @@ export default function Shell(props) {
             </IconButton>
             {!lgBreakpoint && (
               <Typography variant="h6" noWrap>
-                {props.title}
+                {title}
               </Typography>
             )}
-            {props.search && <SearchInput />}
+            {search && <SearchInput />}
             <div className={classes.grow} />
             {oauthUser && (
               <>
@@ -245,6 +246,12 @@ export default function Shell(props) {
               </ListItemIcon>
               <ListItemText primary="Interviews" />
             </NavListItem>
+            <NavListItem key="Quotes" to={`/orgs/${orgID}/quotes`}>
+              <ListItemIcon>
+                <FormatQuoteIcon />
+              </ListItemIcon>
+              <ListItemText primary="Quotes" />
+            </NavListItem>
             <NavListItem key="Guides" to={`/orgs/${orgID}/guides`}>
               <ListItemIcon>
                 <ExploreIcon />
@@ -278,7 +285,7 @@ export default function Shell(props) {
         </Drawer>
         <main className={classes.content}>
           <div className={classes.toolbar} />
-          {props.children}
+          {children}
         </main>
       </div>
     </Search>

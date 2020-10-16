@@ -10,13 +10,14 @@ import React, {
 
 import CollabEditor from "./CollabEditor.js";
 import FirebaseContext from "../util/FirebaseContext.js";
-import HighlightBlot from "../interviews/HighlightBlot.js";
-import HighlightHints from "../interviews/HighlightHints.js";
+import HighlightBlot from "./HighlightBlot.js";
+import HighlightHints from "./HighlightHints.js";
 import Quill from "quill";
-import SelectionFAB from "../interviews/SelectionFAB.js";
+import SelectionFAB from "./SelectionFAB.js";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
 import { useParams } from "react-router-dom";
+import { useQuery } from "../util/Query.js";
 import { v4 as uuidv4 } from "uuid";
 
 Quill.register("formats/highlight", HighlightBlot);
@@ -27,11 +28,18 @@ export default function HighlightCollabEditor({
   highlightsRef,
   tags,
   onChangeSelection,
+  onReady,
   ...otherProps
 }) {
   const selectionChannel = new MessageChannel();
   const selectionChannelSend = selectionChannel.port1;
   const selectionChannelReceive = selectionChannel.port2;
+
+  const readyChannel = new MessageChannel();
+  const readyChannelSend = readyChannel.port1;
+  const readyChannelReceive = readyChannel.port2;
+
+  const initialScrollRef = useRef();
 
   // thisOnChangeSelection is invoked when the content selection changes, including
   // whenever the cursor changes position.
@@ -46,16 +54,26 @@ export default function HighlightCollabEditor({
     }
   };
 
+  const thisOnReady = () => {
+    readyChannelSend.postMessage({});
+    if (onReady) {
+      onReady();
+    }
+  };
+
   return (
     <>
       <CollabEditor
         quillRef={quillRef}
         onChangeSelection={thisOnChangeSelection}
+        onReady={thisOnReady}
         {...otherProps}
       />
       <HighlightControls
         quillRef={quillRef}
+        initialScrollRef={initialScrollRef}
         selectionChannelPort={selectionChannelReceive}
+        readyChannelPort={readyChannelReceive}
         highlightsRef={highlightsRef}
         highlightDocument={document}
         tags={tags}
@@ -69,7 +87,9 @@ const syncPeriod = 1000;
 
 function HighlightControls({
   quillRef,
+  initialScrollRef,
   selectionChannelPort,
+  readyChannelPort,
   highlightsRef,
   highlightDocument,
   tags,
@@ -78,17 +98,60 @@ function HighlightControls({
   const { oauthClaims } = useContext(UserAuthContext);
   const { orgID } = useParams();
   const [toolbarHeight, setToolbarHeight] = useState(40);
+  const [editor, setEditor] = useState();
   const [selection, setSelection] = useState();
   const [highlights, setHighlights] = useState();
   const highlightsCache = useRef();
+  const [scrollHighlightID, setScrollHighlightID] = useState();
   const [tagIDsInSelection, setTagIDsInSelection] = useState(new Set());
+
+  const query = useQuery();
+
+  readyChannelPort.onmessage = () => {
+    if (quillRef.current) {
+      setEditor(quillRef.current.getEditor());
+    }
+  };
+
+  // Reset scroll flag on navigate
+  useEffect(() => {
+    let highlightID = query.get("quote");
+    initialScrollRef.current = false;
+    setScrollHighlightID(highlightID);
+  }, [query, initialScrollRef]);
+
+  // Scroll to quote ID from URL on load.
+  useEffect(() => {
+    if (
+      initialScrollRef.current ||
+      !scrollHighlightID ||
+      !editor ||
+      !highlights ||
+      !highlights[scrollHighlightID]
+    ) {
+      return;
+    }
+
+    let highlight = highlights[scrollHighlightID];
+
+    let highlightNode = document.getElementsByClassName(
+      `highlight-${scrollHighlightID}`
+    )[0];
+
+    const scrollToHighlightNode = () => {
+      console.debug("scrolling to highlight node", highlightNode);
+      editor.setSelection(highlight.selection.index, "user");
+      highlightNode.scrollIntoView({ behavior: "smooth", block: "center" });
+      initialScrollRef.current = true;
+    };
+
+    if (document.body.contains(highlightNode)) {
+      scrollToHighlightNode();
+    }
+  }, [editor, scrollHighlightID, highlights, initialScrollRef]);
 
   const getHighlightFromEditor = useCallback(
     (highlightID) => {
-      if (!quillRef || !quillRef.current) {
-        return;
-      }
-      let editor = quillRef.current.getEditor();
       let domNodes = document.getElementsByClassName(
         `highlight-${highlightID}`
       );
@@ -121,16 +184,15 @@ function HighlightControls({
         text: text,
       };
     },
-    [quillRef]
+    [editor]
   );
 
   // selection: a range object with fields 'index' and 'length'
   const computeHighlightsInSelection = useCallback(
     (selection) => {
-      if (!quillRef || !quillRef.current) {
+      if (!editor) {
         return [];
       }
-      let editor = quillRef.current.getEditor();
       let result = [];
       if (selection === undefined) {
         return result;
@@ -149,7 +211,7 @@ function HighlightControls({
         return [];
       });
     },
-    [quillRef, getHighlightFromEditor]
+    [editor, getHighlightFromEditor]
   );
 
   // selection: a range object with fields 'index' and 'length'
@@ -239,26 +301,12 @@ function HighlightControls({
       !oauthClaims.email ||
       !highlightsCache
     ) {
-      console.debug(
-        "bailing",
-        highlightsRef,
-        highlightDocument.ID,
-        oauthClaims.email,
-        highlightsCache
-      );
       return;
     }
-    console.debug(
-      "not bailing",
-      highlightsRef,
-      highlightDocument.ID,
-      oauthClaims.email,
-      highlightsCache
-    );
 
     // This function sends any new highlights to the database.
     const syncHighlightsCreate = () => {
-      if (!quillRef || !quillRef.current || !highlightsCache.current) {
+      if (!editor || !highlightsCache.current) {
         return;
       }
       let editorHighlightIDs = getHighlightIDsFromEditor();
@@ -300,7 +348,7 @@ function HighlightControls({
     // This function sends any local updates to highlight content relative
     // to the local editor to the database.
     const syncHighlightsUpdate = () => {
-      if (!quillRef || !quillRef.current || !highlightsCache.current) {
+      if (!editor || !highlightsCache.current) {
         return;
       }
       // Update or delete highlights based on local edits.
@@ -369,7 +417,7 @@ function HighlightControls({
     highlightDocument.ID,
     highlightDocument.deletionTimestamp,
     highlightDocument.personID,
-    quillRef,
+    editor,
     firebase,
   ]);
 
@@ -378,10 +426,9 @@ function HighlightControls({
   const onTagControlChange = useCallback(
     (tag, checked) => {
       console.debug("onTagControlChange", tag, checked, selection);
-      if (!quillRef || !quillRef.current) {
+      if (!editor) {
         return;
       }
-      let editor = quillRef.current.getEditor();
 
       if (selection === undefined) {
         return;
@@ -427,12 +474,7 @@ function HighlightControls({
       setSelection(newRange);
       setTagIDsInSelection(computeTagIDsInSelection(newRange));
     },
-    [
-      quillRef,
-      selection,
-      computeHighlightsInSelection,
-      computeTagIDsInSelection,
-    ]
+    [editor, selection, computeHighlightsInSelection, computeTagIDsInSelection]
   );
 
   if (!highlights || !tags || !toolbarHeight) {

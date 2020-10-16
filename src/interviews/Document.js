@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { addTagStyles, removeTagStyles } from "./Tags.js";
+import { addTagStyles, removeTagStyles } from "../editor/Tags.js";
 import { useNavigate, useParams } from "react-router-dom";
 
 import Archive from "@material-ui/icons/Archive";
@@ -177,7 +177,7 @@ export default function Document(props) {
         md={8}
         xl={9}
       >
-        <Scrollable>
+        <Scrollable id="editorScrollContainer">
           <Grid container item spacing={0} xs={12}>
             <Grid container item justify="center">
               <Paper elevation={5} className={classes.documentPaper}>

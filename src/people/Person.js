@@ -83,7 +83,7 @@ export default function Person(props) {
         person.state ||
         person.city ||
         person.country ||
-        (person.customFields && person.customFields.size > 0)
+        (person.customFields && Object.keys(person.customFields).length > 0)
     );
     console.log(person);
   }, [person]);
@@ -130,7 +130,7 @@ export default function Person(props) {
                 <Avatar
                   size={70}
                   name={person.name}
-                  src={person.imageData}
+                  src={person.imageURL}
                   round={true}
                 />
                 <div

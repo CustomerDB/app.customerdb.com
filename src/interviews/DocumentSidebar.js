@@ -141,7 +141,7 @@ export default function DocumentSidebar(props) {
                       size={70}
                       name={person.name}
                       round={true}
-                      src={person.imageData}
+                      src={person.imageURL}
                     />
                   </Grid>
                   <Grid item xl={9} md={12} style={{ marginBottom: "1rem" }}>

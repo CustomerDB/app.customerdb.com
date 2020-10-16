@@ -1,9 +1,11 @@
 import React from "react";
 
-export default function Scrollable(props) {
+export default function Scrollable({ children, ...otherProps }) {
   return (
     <div className="scrollContainer h-100">
-      <div className="scroll">{props.children}</div>
+      <div className="scroll" {...otherProps}>
+        {children}
+      </div>
     </div>
   );
 }

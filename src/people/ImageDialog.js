@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 
 import AvatarEdit from "react-avatar-edit";
 import Button from "@material-ui/core/Button";
@@ -6,9 +6,11 @@ import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
+import FirebaseContext from "../util/FirebaseContext.js";
 import Grid from "@material-ui/core/Grid";
 import { makeStyles } from "@material-ui/core/styles";
 import useFirestore from "../db/Firestore.js";
+import { useParams } from "react-router-dom";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -25,16 +27,44 @@ export default function ImageDialog({ open, setOpen }) {
   const classes = useStyles();
 
   const [imageSource, setImageSource] = useState();
+  const { orgID, personID } = useParams();
 
   const { personRef } = useFirestore();
+  const firebase = useContext(FirebaseContext);
+  let storageRef = firebase.storage().ref();
 
   const onSave = () => {
     console.log("onSave");
 
-    personRef.set({ imageData: imageSource }, { merge: true });
-
-    setOpen(false);
-    setImageSource();
+    // Upload image
+    let storagePath = `${orgID}/avatars/${personID}/avatar.png`;
+    let imageRef = storageRef.child(storagePath);
+    let task = imageRef.putString(imageSource, "data_url");
+    task.on(
+      "state_changed",
+      (snapshot) => {
+        console.debug((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+      },
+      (error) => {
+        console.error(error);
+      },
+      () => {
+        // 100% Done
+        imageRef.getDownloadURL().then((url) => {
+          personRef
+            .set(
+              {
+                imageURL: url,
+              },
+              { merge: true }
+            )
+            .then(() => {
+              setOpen(false);
+              setImageSource();
+            });
+        });
+      }
+    );
   };
 
   const cancel = () => {

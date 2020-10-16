@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
 import Chip from "@material-ui/core/Chip";
 import { v4 as uuidv4 } from "uuid";
@@ -41,6 +42,7 @@ export default function HighlightHints({ toolbarHeight, highlights, tags }) {
         id={hintDomID}
         key={hintDomID}
         tag={tag}
+        highlightID={highlight.ID}
         offsetTop={highlightNode.offsetTop + toolbarOffset}
       />
     );
@@ -49,13 +51,21 @@ export default function HighlightHints({ toolbarHeight, highlights, tags }) {
   return hints;
 }
 
-function Hint({ tag, offsetTop }) {
+function Hint({ tag, highlightID, offsetTop }) {
   const [expand, setExpand] = useState(false);
+  const { orgID, documentID, tabID } = useParams();
+  const navigate = useNavigate();
   let label = expand ? tag.name : tag.name[0];
 
   let chip = (
     <Chip
       label={label}
+      onClick={() => {
+        let target = tabID
+          ? `/orgs/${orgID}/interviews/${documentID}/${tabID}?quote=${highlightID}`
+          : `/orgs/${orgID}/interviews/${documentID}?quote=${highlightID}`;
+        navigate(target);
+      }}
       onMouseOver={() => {
         setExpand(true);
       }}

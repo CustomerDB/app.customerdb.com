@@ -162,6 +162,11 @@ div.listTitleButtonContainer {
   padding: 0.5rem;
 }
 
+div.speaker {
+  height: 2rem;
+  margin-top: 0.5rem;
+}
+
 .cardContainer {
   position: absolute;
   width: 100%;

@@ -55,7 +55,7 @@ export default function Analysis(props) {
     );
 
     return (
-      <Grid container item md={12} lg={9} xl={10} spacing={0}>
+      <Grid container item sm={9} xl={10} spacing={0}>
         <Paper className={classes.paper}>
           <Grid container>
             <Grid container item xs={12} alignItems="flex-start">
@@ -120,7 +120,7 @@ export default function Analysis(props) {
 
   return (
     <>
-      <Grid container item md={12} lg={9} xl={10} spacing={0}>
+      <Grid container item sm={9} xl={10} spacing={0}>
         <Paper className={classes.paper}>{view}</Paper>
       </Grid>
     </>

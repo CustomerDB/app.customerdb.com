@@ -220,7 +220,7 @@ function HighlightCard(props) {
         className={classes.quoteCard}
         onClick={() => {
           navigate(
-            `/orgs/${orgID}/interviews/${props.highlight.documentID}/${props.highlight.source}`
+            `/orgs/${orgID}/interviews/${props.highlight.documentID}/${props.highlight.source}?quote=${props.highlight.ID}`
           );
         }}
       >

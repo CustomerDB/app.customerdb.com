@@ -21,7 +21,7 @@ export default function HighlightModal(props) {
       <Modal.Header closeButton>
         <Modal.Title id="contained-modal-title-vcenter">
           <Link
-            to={`/orgs/${orgID}/interviews/${props.data.card.documentID}/${props.data.card.source}`}
+            to={`/orgs/${orgID}/interviews/${props.data.card.documentID}/${props.data.card.source}?quote=${props.data.highlight.ID}`}
           >
             <small>{props.data.document.name}</small>
           </Link>
