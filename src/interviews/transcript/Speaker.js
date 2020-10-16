@@ -144,6 +144,7 @@ export default function Speaker({
                       e.target.blur();
                       e.preventDefault();
                       onClickRename();
+                      onPopClose();
                     }
                   }}
                   onChange={onPopNameChange}

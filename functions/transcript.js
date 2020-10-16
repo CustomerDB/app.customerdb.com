@@ -178,13 +178,16 @@ const createRevisionAndTimecodesForTranscript = (outputPath) => {
           }
 
           let speakerTag = word["speakerTag"];
-          if (speakerTag != lastSpeaker) {
-            newRevision = newRevision.compose(
-              new Delta([
-                { retain: deltaOffset },
-                { insert: { speaker: { ID: speakerTag } } },
-              ])
-            );
+          if (speakerTag !== lastSpeaker) {
+            let ops = [];
+
+            if (deltaOffset > 0) {
+              ops.push({ retain: deltaOffset });
+            }
+
+            ops.push({ insert: { speaker: { ID: speakerTag } } });
+
+            newRevision = newRevision.compose(new Delta(ops));
 
             deltaOffset++; // embed blots are of length 1
 
