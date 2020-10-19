@@ -14,6 +14,7 @@ import googleLogo from "../assets/images/google-logo.svg";
 import loginFigure from "../assets/images/login.svg";
 import logo from "../assets/images/logo.svg";
 import { makeStyles } from "@material-ui/core/styles";
+import { Loading } from "../util/Utils.js";
 
 const useStyles = makeStyles((theme) => {
   return {
@@ -212,7 +213,7 @@ export default function JoinOrg(props) {
   };
 
   if (auth.oauthUser !== null) {
-    return <Navigate to="/" />;
+    return <Loading />;
   }
 
   return (
