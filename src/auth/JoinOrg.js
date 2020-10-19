@@ -239,6 +239,21 @@ export default function JoinOrg(props) {
             <Grid container item>
               <ValidatorForm onSubmit={createAccount} style={{ width: "100%" }}>
                 <TextValidator
+                  autoComplete="username"
+                  variant="outlined"
+                  margin="normal"
+                  fullWidth
+                  label="Email"
+                  disabled
+                  name="email"
+                  validators={["required", "isEmail"]}
+                  errorMessages={[
+                    "Email is required",
+                    "Not a valid email address",
+                  ]}
+                  value={email}
+                />
+                <TextValidator
                   variant="outlined"
                   margin="normal"
                   fullWidth
@@ -250,6 +265,7 @@ export default function JoinOrg(props) {
                   value={name}
                 />
                 <TextValidator
+                  autoComplete="password"
                   variant="outlined"
                   margin="normal"
                   fullWidth

@@ -154,6 +154,7 @@ export default function Login(props) {
             <Grid container item>
               <ValidatorForm onSubmit={loginEmail} style={{ width: "100%" }}>
                 <TextValidator
+                  autoComplete="username"
                   variant="outlined"
                   margin="normal"
                   fullWidth
@@ -165,6 +166,7 @@ export default function Login(props) {
                   value={email}
                 />
                 <TextValidator
+                  autoComplete="password"
                   variant="outlined"
                   margin="normal"
                   fullWidth
