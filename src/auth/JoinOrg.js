@@ -343,31 +343,3 @@ export default function JoinOrg(props) {
     </Grid>
   );
 }
-
-// function LoginForm(props) {
-//   return (
-//     <Container>
-//       <Row className="align-items-center">
-//         <Col md={6}>
-//           <Row className="align-items-center">
-//             <Col className="pb-5">
-//               <img style={{ width: "50%" }} src={logo} alt="CustomerDB logo" />
-//             </Col>
-//           </Row>
-//           <Row>
-//             <Col>{props.cta}</Col>
-//           </Row>
-//           <Row>
-//             <Col>{props.status}</Col>
-//           </Row>
-//           <Row className="pt-5">
-//             <Col>{props.action}</Col>
-//           </Row>
-//         </Col>
-//         <Col md={6}>
-//           <img style={{ width: "100%" }} src={loginFigure} alt="..." />
-//         </Col>
-//       </Row>
-//     </Container>
-//   );
-// }
