@@ -29,128 +29,88 @@ exports.onMemberWritten = functions.firestore
   .onWrite((change, context) => {
     console.log("handling update (params):", context.params);
 
-    const orgID = context.params.orgID;
-    const email = context.params.email;
     let before = change.before.data();
     let after = change.after.data();
 
     let uid = before && before.uid ? before.uid : after && after.uid;
 
-    let uidPromise;
-
-    // Populate member with uid, if it can be found.
     if (!uid) {
-      console.debug("No UID found. Trying to fetch and populate");
-      uidPromise = admin
-        .auth()
-        .getUserByEmail(email)
-        .then((userRecord) => {
-          console.log("userRecord: ", JSON.stringify(userRecord));
-          let uid = userRecord.uid;
-          let db = admin.firestore();
-          let orgRef = db.collection("organizations").doc(orgID);
-          let memberRef = orgRef.collection("members").doc(email);
-
-          return memberRef
-            .set(
-              {
-                uid: uid,
-              },
-              { merge: true }
-            )
-            .then(() => {
-              return db.collection("userToOrg").doc(email).set(
-                {
-                  orgID: orgID,
-                },
-                { merge: true }
-              );
-            })
-            .then(() => {
-              return uid;
-            });
-        });
-    } else {
-      uidPromise = Promise.resolve(uid);
+      console.log("no uid -- terminating");
+      return;
     }
 
-    uidPromise.then((uid) => {
-      // Remove custom claims if necessary.
-      // TODO(CD): only delete claims for this orgID.
+    // Remove custom claims if necessary.
+    // TODO(CD): only delete claims for this orgID.
 
-      let memberRecordDeleted = !change.after.exists;
-      if (memberRecordDeleted) {
-        console.log(`member record deleted -- deleting custom claims`);
-        return admin.auth().setCustomUserClaims(uid, null);
-      }
+    let memberRecordDeleted = !change.after.exists;
+    if (memberRecordDeleted) {
+      console.log(`member record deleted -- deleting custom claims`);
+      return admin.auth().setCustomUserClaims(uid, null);
+    }
 
-      let memberInactive = !after.active;
-      if (memberInactive) {
-        console.log(`member is inactive -- deleting custom claims`);
-        return admin.auth().setCustomUserClaims(uid, null);
-      }
+    let memberInactive = !after.active;
+    if (memberInactive) {
+      console.log(`member is inactive -- deleting custom claims`);
+      return admin.auth().setCustomUserClaims(uid, null);
+    }
 
-      // Add custom claims if necessary.
-      // TODO(CD): Make this work for multiple orgs
+    // Add custom claims if necessary.
+    // TODO(CD): Make this work for multiple orgs
 
-      let newCustomClaims = {
-        orgID: context.params.orgID,
-        admin: after.admin,
-      };
+    let newCustomClaims = {
+      orgID: context.params.orgID,
+      admin: after.admin,
+    };
 
-      console.log(`getting user record ${uid} to read custom claims`);
-      return admin
-        .auth()
-        .getUser(uid)
-        .then((userRecord) => {
-          let oldClaims = userRecord.customClaims;
+    console.log(`getting user record ${uid} to read custom claims`);
+    return admin
+      .auth()
+      .getUser(uid)
+      .then((userRecord) => {
+        let oldClaims = userRecord.customClaims;
 
-          console.log(`found existing custom claims for ${uid}`, oldClaims);
+        console.log(`found existing custom claims for ${uid}`, oldClaims);
 
-          let missingClaims =
-            !oldClaims || !("orgID" in oldClaims) || !("admin" in oldClaims);
+        let missingClaims =
+          !oldClaims || !("orgID" in oldClaims) || !("admin" in oldClaims);
 
-          // True if the user is an active org member (should have claims)
-          // but does not have claims for any reason.
-          let needsClaims = after.active && missingClaims;
+        // True if the user is an active org member (should have claims)
+        // but does not have claims for any reason.
+        let needsClaims = after.active && missingClaims;
 
-          // True if a user is writing their own member uid (join org operation)
-          console.log("Before: ", before);
-          console.log("After: ", after);
-          let memberJoined =
-            !before || (!before.uid && before.uid !== after.uid);
+        // True if a user is writing their own member uid (join org operation)
+        let memberJoined = !before.uid && before.uid !== after.uid;
 
-          // True if the member admin bit changed
-          let adminChanged = !before || before.admin !== after.admin;
+        // True if the member admin bit changed
+        let adminChanged = before.admin !== after.admin;
 
-          if (needsClaims || memberJoined || adminChanged) {
-            console.log("writing new custom claims", newCustomClaims);
+        if (needsClaims || memberJoined || adminChanged) {
+          console.log("writing new custom claims", newCustomClaims);
 
-            // Set custom claims for the user.
-            return admin
-              .auth()
-              .setCustomUserClaims(uid, newCustomClaims)
-              .then(() => {
-                console.log(`triggering token refresh for /uids/${uid}`);
-                // Touch the uid record (`/uids/{uid}`) to trigger id
-                // token refresh in the client.
-                //
-                // NOTE: The client refresh trigger subscription is
-                //       set up and handled in the WithOauthUser component.
-                return admin
-                  .firestore()
-                  .collection("uids")
-                  .doc(uid)
-                  .set({
-                    refreshTime: admin.firestore.FieldValue.serverTimestamp(),
-                  })
-                  .then(() => {
-                    console.log("done triggering token refresh");
-                  });
-              });
-          }
-        });
-    });
+          // Set custom claims for the user.
+          return admin
+            .auth()
+            .setCustomUserClaims(uid, newCustomClaims)
+            .then(() => {
+              console.log(`triggering token refresh for /uids/${uid}`);
+              // Touch the uid record (`/uids/{uid}`) to trigger id
+              // token refresh in the client.
+              //
+              // NOTE: The client refresh trigger subscription is
+              //       set up and handled in the WithOauthUser component.
+              return admin
+                .firestore()
+                .collection("uids")
+                .doc(uid)
+                .set({
+                  refreshTime: admin.firestore.FieldValue.serverTimestamp(),
+                })
+                .then(() => {
+                  console.log("done triggering token refresh");
+                });
+            });
+        }
+      });
   });
 
 exports.createOrganization = functions.https.onCall((data, context) => {
@@ -763,6 +723,141 @@ exports.updateHighlightPeopleForDocument = functions.firestore
           )
         );
     }
+  });
+
+//////////////////////////////////////////////////////////////////////////////
+//
+//   New user invitations
+//
+//////////////////////////////////////////////////////////////////////////////
+
+exports.emailInviteJob = functions.pubsub
+  .schedule("every 2 minutes")
+  .onRun((context) => {
+    let db = admin.firestore();
+
+    db.collection("organizations")
+      .get()
+      .then((snapshot) => {
+        let organizationPromises = [];
+        console.log("Snapshot size", snapshot.size);
+        snapshot.forEach((doc) => {
+          let orgID = doc.id;
+
+          organizationPromises.push(
+            new Promise((accept, reject) => {
+              let memberPromises = [];
+
+              // list member collections to get.
+              memberPromises.push(
+                db
+                  .collection("organizations")
+                  .doc(orgID)
+                  .collection("members")
+                  .where("invited", "==", true)
+                  .where("active", "==", false)
+                  .where("inviteSentTimestamp", "==", "")
+                  .get()
+                  .then((snapshot) => {
+                    let mailPromises = [];
+
+                    snapshot.forEach((doc) => {
+                      mailPromises.push(
+                        new Promise((accept, reject) => {
+                          let member = doc.data();
+
+                          console.log("Sending email to ", member);
+
+                          let mailHtml = fs.readFileSync(
+                            "mail_templates/invite_mail.html",
+                            "utf8"
+                          );
+                          let mailTxt = fs.readFileSync(
+                            "mail_templates/invite_mail.txt",
+                            "utf8"
+                          );
+
+                          mailHtml = mailHtml.replace(
+                            "{{baseURL}}",
+                            functions.config().invite_email.base_url
+                          );
+                          mailHtml = mailHtml.replace("{{orgID}}", orgID);
+
+                          mailTxt = mailTxt.replace(
+                            "{{baseURL}}",
+                            functions.config().invite_email.base_url
+                          );
+                          mailTxt = mailTxt.replace("{{orgID}}", orgID);
+
+                          sgMail.setApiKey(functions.config().sendgrid.api_key);
+                          const msg = {
+                            to: member.email,
+                            from: "noreply@quantap.com",
+                            subject:
+                              "You have been invited to join a team on CustomerDB",
+                            text: mailTxt,
+                            html: mailHtml,
+                          };
+                          sgMail.send(msg);
+
+                          doc.ref
+                            .set(
+                              {
+                                inviteSentTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+                              },
+                              { merge: true }
+                            )
+                            .then(() => {
+                              // accept
+                              accept();
+                            })
+                            .catch((e) => {
+                              reject(e);
+                            });
+                        })
+                      );
+                    });
+
+                    console.log(
+                      "Waiting for ",
+                      mailPromises.length,
+                      " mail promises"
+                    );
+                    return Promise.all(mailPromises)
+                      .then(() => accept())
+                      .catch((e) => {
+                        reject(e);
+                      });
+                  })
+              );
+
+              console.log(
+                "Waiting for ",
+                memberPromises.length,
+                " member promises"
+              );
+              return Promise.all(memberPromises)
+                .then(() => accept())
+                .catch((e) => {
+                  reject(e);
+                });
+            })
+          );
+        });
+
+        console.log(
+          "Waiting for ",
+          organizationPromises.length,
+          " organization promises"
+        );
+        return Promise.all(organizationPromises);
+      })
+      .then(() => {
+        console.log("Job finished");
+      })
+      .catch((e) => {
+        console.log(e);
+      });
   });
 
 //////////////////////////////////////////////////////////////////////////////
