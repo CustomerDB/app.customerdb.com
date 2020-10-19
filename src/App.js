@@ -54,7 +54,7 @@ export default function App() {
 
               <Route path="join">
                 <Route
-                  path=":id"
+                  path=":orgID"
                   element={
                     <WithOauthUser>
                       <JoinOrg />

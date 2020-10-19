@@ -69,32 +69,22 @@ export default function Members(props) {
       userID: oauthClaims.user_id,
     });
 
-    membersRef.doc(email).set({
-      invited: true,
-      active: false,
-      email: email,
-      inviteSentTimestamp: "",
-    });
-  };
-
-  const onEmailInvite = (name, email) => {
     let actionCodeSettings = {
-      url: "http://localhost:3000/validate",
+      url: `${process.env.REACT_APP_DOMAIN}/join/${orgID}?email=${email}`,
       handleCodeInApp: true,
     };
-    firebase
-      .auth()
-      .sendSignInLinkToEmail(email, actionCodeSettings)
-      .then(() => {
-        return membersRef.doc(email).set({
-          invited: true,
-          active: false,
-          admin: false,
-          displayName: name,
-          email: email,
-          inviteSentTimestamp: "",
-        });
-      });
+
+    membersRef
+      .doc(email)
+      .set({
+        invited: true,
+        active: false,
+        email: email,
+        inviteSentTimestamp: "",
+      })
+      .then(() =>
+        firebase.auth().sendSignInLinkToEmail(email, actionCodeSettings)
+      );
   };
 
   const onDelete = (email) => {
@@ -291,7 +281,6 @@ export default function Members(props) {
         <InviteMemberDialog
           show={inviteModalShow}
           onInvite={onInvite}
-          onEmailInvite={onEmailInvite}
           onHide={() => {
             setInviteModalShow(false);
           }}

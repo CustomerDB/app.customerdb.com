@@ -1,32 +1,82 @@
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import React, { useContext, useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { TextValidator, ValidatorForm } from "react-material-ui-form-validator";
 
-import Alert from "react-bootstrap/Alert";
-import Button from "react-bootstrap/Button";
-import Col from "react-bootstrap/Col";
-import Container from "react-bootstrap/Container";
+import Alert from "@material-ui/lab/Alert";
+import Button from "@material-ui/core/Button";
 import FirebaseContext from "../util/FirebaseContext.js";
-import Row from "react-bootstrap/Row";
+import Grid from "@material-ui/core/Grid";
+import Hidden from "@material-ui/core/Hidden";
+import Link from "@material-ui/core/Link";
 import UserAuthContext from "./UserAuthContext.js";
 import event from "../analytics/event.js";
+import googleLogo from "../assets/images/google-logo.svg";
 import loginFigure from "../assets/images/login.svg";
 import logo from "../assets/images/logo.svg";
+import { makeStyles } from "@material-ui/core/styles";
+
+const useStyles = makeStyles((theme) => {
+  return {
+    loginText: {
+      paddingTop: "2rem",
+    },
+    alert: {
+      marginTop: "1rem",
+      marginBottom: "1rem",
+    },
+    links: {
+      marginLeft: "2rem",
+    },
+    loginButton: {
+      marginTop: "2rem",
+      marginBottom: "4rem",
+    },
+    logo: {
+      width: "50%",
+      marginTop: "2rem",
+    },
+    graphic: {
+      width: "100%",
+    },
+    submit: {
+      margin: theme.spacing(3, 0, 2),
+    },
+    or: {
+      textAlign: "center",
+      borderBottom: "1px solid #000",
+      lineHeight: "0.1em",
+      margin: "10px 0 20px",
+      width: "100%",
+      paddingTop: "1.5rem",
+      "& span": {
+        background: "#fff",
+        padding: "0 10px",
+      },
+    },
+  };
+});
 
 export default function JoinOrg(props) {
   const auth = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
 
-  const [inviteFailed, setInviteFailed] = useState(false);
-  const [reason, setReason] = useState(undefined);
+  const [name, setName] = useState();
+  const [password, setPassword] = useState();
+  const [repeatPassword, setRepeatPassword] = useState();
+  const [errorMessage, setErrorMessage] = useState(undefined);
+
+  const classes = useStyles();
 
   var provider = new firebase.auth.GoogleAuthProvider();
   var db = firebase.firestore();
 
   let navigate = useNavigate();
 
-  // Get invite id.
-  let { id } = useParams();
-  let orgID = id;
+  const { orgID } = useParams();
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const oobCode = urlParams.get("oobCode");
+  const email = urlParams.get("email");
 
   useEffect(() => {
     console.log("useEffect auth", auth);
@@ -36,40 +86,62 @@ export default function JoinOrg(props) {
     navigate(`/orgs/${orgID}`);
   }, [auth, orgID, navigate]);
 
-  const login = () => {
+  useEffect(() => {
+    ValidatorForm.addValidationRule("isPasswordMatch", (value) => {
+      if (value !== password) {
+        return false;
+      }
+      return true;
+    });
+
+    return () => {
+      ValidatorForm.removeValidationRule("isPasswordMatch");
+    };
+  });
+
+  useEffect(() => {
     firebase
       .auth()
-      .setPersistence(firebase.auth.Auth.Persistence.SESSION)
+      .getRedirectResult()
+      .then((result) => {
+        if (!result || !result.user) {
+          return;
+        }
+
+        console.log("Got redirect result: ", result);
+        return googleJoin(result.user).catch(() => {
+          setErrorMessage(
+            "Couldn't add you to the organization. Please reach out to your administrator and verify your email has been added."
+          );
+        });
+      });
+  });
+
+  const loginGoogle = () => {
+    firebase
+      .auth()
+      .setPersistence(firebase.auth.Auth.Persistence.LOCAL)
       .then(function () {
         firebase.auth().signInWithRedirect(provider);
       })
-      .catch(function (error) {
-        console.error(error);
+      .catch(() => {
+        setErrorMessage(
+          "Couldn't add you to the organization. Please reach out to your administrator and verify your email has been added."
+        );
       });
   };
 
-  const onFail = () => {
-    //failed
-    setReason(
-      "Couldn't add you to the organization. Please reach out to your administrator and verify your email has been added."
-    );
-    setInviteFailed(true);
-    return;
-  };
-
-  const join = () => {
-    let user = auth.oauthUser;
-
+  const googleJoin = (user) => {
     event(firebase, "join_org", {
       orgID: orgID,
       userID: user.uid,
     });
 
-    setInviteFailed(false);
-    setReason(undefined);
+    console.log("googleJoin", "user", user, "orgID", orgID);
 
     // Get invite object.
-    db.collection("organizations")
+    return db
+      .collection("organizations")
       .doc(orgID)
       .collection("members")
       .doc(user.email)
@@ -87,79 +159,214 @@ export default function JoinOrg(props) {
       )
       .then(() => {
         // Success
-        db.collection("userToOrg")
-          .doc(user.email)
-          .set({
-            orgID: orgID,
-          })
-          .catch(onFail);
-      })
-      .catch(onFail);
-  };
-
-  const logout = () => {
-    firebase
-      .auth()
-      .signOut()
-      .catch(function (error) {
-        console.error(error);
+        return db.collection("userToOrg").doc(user.email).set({
+          orgID: orgID,
+        });
       });
   };
 
-  if (auth.oauthUser === null) {
-    return (
-      <LoginForm
-        cta={<p>Log in to join organization</p>}
-        action={<Button onClick={login}>Login with Google</Button>}
-      />
-    );
-  }
-  let inviteFailedMessage;
-  if (inviteFailed) {
-    inviteFailedMessage = <Alert variant="danger">{reason}</Alert>;
+  const createAccount = () => {
+    firebase
+      .auth()
+      .checkActionCode(oobCode)
+      .then((info) => {
+        console.log(info);
+
+        return firebase
+          .auth()
+          .signInWithEmailLink(email, window.location.href)
+          .then((result) => {
+            const user = result.user;
+
+            // Get invite object.
+            return db
+              .collection("organizations")
+              .doc(orgID)
+              .collection("members")
+              .doc(email)
+              .set(
+                {
+                  uid: user.uid,
+                  email: user.email,
+                  displayName: name,
+                  invited: false,
+                  active: true,
+                  joinedTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                },
+                { merge: true }
+              )
+              .then(() => {
+                // Success
+                return db.collection("userToOrg").doc(email).set({
+                  orgID: orgID,
+                });
+              })
+              .then(() => {
+                return firebase.auth().currentUser.updatePassword(password);
+              });
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+      });
+  };
+
+  if (auth.oauthUser !== null) {
+    return <Navigate to="/" />;
   }
 
   return (
-    <LoginForm
-      status={inviteFailedMessage}
-      cta={
-        <p>
-          Join organization with email {auth.oauthUser.email} (
-          <Button onClick={logout} variant="link">
-            Logout
-          </Button>
-          )
-        </p>
-      }
-      action={<Button onClick={join}>Join</Button>}
-    />
+    <Grid container justify="center">
+      <Grid container item md={6} xs={10}>
+        <Grid container item alignItems="center">
+          <Grid item md={6}>
+            <Grid container item alignItems="center">
+              <Grid item>
+                <img
+                  className={classes.logo}
+                  src={logo}
+                  alt="CustomerDB logo"
+                />
+              </Grid>
+            </Grid>
+            <Grid container item>
+              <Grid item className={classes.loginText}>
+                <p>Create an account by filling in the form below:</p>
+              </Grid>
+            </Grid>
+            <Grid container item>
+              <Grid item>
+                {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
+              </Grid>
+            </Grid>
+            <Grid container item>
+              <ValidatorForm onSubmit={createAccount} style={{ width: "100%" }}>
+                <TextValidator
+                  variant="outlined"
+                  margin="normal"
+                  fullWidth
+                  label="Full name"
+                  onChange={(e) => setName(e.target.value)}
+                  name="name"
+                  validators={["required"]}
+                  errorMessages={["Full name is required"]}
+                  value={name}
+                />
+                <TextValidator
+                  variant="outlined"
+                  margin="normal"
+                  fullWidth
+                  label="Password"
+                  onChange={(e) => setPassword(e.target.value)}
+                  name="password"
+                  type="password"
+                  validators={["required"]}
+                  errorMessages={["Password is required"]}
+                  value={password}
+                />
+                <TextValidator
+                  variant="outlined"
+                  margin="normal"
+                  fullWidth
+                  label="Repeat password"
+                  onChange={(e) => setRepeatPassword(e.target.value)}
+                  name="repeatPassword"
+                  type="password"
+                  validators={["isPasswordMatch", "required"]}
+                  errorMessages={[
+                    "Passwords didn't match",
+                    "Repeat password is required",
+                  ]}
+                  value={repeatPassword}
+                />
+                <Button
+                  type="submit"
+                  fullWidth
+                  variant="contained"
+                  color="primary"
+                  className={classes.submit}
+                >
+                  Create account
+                </Button>
+              </ValidatorForm>
+            </Grid>
+            <Grid container item>
+              <Grid container>
+                <p className={classes.or}>
+                  <span>Or</span>
+                </p>
+              </Grid>
+            </Grid>
+            <Grid container item>
+              <Grid container>
+                <Button
+                  className={classes.loginButton}
+                  color="primary"
+                  fullWidth
+                  variant="outlined"
+                  onClick={loginGoogle}
+                >
+                  <img alt="Google logo" src={googleLogo} />
+                  Sign in with Google
+                </Button>
+              </Grid>
+            </Grid>
+          </Grid>
+          <Grid item md={6}>
+            <Hidden smDown>
+              <img className={classes.graphic} src={loginFigure} alt="..." />
+            </Hidden>
+          </Grid>
+        </Grid>
+        <Grid container item>
+          <Grid item>
+            <p>
+              <Link href="/terms">Terms of use</Link>
+              <Link className={classes.links} href="/privacy">
+                Privacy
+              </Link>
+              <Link className={classes.links} href="/cookies">
+                Cookies
+              </Link>
+              <Link
+                component="button"
+                className={classes.links}
+                onClick={() => window.displayPreferenceModal()}
+              >
+                Do Not Sell My Information
+              </Link>
+            </p>
+          </Grid>
+        </Grid>
+      </Grid>
+    </Grid>
   );
 }
 
-function LoginForm(props) {
-  return (
-    <Container>
-      <Row className="align-items-center">
-        <Col md={6}>
-          <Row className="align-items-center">
-            <Col className="pb-5">
-              <img style={{ width: "50%" }} src={logo} alt="CustomerDB logo" />
-            </Col>
-          </Row>
-          <Row>
-            <Col>{props.cta}</Col>
-          </Row>
-          <Row>
-            <Col>{props.status}</Col>
-          </Row>
-          <Row className="pt-5">
-            <Col>{props.action}</Col>
-          </Row>
-        </Col>
-        <Col md={6}>
-          <img style={{ width: "100%" }} src={loginFigure} alt="..." />
-        </Col>
-      </Row>
-    </Container>
-  );
-}
+// function LoginForm(props) {
+//   return (
+//     <Container>
+//       <Row className="align-items-center">
+//         <Col md={6}>
+//           <Row className="align-items-center">
+//             <Col className="pb-5">
+//               <img style={{ width: "50%" }} src={logo} alt="CustomerDB logo" />
+//             </Col>
+//           </Row>
+//           <Row>
+//             <Col>{props.cta}</Col>
+//           </Row>
+//           <Row>
+//             <Col>{props.status}</Col>
+//           </Row>
+//           <Row className="pt-5">
+//             <Col>{props.action}</Col>
+//           </Row>
+//         </Col>
+//         <Col md={6}>
+//           <img style={{ width: "100%" }} src={loginFigure} alt="..." />
+//         </Col>
+//       </Row>
+//     </Container>
+//   );
+// }

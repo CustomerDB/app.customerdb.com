@@ -1,3 +1,4 @@
+import { TextValidator, ValidatorForm } from "react-material-ui-form-validator";
 import { useContext, useEffect, useState } from "react";
 
 import Alert from "@material-ui/lab/Alert";
@@ -7,7 +8,6 @@ import Grid from "@material-ui/core/Grid";
 import Hidden from "@material-ui/core/Hidden";
 import Link from "@material-ui/core/Link";
 import React from "react";
-import TextField from "@material-ui/core/TextField";
 import UserAuthContext from "./UserAuthContext.js";
 import googleLogo from "../assets/images/google-logo.svg";
 import loginFigure from "../assets/images/login.svg";
@@ -58,7 +58,7 @@ const useStyles = makeStyles((theme) => {
 
 export default function Login(props) {
   const navigate = useNavigate();
-  const [loginSuccess, setLoginSuccess] = useState(undefined);
+  const [loginFailedMessage, setLoginFailedMessage] = useState(undefined);
   const [email, setEmail] = useState();
   const [password, setPassword] = useState();
 
@@ -83,10 +83,12 @@ export default function Login(props) {
       .auth()
       .setPersistence(firebase.auth.Auth.Persistence.LOCAL)
       .then(function () {
-        firebase.auth().signInWithEmailAndPassword(email, password);
+        return firebase.auth().signInWithEmailAndPassword(email, password);
       })
       .catch((error) => {
-        setLoginSuccess(false);
+        if (error.code === "auth/wrong-password") {
+          setLoginFailedMessage("Login failed. Please try again");
+        }
       });
   };
 
@@ -99,30 +101,24 @@ export default function Login(props) {
         .get()
         .then((doc) => {
           if (!doc.exists) {
-            setLoginSuccess(false);
             firebase.auth().signOut();
-            return;
+            throw new Error("User map doesn't exist");
           }
 
           let userToOrg = doc.data();
           navigate(`/orgs/${userToOrg.orgID}`);
         })
         .catch((e) => {
-          console.error("failed to read userToOrg mapping", e);
+          setLoginFailedMessage(
+            <p>
+              Oops - looks like you don't have an account with us yet. If you
+              think this is an error contact us at{" "}
+              <a href="mailto:support@quantap.com">support@quantap.com</a>
+            </p>
+          );
         });
     }
   }, [navigate, auth, firebase]);
-
-  let loginFailedMessage =
-    loginSuccess === false ? (
-      <Alert severity="error">
-        Oops - looks like you don't have an account with us yet. If you think
-        this is an error contact us at{" "}
-        <a href="mailto:support@quantap.com">support@quantap.com</a>
-      </Alert>
-    ) : (
-      <div></div>
-    );
 
   return auth.oauthUser === null && auth.oauthLoading === false ? (
     <Grid container justify="center">
@@ -151,47 +147,47 @@ export default function Login(props) {
               </Grid>
             </Grid>
             <Grid container item>
-              <Grid item>{loginFailedMessage}</Grid>
+              <Grid item>
+                {loginFailedMessage && (
+                  <Alert severity="error">{loginFailedMessage}</Alert>
+                )}
+              </Grid>
             </Grid>
             <Grid container item>
-              <TextField
-                variant="outlined"
-                margin="normal"
-                required
-                fullWidth
-                id="email"
-                label="Email Address"
-                name="email"
-                autoComplete="email"
-                autoFocus
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                }}
-              />
-              <TextField
-                variant="outlined"
-                margin="normal"
-                required
-                fullWidth
-                name="password"
-                label="Password"
-                type="password"
-                id="password"
-                autoComplete="current-password"
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                }}
-              />
-              <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                color="primary"
-                className={classes.submit}
-                onClick={loginEmail}
-              >
-                Sign In
-              </Button>
+              <ValidatorForm onSubmit={loginEmail} style={{ width: "100%" }}>
+                <TextValidator
+                  variant="outlined"
+                  margin="normal"
+                  fullWidth
+                  label="Email"
+                  onChange={(e) => setEmail(e.target.value)}
+                  name="email"
+                  validators={["required", "isEmail"]}
+                  errorMessages={["Email is required", "Not a valid email"]}
+                  value={email}
+                />
+                <TextValidator
+                  variant="outlined"
+                  margin="normal"
+                  fullWidth
+                  label="Password"
+                  onChange={(e) => setPassword(e.target.value)}
+                  name="password"
+                  type="password"
+                  validators={["required"]}
+                  errorMessages={["Password is required"]}
+                  value={password}
+                />
+                <Button
+                  type="submit"
+                  fullWidth
+                  variant="contained"
+                  color="primary"
+                  className={classes.submit}
+                >
+                  Sign In
+                </Button>
+              </ValidatorForm>
             </Grid>
             <Grid container item>
               <Grid container>

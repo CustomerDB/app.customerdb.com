@@ -6,18 +6,9 @@ import Modal from "react-bootstrap/Modal";
 
 export default function InviteMemberDialog(props) {
   const [email, setEmail] = useState();
-  const [name, setName] = useState();
 
   const onSubmit = () => {
     props.onInvite(email);
-    setName("");
-    setEmail("");
-    props.onHide();
-  };
-
-  const onEmailSubmit = () => {
-    props.onEmailInvite(name, email);
-    setName("");
     setEmail("");
     props.onHide();
   };
@@ -33,15 +24,6 @@ export default function InviteMemberDialog(props) {
           a link or they can join the organization here.
         </Form.Label>
         <Form.Control
-          type="name"
-          defaultValue={email}
-          placeholder="Name (not needed for Google accounts)"
-          onChange={(e) => {
-            setName(e.target.value);
-          }}
-        />
-        <br />
-        <Form.Control
           type="email"
           defaultValue={email}
           placeholder="Email"
@@ -51,11 +33,8 @@ export default function InviteMemberDialog(props) {
         />
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="secondary" onClick={onEmailSubmit}>
-          Add email account
-        </Button>
         <Button variant="primary" onClick={onSubmit}>
-          Add google account
+          Add account
         </Button>
       </Modal.Footer>
     </Modal>
