@@ -66,6 +66,9 @@ export default function JoinOrg(props) {
   const [repeatPassword, setRepeatPassword] = useState();
   const [errorMessage, setErrorMessage] = useState(undefined);
 
+  const defaultErrorMessage =
+    "Couldn't add you to the organization. Please reach out to your administrator and verify your email has been added.";
+
   const classes = useStyles();
 
   var provider = new firebase.auth.GoogleAuthProvider();
@@ -109,11 +112,8 @@ export default function JoinOrg(props) {
           return;
         }
 
-        console.log("Got redirect result: ", result);
         return googleJoin(result.user).catch(() => {
-          setErrorMessage(
-            "Couldn't add you to the organization. Please reach out to your administrator and verify your email has been added."
-          );
+          setErrorMessage(defaultErrorMessage);
         });
       });
   });
@@ -126,9 +126,7 @@ export default function JoinOrg(props) {
         firebase.auth().signInWithRedirect(provider);
       })
       .catch(() => {
-        setErrorMessage(
-          "Couldn't add you to the organization. Please reach out to your administrator and verify your email has been added."
-        );
+        setErrorMessage(defaultErrorMessage);
       });
   };
 
@@ -137,8 +135,6 @@ export default function JoinOrg(props) {
       orgID: orgID,
       userID: user.uid,
     });
-
-    console.log("googleJoin", "user", user, "orgID", orgID);
 
     // Get invite object.
     return db
@@ -207,7 +203,7 @@ export default function JoinOrg(props) {
               });
           })
           .catch((error) => {
-            console.error(error);
+            setErrorMessage(defaultErrorMessage);
           });
       });
   };
