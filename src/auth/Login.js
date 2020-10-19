@@ -1,3 +1,4 @@
+import { TextValidator, ValidatorForm } from "react-material-ui-form-validator";
 import { useContext, useEffect, useState } from "react";
 
 import Alert from "@material-ui/lab/Alert";
@@ -8,38 +9,58 @@ import Hidden from "@material-ui/core/Hidden";
 import Link from "@material-ui/core/Link";
 import React from "react";
 import UserAuthContext from "./UserAuthContext.js";
+import googleLogo from "../assets/images/google-logo.svg";
 import loginFigure from "../assets/images/login.svg";
 import logo from "../assets/images/logo.svg";
 import { makeStyles } from "@material-ui/core/styles";
 import { useNavigate } from "react-router-dom";
 
-const useStyles = makeStyles({
-  loginText: {
-    paddingTop: "2rem",
-  },
-  alert: {
-    marginTop: "1rem",
-    marginBottom: "1rem",
-  },
-  links: {
-    marginLeft: "2rem",
-  },
-  loginButton: {
-    marginTop: "2rem",
-    marginBottom: "4rem",
-  },
-  logo: {
-    width: "50%",
-    marginTop: "2rem",
-  },
-  graphic: {
-    width: "100%",
-  },
+const useStyles = makeStyles((theme) => {
+  return {
+    loginText: {
+      paddingTop: "2rem",
+    },
+    alert: {
+      marginTop: "1rem",
+      marginBottom: "1rem",
+    },
+    links: {
+      marginLeft: "2rem",
+    },
+    loginButton: {
+      marginTop: "2rem",
+      marginBottom: "4rem",
+    },
+    logo: {
+      width: "50%",
+      marginTop: "2rem",
+    },
+    graphic: {
+      width: "100%",
+    },
+    submit: {
+      margin: theme.spacing(3, 0, 2),
+    },
+    or: {
+      textAlign: "center",
+      borderBottom: "1px solid #000",
+      lineHeight: "0.1em",
+      margin: "10px 0 20px",
+      width: "100%",
+      paddingTop: "1.5rem",
+      "& span": {
+        background: "#fff",
+        padding: "0 10px",
+      },
+    },
+  };
 });
 
 export default function Login(props) {
   const navigate = useNavigate();
-  const [loginSuccess, setLoginSuccess] = useState(undefined);
+  const [loginFailedMessage, setLoginFailedMessage] = useState(undefined);
+  const [email, setEmail] = useState();
+  const [password, setPassword] = useState();
 
   const auth = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
@@ -48,12 +69,24 @@ export default function Login(props) {
 
   const classes = useStyles();
 
-  const login = () => {
+  const loginGoogle = () => {
     firebase
       .auth()
       .setPersistence(firebase.auth.Auth.Persistence.LOCAL)
       .then(function () {
         firebase.auth().signInWithRedirect(provider);
+      });
+  };
+
+  const loginEmail = () => {
+    firebase
+      .auth()
+      .setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+      .then(function () {
+        return firebase.auth().signInWithEmailAndPassword(email, password);
+      })
+      .catch((error) => {
+        setLoginFailedMessage("Login failed. Please try again");
       });
   };
 
@@ -66,30 +99,24 @@ export default function Login(props) {
         .get()
         .then((doc) => {
           if (!doc.exists) {
-            setLoginSuccess(false);
             firebase.auth().signOut();
-            return;
+            throw new Error("User map doesn't exist");
           }
 
           let userToOrg = doc.data();
           navigate(`/orgs/${userToOrg.orgID}`);
         })
         .catch((e) => {
-          console.error("failed to read userToOrg mapping", e);
+          setLoginFailedMessage(
+            <p>
+              Oops - looks like you don't have an account with us yet. If you
+              think this is an error contact us at{" "}
+              <a href="mailto:support@quantap.com">support@quantap.com</a>
+            </p>
+          );
         });
     }
   }, [navigate, auth, firebase]);
-
-  let loginFailedMessage =
-    loginSuccess === false ? (
-      <Alert severity="error">
-        Oops - looks like you don't have an account with us yet. If you think
-        this is an error contact us at{" "}
-        <a href="mailto:support@quantap.com">support@quantap.com</a>
-      </Alert>
-    ) : (
-      <div></div>
-    );
 
   return auth.oauthUser === null && auth.oauthLoading === false ? (
     <Grid container justify="center">
@@ -118,17 +145,68 @@ export default function Login(props) {
               </Grid>
             </Grid>
             <Grid container item>
-              <Grid item>{loginFailedMessage}</Grid>
+              <Grid item>
+                {loginFailedMessage && (
+                  <Alert severity="error">{loginFailedMessage}</Alert>
+                )}
+              </Grid>
+            </Grid>
+            <Grid container item>
+              <ValidatorForm onSubmit={loginEmail} style={{ width: "100%" }}>
+                <TextValidator
+                  autoComplete="username"
+                  variant="outlined"
+                  margin="normal"
+                  fullWidth
+                  label="Email"
+                  onChange={(e) => setEmail(e.target.value)}
+                  name="email"
+                  validators={["required", "isEmail"]}
+                  errorMessages={["Email is required", "Not a valid email"]}
+                  value={email}
+                />
+                <TextValidator
+                  autoComplete="password"
+                  variant="outlined"
+                  margin="normal"
+                  fullWidth
+                  label="Password"
+                  onChange={(e) => setPassword(e.target.value)}
+                  name="password"
+                  type="password"
+                  validators={["required"]}
+                  errorMessages={["Password is required"]}
+                  value={password}
+                />
+                <Button
+                  type="submit"
+                  fullWidth
+                  variant="contained"
+                  color="primary"
+                  className={classes.submit}
+                >
+                  Sign In
+                </Button>
+              </ValidatorForm>
+            </Grid>
+            <Grid container item>
+              <Grid container>
+                <p className={classes.or}>
+                  <span>Or</span>
+                </p>
+              </Grid>
             </Grid>
             <Grid container item>
               <Grid container>
                 <Button
                   className={classes.loginButton}
-                  variant="contained"
                   color="primary"
-                  onClick={login}
+                  fullWidth
+                  variant="outlined"
+                  onClick={loginGoogle}
                 >
-                  Login with Google
+                  <img alt="Google logo" src={googleLogo} />
+                  Sign in with Google
                 </Button>
               </Grid>
             </Grid>

@@ -53,7 +53,7 @@ export default function App() {
 
               <Route path="join">
                 <Route
-                  path=":id"
+                  path=":orgID"
                   element={
                     <WithOauthUser>
                       <JoinOrg />
@@ -93,6 +93,7 @@ export default function App() {
               <Route path="logout">
                 <Logout />
               </Route>
+
               <Route path="*" element={<Navigate to="/404" />} />
             </Routes>
           </ThemeProvider>
