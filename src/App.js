@@ -95,8 +95,6 @@ export default function App() {
                 <Logout />
               </Route>
 
-              <Route path="validate" element={<Validate />} />
-
               <Route path="*" element={<Navigate to="/404" />} />
             </Routes>
           </ThemeProvider>

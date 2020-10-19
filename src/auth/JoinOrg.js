@@ -1,6 +1,6 @@
-import { useNavigate, useParams } from "react-router-dom";
 import React, { useContext, useEffect, useState } from "react";
 import { TextValidator, ValidatorForm } from "react-material-ui-form-validator";
+import { useNavigate, useParams } from "react-router-dom";
 
 import Alert from "@material-ui/lab/Alert";
 import Button from "@material-ui/core/Button";
@@ -8,13 +8,13 @@ import FirebaseContext from "../util/FirebaseContext.js";
 import Grid from "@material-ui/core/Grid";
 import Hidden from "@material-ui/core/Hidden";
 import Link from "@material-ui/core/Link";
+import { Loading } from "../util/Utils.js";
 import UserAuthContext from "./UserAuthContext.js";
 import event from "../analytics/event.js";
 import googleLogo from "../assets/images/google-logo.svg";
 import loginFigure from "../assets/images/login.svg";
 import logo from "../assets/images/logo.svg";
 import { makeStyles } from "@material-ui/core/styles";
-import { Loading } from "../util/Utils.js";
 
 const useStyles = makeStyles((theme) => {
   return {
