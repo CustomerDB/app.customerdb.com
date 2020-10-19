@@ -13,7 +13,6 @@ import Logout from "./auth/Logout.js";
 import Organization from "./organization/Organization.js";
 import React from "react";
 import { BrowserRouter as Router } from "react-router-dom";
-import Validate from "./auth/Validate.js";
 import WithOauthUser from "./auth/WithOauthUser.js";
 
 export default function App() {

@@ -86,9 +86,7 @@ export default function Login(props) {
         return firebase.auth().signInWithEmailAndPassword(email, password);
       })
       .catch((error) => {
-        if (error.code === "auth/wrong-password") {
-          setLoginFailedMessage("Login failed. Please try again");
-        }
+        setLoginFailedMessage("Login failed. Please try again");
       });
   };
 
