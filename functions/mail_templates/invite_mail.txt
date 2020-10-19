@@ -1,3 +1,0 @@
-You have been invited to join a team on CustomerDB.
-
-Click go to https://{{baseURL}}/join/{{orgID}} to accept the invite
