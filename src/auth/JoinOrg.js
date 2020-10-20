@@ -142,18 +142,15 @@ export default function JoinOrg(props) {
       .doc(orgID)
       .collection("members")
       .doc(user.email)
-      .set(
-        {
-          uid: user.uid,
-          email: user.email,
-          displayName: user.displayName,
-          photoURL: user.photoURL,
-          invited: false,
-          active: true,
-          joinedTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
-        },
-        { merge: true }
-      )
+      .update({
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        invited: false,
+        active: true,
+        joinedTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      })
       .then(() => {
         // Success
         return db.collection("userToOrg").doc(user.email).set({
@@ -181,17 +178,14 @@ export default function JoinOrg(props) {
               .doc(orgID)
               .collection("members")
               .doc(email)
-              .set(
-                {
-                  uid: user.uid,
-                  email: user.email,
-                  displayName: name,
-                  invited: false,
-                  active: true,
-                  joinedTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                },
-                { merge: true }
-              )
+              .update({
+                uid: user.uid,
+                email: user.email,
+                displayName: name,
+                invited: false,
+                active: true,
+                joinedTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
+              })
               .then(() => {
                 // Success
                 return db.collection("userToOrg").doc(email).set({

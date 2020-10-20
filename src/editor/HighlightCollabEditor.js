@@ -377,20 +377,17 @@ function HighlightControls({
           console.debug("syncHighlightsUpdate: updating highlight", h, current);
 
           // upload diff
-          highlightsRef.doc(h.ID).set(
-            {
-              tagID: current.tagID,
-              personID: highlightDocument.personID || "",
-              selection: {
-                index: current.selection.index,
-                length: current.selection.length,
-              },
-              text: current.text,
-              deletionTimestamp: highlightDocument.deletionTimestamp,
-              lastUpdateTimestamp: firebaseClient.firestore.FieldValue.serverTimestamp(),
+          highlightsRef.doc(h.ID).update({
+            // tagID: current.tagID,
+            personID: highlightDocument.personID || "",
+            selection: {
+              index: current.selection.index,
+              length: current.selection.length,
             },
-            { merge: true }
-          );
+            text: current.text,
+            // deletionTimestamp: highlightDocument.deletionTimestamp,
+            lastUpdateTimestamp: firebaseClient.firestore.FieldValue.serverTimestamp(),
+          });
         }
       });
     };

@@ -354,10 +354,7 @@ function Guide({ templateRef }) {
 
                               console.debug("setting template name", newName);
 
-                              templateRef.set(
-                                { name: newName },
-                                { merge: true }
-                              );
+                              templateRef.update({ name: newName });
                             }
                           }}
                         />
@@ -530,13 +527,10 @@ function GuideDeleteDialog({ templateRef, open, setOpen, template }) {
       orgID: oauthClaims.orgID,
       userID: oauthClaims.user_id,
     });
-    templateRef.set(
-      {
-        deletedBy: oauthClaims.email,
-        deletionTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
-      },
-      { merge: true }
-    );
+    templateRef.update({
+      deletedBy: oauthClaims.email,
+      deletionTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
+    });
 
     navigate(`/orgs/${orgID}/guides`);
   };

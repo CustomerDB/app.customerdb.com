@@ -40,7 +40,7 @@ export default function AnalysisRenameModal(props) {
         <Button
           key={analysis.ID}
           onClick={() => {
-            props.analysisRef.set({ name: name }, { merge: true });
+            props.analysisRef.update({ name: name });
 
             navigate(`/orgs/${orgID}/analyze/${analysis.ID}`);
           }}

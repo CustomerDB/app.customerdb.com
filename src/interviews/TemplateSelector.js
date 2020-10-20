@@ -67,13 +67,10 @@ export default function TemplateSelector(props) {
     // Handle setting the template to `None`.
     if (newTemplateID === "") {
       return documentRef
-        .set(
-          {
-            templateID: "",
-            tagGroupID: defaultTagGroupID,
-          },
-          { merge: true }
-        )
+        .update({
+          templateID: "",
+          tagGroupID: defaultTagGroupID,
+        })
         .then(() => {
           editor.setContents(initialDelta(), "user");
         });
@@ -97,13 +94,10 @@ export default function TemplateSelector(props) {
 
               let templateSnapshot = snapshot.docs[0].data();
               return documentRef
-                .set(
-                  {
-                    templateID: newTemplateID,
-                    tagGroupID: template.tagGroupID || defaultTagGroupID,
-                  },
-                  { merge: true }
-                )
+                .update({
+                  templateID: newTemplateID,
+                  tagGroupID: template.tagGroupID || defaultTagGroupID,
+                })
                 .then(() => {
                   editor.setContents(
                     new Delta(templateSnapshot.delta.ops),

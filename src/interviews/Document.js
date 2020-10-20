@@ -206,10 +206,7 @@ export default function Document(props) {
 
                               console.debug("setting document name", newName);
 
-                              documentRef.set(
-                                { name: newName },
-                                { merge: true }
-                              );
+                              documentRef.update({ name: newName });
                             }
                           }}
                         />

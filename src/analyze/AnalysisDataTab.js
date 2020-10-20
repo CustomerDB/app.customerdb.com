@@ -79,13 +79,10 @@ export default function AnalysisDataTab(props) {
     if (newDocumentIDs.length === 0) {
       setDocuments([]);
       analysisRef
-        .set(
-          {
-            documentIDs: [],
-            tagGroupIDs: [],
-          },
-          { merge: true }
-        )
+        .update({
+          documentIDs: [],
+          tagGroupIDs: [],
+        })
         .then(deleteDocumentCardsIfNecessary);
       return;
     }
@@ -108,13 +105,10 @@ export default function AnalysisDataTab(props) {
         });
 
         return analysisRef
-          .set(
-            {
-              documentIDs: newDocumentIDs,
-              tagGroupIDs: Array.from(newTagGroupIDs),
-            },
-            { merge: true }
-          )
+          .update({
+            documentIDs: newDocumentIDs,
+            tagGroupIDs: Array.from(newTagGroupIDs),
+          })
           .then(deleteDocumentCardsIfNecessary);
       });
   };

@@ -216,12 +216,9 @@ exports.createOrganization = functions.https.onCall((data, context) => {
                     console.debug("Set default tag group");
 
                     // 5) After creating tag group. Set the default tag group.
-                    return orgRef.set(
-                      {
-                        defaultTagGroupID: tagGroupID,
-                      },
-                      { merge: true }
-                    );
+                    return orgRef.update({
+                      defaultTagGroupID: tagGroupID,
+                    });
                   });
                 });
             })
@@ -376,7 +373,7 @@ exports.updateHighlightsForUpdatedDocument = functions.firestore
         .then((snapshot) =>
           Promise.all(
             snapshot.docs.map((highlightDoc) =>
-              highlightDoc.ref.set(partialUpdate, { merge: true })
+              highlightDoc.ref.update(partialUpdate)
             )
           )
         );
@@ -527,10 +524,7 @@ const indexUpdated = (index) => {
                       });
                     })
                     .then(() => {
-                      return change.after.ref.set(
-                        { needsIndex: false },
-                        { merge: true }
-                      );
+                      return change.after.ref.update({ needsIndex: false });
                     });
                 });
               });
@@ -607,10 +601,7 @@ const markForIndexing = (collectionName) => {
                       .get()
                       .then((snapshot) => {
                         if (snapshot.size === 0) {
-                          return doc.ref.set(
-                            { needsIndex: true },
-                            { merge: true }
-                          );
+                          return doc.ref.update({ needsIndex: true });
                         }
 
                         snapshot.forEach((latestRevisionDoc) => {
@@ -622,10 +613,7 @@ const markForIndexing = (collectionName) => {
                             .then((deltas) => {
                               if (deltas.size > 0) {
                                 // Mark this document for indexing
-                                return doc.ref.set(
-                                  { needsIndex: true },
-                                  { merge: true }
-                                );
+                                return doc.ref.update({ needsIndex: true });
                               }
                             });
                         });
@@ -650,10 +638,7 @@ const markForIndexing = (collectionName) => {
                                 .then((deltas) => {
                                   if (deltas.size > 0) {
                                     // Mark this document for indexing
-                                    return doc.ref.set(
-                                      { needsIndex: true },
-                                      { merge: true }
-                                    );
+                                    return doc.ref.update({ needsIndex: true });
                                   }
                                 });
                             });
@@ -699,28 +684,20 @@ exports.updateHighlightPeopleForDocument = functions.firestore
         .then((snapshot) =>
           Promise.all(
             snapshot.docs.map((doc) =>
-              doc.ref.set(
-                {
-                  personID: newPersonID,
-                },
-                { merge: true }
-              )
+              doc.ref.update({ personID: newPersonID })
             )
           )
         )
         .then(() =>
-          transcriptHighlightsRef.get().then((snapshot) =>
-            Promise.all(
-              snapshot.docs.map((doc) =>
-                doc.ref.set(
-                  {
-                    personID: newPersonID,
-                  },
-                  { merge: true }
+          transcriptHighlightsRef
+            .get()
+            .then((snapshot) =>
+              Promise.all(
+                snapshot.docs.map((doc) =>
+                  doc.ref.update({ personID: newPersonID })
                 )
               )
             )
-          )
         );
     }
   });
@@ -794,7 +771,7 @@ exports.highlightRepair = functions.pubsub
                               partialUpdate.personID = document.personID;
                             }
 
-                            return doc.ref.set(partialUpdate, { merge: true });
+                            return doc.ref.update(partialUpdate);
                           })
                         );
                       });
@@ -839,13 +816,10 @@ exports.tagRepair = functions.pubsub
                               tag.tagGroupID !== tagGroupID ||
                               tag.ID !== tagDoc.id
                             ) {
-                              return tagDoc.ref.set(
-                                {
-                                  tagGroupID: tagGroupID,
-                                  ID: tagDoc.id,
-                                },
-                                { merge: true }
-                              );
+                              return tagDoc.ref.update({
+                                tagGroupID: tagGroupID,
+                                ID: tagDoc.id,
+                              });
                             }
                           })
                         );
@@ -911,12 +885,9 @@ exports.repairAnalysis = functions.pubsub
                       });
 
                       if (needsUpdate) {
-                        return analysisRef.set(
-                          {
-                            documentIDs: newDocumentIDs,
-                          },
-                          { merge: true }
-                        );
+                        return analysisRef.update({
+                          documentIDs: newDocumentIDs,
+                        });
                       }
                     });
                   })

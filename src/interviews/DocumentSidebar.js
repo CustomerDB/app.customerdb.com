@@ -179,12 +179,9 @@ export default function DocumentSidebar(props) {
                     });
 
                     documentRef
-                      .set(
-                        {
-                          personID: ID,
-                        },
-                        { merge: true }
-                      )
+                      .update({
+                        personID: ID,
+                      })
                       .then(() => {
                         setEditPerson(false);
                       });

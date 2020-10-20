@@ -133,13 +133,10 @@ export default function UploadVideoDialog({ open, setOpen }) {
             // Create pending document
             documentsRef
               .doc(documentID)
-              .set(
-                {
-                  pending: true,
-                  transcription: transcriptionID,
-                },
-                { merge: true }
-              )
+              .update({
+                pending: true,
+                transcription: transcriptionID,
+              })
               .then(() => {
                 cancel();
               });
