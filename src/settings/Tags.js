@@ -513,7 +513,7 @@ function TagGroupDeleteDialog({ tagGroupRef, open, setOpen, tagGroup }) {
       orgID: oauthClaims.orgID,
       userID: oauthClaims.user_id,
     });
-    tagGroupRef.set({
+    tagGroupRef.update({
       deletedBy: oauthClaims.email,
       deletionTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
     });
