@@ -187,6 +187,9 @@ export default function Login(props) {
                 >
                   Sign In
                 </Button>
+                <Link variant="body2" href="/reset-password">
+                  Forgot password?
+                </Link>
               </ValidatorForm>
             </Grid>
             <Grid container item>

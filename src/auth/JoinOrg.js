@@ -273,8 +273,11 @@ export default function JoinOrg(props) {
                   onChange={(e) => setPassword(e.target.value)}
                   name="password"
                   type="password"
-                  validators={["required"]}
-                  errorMessages={["Password is required"]}
+                  validators={["required", "minStringLength:6"]}
+                  errorMessages={[
+                    "Password is required",
+                    "Password is too short",
+                  ]}
                   value={password}
                 />
                 <TextValidator
