@@ -264,7 +264,7 @@ function HighlightControls({
     if (!highlightsRef) {
       return;
     }
-    return highlightsRef.onSnapshot((snapshot) => {
+    return highlightsRef.orderBy("deletionTimestamp").onSnapshot((snapshot) => {
       let newHighlights = {};
       snapshot.forEach((highlightDoc) => {
         let data = highlightDoc.data();
@@ -330,6 +330,7 @@ function HighlightControls({
             creationTimestamp: firebaseClient.firestore.FieldValue.serverTimestamp(),
             deletionTimestamp: highlightDocument.deletionTimestamp,
             lastUpdateTimestamp: firebaseClient.firestore.FieldValue.serverTimestamp(),
+            indexRequestedTimestamp: firebaseClient.firestore.FieldValue.serverTimestamp(),
           };
           console.debug(
             "syncHighlightsCreate: creating highlight",
