@@ -43,7 +43,7 @@ export default function DeleteMemberDialog(props) {
           color="secondary"
           autoFocus
         >
-          Archive
+          Delete
         </Button>
       </DialogActions>
     </Dialog>

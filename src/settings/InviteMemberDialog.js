@@ -30,16 +30,11 @@ export default function InviteMemberDialog(props) {
           onChange={(e) => {
             setEmail(e.target.value);
           }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              onSubmit();
-            }
-          }}
         />
       </Modal.Body>
       <Modal.Footer>
         <Button variant="primary" onClick={onSubmit}>
-          Send invite
+          Add account
         </Button>
       </Modal.Footer>
     </Modal>
