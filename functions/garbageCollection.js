@@ -1,5 +1,6 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
+const firebase_tools = require("firebase-tools");
 
 exports.people = functions.pubsub
   // .schedule("every 1 hours")
@@ -25,7 +26,17 @@ exports.people = functions.pubsub
             }
 
             let person = personDoc.data();
-            return person.ref.delete();
+            const path = person
+              .toString()
+              .substring(person.root.toString().length);
+            console.log(`Should delete ${path}`);
+            // return firebase_tools.firestore
+            //   .delete(path, {
+            //     project: process.env.GCLOUD_PROJECT,
+            //     recursive: true,
+            //     yes: true,
+            //     token: functions.config().fb.token
+            //   });
           })
         )
       );

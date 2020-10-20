@@ -108,7 +108,9 @@ function HighlightControls({
   const query = useQuery();
 
   readyChannelPort.onmessage = () => {
-    setEditor(quillRef.current.getEditor());
+    if (quillRef.current) {
+      setEditor(quillRef.current.getEditor());
+    }
   };
 
   // Reset scroll flag on navigate

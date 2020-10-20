@@ -69,12 +69,22 @@ export default function Members(props) {
       userID: oauthClaims.user_id,
     });
 
-    membersRef.doc(email).set({
-      invited: true,
-      active: false,
-      email: email,
-      inviteSentTimestamp: "",
-    });
+    let actionCodeSettings = {
+      url: `${process.env.REACT_APP_DOMAIN}/join/${orgID}?email=${email}`,
+      handleCodeInApp: true,
+    };
+
+    membersRef
+      .doc(email)
+      .set({
+        invited: true,
+        active: false,
+        email: email,
+        inviteSentTimestamp: "",
+      })
+      .then(() =>
+        firebase.auth().sendSignInLinkToEmail(email, actionCodeSettings)
+      );
   };
 
   const onDelete = (email) => {
@@ -268,22 +278,22 @@ export default function Members(props) {
             </Button>
           </CardActions>
         </Card>
+        <InviteMemberDialog
+          show={inviteModalShow}
+          onInvite={onInvite}
+          onHide={() => {
+            setInviteModalShow(false);
+          }}
+        />
+        <DeleteMemberDialog
+          show={deleteModalShow}
+          member={member}
+          onDelete={onDelete}
+          onHide={() => {
+            setDeleteModalShow(false);
+          }}
+        />
       </Scrollable>
-      <InviteMemberDialog
-        show={inviteModalShow}
-        onInvite={onInvite}
-        onHide={() => {
-          setInviteModalShow(false);
-        }}
-      />
-      <DeleteMemberDialog
-        show={deleteModalShow}
-        member={member}
-        onDelete={onDelete}
-        onHide={() => {
-          setDeleteModalShow(false);
-        }}
-      />
     </Grid>
   );
 }

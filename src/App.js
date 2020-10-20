@@ -12,6 +12,7 @@ import Login from "./auth/Login.js";
 import Logout from "./auth/Logout.js";
 import Organization from "./organization/Organization.js";
 import React from "react";
+import ResetPassword from "./auth/ResetPassword.js";
 import { BrowserRouter as Router } from "react-router-dom";
 import WithOauthUser from "./auth/WithOauthUser.js";
 
@@ -53,7 +54,7 @@ export default function App() {
 
               <Route path="join">
                 <Route
-                  path=":id"
+                  path=":orgID"
                   element={
                     <WithOauthUser>
                       <JoinOrg />
@@ -61,6 +62,8 @@ export default function App() {
                   }
                 />
               </Route>
+
+              <Route path="/reset-password" element={<ResetPassword />} />
 
               <Route path="orgs">
                 <Route
@@ -93,6 +96,7 @@ export default function App() {
               <Route path="logout">
                 <Logout />
               </Route>
+
               <Route path="*" element={<Navigate to="/404" />} />
             </Routes>
           </ThemeProvider>

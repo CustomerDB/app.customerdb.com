@@ -1,7 +1,7 @@
 import "react-quill/dist/quill.snow.css";
 import "firebase/firestore";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import Button from "@material-ui/core/Button";
 import Grid from "@material-ui/core/Grid";
@@ -10,10 +10,13 @@ import LinearProgress from "@material-ui/core/LinearProgress";
 import Moment from "react-moment";
 import PlayheadBlot from "./PlayheadBlot.js";
 import Quill from "quill";
+import SpeakerBlot from "./SpeakerBlot.js";
+import Speakers from "./transcript/Speakers.js";
 import UploadVideoDialog from "./UploadVideoDialog.js";
 import useFirestore from "../db/Firestore.js";
 
 Quill.register("formats/playhead", PlayheadBlot);
+Quill.register("formats/speaker", SpeakerBlot);
 
 // Transcript augments a collaborative editor with tags, text highlights and video integration.
 export default function Transcript({
@@ -32,6 +35,7 @@ export default function Transcript({
   const [operation, setOperation] = useState();
   const [uploadModalShow, setUploadModalShow] = useState(false);
   const [eta, setEta] = useState();
+  const editorContainerRef = useRef();
 
   // onChangeSelection is invoked when the content selection changes, including
   // whenever the cursor changes position.
@@ -39,7 +43,7 @@ export default function Transcript({
     if (source !== "user" || range === null) {
       return;
     }
-    console.log("selectionChannelPort: sending", range);
+    console.debug("selectionChannelPort: sending", range);
     selectionChannelPort.postMessage(range);
   };
 
@@ -124,7 +128,13 @@ export default function Transcript({
           )}
         </Grid>
       ) : (
-        <Grid item xs={12} style={{ position: "relative" }} spacing={0}>
+        <Grid
+          ref={editorContainerRef}
+          item
+          xs={12}
+          style={{ position: "relative" }}
+          spacing={0}
+        >
           <HighlightCollabEditor
             quillRef={reactQuillRef}
             document={document}
@@ -150,6 +160,11 @@ export default function Transcript({
                 ["clean"],
               ],
             }}
+          />
+          <Speakers
+            quillRef={reactQuillRef}
+            editorContainerRef={editorContainerRef}
+            transcriptionID={document.transcription}
           />
         </Grid>
       )}
