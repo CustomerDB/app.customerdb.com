@@ -379,14 +379,12 @@ function HighlightControls({
 
           // upload diff
           highlightsRef.doc(h.ID).update({
-            // tagID: current.tagID,
             personID: highlightDocument.personID || "",
             selection: {
               index: current.selection.index,
               length: current.selection.length,
             },
             text: current.text,
-            // deletionTimestamp: highlightDocument.deletionTimestamp,
             lastUpdateTimestamp: firebaseClient.firestore.FieldValue.serverTimestamp(),
           });
         }
