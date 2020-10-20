@@ -73,15 +73,12 @@ exports.start = functions.storage.object().onFinalize(async (object) => {
 
     const [operation] = await video.annotateVideo(request);
 
-    return doc.ref.set(
-      {
-        status: "pending",
-        gcpOperationName: operation.name,
-        mediaType: mediaType || "",
-        mediaEncoding: mediaEncoding || "",
-      },
-      { merge: true }
-    );
+    return doc.ref.update({
+      status: "pending",
+      gcpOperationName: operation.name,
+      mediaType: mediaType || "",
+      mediaEncoding: mediaEncoding || "",
+    });
   });
 });
 
@@ -120,24 +117,18 @@ exports.progress = functions.pubsub
                       destination: outputPath,
                     })
                     .then(() => {
-                      return doc.ref.set(
-                        {
-                          status: "finished",
-                          outputPath: outputPath,
-                        },
-                        { merge: true }
-                      );
+                      return doc.ref.update({
+                        status: "finished",
+                        outputPath: outputPath,
+                      });
                     });
                 } else {
                   let progress = gcpOperation.metadata.annotationProgress[0].toJSON();
                   if (progress.progressPercent) {
-                    return doc.ref.set(
-                      {
-                        status: "pending",
-                        progress: progress.progressPercent,
-                      },
-                      { merge: true }
-                    );
+                    return doc.ref.update({
+                      status: "pending",
+                      progress: progress.progressPercent,
+                    });
                   }
                 }
               });
@@ -255,7 +246,7 @@ exports.deltaForTranscript = functions
 
         let timecodesPath = `${context.params.orgID}/transcriptions/${context.params.transcriptionID}/output/timecodes-${revisionID}.json`;
 
-        revisionsRef
+        return revisionsRef
           .doc(revisionID)
           .set({
             delta: {
@@ -271,21 +262,15 @@ exports.deltaForTranscript = functions
             });
           })
           .then(() => {
-            return change.after.ref.set(
-              {
-                timecodesPath: timecodesPath,
-              },
-              { merge: true }
-            );
+            return change.after.ref.update({
+              timecodesPath: timecodesPath,
+            });
           })
           .then(() => {
             // Lastly, unlock the document.
-            return documentRef.set(
-              {
-                pending: false,
-              },
-              { merge: true }
-            );
+            return documentRef.update({
+              pending: false,
+            });
           });
       }
     );
@@ -337,12 +322,9 @@ exports.repair = functions.pubsub
                         destination: timecodesPath,
                       })
                       .then(() => {
-                        return transcriptionRef.set(
-                          {
-                            timecodesPath: timecodesPath,
-                          },
-                          { merge: true }
-                        );
+                        return transcriptionRef.update({
+                          timecodesPath: timecodesPath,
+                        });
                       });
                   }
                 );
@@ -350,74 +332,4 @@ exports.repair = functions.pubsub
           })
         );
       });
-  });
-
-// Migrate deltas, revisions and highlights for existing transcripts.
-exports.migrate = functions
-  .runWith({
-    timeoutSeconds: 300,
-    memory: "1GB",
-  })
-  .pubsub.topic("migrate-transcripts")
-  .onPublish((message) => {
-    const db = admin.firestore();
-
-    const copyCollection = (oldColRef, newColRef) => {
-      return oldColRef
-        .get()
-        .then((snapshot) =>
-          Promise.all(
-            snapshot.docs.map((d) => newColRef.doc(d.id).set(d.data()))
-          )
-        );
-    };
-
-    let transcriptDocumentsRef = db
-      .collectionGroup("documents")
-      .where("deletionTimestamp", "==", "") // exclude deleted documents
-      .orderBy("transcription"); // exclude documents without this field
-
-    return transcriptDocumentsRef.get().then((snapshot) =>
-      Promise.all(
-        snapshot.docs.map((doc) => {
-          // Skip this document if it does not have a transcription
-          if (doc.data().transcription === "") {
-            console.debug(
-              "skipping document because transcription field is empty",
-              doc.id
-            );
-            return;
-          }
-
-          let oldDeltas = doc.ref.collection("deltas");
-          let newDeltas = doc.ref.collection("transcriptDeltas");
-
-          let oldRevisions = doc.ref.collection("revisions");
-          let newRevisions = doc.ref.collection("transcriptRevisions");
-
-          let oldHighlights = doc.ref.collection("highlights");
-          let newHighlights = doc.ref.collection("transcriptHighlights");
-
-          return newRevisions.get().then((newRevisionsSnapshot) => {
-            return oldRevisions.get().then((oldRevisionsSnapshot) => {
-              if (newRevisionsSnapshot.size === oldRevisionsSnapshot.size) {
-                console.debug(
-                  "skipping document because it already has migrated revisions",
-                  doc.id
-                );
-                return;
-              }
-
-              return copyCollection(oldDeltas, newDeltas)
-                .then(() => {
-                  return copyCollection(oldHighlights, newHighlights);
-                })
-                .then(() => {
-                  return copyCollection(oldRevisions, newRevisions);
-                });
-            });
-          });
-        })
-      )
-    );
   });

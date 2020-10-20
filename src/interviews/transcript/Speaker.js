@@ -66,7 +66,7 @@ export default function Speaker({
       .doc(transcriptionID)
       .collection("speakers")
       .doc(speakerID);
-    speakerRef.set({ name: popName.current }, { merge: true });
+    speakerRef.update({ name: popName.current });
   };
 
   const setSpeakerID = (newID) => {
