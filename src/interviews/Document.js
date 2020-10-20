@@ -242,7 +242,7 @@ export default function Document(props) {
                     </Grid>
                   </Grid>
 
-                  <Grid item xs={12} class={classes.tabsContainer}>
+                  <Grid item xs={12} className={classes.tabsContainer}>
                     <Tabs
                       value={selectedTab}
                       onChange={handleTabChange}
@@ -250,7 +250,7 @@ export default function Document(props) {
                       textColor="primary"
                       variant="fullWidth"
                       aria-label="full width"
-                      class={classes.tabs}
+                      className={classes.tabs}
                     >
                       <Tab
                         label="notes"
