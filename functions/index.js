@@ -522,6 +522,12 @@ const indexUpdated = (index) => {
                   newNotes.timestamp.toDate().valueOf() >
                   oldNotes.timestamp.toDate().valueOf()
                 ) {
+                  console.debug(
+                    "writing new notes revision (old ts, new ts)",
+                    oldNotes.timestamp.toDate().valueOf(),
+                    newNotes.timestamp.toDate().valueOf()
+                  );
+
                   newNotesRevision = revisionsRef.add({
                     delta: { ops: newNotes.delta.ops },
                     timestamp: newNotes.timestamp,
@@ -533,6 +539,11 @@ const indexUpdated = (index) => {
                   newTranscript.timestamp.toDate().valueOf() >
                   oldTranscript.timestamp.toDate().valueOf()
                 ) {
+                  console.debug(
+                    "writing new transcript revision (old ts, new ts)",
+                    oldTranscript.timestamp.toDate().valueOf(),
+                    newTranscript.timestamp.toDate().valueOf()
+                  );
                   newTranscriptRevision = transcriptRevisionsRef.add({
                     delta: { ops: newTranscript.delta.ops },
                     timestamp: newTranscript.timestamp,
@@ -558,11 +569,11 @@ const indexUpdated = (index) => {
           createdBy: data.createdBy,
           creationTimestamp: data.creationTimestamp.seconds,
           latestSnapshotTimestamp: maxTimestamp(
-            notes.timestamp,
-            transcript.timestamp
+            oldNotes.timestamp,
+            oldTranscript.timestamp
           ).seconds,
-          notesText: deltaToPlaintext(notes.delta),
-          transcriptText: deltaToPlaintext(transcript.delta),
+          notesText: deltaToPlaintext(oldNotes.delta),
+          transcriptText: deltaToPlaintext(oldTranscript.delta),
         });
       });
     });
