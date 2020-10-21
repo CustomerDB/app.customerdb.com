@@ -78,12 +78,9 @@ export default function TagGroupSelector(props) {
 
     if (newTagGroupID !== template.tagGroupID) {
       return templateRef
-        .set(
-          {
-            tagGroupID: newTagGroupID,
-          },
-          { merge: true }
-        )
+        .update({
+          tagGroupID: newTagGroupID,
+        })
         .then(onChange);
     }
   };

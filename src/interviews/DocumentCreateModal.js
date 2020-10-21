@@ -32,13 +32,10 @@ export default function DocumentCreateModal({
       return;
     }
 
-    documentRef.set(
-      {
-        name: name,
-        needsIndex: true,
-      },
-      { merge: true }
-    );
+    documentRef.update({
+      name: name,
+      needsIndex: true,
+    });
     onHide();
   };
 

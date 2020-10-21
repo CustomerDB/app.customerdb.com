@@ -64,12 +64,9 @@ exports.renderThumbnails = functions.storage
       .doc(orgID)
       .collection("transcriptions")
       .doc(transcriptionID)
-      .set(
-        {
-          thumbnailRequestedTimestamp: admin.firestore.FieldValue.serverTimestamp(),
-        },
-        { merge: true }
-      );
+      .update({
+        thumbnailRequestedTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+      });
   });
 
 // Periodically generate videos without thumbnails:
@@ -104,12 +101,9 @@ exports.markTranscriptsForThumbnail = functions.pubsub
               }
             }
 
-            return doc.ref.set(
-              {
-                thumbnailRequestedTimestamp: admin.firestore.FieldValue.serverTimestamp(),
-              },
-              { merge: true }
-            );
+            return doc.ref.update({
+              thumbnailRequestedTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+            });
           })
         );
       });
@@ -179,9 +173,7 @@ exports.renderThumbnailsForTranscription = functions
                   },
                 },
               })
-              .then(() =>
-                change.after.ref.set({ thumbnailToken: token }, { merge: true })
-              );
+              .then(() => change.after.ref.update({ thumbnailToken: token }));
           })
         );
       })

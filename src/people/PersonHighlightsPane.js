@@ -245,12 +245,9 @@ function HighlightCard(props) {
                 return;
               }
 
-              props.highlight.ref.set(
-                {
-                  pinned: !props.highlight.pinned,
-                },
-                { merge: true }
-              );
+              props.highlight.ref.update({
+                pinned: !props.highlight.pinned,
+              });
             }}
           >
             {props.highlight.pinned ? <TurnedInIcon /> : <TurnedInNotIcon />}

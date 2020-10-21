@@ -47,13 +47,10 @@ export default function AnalysisDeleteModal(props) {
               userID: oauthClaims.user_id,
             });
 
-            props.analysisRef.set(
-              {
-                deletedBy: oauthClaims.email,
-                deletionTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
-              },
-              { merge: true }
-            );
+            props.analysisRef.update({
+              deletedBy: oauthClaims.email,
+              deletionTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            });
 
             navigate(`/orgs/${orgID}/analyze`);
           }}

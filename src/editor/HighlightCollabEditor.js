@@ -264,7 +264,7 @@ function HighlightControls({
     if (!highlightsRef) {
       return;
     }
-    return highlightsRef.onSnapshot((snapshot) => {
+    return highlightsRef.orderBy("deletionTimestamp").onSnapshot((snapshot) => {
       let newHighlights = {};
       snapshot.forEach((highlightDoc) => {
         let data = highlightDoc.data();
@@ -330,6 +330,7 @@ function HighlightControls({
             creationTimestamp: firebaseClient.firestore.FieldValue.serverTimestamp(),
             deletionTimestamp: highlightDocument.deletionTimestamp,
             lastUpdateTimestamp: firebaseClient.firestore.FieldValue.serverTimestamp(),
+            indexRequestedTimestamp: firebaseClient.firestore.FieldValue.serverTimestamp(),
           };
           console.debug(
             "syncHighlightsCreate: creating highlight",
@@ -377,20 +378,15 @@ function HighlightControls({
           console.debug("syncHighlightsUpdate: updating highlight", h, current);
 
           // upload diff
-          highlightsRef.doc(h.ID).set(
-            {
-              tagID: current.tagID,
-              personID: highlightDocument.personID || "",
-              selection: {
-                index: current.selection.index,
-                length: current.selection.length,
-              },
-              text: current.text,
-              deletionTimestamp: highlightDocument.deletionTimestamp,
-              lastUpdateTimestamp: firebaseClient.firestore.FieldValue.serverTimestamp(),
+          highlightsRef.doc(h.ID).update({
+            personID: highlightDocument.personID || "",
+            selection: {
+              index: current.selection.index,
+              length: current.selection.length,
             },
-            { merge: true }
-          );
+            text: current.text,
+            lastUpdateTimestamp: firebaseClient.firestore.FieldValue.serverTimestamp(),
+          });
         }
       });
     };
