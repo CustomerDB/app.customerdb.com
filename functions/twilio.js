@@ -9,7 +9,7 @@ const twilioApiKeySecret = functions.config().twilio.api_key_secret;
 
 exports.getAccessToken = functions.https.onCall((data, context) => {
   // Require authenticated requests
-  if (!context.auth) {
+  if (!context.auth || !context.auth.token || !context.auth.token.orgID) {
     throw new functions.https.HttpsError(
       "permission-denied",
       "Authentication required."
