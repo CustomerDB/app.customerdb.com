@@ -46,7 +46,7 @@ exports.getInterviewAccessToken = functions.https.onCall((data, context) => {
       }
     );
     token.identity = identity;
-    const videoGrant = new VideoGrant({ room: room });
+    const videoGrant = new VideoGrant({ room: data.documentID });
     token.addGrant(videoGrant);
 
     return {
