@@ -76,9 +76,12 @@ export default function Speakers({
           .doc(transcriptionID)
           .collection("speakers")
           .doc(speakerID)
-          .update({
-            ID: speakerID,
-          });
+          .set(
+            {
+              ID: speakerID,
+            },
+            { merge: true }
+          );
       }
     });
   }, [speakerNodes, speakers, transcriptionID, transcriptionsRef]);
