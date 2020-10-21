@@ -84,7 +84,7 @@ export default function Collaborators(props) {
   return (
     <AvatarGroup max={4} style={{ minHeight: "2.5rem" }}>
       {collaborators.map((collaborator) => (
-        <Tooltip title={collaborator.name}>
+        <Tooltip key={collaborator.email} title={collaborator.name}>
           <Avatar
             key={collaborator.email}
             alt={collaborator.name}

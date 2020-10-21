@@ -130,6 +130,7 @@ export default function Transcript({
       ) : (
         <Grid
           ref={editorContainerRef}
+          container
           item
           xs={12}
           style={{ position: "relative" }}
