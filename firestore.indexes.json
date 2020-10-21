@@ -57,6 +57,20 @@
       ]
     },
     {
+      "collectionGroup": "calls",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "deletionTimestamp",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "ID",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "snapshots",
       "queryScope": "COLLECTION",
       "fields": [
