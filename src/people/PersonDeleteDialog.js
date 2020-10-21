@@ -61,13 +61,10 @@ export default function PersonDeleteDialog(props) {
               orgID: oauthClaims.orgID,
               userID: oauthClaims.user_id,
             });
-            props.personRef.set(
-              {
-                deletedBy: oauthClaims.email,
-                deletionTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
-              },
-              { merge: true }
-            );
+            props.personRef.update({
+              deletedBy: oauthClaims.email,
+              deletionTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            });
 
             navigate(`/orgs/${orgID}/people`);
           }}

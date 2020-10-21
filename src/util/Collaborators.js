@@ -17,7 +17,7 @@ export default function Collaborators(props) {
   const [collaborators, setCollaborators] = useState([]);
 
   useEffect(() => {
-    if (!props.dbRef) {
+    if (!props.dbRef || !oauthUser) {
       return;
     }
 
@@ -73,7 +73,13 @@ export default function Collaborators(props) {
     return () => {
       clearInterval(interval);
     };
-  }, [props.dbRef, oauthUser.displayName, oauthUser.email, oauthUser.photoURL]);
+  }, [
+    props.dbRef,
+    oauthUser,
+    oauthUser.displayName,
+    oauthUser.email,
+    oauthUser.photoURL,
+  ]);
 
   return (
     <AvatarGroup max={4} style={{ minHeight: "2.5rem" }}>

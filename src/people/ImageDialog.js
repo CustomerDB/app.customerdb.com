@@ -51,17 +51,10 @@ export default function ImageDialog({ open, setOpen }) {
       () => {
         // 100% Done
         imageRef.getDownloadURL().then((url) => {
-          personRef
-            .set(
-              {
-                imageURL: url,
-              },
-              { merge: true }
-            )
-            .then(() => {
-              setOpen(false);
-              setImageSource();
-            });
+          personRef.update({ imageURL: url }).then(() => {
+            setOpen(false);
+            setImageSource();
+          });
         });
       }
     );

@@ -92,44 +92,19 @@ export default function Members(props) {
   };
 
   const onRedact = (email) => {
-    membersRef.doc(email).set(
-      {
-        invited: false,
-      },
-      { merge: true }
-    );
+    membersRef.doc(email).update({ invited: false });
   };
   const onActivate = (email) => {
-    membersRef.doc(email).set(
-      {
-        active: true,
-      },
-      { merge: true }
-    );
+    membersRef.doc(email).update({ active: true });
   };
   const onDisable = (email) => {
-    membersRef.doc(email).set(
-      {
-        active: false,
-      },
-      { merge: true }
-    );
+    membersRef.doc(email).update({ active: false });
   };
   const onUserToAdmin = (email) => {
-    membersRef.doc(email).set(
-      {
-        admin: true,
-      },
-      { merge: true }
-    );
+    membersRef.doc(email).update({ admin: true });
   };
   const onAdminToUser = (email) => {
-    membersRef.doc(email).set(
-      {
-        admin: false,
-      },
-      { merge: true }
-    );
+    membersRef.doc(email).update({ admin: false });
   };
 
   const createData = (member) => {

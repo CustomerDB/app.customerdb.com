@@ -164,7 +164,7 @@ export default function AnalysisSummaryTab(props) {
                       .replace(/\s+/g, " ")
                       .trim();
 
-                    props.analysisRef.set({ name: newName }, { merge: true });
+                    props.analysisRef.update({ name: newName });
                   }
                 }}
               />

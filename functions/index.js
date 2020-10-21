@@ -217,12 +217,9 @@ exports.createOrganization = functions.https.onCall((data, context) => {
                     console.debug("Set default tag group");
 
                     // 5) After creating tag group. Set the default tag group.
-                    return orgRef.set(
-                      {
-                        defaultTagGroupID: tagGroupID,
-                      },
-                      { merge: true }
-                    );
+                    return orgRef.update({
+                      defaultTagGroupID: tagGroupID,
+                    });
                   });
                 });
             })
@@ -377,7 +374,7 @@ exports.updateHighlightsForUpdatedDocument = functions.firestore
         .then((snapshot) =>
           Promise.all(
             snapshot.docs.map((highlightDoc) =>
-              highlightDoc.ref.set(partialUpdate, { merge: true })
+              highlightDoc.ref.update(partialUpdate)
             )
           )
         );
@@ -487,56 +484,80 @@ const indexUpdated = (index) => {
     );
     let transcriptDeltasRef = change.after.ref.collection("transcriptDeltas");
 
-    return latestRevision(revisionsRef).then((notes) => {
-      return latestRevision(transcriptRevisionsRef).then((transcript) => {
+    return latestRevision(revisionsRef).then((oldNotes) => {
+      return latestRevision(transcriptRevisionsRef).then((oldTranscript) => {
         if (data.needsIndex === true) {
-          return updateRevision(notes.delta, notes.timestamp, deltasRef).then(
-            (notes) => {
-              updateRevision(
-                transcript.delta,
-                transcript.timestamp,
-                transcriptDeltasRef
-              ).then((transcript) => {
-                // Index the new content
-                let docToIndex = {
-                  // Add an 'objectID' field which Algolia requires
-                  objectID: change.after.id,
-                  orgID: context.params.orgID,
-                  name: data.name,
-                  createdBy: data.createdBy,
-                  creationTimestamp: data.creationTimestamp.seconds,
-                  latestSnapshotTimestamp: maxTimestamp(
-                    notes.timestamp,
-                    transcript.timestamp
-                  ).seconds,
-                  notesText: deltaToPlaintext(notes.delta),
-                  transcriptText: deltaToPlaintext(transcript.delta),
-                };
+          return updateRevision(
+            oldNotes.delta,
+            oldNotes.timestamp,
+            deltasRef
+          ).then((newNotes) => {
+            updateRevision(
+              oldTranscript.delta,
+              oldTranscript.timestamp,
+              transcriptDeltasRef
+            ).then((newTranscript) => {
+              // Index the new content
+              let docToIndex = {
+                // Add an 'objectID' field which Algolia requires
+                objectID: change.after.id,
+                orgID: context.params.orgID,
+                name: data.name,
+                createdBy: data.createdBy,
+                creationTimestamp: data.creationTimestamp.seconds,
+                latestSnapshotTimestamp: maxTimestamp(
+                  newNotes.timestamp,
+                  newTranscript.timestamp
+                ).seconds,
+                notesText: deltaToPlaintext(newNotes.delta),
+                transcriptText: deltaToPlaintext(newTranscript.delta),
+              };
 
-                return index.saveObject(docToIndex).then(() => {
-                  // Write the snapshot, timestamp and index state back to document
+              return index.saveObject(docToIndex).then(() => {
+                // Write the snapshot, timestamp and index state back to document
+                // (but only if the new revision has additional committed deltas
+                // since the last revision was computed).
 
-                  return revisionsRef
-                    .add({
-                      delta: { ops: notes.delta.ops },
-                      timestamp: notes.timestamp,
-                    })
-                    .then(() => {
-                      transcriptRevisionsRef.add({
-                        delta: { ops: transcript.delta.ops },
-                        timestamp: transcript.timestamp,
-                      });
-                    })
-                    .then(() => {
-                      return change.after.ref.set(
-                        { needsIndex: false },
-                        { merge: true }
-                      );
-                    });
-                });
+                let newNotesRevision = Promise.resolve();
+                if (
+                  newNotes.timestamp.toDate().valueOf() >
+                  oldNotes.timestamp.toDate().valueOf()
+                ) {
+                  console.debug(
+                    "writing new notes revision (old ts, new ts)",
+                    oldNotes.timestamp.toDate().valueOf(),
+                    newNotes.timestamp.toDate().valueOf()
+                  );
+
+                  newNotesRevision = revisionsRef.add({
+                    delta: { ops: newNotes.delta.ops },
+                    timestamp: newNotes.timestamp,
+                  });
+                }
+
+                let newTranscriptRevision = Promise.resolve();
+                if (
+                  newTranscript.timestamp.toDate().valueOf() >
+                  oldTranscript.timestamp.toDate().valueOf()
+                ) {
+                  console.debug(
+                    "writing new transcript revision (old ts, new ts)",
+                    oldTranscript.timestamp.toDate().valueOf(),
+                    newTranscript.timestamp.toDate().valueOf()
+                  );
+                  newTranscriptRevision = transcriptRevisionsRef.add({
+                    delta: { ops: newTranscript.delta.ops },
+                    timestamp: newTranscript.timestamp,
+                  });
+                }
+
+                return Promise.all([
+                  newNotesRevision,
+                  newTranscriptRevision,
+                ]).then(change.after.ref.update({ needsIndex: false }));
               });
-            }
-          );
+            });
+          });
         }
 
         // Otherwise, just proceed with updating the index with the
@@ -549,11 +570,11 @@ const indexUpdated = (index) => {
           createdBy: data.createdBy,
           creationTimestamp: data.creationTimestamp.seconds,
           latestSnapshotTimestamp: maxTimestamp(
-            notes.timestamp,
-            transcript.timestamp
+            oldNotes.timestamp,
+            oldTranscript.timestamp
           ).seconds,
-          notesText: deltaToPlaintext(notes.delta),
-          transcriptText: deltaToPlaintext(transcript.delta),
+          notesText: deltaToPlaintext(oldNotes.delta),
+          transcriptText: deltaToPlaintext(oldTranscript.delta),
         });
       });
     });
@@ -608,10 +629,7 @@ const markForIndexing = (collectionName) => {
                       .get()
                       .then((snapshot) => {
                         if (snapshot.size === 0) {
-                          return doc.ref.set(
-                            { needsIndex: true },
-                            { merge: true }
-                          );
+                          return doc.ref.update({ needsIndex: true });
                         }
 
                         snapshot.forEach((latestRevisionDoc) => {
@@ -623,10 +641,7 @@ const markForIndexing = (collectionName) => {
                             .then((deltas) => {
                               if (deltas.size > 0) {
                                 // Mark this document for indexing
-                                return doc.ref.set(
-                                  { needsIndex: true },
-                                  { merge: true }
-                                );
+                                return doc.ref.update({ needsIndex: true });
                               }
                             });
                         });
@@ -651,10 +666,7 @@ const markForIndexing = (collectionName) => {
                                 .then((deltas) => {
                                   if (deltas.size > 0) {
                                     // Mark this document for indexing
-                                    return doc.ref.set(
-                                      { needsIndex: true },
-                                      { merge: true }
-                                    );
+                                    return doc.ref.update({ needsIndex: true });
                                   }
                                 });
                             });
@@ -700,28 +712,20 @@ exports.updateHighlightPeopleForDocument = functions.firestore
         .then((snapshot) =>
           Promise.all(
             snapshot.docs.map((doc) =>
-              doc.ref.set(
-                {
-                  personID: newPersonID,
-                },
-                { merge: true }
-              )
+              doc.ref.update({ personID: newPersonID })
             )
           )
         )
         .then(() =>
-          transcriptHighlightsRef.get().then((snapshot) =>
-            Promise.all(
-              snapshot.docs.map((doc) =>
-                doc.ref.set(
-                  {
-                    personID: newPersonID,
-                  },
-                  { merge: true }
+          transcriptHighlightsRef
+            .get()
+            .then((snapshot) =>
+              Promise.all(
+                snapshot.docs.map((doc) =>
+                  doc.ref.update({ personID: newPersonID })
                 )
               )
             )
-          )
         );
     }
   });
@@ -795,7 +799,7 @@ exports.highlightRepair = functions.pubsub
                               partialUpdate.personID = document.personID;
                             }
 
-                            return doc.ref.set(partialUpdate, { merge: true });
+                            return doc.ref.update(partialUpdate);
                           })
                         );
                       });
@@ -840,13 +844,10 @@ exports.tagRepair = functions.pubsub
                               tag.tagGroupID !== tagGroupID ||
                               tag.ID !== tagDoc.id
                             ) {
-                              return tagDoc.ref.set(
-                                {
-                                  tagGroupID: tagGroupID,
-                                  ID: tagDoc.id,
-                                },
-                                { merge: true }
-                              );
+                              return tagDoc.ref.update({
+                                tagGroupID: tagGroupID,
+                                ID: tagDoc.id,
+                              });
                             }
                           })
                         );
@@ -912,12 +913,9 @@ exports.repairAnalysis = functions.pubsub
                       });
 
                       if (needsUpdate) {
-                        return analysisRef.set(
-                          {
-                            documentIDs: newDocumentIDs,
-                          },
-                          { merge: true }
-                        );
+                        return analysisRef.update({
+                          documentIDs: newDocumentIDs,
+                        });
                       }
                     });
                   })
