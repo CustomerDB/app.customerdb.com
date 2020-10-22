@@ -15,11 +15,11 @@ const Alert = (props) => {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
 };
 
-export default function CallDetailsDialog({ open, setOpen, callLink }) {
+export default function CallDetailsDialog({ open, setOpen, link, token }) {
   const inviteTextRef = useRef();
   const [snackbarOpen, setSnackbarOpen] = useState(false);
 
-  if (!callLink) return <></>;
+  if (!link) return <></>;
 
   const copyInvite = () => {
     let node = inviteTextRef.current;
@@ -36,6 +36,8 @@ export default function CallDetailsDialog({ open, setOpen, callLink }) {
     setSnackbarOpen(false);
   };
 
+  const linkWithToken = `${link}?token=${token}`;
+
   return (
     <>
       <Dialog
@@ -49,7 +51,8 @@ export default function CallDetailsDialog({ open, setOpen, callLink }) {
         <DialogTitle id="alert-dialog-title">{`Call Details`}</DialogTitle>
         <DialogContent>
           <DialogContentText ref={inviteTextRef} id="alert-dialog-description">
-            Join call with CustomerDB: <Link href={callLink}>{callLink}</Link>
+            Join call with CustomerDB:{" "}
+            <Link href={linkWithToken}>{linkWithToken}</Link>
           </DialogContentText>
         </DialogContent>
         <DialogActions>

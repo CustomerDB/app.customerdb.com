@@ -56,7 +56,8 @@ export default function CallDetails({ callID }) {
       <CallDetailsDialog
         open={dialogOpen}
         setOpen={setDialogOpen}
-        callLink={callLink}
+        link={callLink}
+        token={call.token}
       />
     </>
   );
