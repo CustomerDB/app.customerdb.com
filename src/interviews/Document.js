@@ -3,7 +3,7 @@ import { addTagStyles, removeTagStyles } from "../editor/Tags.js";
 import { useNavigate, useParams } from "react-router-dom";
 
 import Archive from "@material-ui/icons/Archive";
-import CallInfo from "./CallInfo.js";
+import CallDetails from "./CallDetails.js";
 import Collaborators from "../util/Collaborators.js";
 import ContentEditable from "react-contenteditable";
 import DocumentDeleteDialog from "./DocumentDeleteDialog.js";
@@ -247,7 +247,7 @@ export default function Document(props) {
                   </Grid>
 
                   <Grid item xs={12}>
-                    <CallInfo callID={document.callID} />
+                    <CallDetails callID={document.callID} />
                   </Grid>
 
                   <Grid item xs={12} className={classes.tabsContainer}>

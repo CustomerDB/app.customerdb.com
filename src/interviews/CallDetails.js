@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
 
 import Button from "@material-ui/core/Button";
-import CallInfoDialog from "./CallInfoDialog.js";
+import CallDetailsDialog from "./CallDetailsDialog.js";
 import Grid from "@material-ui/core/Grid";
 import InfoOutlinedIcon from "@material-ui/icons/InfoOutlined";
 import VideoCallIcon from "@material-ui/icons/VideoCall";
 import useFirestore from "../db/Firestore.js";
 
-export default function CallInfo({ callID }) {
+export default function CallDetails({ callID }) {
   const { callsRef } = useFirestore();
   const [call, setCall] = useState();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -50,10 +50,10 @@ export default function CallInfo({ callID }) {
             setDialogOpen(true);
           }}
         >
-          Call Info
+          Call Details
         </Button>
       </Grid>
-      <CallInfoDialog
+      <CallDetailsDialog
         open={dialogOpen}
         setOpen={setDialogOpen}
         callLink={callLink}
