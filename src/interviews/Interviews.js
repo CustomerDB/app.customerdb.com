@@ -25,6 +25,7 @@ import UserAuthContext from "../auth/UserAuthContext.js";
 import { connectHits } from "react-instantsearch-dom";
 import event from "../analytics/event.js";
 import { initialDelta } from "../editor/delta.js";
+import short from "short-uuid";
 import useFirestore from "../db/Firestore.js";
 import { useOrganization } from "../organization/hooks.js";
 import { v4 as uuidv4 } from "uuid";
@@ -39,7 +40,7 @@ export default function Interviews(props) {
   const navigate = useNavigate();
 
   let { documentID, orgID } = useParams();
-  let { documentsRef } = useFirestore();
+  let { documentsRef, callsRef } = useFirestore();
   let { oauthClaims } = useContext(UserAuthContext);
   let firebase = useContext(FirebaseContext);
 
@@ -78,32 +79,49 @@ export default function Interviews(props) {
     });
 
     let documentID = uuidv4();
+    let callID = short.generate();
 
-    return documentsRef
-      .doc(documentID)
+    return callsRef
+      .doc(callID)
       .set({
-        ID: documentID,
-        name: "Untitled Interview",
+        ID: callID,
+        documentID: documentID,
+        organizationID: orgID,
+        token: short.generate().slice(0, 6),
+        transcriptionID: "",
         createdBy: oauthClaims.email,
         creationTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
-
-        tagGroupID: defaultTagGroupID || "",
-
-        templateID: "",
-
-        // This initial value is required.
-        // Search indexing and compression are done as a pair of operations:
-        // 1) Mark documents with needsIndex == false and
-        //    deltas newer than latest revision timestamp
-        // 2) Index documents with needsIndex == true.
-        needsIndex: false,
-
-        // Deletion is modeled as "soft-delete"; when the deletionTimestamp is set,
-        // we don't show the document anymore in the list. However, it should be
-        // possible to recover the document by unsetting this field before
-        // the deletion grace period expires and the GC sweep does a permanent delete.
+        callStartedTimestamp: "",
+        callEndedTimestamp: "",
         deletionTimestamp: "",
       })
+      .then(
+        documentsRef.doc(documentID).set({
+          ID: documentID,
+          name: "Untitled Interview",
+          createdBy: oauthClaims.email,
+          creationTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
+
+          callID: callID,
+
+          tagGroupID: defaultTagGroupID || "",
+
+          templateID: "",
+
+          // This initial value is required.
+          // Search indexing and compression are done as a pair of operations:
+          // 1) Mark documents with needsIndex == false and
+          //    deltas newer than latest revision timestamp
+          // 2) Index documents with needsIndex == true.
+          needsIndex: false,
+
+          // Deletion is modeled as "soft-delete"; when the deletionTimestamp is set,
+          // we don't show the document anymore in the list. However, it should be
+          // possible to recover the document by unsetting this field before
+          // the deletion grace period expires and the GC sweep does a permanent delete.
+          deletionTimestamp: "",
+        })
+      )
       .then(() => {
         documentsRef
           .doc(documentID)

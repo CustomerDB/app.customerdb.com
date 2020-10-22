@@ -25,12 +25,6 @@ export default function Speaker({
 }) {
   const { transcriptionsRef } = useFirestore();
   const [popOpen, setPopOpen] = useState(false);
-  const chipRef = useRef();
-  const popName = useRef();
-
-  if (!speakers) {
-    return <></>;
-  }
 
   let speakerName = "Unknown speaker";
   if (speakerID) {
@@ -38,6 +32,13 @@ export default function Speaker({
     if (speakers && speakers[speakerID] && speakers[speakerID].name) {
       speakerName = speakers[speakerID].name;
     }
+  }
+
+  const chipRef = useRef();
+  const popName = useRef(speakerName);
+
+  if (!speakers) {
+    return <></>;
   }
 
   // TODO(CD): if photoURL is available, set Avatar alt and src instead
@@ -75,17 +76,22 @@ export default function Speaker({
     let blot = Quill.find(speakerNode);
     if (!blot) return;
     let index = editor.getIndex(blot);
-    let rewriteSpeakerDelta = new Delta([
-      { retain: index },
-      { delete: 1 },
-      { insert: { speaker: { ID: newID } } },
-    ]);
+
+    let ops = [{ delete: 1 }, { insert: { speaker: { ID: newID } } }];
+
+    if (index > 0) {
+      ops.unshift({ retain: index });
+    }
+
+    let rewriteSpeakerDelta = new Delta(ops);
+
     editor.updateContents(rewriteSpeakerDelta, "user");
   };
 
   let speakerOptions = Object.values(speakers).map((speaker) => {
     return (
       <ListItem
+        key={speaker.ID}
         button
         onClick={() => {
           setSpeakerID(speaker.ID);
@@ -103,7 +109,7 @@ export default function Speaker({
     <>
       <Chip
         ref={chipRef}
-        spellcheck="false"
+        spellCheck="false"
         avatar={avatar}
         label={speakerName}
         variant="outlined"
