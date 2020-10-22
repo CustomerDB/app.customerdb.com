@@ -1,6 +1,6 @@
 steps:
 - name: 'gcr.io/$PROJECT_ID/firebase'
-  args: ['/bin/sh', './scripts/slack.sh', 'Starting deployment to $PROJECT_ID']
+  args: ['/bin/sh', './scripts/slack.sh', 'Starting deployment of $_DOMAIN']
   env:
   - 'SLACK_WEB_HOOK=$_SLACK_WEB_HOOK'
   - 'BUILD=$BUILD_ID'
@@ -35,9 +35,10 @@ steps:
   - 'PROJECT=$PROJECT_ID'
   - 'REV=$REVISION_ID'
 - name: 'gcr.io/$PROJECT_ID/firebase'
-  args: ['/bin/sh', './scripts/slack.sh', 'Finished deployment to $PROJECT_ID']
+  args: ['/bin/sh', './scripts/slack.sh', 'Finished deployment of $_DOMAIN']
   env:
   - 'SLACK_WEB_HOOK=$_SLACK_WEB_HOOK'
   - 'BUILD=$BUILD_ID'
   - 'PROJECT=$PROJECT_ID'
   - 'REV=$REVISION_ID'
+timeout: 30m
