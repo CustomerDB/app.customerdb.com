@@ -8,6 +8,55 @@ const twilioAccountSid = functions.config().twilio.account_sid;
 const twilioApiKeySID = functions.config().twilio.api_key_sid;
 const twilioApiKeySecret = functions.config().twilio.api_key_secret;
 
+exports.getGuestAccessToken = functions.https.onCall((data, context) => {
+  if (!data.callID) {
+    throw Error("callID required");
+  }
+
+  if (!data.token) {
+    throw Error("token required");
+  }
+
+  if (!data.name) {
+    throw Error("name required");
+  }
+
+  let db = admin.firestore();
+
+  let callRef = db
+    .collectionGroup("calls")
+    .where("ID", "==", data.callID)
+    .limit(1);
+
+  return callRef.get().then((snapshot) => {
+    if (snapshot.docs.length == 0) {
+      throw Error(`Call ${data.callID} doesn't exist`);
+    }
+
+    let call = snapshot.docs[0].data();
+
+    if (call.token !== data.token) {
+      throw Error(`Incorrect token for call ${data.callID}`);
+    }
+
+    const token = new AccessToken(
+      twilioAccountSid,
+      twilioApiKeySID,
+      twilioApiKeySecret,
+      {
+        ttl: MAX_ALLOWED_SESSION_DURATION,
+      }
+    );
+    token.identity = data.name;
+    const videoGrant = new VideoGrant({ room: data.callID });
+    token.addGrant(videoGrant);
+
+    return {
+      token: token.toJwt(),
+    };
+  });
+});
+
 exports.getInterviewAccessToken = functions.https.onCall((data, context) => {
   // Require authenticated requests
   if (!context.auth || !context.auth.token || !context.auth.token.orgID) {
@@ -20,21 +69,26 @@ exports.getInterviewAccessToken = functions.https.onCall((data, context) => {
   const identity = context.auth.token.email;
   const orgID = context.auth.token.orgID;
 
-  if (!data.documentID) {
-    throw Error("documentID required");
+  if (!data.callID) {
+    throw Error("callID required");
   }
 
   let db = admin.firestore();
 
-  let documentRef = db
-    .collection("organizations")
-    .doc(orgID)
-    .collection("documents")
-    .doc(data.documentID);
+  let callRef = db
+    .collectionGroup("calls")
+    .where("ID", "==", data.callID)
+    .limit(1);
 
-  return documentRef.get().then((doc) => {
-    if (!doc.exists) {
-      throw Error(`Document ${data.documentID} doesn't exist`);
+  return callRef.get().then((snapshot) => {
+    if (snapshot.docs.length == 0) {
+      throw Error(`Call ${data.callID} doesn't exist`);
+    }
+
+    let call = snapshot.docs[0].data();
+
+    if (orgID != call.organizationID) {
+      throw Error(`Call ${data.callID} is not in the user's organization`);
     }
 
     const token = new AccessToken(
@@ -46,7 +100,7 @@ exports.getInterviewAccessToken = functions.https.onCall((data, context) => {
       }
     );
     token.identity = identity;
-    const videoGrant = new VideoGrant({ room: data.documentID });
+    const videoGrant = new VideoGrant({ room: data.callID });
     token.addGrant(videoGrant);
 
     return {
