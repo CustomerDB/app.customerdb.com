@@ -76,11 +76,15 @@ export default function Speaker({
     let blot = Quill.find(speakerNode);
     if (!blot) return;
     let index = editor.getIndex(blot);
-    let rewriteSpeakerDelta = new Delta([
-      { retain: index },
-      { delete: 1 },
-      { insert: { speaker: { ID: newID } } },
-    ]);
+
+    let ops = [{ delete: 1 }, { insert: { speaker: { ID: newID } } }];
+
+    if (index > 0) {
+      ops.unshift({ retain: index });
+    }
+
+    let rewriteSpeakerDelta = new Delta(ops);
+
     editor.updateContents(rewriteSpeakerDelta, "user");
   };
 
