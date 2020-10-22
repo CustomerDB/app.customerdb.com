@@ -177,7 +177,7 @@ export default function Document(props) {
         component="p"
         className={classes.detailsParagraph}
       >
-        Created <Moment fromNow date={document.creationTimestamp.toDate()} /> by
+        Created <Moment fromNow date={document.creationTimestamp.toDate()} /> by{" "}
         {document.createdBy}
       </Typography>
     );
