@@ -52,7 +52,7 @@ export function addTagStyles(tags) {
   }
 
   let styles = Object.values(tags).map((t) => {
-    return `span.tag-${t.ID} { color: ${t.textColor}; background-color: ${t.color}; }`;
+    return `span.tag-${t.ID} { color: ${t.textColor}!important; background-color: ${t.color}!important; }`;
   });
 
   tagStyleElement.innerHTML = styles.join("\n");
