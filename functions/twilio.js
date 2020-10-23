@@ -40,22 +40,38 @@ exports.getGuestAccessToken = functions.https.onCall((data, context) => {
     throw Error("name required");
   }
 
-  return getCallForGuest(data.callID, data.token).then(() => {
-    const token = new AccessToken(
-      twilioAccountSid,
-      twilioApiKeySID,
-      twilioApiKeySecret,
-      {
-        ttl: MAX_ALLOWED_SESSION_DURATION,
+  return getCallForGuest(data.callID, data.token).then((call) => {
+    let orgID = call.organizationID;
+    let db = admin.firestore();
+    let documentRef = db
+      .collection("organizations")
+      .doc(orgID)
+      .collection("documents")
+      .doc(call.documentID);
+    return documentRef.get().then((documentDoc) => {
+      if (!documentDoc.exists) {
+        throw Error(`Document ${call.documentID} doesn't exist`);
       }
-    );
-    token.identity = data.name;
-    const videoGrant = new VideoGrant({ room: data.callID });
-    token.addGrant(videoGrant);
 
-    return {
-      accessToken: token.toJwt(),
-    };
+      let document = documentDoc.data();
+
+      const token = new AccessToken(
+        twilioAccountSid,
+        twilioApiKeySID,
+        twilioApiKeySecret,
+        {
+          ttl: MAX_ALLOWED_SESSION_DURATION,
+        }
+      );
+      token.identity = data.name;
+      const videoGrant = new VideoGrant({ room: data.callID });
+      token.addGrant(videoGrant);
+
+      return {
+        accessToken: token.toJwt(),
+        callName: document.name,
+      };
+    });
   });
 });
 
@@ -92,21 +108,35 @@ exports.getInterviewAccessToken = functions.https.onCall((data, context) => {
       throw Error(`Call ${data.callID} is not in the user's organization`);
     }
 
-    const token = new AccessToken(
-      twilioAccountSid,
-      twilioApiKeySID,
-      twilioApiKeySecret,
-      {
-        ttl: MAX_ALLOWED_SESSION_DURATION,
+    let documentRef = db
+      .collection("organizations")
+      .doc(orgID)
+      .collection("documents")
+      .doc(call.documentID);
+    return documentRef.get().then((documentDoc) => {
+      if (!documentDoc.exists) {
+        throw Error(`Document ${call.documentID} doesn't exist`);
       }
-    );
-    token.identity = identity;
-    const videoGrant = new VideoGrant({ room: data.callID });
-    token.addGrant(videoGrant);
 
-    return {
-      accessToken: token.toJwt(),
-    };
+      let document = documentDoc.data();
+
+      const token = new AccessToken(
+        twilioAccountSid,
+        twilioApiKeySID,
+        twilioApiKeySecret,
+        {
+          ttl: MAX_ALLOWED_SESSION_DURATION,
+        }
+      );
+      token.identity = identity;
+      const videoGrant = new VideoGrant({ room: data.callID });
+      token.addGrant(videoGrant);
+
+      return {
+        accessToken: token.toJwt(),
+        callName: document.name,
+      };
+    });
   });
 });
 
