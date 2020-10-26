@@ -223,6 +223,10 @@ exports.startComposition = functions.pubsub
               groupingSid: [call.roomSid],
             })
             .then((recordings) => {
+              if (recordings.length == 0) {
+                return;
+              }
+
               let done = true;
               recordings.forEach((r) => {
                 if (r.status !== "completed") {
@@ -323,6 +327,14 @@ exports.compositionStatus = functions.https.onRequest(async (req, res) => {
     return;
   }
 
+  console.log("Composition status", status);
+
+  if (status.StatusCallbackEvent !== "composition-available") {
+    console.log("Composition event received (but not ready yet)");
+    res.send("OK");
+    return;
+  }
+
   let db = admin.firestore();
   let callsRef = db
     .collectionGroup("calls")
@@ -373,57 +385,68 @@ exports.onCompositionReady = functions
         uri: uri,
       })
       .then(async (response) => {
-        // For example, download the media to a local file
         let localPath = tmpobj.name + ".mp4";
         console.log("localPath", localPath);
         const file = fs.createWriteStream(localPath);
         console.log("response: ", response);
-        const r = request(response.body.redirect_to);
-        r.on("response", (res) => {
-          res.pipe(file);
-        });
 
-        r.on("end", async () => {
-          console.log(`Video downloaded to ${localPath}`);
+        return new Promise(function (resolve, reject) {
+          const r = request(response.body.redirect_to);
+          r.on("response", (res) => {
+            res
+              .pipe(file)
+              .on("finish", async () => {
+                console.log(`Video downloaded to ${localPath}`);
 
-          let transcriptionID = uuidv4();
+                let transcriptionID = uuidv4();
 
-          let outputPath = `${call.organizationID}/transcriptions/${transcriptionID}/input/out.mp4`;
+                let outputPath = `${call.organizationID}/transcriptions/${transcriptionID}/input/out.mp4`;
 
-          let db = admin.firestore();
-          let transcriptionRef = db
-            .collection("organizations")
-            .doc(call.organizationID)
-            .collection("transcriptions")
-            .doc(transcriptionID);
-          return transcriptionRef
-            .set({
-              ID: transcriptionID,
-              speakers: 4,
-              createdBy: "",
-              creationTimestamp: admin.firestore.FieldValue.serverTimestamp(),
-              deletionTimestamp: "",
-              inputPath: outputPath,
-              thumbnailToken: "",
-              orgID: call.organizationID,
-              documentID: call.documentID,
-            })
-            .then(() => {
-              let documentRef = db
-                .collection("organizations")
-                .doc(call.organizationID)
-                .collection("documents")
-                .doc(call.documentID);
-              return documentRef.update({
-                pending: true,
-                transcription: transcriptionID,
-              });
-            })
-            .then(() =>
-              admin.storage().bucket().upload(tmpobj.name, {
-                destination: outputPath,
+                let db = admin.firestore();
+                let transcriptionRef = db
+                  .collection("organizations")
+                  .doc(call.organizationID)
+                  .collection("transcriptions")
+                  .doc(transcriptionID);
+                return transcriptionRef
+                  .set({
+                    ID: transcriptionID,
+                    speakers: 4,
+                    createdBy: "",
+                    creationTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+                    deletionTimestamp: "",
+                    inputPath: outputPath,
+                    thumbnailToken: "",
+                    orgID: call.organizationID,
+                    documentID: call.documentID,
+                  })
+                  .then(() => {
+                    let documentRef = db
+                      .collection("organizations")
+                      .doc(call.organizationID)
+                      .collection("documents")
+                      .doc(call.documentID);
+                    return documentRef.update({
+                      pending: true,
+                      transcription: transcriptionID,
+                    });
+                  })
+                  .then(() =>
+                    admin
+                      .storage()
+                      .bucket()
+                      .upload(localPath, {
+                        destination: outputPath,
+                      })
+                      .then(() => {
+                        resolve();
+                      })
+                  );
               })
-            );
+              .on("error", (error) => {
+                reject(error);
+              });
+          });
         });
       })
       .catch((error) => {
