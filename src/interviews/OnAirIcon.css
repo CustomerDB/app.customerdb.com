@@ -1,0 +1,80 @@
+div.on-air-icon-container {
+  height: 2rem;
+  width: 2rem;
+  display: inline;
+  justify-content: center;
+  align-items: center;
+}
+
+div.on-air-icon-container > svg {
+  height: 24px;
+  width: 24px;
+  /*   transform: scale(5); */
+}
+
+div.on-air-icon-container > svg path#on-air-out {
+  animation: on-air-out 2s infinite;
+}
+
+div.on-air-icon-container > svg path#on-air-in {
+  animation: on-air-in 2s infinite;
+}
+
+div.on-air-icon-container > svg ellipse {
+  transform-origin: 50% 50%;
+  animation: on-air-circle 2s infinite;
+}
+
+@keyframes on-air-circle {
+  0% {
+    opacity: 0.1;
+    transform: scale(1);
+  }
+  25% {
+    opacity: 1;
+    transform: scale(2.4);
+  }
+  50% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0.3;
+  }
+}
+
+@keyframes on-air-in {
+  0% {
+    opacity: 0.3;
+  }
+  25% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.3;
+  }
+}
+
+@keyframes on-air-out {
+  0% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.3;
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.3;
+  }
+}

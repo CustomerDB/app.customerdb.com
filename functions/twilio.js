@@ -277,7 +277,17 @@ exports.roomStatus = functions.https.onRequest((req, res) => {
     return;
   }
 
+  const eventFilter = ["room-created", "room-ended"];
+  if (!eventFilter.includes(status.StatusCallbackEvent)) {
+    console.log(
+      `skipping room status event of type ${status.StatusCallbackEvent} for call ${status.RoomName}`
+    );
+    res.send("OK");
+    return;
+  }
+
   if (status.RoomName.startsWith("preflight")) {
+    console.log(`skipping room status for preflight room ${status.RoomName}`);
     res.send("OK");
     return;
   }
@@ -303,9 +313,19 @@ exports.roomStatus = functions.https.onRequest((req, res) => {
 
       let call = callDoc.data();
 
-      if (status.StatusCallbackEvent == "room-ended") {
-        console.log("Starting composition");
+      if (status.StatusCallbackEvent === "room-created") {
+        console.log(`updating call ${callDoc.id}: started`);
+        return callDoc.ref.update({
+          callStartedTimestamp: admin.firestore.Timestamp.fromDate(
+            new Date(status.Timestamp)
+          ),
+          roomSid: status.RoomSid,
+          compositionRequestedTimestamp: "",
+        });
+      }
 
+      if (status.StatusCallbackEvent === "room-ended") {
+        console.log(`updating call ${callDoc.id}: ended`);
         return callDoc.ref
           .update({
             callEndedTimestamp: admin.firestore.Timestamp.fromDate(
@@ -325,14 +345,6 @@ exports.roomStatus = functions.https.onRequest((req, res) => {
               pending: true,
             });
           });
-      } else if (status.StatusCallbackEvent == "room-started") {
-        return callDoc.ref.update({
-          callStartedTimestamp: admin.firestore.Timestamp.fromDate(
-            new Date(status.Timestamp)
-          ),
-          roomSid: status.RoomSid,
-          compositionRequestedTimestamp: "",
-        });
       }
     })
     .then(() => {
