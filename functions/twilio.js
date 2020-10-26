@@ -282,36 +282,62 @@ exports.roomStatus = functions.https.onRequest((req, res) => {
     return;
   }
 
-  if (status.StatusCallbackEvent == "room-ended") {
-    console.log("Starting composition");
+  let db = admin.firestore();
+  let callID = status.RoomName;
 
-    let db = admin.firestore();
-    let callID = status.RoomName;
+  db.collectionGroup("calls")
+    .where("ID", "==", callID)
+    .limit(1)
+    .get()
+    .then((snapshot) => {
+      if (snapshot.size == 0) {
+        res.status(404).send("Call not found");
+        return;
+      }
+      return snapshot.docs[0];
+    })
+    .then((callDoc) => {
+      if (!callDoc) {
+        return;
+      }
 
-    db.collectionGroup("calls")
-      .where("ID", "==", callID)
-      .limit(1)
-      .get()
-      .then((snapshot) => {
-        if (snapshot.size == 0) {
-          res.status(404).send("Call not found");
-          return;
-        }
-        let callRef = snapshot.docs[0].ref;
+      let call = callDoc.data();
 
-        callRef.update({
-          callEndedTimestamp: admin.firestore.Timestamp.fromDate(
+      if (status.StatusCallbackEvent == "room-ended") {
+        console.log("Starting composition");
+
+        return callDoc.ref
+          .update({
+            callEndedTimestamp: admin.firestore.Timestamp.fromDate(
+              new Date(status.Timestamp)
+            ),
+            roomSid: status.RoomSid,
+            compositionRequestedTimestamp: "",
+          })
+          .then(() => {
+            // Mark transcription as in-progress on the document.
+            let documentRef = db
+              .collection("organizations")
+              .doc(call.organizationID)
+              .collection("documents")
+              .doc(call.documentID);
+            return documentRef.update({
+              pending: true,
+            });
+          });
+      } else if (status.StatusCallbackEvent == "room-started") {
+        return callDoc.ref.update({
+          callStartedTimestamp: admin.firestore.Timestamp.fromDate(
             new Date(status.Timestamp)
           ),
           roomSid: status.RoomSid,
           compositionRequestedTimestamp: "",
         });
-
-        res.send("OK");
-      });
-  } else {
-    res.send("OK");
-  }
+      }
+    })
+    .then(() => {
+      res.send("OK");
+    });
 });
 
 exports.compositionStatus = functions.https.onRequest(async (req, res) => {
@@ -389,6 +415,8 @@ exports.onCompositionReady = functions
         console.log("localPath", localPath);
         const file = fs.createWriteStream(localPath);
         console.log("response: ", response);
+
+        // TODO: Get participant count from twilio.
 
         return new Promise(function (resolve, reject) {
           const r = request(response.body.redirect_to);
