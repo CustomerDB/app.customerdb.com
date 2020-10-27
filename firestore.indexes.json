@@ -71,6 +71,20 @@
       ]
     },
     {
+      "collectionGroup": "calls",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "compositionRequestedTimestamp",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "roomSid",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "snapshots",
       "queryScope": "COLLECTION",
       "fields": [
@@ -515,6 +529,16 @@
     {
       "collectionGroup": "calls",
       "fieldPath": "ID",
+      "indexes": [
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION_GROUP"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "calls",
+      "fieldPath": "roomSid",
       "indexes": [
         {
           "order": "ASCENDING",
