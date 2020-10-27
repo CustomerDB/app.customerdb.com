@@ -111,6 +111,7 @@ exports.progress = functions.pubsub
             return video
               .checkAnnotateVideoProgress(operation.gcpOperationName)
               .then((gcpOperation) => {
+                console.debug("checking operation", gcpOperation);
                 if (gcpOperation.error) {
                   console.warn("transcription operation failed", gcpOperation);
                   return doc.ref.update({
