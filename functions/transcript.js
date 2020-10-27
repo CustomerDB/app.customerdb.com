@@ -112,14 +112,15 @@ exports.progress = functions.pubsub
               .checkAnnotateVideoProgress(operation.gcpOperationName)
               .then((gcpOperation) => {
                 console.debug("checking operation", gcpOperation);
-                if (gcpOperation.error) {
-                  console.warn("transcription operation failed", gcpOperation);
-                  return doc.ref.update({
-                    status: "failed",
-                  });
-                }
                 if (gcpOperation.done) {
                   let result = gcpOperation.result.annotationResults[0].toJSON();
+                  if (result.error) {
+                    console.warn("transcription operation failed", result);
+                    return doc.ref.update({
+                      status: "failed",
+                    });
+                  }
+
                   let bucket = admin.storage().bucket();
 
                   const outputPath = `${operation.orgID}/transcriptions/${doc.id}/output/transcript.json`;
