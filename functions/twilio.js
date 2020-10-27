@@ -428,66 +428,74 @@ exports.onCompositionReady = functions
         const file = fs.createWriteStream(localPath);
         console.log("response: ", response);
 
-        // TODO: Get participant count from twilio.
+        // Get participant count from twilio.
+        return client.video
+          .rooms(call.roomSid)
+          .participants.list()
+          .then((participants) => {
+            return new Promise(function (resolve, reject) {
+              const r = request(response.body.redirect_to);
+              r.on("response", (res) => {
+                res
+                  .pipe(file)
+                  .on("finish", async () => {
+                    console.log(`Video downloaded to ${localPath}`);
+                    console.log(
+                      `Requesting transcript for ${participants.length} speakers`
+                    );
 
-        return new Promise(function (resolve, reject) {
-          const r = request(response.body.redirect_to);
-          r.on("response", (res) => {
-            res
-              .pipe(file)
-              .on("finish", async () => {
-                console.log(`Video downloaded to ${localPath}`);
+                    let transcriptionID = uuidv4();
 
-                let transcriptionID = uuidv4();
+                    let outputPath = `${call.organizationID}/transcriptions/${transcriptionID}/input/out.mp4`;
 
-                let outputPath = `${call.organizationID}/transcriptions/${transcriptionID}/input/out.mp4`;
-
-                let db = admin.firestore();
-                let transcriptionRef = db
-                  .collection("organizations")
-                  .doc(call.organizationID)
-                  .collection("transcriptions")
-                  .doc(transcriptionID);
-                return transcriptionRef
-                  .set({
-                    ID: transcriptionID,
-                    speakers: 4,
-                    createdBy: "",
-                    creationTimestamp: admin.firestore.FieldValue.serverTimestamp(),
-                    deletionTimestamp: "",
-                    inputPath: outputPath,
-                    thumbnailToken: "",
-                    orgID: call.organizationID,
-                    documentID: call.documentID,
-                  })
-                  .then(() => {
-                    let documentRef = db
+                    let db = admin.firestore();
+                    let transcriptionRef = db
                       .collection("organizations")
                       .doc(call.organizationID)
-                      .collection("documents")
-                      .doc(call.documentID);
-                    return documentRef.update({
-                      pending: true,
-                      transcription: transcriptionID,
-                    });
-                  })
-                  .then(() =>
-                    admin
-                      .storage()
-                      .bucket()
-                      .upload(localPath, {
-                        destination: outputPath,
+                      .collection("transcriptions")
+                      .doc(transcriptionID);
+                    return transcriptionRef
+                      .set({
+                        ID: transcriptionID,
+                        speakers: participants.length,
+                        createdBy: call.createdBy,
+                        creationTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+                        deletionTimestamp: "",
+                        inputPath: outputPath,
+                        thumbnailToken: "",
+                        orgID: call.organizationID,
+                        documentID: call.documentID,
                       })
                       .then(() => {
-                        resolve();
+                        let documentRef = db
+                          .collection("organizations")
+                          .doc(call.organizationID)
+                          .collection("documents")
+                          .doc(call.documentID);
+                        return documentRef.update({
+                          pending: true,
+                          transcription: transcriptionID,
+                        });
                       })
-                  );
-              })
-              .on("error", (error) => {
-                reject(error);
+                      .then(() =>
+                        admin
+                          .storage()
+                          .bucket()
+                          .upload(localPath, {
+                            destination: outputPath,
+                            resumable: false,
+                          })
+                          .then(() => {
+                            resolve();
+                          })
+                      );
+                  })
+                  .on("error", (error) => {
+                    reject(error);
+                  });
               });
+            });
           });
-        });
       })
       .catch((error) => {
         console.log("Error fetching /Media resource " + error);
