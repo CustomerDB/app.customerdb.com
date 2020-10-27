@@ -9,7 +9,8 @@ import OnAirIcon from "./OnAirIcon.js";
 import VideoCallIcon from "@material-ui/icons/VideoCall";
 import useFirestore from "../db/Firestore.js";
 
-export default function CallDetails({ callID }) {
+// disabled is a function that takes a call as input
+export default function CallDetails({ callID, isDisabled }) {
   const { callsRef } = useFirestore();
   const [call, setCall] = useState();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -56,7 +57,7 @@ export default function CallDetails({ callID }) {
     <>
       <Grid item xs>
         <Button
-          disabled={callEndedAt}
+          disabled={isDisabled(call)}
           variant="contained"
           color="primary"
           onClick={() => {
@@ -68,7 +69,7 @@ export default function CallDetails({ callID }) {
           Join call
         </Button>
         <Button
-          disabled={callEndedAt}
+          disabled={isDisabled(call)}
           startIcon={<InfoOutlinedIcon />}
           onClick={() => {
             if (!callEndedAt) {
