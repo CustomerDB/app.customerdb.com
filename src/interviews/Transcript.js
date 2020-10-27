@@ -3,7 +3,6 @@ import "firebase/firestore";
 
 import React, { useEffect, useRef, useState } from "react";
 
-import Button from "@material-ui/core/Button";
 import Grid from "@material-ui/core/Grid";
 import HighlightCollabEditor from "../editor/HighlightCollabEditor.js";
 import LinearProgress from "@material-ui/core/LinearProgress";
@@ -12,11 +11,22 @@ import PlayheadBlot from "./PlayheadBlot.js";
 import Quill from "quill";
 import SpeakerBlot from "./SpeakerBlot.js";
 import Speakers from "./transcript/Speakers.js";
-import UploadVideoDialog from "./UploadVideoDialog.js";
+import Step from "@material-ui/core/Step";
+import StepLabel from "@material-ui/core/StepLabel";
+import Stepper from "@material-ui/core/Stepper";
+import TranscriptDropzone from "./TranscriptDropzone.js";
 import useFirestore from "../db/Firestore.js";
 
 Quill.register("formats/playhead", PlayheadBlot);
 Quill.register("formats/speaker", SpeakerBlot);
+
+function PageContainer({ children }) {
+  return (
+    <Grid item xs={12} style={{ position: "relative" }}>
+      {children}
+    </Grid>
+  );
+}
 
 // Transcript augments a collaborative editor with tags, text highlights and video integration.
 export default function Transcript({
@@ -33,11 +43,24 @@ export default function Transcript({
 
   const { callsRef } = useFirestore();
   const [call, setCall] = useState();
-  const [transcriptionProgress, setTranscriptionProgress] = useState();
   const [operation, setOperation] = useState();
-  const [uploadModalShow, setUploadModalShow] = useState(false);
   const [eta, setEta] = useState();
+  const [transcriptionProgress, setTranscriptionProgress] = useState();
+  const [uploadProgress, setUploadProgress] = useState();
+  const [uploading, setUploading] = useState();
   const editorContainerRef = useRef();
+  const [progressType, setProgressType] = useState();
+  const [activeStep, setActiveStep] = useState();
+
+  // onChangeSelection is invoked when the content selection changes, including
+  // whenever the cursor changes position.
+  const onChangeSelection = (range, source, editor) => {
+    if (source !== "user" || range === null) {
+      return;
+    }
+    console.debug("selectionChannelPort: sending", range);
+    selectionChannelPort.postMessage(range);
+  };
 
   useEffect(() => {
     if (!callsRef || !document.callID) {
@@ -52,16 +75,6 @@ export default function Transcript({
       setCall(doc.data());
     });
   }, [callsRef, document.callID]);
-
-  // onChangeSelection is invoked when the content selection changes, including
-  // whenever the cursor changes position.
-  const onChangeSelection = (range, source, editor) => {
-    if (source !== "user" || range === null) {
-      return;
-    }
-    console.debug("selectionChannelPort: sending", range);
-    selectionChannelPort.postMessage(range);
-  };
 
   useEffect(() => {
     console.log("Getting operation");
@@ -86,81 +99,128 @@ export default function Transcript({
     });
   }, [transcriptionsRef, document.transcription]);
 
+  useEffect(() => {
+    if (!call) {
+      return;
+    }
+
+    if (call.callStartedTimestamp) {
+      setProgressType("call");
+      setActiveStep(0);
+
+      if (call.callEndedTimestamp) {
+        setActiveStep(1);
+      }
+
+      if (operation) {
+        setActiveStep(2);
+
+        if (!document.pending) {
+          // Remove progress
+          setProgressType();
+        }
+      }
+    } else {
+      setProgressType("upload");
+      setActiveStep(0);
+
+      if (operation) {
+        setActiveStep(1);
+
+        if (!document.pending) {
+          // Remove progress
+          setProgressType();
+        }
+      }
+
+      console.log(document);
+    }
+  }, [call, document, operation]);
+
   if (!documentRef) {
     return <></>;
   }
 
-  // The document pending field is set directly after upload
-  if (call && call.callStartedTimestamp === "" && !operation) {
+  let callNotStarted = call && call.callStartedTimestamp === "";
+  let transcriptionNotStarted = !operation;
+
+  if (callNotStarted && transcriptionNotStarted && !uploading) {
     return (
-      <Grid
-        item
-        xs={12}
-        style={{
-          position: "relative",
-          textAlign: "center",
-          paddingTop: "2rem",
-        }}
-      >
-        <Button
-          variant="contained"
-          color="secondary"
-          onClick={() => {
-            setUploadModalShow(true);
-          }}
-        >
-          Upload interview video to transcribe
-        </Button>
-        <UploadVideoDialog
-          open={uploadModalShow}
-          setOpen={(value) => {
-            setUploadModalShow(value);
-          }}
+      <PageContainer>
+        <TranscriptDropzone
+          setProgress={setUploadProgress}
+          setUploading={setUploading}
         />
-      </Grid>
+      </PageContainer>
     );
   }
 
-  if (call && call.callStartedTimestamp && !operation) {
-    if (call.callEndedTimestamp) {
-      return (
-        <Grid item xs={12} style={{ position: "relative" }}>
-          <p>
-            <i>Preparing video.</i>
-          </p>
+  let progress;
+  if (uploading) {
+    if (uploadProgress) {
+      progress = (
+        <>
+          <LinearProgress variant="determinate" value={uploadProgress} />
+          <i>Uploading video</i>
+        </>
+      );
+    } else {
+      progress = (
+        <>
           <LinearProgress />
-        </Grid>
+          <i>Uploading video</i>
+        </>
       );
     }
+  } else if (transcriptionProgress) {
+    progress = (
+      <>
+        <LinearProgress variant="determinate" value={transcriptionProgress} />
+        <i>
+          {eta && (
+            <>
+              Estimated completion <Moment fromNow date={eta} />
+            </>
+          )}
+        </i>
+      </>
+    );
+  } else {
+    progress = <LinearProgress />;
+  }
 
+  if (progressType === "call") {
     return (
-      <Grid item xs={12} style={{ position: "relative" }}>
-        <p>
-          <i>Call is in progress.</i>
-        </p>
-      </Grid>
+      <PageContainer>
+        <Stepper activeStep={activeStep}>
+          <Step key={0}>
+            <StepLabel>Recording call</StepLabel>
+          </Step>
+          <Step key={1}>
+            <StepLabel>Preparing video</StepLabel>
+          </Step>
+          <Step key={2}>
+            <StepLabel>Transcribing video</StepLabel>
+          </Step>
+        </Stepper>
+        {progress}
+      </PageContainer>
     );
   }
 
-  if (document.pending) {
+  if (progressType === "upload") {
     return (
-      <Grid item xs={12} style={{ position: "relative" }}>
-        <p>
-          <i>
-            Transcribing video.{" "}
-            {eta && (
-              <>
-                Estimated completion <Moment fromNow date={eta} />
-              </>
-            )}
-          </i>
-        </p>
-        {transcriptionProgress ? (
-          <LinearProgress variant="determinate" value={transcriptionProgress} />
-        ) : (
-          <LinearProgress />
-        )}
-      </Grid>
+      <PageContainer>
+        <Stepper activeStep={activeStep}>
+          <Step key={0}>
+            <StepLabel>Uploading video</StepLabel>
+          </Step>
+          <Step key={1}>
+            <StepLabel>Transcribing video</StepLabel>
+          </Step>
+        </Stepper>
+        {progress}
+      </PageContainer>
     );
   }
 
