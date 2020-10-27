@@ -14,7 +14,12 @@ import useFirestore from "../db/Firestore.js";
 import { useParams } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 
-export default function TranscriptDropzone({ setUploading, setProgress }) {
+export default function TranscriptDropzone({
+  setUploading,
+  setProgress,
+  setError,
+  setCancelUpload,
+}) {
   let { oauthClaims } = useContext(UserAuthContext);
   let { orgID, documentID } = useParams();
   const firebase = useContext(FirebaseContext);
@@ -25,9 +30,7 @@ export default function TranscriptDropzone({ setUploading, setProgress }) {
 
   const { transcriptionsRef, documentsRef } = useFirestore();
 
-  const [success, setSuccess] = useState(false);
   const [file, setFile] = useState();
-  const [error, setError] = useState();
 
   const confirmation = (e) => {
     var confirmationMessage =
@@ -76,6 +79,14 @@ export default function TranscriptDropzone({ setUploading, setProgress }) {
       })
       .then(() => {
         uploadTask.current = storageRef.child(storagePath).put(file, {});
+        setError();
+
+        setCancelUpload(() => {
+          if (uploadTask.current) {
+            console.log("Installing upload cancel callback");
+            uploadTask.current.cancel();
+          }
+        });
 
         addEventListener();
 
@@ -91,15 +102,17 @@ export default function TranscriptDropzone({ setUploading, setProgress }) {
           (error) => {
             // Handle unsuccessful uploads
             console.log(error);
-            setError(error);
+            setError("Upload failed");
             setUploading(false);
             removeEventListener();
+            uploadTask.current = undefined;
           },
           () => {
             // 100% Done
             console.debug("Completed");
             setUploading(false);
             removeEventListener();
+            uploadTask.current = undefined;
 
             // Create pending document
             documentsRef.doc(documentID).update({

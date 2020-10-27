@@ -3,6 +3,7 @@ import "firebase/firestore";
 
 import React, { useEffect, useRef, useState } from "react";
 
+import Alert from "@material-ui/lab/Alert";
 import Button from "@material-ui/core/Button";
 import Grid from "@material-ui/core/Grid";
 import HighlightCollabEditor from "../editor/HighlightCollabEditor.js";
@@ -52,6 +53,10 @@ export default function Transcript({
   const editorContainerRef = useRef();
   const [progressType, setProgressType] = useState();
   const [activeStep, setActiveStep] = useState();
+  const [error, setError] = useState();
+  const [transcriptionFailed, setTranscriptionFailed] = useState(false);
+
+  const cancelUpload = useRef();
 
   // onChangeSelection is invoked when the content selection changes, including
   // whenever the cursor changes position.
@@ -86,6 +91,11 @@ export default function Transcript({
     return transcriptionsRef.doc(document.transcription).onSnapshot((doc) => {
       let operation = doc.data();
       setOperation(operation);
+      if (operation.status === "failed") {
+        setTranscriptionFailed(true);
+        setError("Transcription failed");
+      }
+
       if (operation.progress) {
         setTranscriptionProgress(operation.progress);
 
@@ -151,6 +161,10 @@ export default function Transcript({
         <TranscriptDropzone
           setProgress={setUploadProgress}
           setUploading={setUploading}
+          setError={setError}
+          setCancelUpload={(cancel) => {
+            cancelUpload.current = cancel;
+          }}
         />
       </PageContainer>
     );
@@ -198,6 +212,16 @@ export default function Transcript({
         onClick={() => {
           documentRef.update({ transcription: "", pending: false }).then(() => {
             setOperation();
+            setError();
+            setTranscriptionFailed(false);
+
+            console.log("Trying to cancel");
+
+            if (cancelUpload.current) {
+              console.log("Cancel upload");
+              cancelUpload.current();
+              cancelUpload.current = undefined;
+            }
           });
         }}
       >
@@ -217,10 +241,12 @@ export default function Transcript({
             <StepLabel>Preparing video</StepLabel>
           </Step>
           <Step key={2}>
-            <StepLabel>Transcribing video</StepLabel>
+            <StepLabel error={transcriptionFailed}>
+              Transcribing video
+            </StepLabel>
           </Step>
         </Stepper>
-        {progress}
+        {error ? <Alert severity="error">{error}</Alert> : progress}
         {cancelTranscriptionButton}
       </PageContainer>
     );
@@ -234,10 +260,12 @@ export default function Transcript({
             <StepLabel>Uploading video</StepLabel>
           </Step>
           <Step key={1}>
-            <StepLabel>Transcribing video</StepLabel>
+            <StepLabel error={transcriptionFailed}>
+              Transcribing video
+            </StepLabel>
           </Step>
         </Stepper>
-        {progress}
+        {error ? <Alert severity="error">{error}</Alert> : progress}
         {cancelTranscriptionButton}
       </PageContainer>
     );
