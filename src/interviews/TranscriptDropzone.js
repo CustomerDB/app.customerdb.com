@@ -117,7 +117,12 @@ export default function TranscriptDropzone({ setUploading, setProgress }) {
     console.log(acceptedFiles[0]);
     setFile(acceptedFiles[0]);
   }, []);
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
+  const {
+    getRootProps,
+    getInputProps,
+    isDragActive,
+    fileRejections,
+  } = useDropzone({ onDrop, accept: "video/*, audio/*" });
 
   return (
     <div
@@ -133,9 +138,16 @@ export default function TranscriptDropzone({ setUploading, setProgress }) {
       <input {...getInputProps()} />
       <CloudUploadIcon size={70} />
       {isDragActive ? (
-        <p>Drop the videos here ...</p>
+        <p>Drop the video here ...</p>
       ) : (
-        <p>Drag 'n' drop some videos here, or click to select files</p>
+        <p>
+          Drag 'n' drop a video here to transcribe, or click to select video
+          file
+        </p>
+      )}
+
+      {fileRejections.length != 0 && (
+        <p>Please select a valid video or audio file</p>
       )}
     </div>
   );

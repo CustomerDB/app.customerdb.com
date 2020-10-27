@@ -3,6 +3,7 @@ import "firebase/firestore";
 
 import React, { useEffect, useRef, useState } from "react";
 
+import Button from "@material-ui/core/Button";
 import Grid from "@material-ui/core/Grid";
 import HighlightCollabEditor from "../editor/HighlightCollabEditor.js";
 import LinearProgress from "@material-ui/core/LinearProgress";
@@ -189,6 +190,22 @@ export default function Transcript({
     progress = <LinearProgress />;
   }
 
+  let cancelTranscriptionButton = (
+    <div style={{ paddingTop: "2rem" }}>
+      <Button
+        variant="contained"
+        color="secondary"
+        onClick={() => {
+          documentRef.update({ transcription: "", pending: false }).then(() => {
+            setOperation();
+          });
+        }}
+      >
+        Cancel
+      </Button>
+    </div>
+  );
+
   if (progressType === "call") {
     return (
       <PageContainer>
@@ -204,6 +221,7 @@ export default function Transcript({
           </Step>
         </Stepper>
         {progress}
+        {cancelTranscriptionButton}
       </PageContainer>
     );
   }
@@ -220,6 +238,7 @@ export default function Transcript({
           </Step>
         </Stepper>
         {progress}
+        {cancelTranscriptionButton}
       </PageContainer>
     );
   }
