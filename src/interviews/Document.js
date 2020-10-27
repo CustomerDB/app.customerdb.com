@@ -247,7 +247,14 @@ export default function Document(props) {
                   </Grid>
 
                   <Grid item xs={12}>
-                    <CallDetails callID={document.callID} />
+                    <CallDetails
+                      callID={document.callID}
+                      isDisabled={(call) => {
+                        return (
+                          document.transcription || call.callEndedTimestamp
+                        );
+                      }}
+                    />
                   </Grid>
 
                   <Grid item xs={12} className={classes.tabsContainer}>
