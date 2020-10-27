@@ -71,14 +71,22 @@ exports.start = functions.storage.object().onFinalize(async (object) => {
       },
     };
 
-    const [operation] = await video.annotateVideo(request);
-
-    return doc.ref.update({
-      status: "pending",
-      gcpOperationName: operation.name,
-      mediaType: mediaType || "",
-      mediaEncoding: mediaEncoding || "",
-    });
+    return video
+      .annotateVideo(request)
+      .then(([operation]) => {
+        return doc.ref.update({
+          status: "pending",
+          gcpOperationName: operation.name,
+          mediaType: mediaType || "",
+          mediaEncoding: mediaEncoding || "",
+        });
+      })
+      .catch((error) => {
+        console.debug("transcription failed", doc.id);
+        return doc.ref.update({
+          status: "failed",
+        });
+      });
   });
 });
 
