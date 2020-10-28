@@ -247,7 +247,6 @@ export default function Transcript({
           </Step>
         </Stepper>
         {error ? <Alert severity="error">{error}</Alert> : progress}
-        {cancelTranscriptionButton}
       </PageContainer>
     );
   }
