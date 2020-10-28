@@ -39,16 +39,6 @@ export default function TranscriptDropzone({
     return confirmationMessage; //Gecko + Webkit, Safari, Chrome etc.
   };
 
-  const addEventListener = () => {
-    console.debug("Add event listener");
-    window.addEventListener("beforeunload", confirmation);
-  };
-
-  const removeEventListener = () => {
-    console.debug("Remove event listener");
-    window.removeEventListener("beforeunload", confirmation);
-  };
-
   useEffect(() => {
     if (!file) {
       console.debug("File not available");
@@ -62,6 +52,16 @@ export default function TranscriptDropzone({
 
     // TODO: Find official google storage rules for allowed object names.
     let fileName = file.name.replace(/[ !@#$%^&*()+[]{}<>]/g, "-");
+
+    const addEventListener = () => {
+      console.debug("Add event listener");
+      window.addEventListener("beforeunload", confirmation);
+    };
+
+    const removeEventListener = () => {
+      console.debug("Remove event listener");
+      window.removeEventListener("beforeunload", confirmation);
+    };
 
     let storagePath = `${orgID}/transcriptions/${transcriptionID}/input/${fileName}`;
     transcriptionsRef
@@ -122,7 +122,20 @@ export default function TranscriptDropzone({
           }
         );
       });
-  }, [file]);
+  }, [
+    file,
+    documentID,
+    documentsRef,
+    firebase.firestore.FieldValue,
+    oauthClaims.email,
+    orgID,
+    setCancelUpload,
+    setError,
+    setProgress,
+    setUploading,
+    storageRef,
+    transcriptionsRef,
+  ]);
 
   const onDrop = useCallback((acceptedFiles) => {
     // Do something with the files
@@ -159,7 +172,7 @@ export default function TranscriptDropzone({
         </p>
       )}
 
-      {fileRejections.length != 0 && (
+      {fileRejections.length !== 0 && (
         <p>Please select a valid video or audio file</p>
       )}
     </div>
