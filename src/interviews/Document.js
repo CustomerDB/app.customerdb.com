@@ -9,6 +9,7 @@ import ContentEditable from "react-contenteditable";
 import DocumentDeleteDialog from "./DocumentDeleteDialog.js";
 import DocumentDeleted from "./DocumentDeleted.js";
 import DocumentSidebar from "./DocumentSidebar.js";
+import FeatureFlags from "../util/FeatureFlags.js";
 import Grid from "@material-ui/core/Grid";
 import Hidden from "@material-ui/core/Hidden";
 import IconButton from "@material-ui/core/IconButton";
@@ -247,14 +248,16 @@ export default function Document(props) {
                   </Grid>
 
                   <Grid item xs={12}>
-                    <CallDetails
-                      callID={document.callID}
-                      isDisabled={(call) => {
-                        return (
-                          document.transcription || call.callEndedTimestamp
-                        );
-                      }}
-                    />
+                    <FeatureFlags>
+                      <CallDetails
+                        callID={document.callID}
+                        isDisabled={(call) => {
+                          return (
+                            document.transcription || call.callEndedTimestamp
+                          );
+                        }}
+                      />
+                    </FeatureFlags>
                   </Grid>
 
                   <Grid item xs={12} className={classes.tabsContainer}>
