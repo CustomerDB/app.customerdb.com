@@ -40,18 +40,18 @@ export default function TranscriptDropzone({
   };
 
   const addEventListener = () => {
-    console.log("Add event listener");
+    console.debug("Add event listener");
     window.addEventListener("beforeunload", confirmation);
   };
 
   const removeEventListener = () => {
-    console.log("Remove event listener");
+    console.debug("Remove event listener");
     window.removeEventListener("beforeunload", confirmation);
   };
 
   useEffect(() => {
     if (!file) {
-      console.log("File not available");
+      console.debug("File not available");
       return;
     }
 
@@ -83,7 +83,6 @@ export default function TranscriptDropzone({
 
         setCancelUpload(() => {
           if (uploadTask.current) {
-            console.log("Installing upload cancel callback");
             uploadTask.current.cancel();
           }
         });
@@ -115,6 +114,7 @@ export default function TranscriptDropzone({
             uploadTask.current = undefined;
 
             // Create pending document
+            // TODO(NN): Move this to a cloud function.
             documentsRef.doc(documentID).update({
               pending: true,
               transcription: transcriptionID,

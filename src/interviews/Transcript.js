@@ -51,6 +51,9 @@ export default function Transcript({
   const [uploadProgress, setUploadProgress] = useState();
   const [uploading, setUploading] = useState();
   const editorContainerRef = useRef();
+
+  // progress type can be "call" or "upload" to show the stepper and progress for either.
+  // If not set, no progress is shown and document is rendered.
   const [progressType, setProgressType] = useState();
   const [activeStep, setActiveStep] = useState();
   const [error, setError] = useState();
@@ -143,8 +146,6 @@ export default function Transcript({
           setProgressType();
         }
       }
-
-      console.log(document);
     }
   }, [call, document, operation]);
 
