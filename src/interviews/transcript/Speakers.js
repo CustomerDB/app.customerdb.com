@@ -86,6 +86,7 @@ export default function Speakers({
     });
   }, [speakerNodes, speakers, transcriptionID, transcriptionsRef]);
 
+  // Delete unused speaker records
   useEffect(() => {
     if (!transcriptionsRef || !speakerNodes || !speakers) return;
 
@@ -93,7 +94,8 @@ export default function Speakers({
     speakerNodes.forEach((sn) => assignedSpeakers.add(sn.dataset.speakerID));
     Object.keys(speakers).forEach((speakerID) => {
       if (!assignedSpeakers.has(speakerID)) {
-        return transcriptionsRef
+        console.debug("deleting unassigned speaker", speakerID);
+        transcriptionsRef
           .doc(transcriptionID)
           .collection("speakers")
           .doc(speakerID)
