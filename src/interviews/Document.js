@@ -250,6 +250,7 @@ export default function Document(props) {
                     <Grid item xs={1}>
                       <>
                         <IconButton
+                          id="document-options"
                           edge="end"
                           aria-label="document options"
                           aria-haspopup="true"
@@ -267,6 +268,7 @@ export default function Document(props) {
                           onClose={handleOptionsClose}
                         >
                           <MenuItem
+                            id="archive-document-button"
                             onClick={() => {
                               setAnchorEl(null);
                               setOpenDeleteDialog(true);

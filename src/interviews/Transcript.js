@@ -96,6 +96,8 @@ export default function Transcript({
     return transcriptionsRef.doc(document.transcription).onSnapshot((doc) => {
       if (!doc.exists) {
         setOperation();
+        setError();
+        setTranscriptionFailed(false);
         return;
       }
 
@@ -224,9 +226,7 @@ export default function Transcript({
         color="secondary"
         onClick={() => {
           deleteTranscript({ documentID: document.ID }).then(() => {
-            setOperation();
             setError();
-            setTranscriptionFailed(false);
 
             if (cancelUpload.current) {
               console.log("Cancel upload");

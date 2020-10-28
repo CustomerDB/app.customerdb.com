@@ -335,6 +335,8 @@ exports.repair = functions.pubsub
   });
 
 exports.deleteTranscript = functions.https.onCall((data, context) => {
+  // TODO: Use transactions
+
   // Require authenticated requests
   if (!context.auth || !context.auth.token || !context.auth.token.orgID) {
     throw new functions.https.HttpsError(
@@ -371,6 +373,7 @@ exports.deleteTranscript = functions.https.onCall((data, context) => {
         .doc(callID);
 
       callResetPromise = callRef.update({
+        callStartedTimestamp: "",
         callEndedTimestamp: "",
         roomSid: "",
         compositionSid: "",
@@ -389,7 +392,7 @@ exports.deleteTranscript = functions.https.onCall((data, context) => {
     }
 
     // Clear transcript operation, call and delete transcript revisions, deltas and highlights.
-    transcriptionDeletePromise.then(() => {
+    return transcriptionDeletePromise.then(() => {
       return documentRef
         .update({
           transcription: "",
