@@ -1,10 +1,11 @@
 import "react-quill/dist/quill.snow.css";
 import "firebase/firestore";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 
 import Alert from "@material-ui/lab/Alert";
 import Button from "@material-ui/core/Button";
+import FirebaseContext from "../util/FirebaseContext.js";
 import Grid from "@material-ui/core/Grid";
 import HighlightCollabEditor from "../editor/HighlightCollabEditor.js";
 import LinearProgress from "@material-ui/core/LinearProgress";
@@ -43,6 +44,7 @@ export default function Transcript({
     transcriptionsRef,
   } = useFirestore();
 
+  const firebase = useContext(FirebaseContext);
   const { callsRef } = useFirestore();
   const [call, setCall] = useState();
   const [operation, setOperation] = useState();
@@ -92,7 +94,13 @@ export default function Transcript({
     }
 
     return transcriptionsRef.doc(document.transcription).onSnapshot((doc) => {
+      if (!doc.exists) {
+        setOperation();
+        return;
+      }
+
       let operation = doc.data();
+
       setOperation(operation);
       if (operation.status === "failed") {
         setTranscriptionFailed(true);
@@ -205,18 +213,20 @@ export default function Transcript({
     progress = <LinearProgress />;
   }
 
+  const deleteTranscript = firebase
+    .functions()
+    .httpsCallable("transcript-deleteTranscript");
+
   let cancelTranscriptionButton = (
     <div style={{ paddingTop: "2rem" }}>
       <Button
         variant="contained"
         color="secondary"
         onClick={() => {
-          documentRef.update({ transcription: "", pending: false }).then(() => {
+          deleteTranscript({ documentID: document.ID }).then(() => {
             setOperation();
             setError();
             setTranscriptionFailed(false);
-
-            console.log("Trying to cancel");
 
             if (cancelUpload.current) {
               console.log("Cancel upload");

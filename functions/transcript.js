@@ -333,3 +333,100 @@ exports.repair = functions.pubsub
         );
       });
   });
+
+exports.deleteTranscript = functions.https.onCall((data, context) => {
+  // Require authenticated requests
+  if (!context.auth || !context.auth.token || !context.auth.token.orgID) {
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      "Authentication required."
+    );
+  }
+
+  const orgID = context.auth.token.orgID;
+  if (!data.documentID) {
+    throw Error("documentID required");
+  }
+  let documentID = data.documentID;
+
+  let db = admin.firestore();
+
+  let documentRef = db
+    .collection("organizations")
+    .doc(orgID)
+    .collection("documents")
+    .doc(documentID);
+  return documentRef.get().then((doc) => {
+    let document = doc.data();
+    let callID = document.callID;
+
+    let callResetPromise = Promise.resolve();
+
+    // Older documents may not have a call associated.
+    if (document.callID) {
+      let callRef = db
+        .collection("organizations")
+        .doc(orgID)
+        .collection("calls")
+        .doc(callID);
+
+      callResetPromise = callRef.update({
+        callEndedTimestamp: "",
+        roomSid: "",
+        compositionSid: "",
+        compositionRequestedTimestamp: "",
+      });
+    }
+
+    let transcriptionDeletePromise = Promise.resolve();
+    if (document.transcription) {
+      let transcriptionRef = db
+        .collection("organizations")
+        .doc(orgID)
+        .collection("transcriptions")
+        .doc(document.transcription);
+      transcriptionDeletePromise = transcriptionRef.delete();
+    }
+
+    // Clear transcript operation, call and delete transcript revisions, deltas and highlights.
+    transcriptionDeletePromise.then(() => {
+      return documentRef
+        .update({
+          transcription: "",
+        })
+        .then(() => {
+          callResetPromise.then(() => {
+            // Delete all deltas, revisions and highlights.
+            return documentRef
+              .collection("transcriptDeltas")
+              .get()
+              .then((snapshot) => {
+                return Promise.all(
+                  snapshot.docs.map((doc) => doc.ref.delete())
+                );
+              })
+              .then(() => {
+                return documentRef
+                  .collection("transcriptRevisions")
+                  .get()
+                  .then((snapshot) => {
+                    return Promise.all(
+                      snapshot.docs.map((doc) => doc.ref.delete())
+                    );
+                  });
+              })
+              .then(() => {
+                return documentRef
+                  .collection("transcriptHighlights")
+                  .get()
+                  .then((snapshot) => {
+                    return Promise.all(
+                      snapshot.docs.map((doc) => doc.ref.delete())
+                    );
+                  });
+              });
+          });
+        });
+    });
+  });
+});

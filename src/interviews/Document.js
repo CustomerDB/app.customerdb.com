@@ -2,18 +2,21 @@ import React, { useEffect, useRef, useState } from "react";
 import { addTagStyles, removeTagStyles } from "../editor/Tags.js";
 import { useNavigate, useParams } from "react-router-dom";
 
-import Archive from "@material-ui/icons/Archive";
 import CallDetails from "./CallDetails.js";
 import Collaborators from "../util/Collaborators.js";
 import ContentEditable from "react-contenteditable";
 import DocumentDeleteDialog from "./DocumentDeleteDialog.js";
+import DocumentDeleteTranscriptDialog from "./DocumentDeleteTranscriptDialog.js";
 import DocumentDeleted from "./DocumentDeleted.js";
 import DocumentSidebar from "./DocumentSidebar.js";
 import Grid from "@material-ui/core/Grid";
 import Hidden from "@material-ui/core/Hidden";
 import IconButton from "@material-ui/core/IconButton";
 import { Loading } from "../util/Utils.js";
+import Menu from "@material-ui/core/Menu";
+import MenuItem from "@material-ui/core/MenuItem";
 import Moment from "react-moment";
+import MoreVertIcon from "@material-ui/icons/MoreVert";
 import Notes from "./Notes.js";
 import Paper from "@material-ui/core/Paper";
 import Scrollable from "../shell/Scrollable.js";
@@ -59,6 +62,10 @@ export default function Document(props) {
 
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [selectedTab, setSelectedTab] = useState();
+  const [
+    openTranscriptDeleteDialog,
+    setOpenTranscriptDeleteDialog,
+  ] = useState();
 
   const transcriptSelectionChan = new MessageChannel();
   const transcriptSelectionSend = transcriptSelectionChan.port1;
@@ -66,7 +73,17 @@ export default function Document(props) {
 
   const [tagGroupName, setTagGroupName] = useState();
 
+  const [anchorEl, setAnchorEl] = useState(null);
+
   const classes = useStyles();
+
+  const handleOptionsClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleOptionsClose = () => {
+    setAnchorEl(null);
+  };
 
   const handleTabChange = (e, newValue) => {
     let tab = "";
@@ -231,17 +248,43 @@ export default function Document(props) {
                     </Grid>
 
                     <Grid item xs={1}>
-                      <IconButton
-                        id="archive-document-button"
-                        color="primary"
-                        aria-label="Archive document"
-                        onClick={() => {
-                          console.debug("confirm archive doc");
-                          setOpenDeleteDialog(true);
-                        }}
-                      >
-                        <Archive />
-                      </IconButton>
+                      <>
+                        <IconButton
+                          edge="end"
+                          aria-label="document options"
+                          aria-haspopup="true"
+                          aria-controls="document-menu"
+                          onClick={handleOptionsClick}
+                          color="inherit"
+                        >
+                          <MoreVertIcon />
+                        </IconButton>
+                        <Menu
+                          id="profile-menu"
+                          anchorEl={anchorEl}
+                          keepMounted
+                          open={Boolean(anchorEl)}
+                          onClose={handleOptionsClose}
+                        >
+                          <MenuItem
+                            onClick={() => {
+                              setAnchorEl(null);
+                              setOpenDeleteDialog(true);
+                            }}
+                          >
+                            Archive
+                          </MenuItem>
+                          <MenuItem
+                            disabled={!document.transcription}
+                            onClick={() => {
+                              setAnchorEl(null);
+                              setOpenTranscriptDeleteDialog(true);
+                            }}
+                          >
+                            Delete transcript
+                          </MenuItem>
+                        </Menu>
+                      </>
                       <Collaborators dbRef={documentRef} />
                     </Grid>
                   </Grid>
@@ -315,6 +358,12 @@ export default function Document(props) {
       <DocumentDeleteDialog
         open={openDeleteDialog}
         setOpen={setOpenDeleteDialog}
+        document={document}
+      />
+
+      <DocumentDeleteTranscriptDialog
+        open={openTranscriptDeleteDialog}
+        setOpen={setOpenTranscriptDeleteDialog}
         document={document}
       />
     </Grid>
