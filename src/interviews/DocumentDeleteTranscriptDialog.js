@@ -1,9 +1,6 @@
 import "firebase/firestore";
 
-import * as firebaseClient from "firebase/app";
-
 import React, { useContext, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
 
 import Button from "@material-ui/core/Button";
 import Dialog from "@material-ui/core/Dialog";
@@ -17,10 +14,14 @@ import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
 import useFirestore from "../db/Firestore.js";
 
-export default function AlertDialog({ open, setOpen, document }) {
+export default function DocumentDeleteTranscriptDialog({
+  open,
+  setOpen,
+  document,
+}) {
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
-  const { documentsRef, callsRef } = useFirestore();
+  const { documentsRef } = useFirestore();
   const [deleting, setDeleting] = useState(false);
 
   const deleteTranscript = firebase
