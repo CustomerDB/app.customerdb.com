@@ -31,6 +31,11 @@ function getCallForGuest(callID, token) {
     if (call.token !== token) {
       throw Error(`Incorrect token for call ${data.callID}`);
     }
+    if (call.callEndedTimestamp) {
+      throw Error(
+        `Call ended at ${call.callEndedTimestamp.toDate().valueOf()}`
+      );
+    }
 
     return call;
   });
@@ -115,6 +120,11 @@ exports.getInterviewAccessToken = functions.https.onCall((data, context) => {
 
     if (orgID != call.organizationID) {
       throw Error(`Call ${data.callID} is not in the user's organization`);
+    }
+    if (call.callEndedTimestamp) {
+      throw Error(
+        `Call ended at ${call.callEndedTimestamp.toDate().valueOf()}`
+      );
     }
 
     let documentRef = db
