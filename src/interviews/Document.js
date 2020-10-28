@@ -3,11 +3,13 @@ import { addTagStyles, removeTagStyles } from "../editor/Tags.js";
 import { useNavigate, useParams } from "react-router-dom";
 
 import Archive from "@material-ui/icons/Archive";
+import CallDetails from "./CallDetails.js";
 import Collaborators from "../util/Collaborators.js";
 import ContentEditable from "react-contenteditable";
 import DocumentDeleteDialog from "./DocumentDeleteDialog.js";
 import DocumentDeleted from "./DocumentDeleted.js";
 import DocumentSidebar from "./DocumentSidebar.js";
+import FeatureFlags from "../util/FeatureFlags.js";
 import Grid from "@material-ui/core/Grid";
 import Hidden from "@material-ui/core/Hidden";
 import IconButton from "@material-ui/core/IconButton";
@@ -167,6 +169,21 @@ export default function Document(props) {
     );
   }
 
+  let createdAt;
+  if (document.creationTimestamp && document.createdBy) {
+    createdAt = (
+      <Typography
+        variant="body2"
+        color="textSecondary"
+        component="p"
+        className={classes.detailsParagraph}
+      >
+        Created <Moment fromNow date={document.creationTimestamp.toDate()} /> by{" "}
+        {document.createdBy}
+      </Typography>
+    );
+  }
+
   return (
     <Grid container item md={12} lg={9} xl={10} spacing={0}>
       <Grid
@@ -211,19 +228,7 @@ export default function Document(props) {
                           }}
                         />
                       </Typography>
-                      <Typography
-                        variant="body2"
-                        color="textSecondary"
-                        component="p"
-                        className={classes.detailsParagraph}
-                      >
-                        Created{" "}
-                        <Moment
-                          fromNow
-                          date={document.creationTimestamp.toDate()}
-                        />{" "}
-                        by {document.createdBy}
-                      </Typography>
+                      {createdAt}
                     </Grid>
 
                     <Grid item xs={1}>
@@ -240,6 +245,19 @@ export default function Document(props) {
                       </IconButton>
                       <Collaborators dbRef={documentRef} />
                     </Grid>
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <FeatureFlags>
+                      <CallDetails
+                        callID={document.callID}
+                        isDisabled={(call) => {
+                          return (
+                            document.transcription || call.callEndedTimestamp
+                          );
+                        }}
+                      />
+                    </FeatureFlags>
                   </Grid>
 
                   <Grid item xs={12} className={classes.tabsContainer}>

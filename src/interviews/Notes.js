@@ -15,7 +15,7 @@ export default function Notes({ reactQuillRef, tags, document }) {
   }
 
   return (
-    <Grid item xs={12} style={{ position: "relative" }} spacing={0}>
+    <Grid container item xs={12} style={{ position: "relative" }} spacing={0}>
       <HighlightCollabEditor
         quillRef={reactQuillRef}
         document={document}

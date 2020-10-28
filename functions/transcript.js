@@ -71,14 +71,22 @@ exports.start = functions.storage.object().onFinalize(async (object) => {
       },
     };
 
-    const [operation] = await video.annotateVideo(request);
-
-    return doc.ref.update({
-      status: "pending",
-      gcpOperationName: operation.name,
-      mediaType: mediaType || "",
-      mediaEncoding: mediaEncoding || "",
-    });
+    return video
+      .annotateVideo(request)
+      .then(([operation]) => {
+        return doc.ref.update({
+          status: "pending",
+          gcpOperationName: operation.name,
+          mediaType: mediaType || "",
+          mediaEncoding: mediaEncoding || "",
+        });
+      })
+      .catch((error) => {
+        console.debug("transcription failed", doc.id);
+        return doc.ref.update({
+          status: "failed",
+        });
+      });
   });
 });
 
@@ -103,8 +111,16 @@ exports.progress = functions.pubsub
             return video
               .checkAnnotateVideoProgress(operation.gcpOperationName)
               .then((gcpOperation) => {
+                console.debug("checking operation", gcpOperation);
                 if (gcpOperation.done) {
                   let result = gcpOperation.result.annotationResults[0].toJSON();
+                  if (result.error) {
+                    console.warn("transcription operation failed", result);
+                    return doc.ref.update({
+                      status: "failed",
+                    });
+                  }
+
                   let bucket = admin.storage().bucket();
 
                   const outputPath = `${operation.orgID}/transcriptions/${doc.id}/output/transcript.json`;

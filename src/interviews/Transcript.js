@@ -3,6 +3,7 @@ import "firebase/firestore";
 
 import React, { useEffect, useRef, useState } from "react";
 
+import Alert from "@material-ui/lab/Alert";
 import Button from "@material-ui/core/Button";
 import Grid from "@material-ui/core/Grid";
 import HighlightCollabEditor from "../editor/HighlightCollabEditor.js";
@@ -12,11 +13,22 @@ import PlayheadBlot from "./PlayheadBlot.js";
 import Quill from "quill";
 import SpeakerBlot from "./SpeakerBlot.js";
 import Speakers from "./transcript/Speakers.js";
-import UploadVideoDialog from "./UploadVideoDialog.js";
+import Step from "@material-ui/core/Step";
+import StepLabel from "@material-ui/core/StepLabel";
+import Stepper from "@material-ui/core/Stepper";
+import TranscriptDropzone from "./TranscriptDropzone.js";
 import useFirestore from "../db/Firestore.js";
 
 Quill.register("formats/playhead", PlayheadBlot);
 Quill.register("formats/speaker", SpeakerBlot);
+
+function PageContainer({ children }) {
+  return (
+    <Grid item xs={12} style={{ position: "relative" }}>
+      {children}
+    </Grid>
+  );
+}
 
 // Transcript augments a collaborative editor with tags, text highlights and video integration.
 export default function Transcript({
@@ -31,11 +43,23 @@ export default function Transcript({
     transcriptionsRef,
   } = useFirestore();
 
-  const [transcriptionProgress, setTranscriptionProgress] = useState();
+  const { callsRef } = useFirestore();
+  const [call, setCall] = useState();
   const [operation, setOperation] = useState();
-  const [uploadModalShow, setUploadModalShow] = useState(false);
   const [eta, setEta] = useState();
+  const [transcriptionProgress, setTranscriptionProgress] = useState();
+  const [uploadProgress, setUploadProgress] = useState();
+  const [uploading, setUploading] = useState();
   const editorContainerRef = useRef();
+
+  // progress type can be "call" or "upload" to show the stepper and progress for either.
+  // If not set, no progress is shown and document is rendered.
+  const [progressType, setProgressType] = useState();
+  const [activeStep, setActiveStep] = useState();
+  const [error, setError] = useState();
+  const [transcriptionFailed, setTranscriptionFailed] = useState(false);
+
+  const cancelUpload = useRef();
 
   // onChangeSelection is invoked when the content selection changes, including
   // whenever the cursor changes position.
@@ -48,6 +72,20 @@ export default function Transcript({
   };
 
   useEffect(() => {
+    if (!callsRef || !document.callID) {
+      return;
+    }
+    return callsRef.doc(document.callID).onSnapshot((doc) => {
+      let callData = doc.data();
+      if (callData.deletionTimestamp !== "") {
+        setCall();
+        return;
+      }
+      setCall(doc.data());
+    });
+  }, [callsRef, document.callID]);
+
+  useEffect(() => {
     console.log("Getting operation");
     if (!transcriptionsRef || !document.transcription) {
       return;
@@ -56,6 +94,11 @@ export default function Transcript({
     return transcriptionsRef.doc(document.transcription).onSnapshot((doc) => {
       let operation = doc.data();
       setOperation(operation);
+      if (operation.status === "failed") {
+        setTranscriptionFailed(true);
+        setError("Transcription failed");
+      }
+
       if (operation.progress) {
         setTranscriptionProgress(operation.progress);
 
@@ -70,105 +113,206 @@ export default function Transcript({
     });
   }, [transcriptionsRef, document.transcription]);
 
-  if (!operation) {
-    return (
-      <Grid
-        item
-        xs={12}
-        style={{
-          position: "relative",
-          textAlign: "center",
-          paddingTop: "2rem",
-        }}
-      >
-        <Button
-          variant="contained"
-          color="secondary"
-          onClick={() => {
-            setUploadModalShow(true);
-          }}
-        >
-          Upload interview video to transcribe
-        </Button>
-        <UploadVideoDialog
-          open={uploadModalShow}
-          setOpen={(value) => {
-            setUploadModalShow(value);
-          }}
-        />
-      </Grid>
-    );
-  }
+  useEffect(() => {
+    if (!call) {
+      return;
+    }
+
+    if (call.callStartedTimestamp) {
+      setProgressType("call");
+      setActiveStep(0);
+
+      if (call.callEndedTimestamp) {
+        setActiveStep(1);
+      }
+
+      if (operation) {
+        setActiveStep(2);
+
+        if (!document.pending) {
+          // Remove progress
+          setProgressType();
+        }
+      }
+    } else {
+      setProgressType("upload");
+      setActiveStep(0);
+
+      if (operation) {
+        setActiveStep(1);
+
+        if (!document.pending) {
+          // Remove progress
+          setProgressType();
+        }
+      }
+    }
+  }, [call, document, operation]);
 
   if (!documentRef) {
     return <></>;
   }
 
+  let callNotStarted = call && call.callStartedTimestamp === "";
+  let transcriptionNotStarted = !operation;
+
+  if (callNotStarted && transcriptionNotStarted && !uploading) {
+    return (
+      <PageContainer>
+        <TranscriptDropzone
+          setProgress={setUploadProgress}
+          setUploading={setUploading}
+          setError={setError}
+          setCancelUpload={(cancel) => {
+            cancelUpload.current = cancel;
+          }}
+        />
+      </PageContainer>
+    );
+  }
+
+  let progress;
+  if (uploading) {
+    if (uploadProgress) {
+      progress = (
+        <>
+          <LinearProgress variant="determinate" value={uploadProgress} />
+          <i>Uploading video</i>
+        </>
+      );
+    } else {
+      progress = (
+        <>
+          <LinearProgress />
+          <i>Uploading video</i>
+        </>
+      );
+    }
+  } else if (transcriptionProgress) {
+    progress = (
+      <>
+        <LinearProgress variant="determinate" value={transcriptionProgress} />
+        <i>
+          {eta && (
+            <>
+              Estimated completion <Moment fromNow date={eta} />
+            </>
+          )}
+        </i>
+      </>
+    );
+  } else {
+    progress = <LinearProgress />;
+  }
+
+  let cancelTranscriptionButton = (
+    <div style={{ paddingTop: "2rem" }}>
+      <Button
+        variant="contained"
+        color="secondary"
+        onClick={() => {
+          documentRef.update({ transcription: "", pending: false }).then(() => {
+            setOperation();
+            setError();
+            setTranscriptionFailed(false);
+
+            console.log("Trying to cancel");
+
+            if (cancelUpload.current) {
+              console.log("Cancel upload");
+              cancelUpload.current();
+              cancelUpload.current = undefined;
+            }
+          });
+        }}
+      >
+        Cancel
+      </Button>
+    </div>
+  );
+
+  if (progressType === "call") {
+    return (
+      <PageContainer>
+        <Stepper activeStep={activeStep}>
+          <Step key={0}>
+            <StepLabel>Recording call</StepLabel>
+          </Step>
+          <Step key={1}>
+            <StepLabel>Preparing video</StepLabel>
+          </Step>
+          <Step key={2}>
+            <StepLabel error={transcriptionFailed}>
+              Transcribing video
+            </StepLabel>
+          </Step>
+        </Stepper>
+        {error ? <Alert severity="error">{error}</Alert> : progress}
+      </PageContainer>
+    );
+  }
+
+  if (progressType === "upload") {
+    return (
+      <PageContainer>
+        <Stepper activeStep={activeStep}>
+          <Step key={0}>
+            <StepLabel>Uploading video</StepLabel>
+          </Step>
+          <Step key={1}>
+            <StepLabel error={transcriptionFailed}>
+              Transcribing video
+            </StepLabel>
+          </Step>
+        </Stepper>
+        {error ? <Alert severity="error">{error}</Alert> : progress}
+        {cancelTranscriptionButton}
+      </PageContainer>
+    );
+  }
+
   return (
     <>
-      {document.pending ? (
-        <Grid item xs={12} style={{ position: "relative" }}>
-          <p>
-            <i>
-              Transcribing video.{" "}
-              {eta && (
-                <>
-                  Estimated completion <Moment fromNow date={eta} />
-                </>
-              )}
-            </i>
-          </p>
-          {transcriptionProgress ? (
-            <LinearProgress
-              variant="determinate"
-              value={transcriptionProgress}
-            />
-          ) : (
-            <LinearProgress />
-          )}
-        </Grid>
-      ) : (
-        <Grid
-          ref={editorContainerRef}
-          container
-          item
-          xs={12}
-          style={{ position: "relative" }}
-          spacing={0}
-        >
-          <HighlightCollabEditor
-            quillRef={reactQuillRef}
-            document={document}
-            revisionsRef={documentRef.collection("transcriptRevisions")}
-            deltasRef={documentRef.collection("transcriptDeltas")}
-            highlightsRef={transcriptHighlightsRef}
-            tags={tags}
-            onChangeSelection={onChangeSelection}
-            id="quill-notes-editor"
-            theme="snow"
-            placeholder="Start typing here and select to mark highlights"
-            modules={{
-              toolbar: [
-                [{ header: [1, 2, false] }],
-                ["bold", "italic", "underline", "strike", "blockquote"],
-                [
-                  { list: "ordered" },
-                  { list: "bullet" },
-                  { indent: "-1" },
-                  { indent: "+1" },
-                ],
-                ["link", "image"],
-                ["clean"],
+      <Grid
+        ref={editorContainerRef}
+        container
+        item
+        xs={12}
+        style={{ position: "relative" }}
+        spacing={0}
+      >
+        <HighlightCollabEditor
+          quillRef={reactQuillRef}
+          document={document}
+          revisionsRef={documentRef.collection("transcriptRevisions")}
+          deltasRef={documentRef.collection("transcriptDeltas")}
+          highlightsRef={transcriptHighlightsRef}
+          tags={tags}
+          onChangeSelection={onChangeSelection}
+          id="quill-notes-editor"
+          theme="snow"
+          placeholder="Start typing here and select to mark highlights"
+          modules={{
+            toolbar: [
+              [{ header: [1, 2, false] }],
+              ["bold", "italic", "underline", "strike", "blockquote"],
+              [
+                { list: "ordered" },
+                { list: "bullet" },
+                { indent: "-1" },
+                { indent: "+1" },
               ],
-            }}
-          />
-          <Speakers
-            quillRef={reactQuillRef}
-            editorContainerRef={editorContainerRef}
-            transcriptionID={document.transcription}
-          />
-        </Grid>
-      )}
+              ["link", "image"],
+              ["clean"],
+            ],
+          }}
+        />
+        <Speakers
+          quillRef={reactQuillRef}
+          editorContainerRef={editorContainerRef}
+          transcriptionID={document.transcription}
+        />
+      </Grid>
     </>
   );
 }
