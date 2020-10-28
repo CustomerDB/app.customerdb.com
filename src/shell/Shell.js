@@ -112,7 +112,7 @@ export default function Shell({ search, title, children, ...otherProps }) {
   const { orgID } = useParams();
 
   const [open, setOpen] = useState(false);
-  const [anchorEl, setAnchorEl] = React.useState(null);
+  const [anchorEl, setAnchorEl] = useState(null);
 
   const classes = useStyles();
   const theme = useTheme();
