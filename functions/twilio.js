@@ -258,8 +258,8 @@ exports.startComposition = functions.pubsub
                       video_sources: ["*"],
                     },
                   },
-                  statusCallback:
-                    "https://us-central1-customerdb-staging.cloudfunctions.net/twilio-compositionStatus",
+                  statusCallback: functions.config().twilio
+                    .composition_status_callback,
                   format: "mp4",
                 })
                 .then((result) => {
