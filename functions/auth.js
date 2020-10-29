@@ -13,25 +13,37 @@ exports.sendMemberEmail = functions.firestore
     let baseURL = functions.config().invite_email.base_url;
 
     if (member.invited && !member.active) {
+      let urlEncodedEmail = encodeURIComponent(email);
       let actionCodeSettings = {
-        url: `${baseURL}/join/${orgID}?email=${email}`,
+        url: `${baseURL}/join/${orgID}?email=${urlEncodedEmail}`,
         handleCodeInApp: true,
       };
 
-      return admin
-        .auth()
-        .generateSignInWithEmailLink(email, actionCodeSettings)
-        .then((link) => {
-          const msg = {
-            to: email,
-            from: "no-reply@quantap.com",
-            subject: "Your CustomerDB login",
-            text: `Open ${link} in a browser to get started`,
-            html: `<a href="${link}">Get started</a> with CustomerDB`,
-          };
+      const db = admin.firestore();
+      const orgRef = db.collection("organizations").doc(orgID);
 
-          return sgMail.send(msg);
-        });
+      return orgRef
+        .get()
+        .then((doc) => {
+          let org = doc.data();
+          return org.name;
+        })
+        .then((orgName) =>
+          admin
+            .auth()
+            .generateSignInWithEmailLink(email, actionCodeSettings)
+            .then((link) => {
+              const msg = {
+                to: email,
+                from: "no-reply@quantap.com",
+                subject: `Join CustomerDB Organization ${orgName}`,
+                text: `Open ${link} in a browser to get started`,
+                html: `<a href="${link}">Get started</a> with CustomerDB`,
+              };
+
+              return sgMail.send(msg);
+            })
+        );
     }
   });
 
