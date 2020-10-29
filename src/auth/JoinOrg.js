@@ -87,6 +87,11 @@ export default function JoinOrg(props) {
     if (!auth || !auth.oauthClaims || !auth.oauthClaims.orgID) {
       return;
     }
+    if (orgID !== auth.oauthClaims.orgID) {
+      console.debug("logging out; user not from this org");
+      firebase.auth().signOut();
+      return;
+    }
     navigate(`/orgs/${orgID}`);
   }, [auth, orgID, navigate]);
 
