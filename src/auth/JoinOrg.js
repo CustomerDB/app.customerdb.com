@@ -171,46 +171,41 @@ export default function JoinOrg(props) {
 
         return firebase
           .auth()
-          .signOut()
-          .then(
-            firebase
-              .auth()
-              .signInWithEmailLink(email, window.location.href)
-              .then((result) => {
-                const user = result.user;
+          .signInWithEmailLink(email, window.location.href)
+          .then((result) => {
+            const user = result.user;
 
-                // Get invite object.
-                return db
-                  .collection("organizations")
-                  .doc(orgID)
-                  .collection("members")
-                  .doc(email)
-                  .update({
-                    uid: user.uid,
-                    email: user.email,
-                    displayName: name,
-                    invited: false,
-                    active: true,
-                    joinedTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                  })
-                  .then(() => {
-                    // Success
-                    return db.collection("userToOrg").doc(email).set({
-                      orgID: orgID,
-                    });
-                  })
-                  .then(() => {
-                    return firebase.auth().currentUser.updatePassword(password);
-                  });
+            // Get invite object.
+            return db
+              .collection("organizations")
+              .doc(orgID)
+              .collection("members")
+              .doc(email)
+              .update({
+                uid: user.uid,
+                email: user.email,
+                displayName: name,
+                invited: false,
+                active: true,
+                joinedTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
               })
-          )
+              .then(() => {
+                // Success
+                return db.collection("userToOrg").doc(email).set({
+                  orgID: orgID,
+                });
+              })
+              .then(() => {
+                return firebase.auth().currentUser.updatePassword(password);
+              });
+          })
           .catch((error) => {
             setErrorMessage(defaultErrorMessage);
           });
       });
   };
 
-  if (auth.oauthUser !== null) {
+  if (auth.oauthUser && auth.oauthClaims && !auth.oauthClaims.orgID) {
     return <Loading />;
   }
 
