@@ -66,14 +66,8 @@ export default function JoinOrg(props) {
   const [repeatPassword, setRepeatPassword] = useState();
   const [errorMessage, setErrorMessage] = useState(undefined);
 
-  const defaultErrorMessage = (
-    <p>
-      Couldn't add you to the organization. Please reach out to your
-      administrator and verify your email has been added.
-      <br />
-      If you have already created your account, <a href="/login">log in here</a>
-    </p>
-  );
+  const defaultErrorMessage =
+    "Couldn't add you to the organization. Please reach out to your administrator and verify your email has been added.";
 
   const classes = useStyles();
 
@@ -93,12 +87,10 @@ export default function JoinOrg(props) {
     if (!auth || !auth.oauthClaims || !auth.oauthClaims.orgID) {
       return;
     }
-    if (orgID !== auth.oauthClaims.orgID) {
-      console.debug("logging out; user not from this org");
-      firebase.auth().signOut();
+    if (orgID === auth.oauthClaims.orgID) {
+      navigate(`/orgs/${orgID}`);
       return;
     }
-    navigate(`/orgs/${orgID}`);
   }, [auth, orgID, navigate]);
 
   useEffect(() => {
@@ -136,8 +128,7 @@ export default function JoinOrg(props) {
       .then(function () {
         firebase.auth().signInWithRedirect(provider);
       })
-      .catch((err) => {
-        console.error(err);
+      .catch(() => {
         setErrorMessage(defaultErrorMessage);
       });
   };
@@ -180,37 +171,42 @@ export default function JoinOrg(props) {
 
         return firebase
           .auth()
-          .signInWithEmailLink(email, window.location.href)
-          .then((result) => {
-            const user = result.user;
+          .signout()
+          .then(
+            firebase
+              .auth()
+              .signInWithEmailLink(email, window.location.href)
+              .then((result) => {
+                const user = result.user;
 
-            // Get invite object.
-            return db
-              .collection("organizations")
-              .doc(orgID)
-              .collection("members")
-              .doc(email)
-              .update({
-                uid: user.uid,
-                email: user.email,
-                displayName: name,
-                invited: false,
-                active: true,
-                joinedTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                // Get invite object.
+                return db
+                  .collection("organizations")
+                  .doc(orgID)
+                  .collection("members")
+                  .doc(email)
+                  .update({
+                    uid: user.uid,
+                    email: user.email,
+                    displayName: name,
+                    invited: false,
+                    active: true,
+                    joinedTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                  })
+                  .then(() => {
+                    // Success
+                    return db.collection("userToOrg").doc(email).set({
+                      orgID: orgID,
+                    });
+                  })
+                  .then(() => {
+                    return firebase.auth().currentUser.updatePassword(password);
+                  });
               })
-              .then(() => {
-                // Success
-                return db.collection("userToOrg").doc(email).set({
-                  orgID: orgID,
-                });
-              })
-              .then(() => {
-                return firebase.auth().currentUser.updatePassword(password);
-              });
+          )
+          .catch((error) => {
+            setErrorMessage(defaultErrorMessage);
           });
-      })
-      .catch((error) => {
-        setErrorMessage(defaultErrorMessage);
       });
   };
 
