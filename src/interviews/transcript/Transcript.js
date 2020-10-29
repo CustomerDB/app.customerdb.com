@@ -5,20 +5,20 @@ import React, { useContext, useEffect, useRef, useState } from "react";
 
 import Alert from "@material-ui/lab/Alert";
 import Button from "@material-ui/core/Button";
-import FirebaseContext from "../util/FirebaseContext.js";
+import FirebaseContext from "../../util/FirebaseContext.js";
 import Grid from "@material-ui/core/Grid";
-import HighlightCollabEditor from "../editor/HighlightCollabEditor.js";
+import HighlightCollabEditor from "../../editor/HighlightCollabEditor.js";
 import LinearProgress from "@material-ui/core/LinearProgress";
 import Moment from "react-moment";
 import PlayheadBlot from "./PlayheadBlot.js";
 import Quill from "quill";
 import SpeakerBlot from "./SpeakerBlot.js";
-import Speakers from "./transcript/Speakers.js";
+import Speakers from "./Speakers.js";
 import Step from "@material-ui/core/Step";
 import StepLabel from "@material-ui/core/StepLabel";
 import Stepper from "@material-ui/core/Stepper";
 import TranscriptDropzone from "./TranscriptDropzone.js";
-import useFirestore from "../db/Firestore.js";
+import useFirestore from "../../db/Firestore.js";
 
 Quill.register("formats/playhead", PlayheadBlot);
 Quill.register("formats/speaker", SpeakerBlot);

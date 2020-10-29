@@ -7,10 +7,10 @@ import React, {
 } from "react";
 
 import CloudUploadIcon from "@material-ui/icons/CloudUpload";
-import FirebaseContext from "../util/FirebaseContext.js";
-import UserAuthContext from "../auth/UserAuthContext.js";
+import FirebaseContext from "../../util/FirebaseContext.js";
+import UserAuthContext from "../../auth/UserAuthContext.js";
 import { useDropzone } from "react-dropzone";
-import useFirestore from "../db/Firestore.js";
+import useFirestore from "../../db/Firestore.js";
 import { useParams } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 
