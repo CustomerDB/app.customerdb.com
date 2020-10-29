@@ -171,7 +171,7 @@ export default function JoinOrg(props) {
 
         return firebase
           .auth()
-          .signout()
+          .signOut()
           .then(
             firebase
               .auth()
