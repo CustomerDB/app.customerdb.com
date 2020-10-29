@@ -2,9 +2,9 @@ import "react-quill/dist/quill.snow.css";
 import "firebase/firestore";
 
 import Grid from "@material-ui/core/Grid";
-import HighlightCollabEditor from "../editor/HighlightCollabEditor.js";
+import HighlightCollabEditor from "../../editor/HighlightCollabEditor.js";
 import React from "react";
-import useFirestore from "../db/Firestore.js";
+import useFirestore from "../../db/Firestore.js";
 
 // Notes augments a collaborative editor with tags and text highlights.
 export default function Notes({ reactQuillRef, tags, document }) {
