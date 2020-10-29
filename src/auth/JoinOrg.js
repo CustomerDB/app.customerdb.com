@@ -66,8 +66,14 @@ export default function JoinOrg(props) {
   const [repeatPassword, setRepeatPassword] = useState();
   const [errorMessage, setErrorMessage] = useState(undefined);
 
-  const defaultErrorMessage =
-    "Couldn't add you to the organization. Please reach out to your administrator and verify your email has been added.";
+  const defaultErrorMessage = (
+    <p>
+      Couldn't add you to the organization. Please reach out to your
+      administrator and verify your email has been added.
+      <br />
+      If you have already created your account, <a href="/login">log in here</a>
+    </p>
+  );
 
   const classes = useStyles();
 
@@ -130,7 +136,8 @@ export default function JoinOrg(props) {
       .then(function () {
         firebase.auth().signInWithRedirect(provider);
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error(err);
         setErrorMessage(defaultErrorMessage);
       });
   };
@@ -200,10 +207,10 @@ export default function JoinOrg(props) {
               .then(() => {
                 return firebase.auth().currentUser.updatePassword(password);
               });
-          })
-          .catch((error) => {
-            setErrorMessage(defaultErrorMessage);
           });
+      })
+      .catch((error) => {
+        setErrorMessage(defaultErrorMessage);
       });
   };
 
