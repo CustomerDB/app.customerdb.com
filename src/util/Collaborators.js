@@ -73,13 +73,7 @@ export default function Collaborators(props) {
     return () => {
       clearInterval(interval);
     };
-  }, [
-    props.dbRef,
-    oauthUser,
-    oauthUser.displayName,
-    oauthUser.email,
-    oauthUser.photoURL,
-  ]);
+  }, [props.dbRef, oauthUser]);
 
   return (
     <AvatarGroup max={4} style={{ minHeight: "2.5rem" }}>
