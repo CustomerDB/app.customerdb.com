@@ -295,7 +295,7 @@ export default function Document(props) {
                   <Grid item xs={12}>
                     <FeatureFlags>
                       <CallDetails
-                        callID={document.callID}
+                        document={document}
                         isDisabled={(call) => {
                           return (
                             document.transcription || call.callEndedTimestamp
