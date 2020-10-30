@@ -17,6 +17,8 @@ const client = new Twilio(twilioApiKeySID, twilioApiKeySecret, {
   accountSid: twilioAccountSid,
 });
 
+const E_CALL_ENDED = "CALL_ENDED";
+
 function getCallForGuest(callID, token) {
   let db = admin.firestore();
   let callRef = db.collectionGroup("calls").where("ID", "==", callID).limit(1);
@@ -51,7 +53,7 @@ exports.getGuestAccessToken = functions.https.onCall((data, context) => {
 
   return getCallForGuest(data.callID, data.token).then((call) => {
     if (call.callEndedTimestamp) {
-      return { error: "CALL_ENDED" };
+      return { error: E_CALL_ENDED };
     }
 
     let orgID = call.organizationID;
@@ -120,10 +122,9 @@ exports.getInterviewAccessToken = functions.https.onCall((data, context) => {
     if (orgID != call.organizationID) {
       throw Error(`Call ${data.callID} is not in the user's organization`);
     }
+
     if (call.callEndedTimestamp) {
-      throw Error(
-        `Call ended at ${call.callEndedTimestamp.toDate().valueOf()}`
-      );
+      return { error: E_CALL_ENDED };
     }
 
     let documentRef = db
