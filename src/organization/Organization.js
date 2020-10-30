@@ -21,7 +21,7 @@ export default function Organization() {
 
   useEffect(() => {
     if (!oauthUser) {
-      navigate("/logout");
+      navigate("/");
       setAuthorized(false);
       return;
     }
@@ -29,7 +29,7 @@ export default function Organization() {
     if (oauthClaims) {
       if (!oauthClaims.orgID || oauthClaims.orgID !== orgID) {
         console.debug("user not authorized", oauthClaims);
-        navigate("/logout");
+        navigate("/");
         setAuthorized(false);
         return;
       }

@@ -87,7 +87,10 @@ export default function JoinOrg(props) {
     if (!auth || !auth.oauthClaims || !auth.oauthClaims.orgID) {
       return;
     }
-    navigate(`/orgs/${orgID}`);
+    if (orgID === auth.oauthClaims.orgID) {
+      navigate(`/orgs/${orgID}`);
+      return;
+    }
   }, [auth, orgID, navigate]);
 
   useEffect(() => {
@@ -202,7 +205,7 @@ export default function JoinOrg(props) {
       });
   };
 
-  if (auth.oauthUser !== null) {
+  if (auth.oauthUser && auth.oauthClaims && !auth.oauthClaims.orgID) {
     return <Loading />;
   }
 
