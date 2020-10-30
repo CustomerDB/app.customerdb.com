@@ -183,34 +183,51 @@ exports.getPreflightAccessTokens = functions.https.onCall((data, context) => {
       throw Error("room, publisherIdentity and subscriberIdentity required");
     }
 
-    const videoGrant = new VideoGrant({ room: data.room });
+    let db = admin.firestore();
+    let callRef = db
+      .collectionGroup("calls")
+      .where("ID", "==", data.callID)
+      .limit(1);
 
-    const publisherToken = new AccessToken(
-      twilioAccountSid,
-      twilioApiKeySID,
-      twilioApiKeySecret,
-      {
-        ttl: MAX_ALLOWED_SESSION_DURATION,
+    return callRef.get().then((snapshot) => {
+      if (snapshot.docs.length == 0) {
+        throw Error(`Call ${data.callID} doesn't exist`);
       }
-    );
-    publisherToken.identity = data.publisherIdentity;
-    publisherToken.addGrant(videoGrant);
 
-    const subscriberToken = new AccessToken(
-      twilioAccountSid,
-      twilioApiKeySID,
-      twilioApiKeySecret,
-      {
-        ttl: MAX_ALLOWED_SESSION_DURATION,
+      let call = snapshot.docs[0].data();
+      if (call.callEndedTimestamp) {
+        return { error: E_CALL_ENDED };
       }
-    );
-    subscriberToken.identity = data.subscriberIdentity;
-    subscriberToken.addGrant(videoGrant);
 
-    return {
-      publisherToken: publisherToken.toJwt(),
-      subscriberToken: subscriberToken.toJwt(),
-    };
+      const videoGrant = new VideoGrant({ room: data.room });
+
+      const publisherToken = new AccessToken(
+        twilioAccountSid,
+        twilioApiKeySID,
+        twilioApiKeySecret,
+        {
+          ttl: MAX_ALLOWED_SESSION_DURATION,
+        }
+      );
+      publisherToken.identity = data.publisherIdentity;
+      publisherToken.addGrant(videoGrant);
+
+      const subscriberToken = new AccessToken(
+        twilioAccountSid,
+        twilioApiKeySID,
+        twilioApiKeySecret,
+        {
+          ttl: MAX_ALLOWED_SESSION_DURATION,
+        }
+      );
+      subscriberToken.identity = data.subscriberIdentity;
+      subscriberToken.addGrant(videoGrant);
+
+      return {
+        publisherToken: publisherToken.toJwt(),
+        subscriberToken: subscriberToken.toJwt(),
+      };
+    });
   });
 });
 
