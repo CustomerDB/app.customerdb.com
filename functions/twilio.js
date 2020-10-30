@@ -31,11 +31,6 @@ function getCallForGuest(callID, token) {
     if (call.token !== token) {
       throw Error(`Incorrect token for call ${data.callID}`);
     }
-    if (call.callEndedTimestamp) {
-      throw Error(
-        `Call ended at ${call.callEndedTimestamp.toDate().valueOf()}`
-      );
-    }
 
     return call;
   });
@@ -55,6 +50,10 @@ exports.getGuestAccessToken = functions.https.onCall((data, context) => {
   }
 
   return getCallForGuest(data.callID, data.token).then((call) => {
+    if (call.callEndedTimestamp) {
+      return { error: "CALL_ENDED" };
+    }
+
     let orgID = call.organizationID;
     let db = admin.firestore();
     let documentRef = db
