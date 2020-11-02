@@ -95,7 +95,7 @@ export default function Login(props) {
       return;
     }
     navigate(`/orgs/${auth.oauthClaims.orgID}`);
-  }, [auth.oauthClaims]);
+  }, [auth.oauthClaims, navigate]);
 
   return auth.oauthUser === null && auth.oauthLoading === false ? (
     <Grid container justify="center">
