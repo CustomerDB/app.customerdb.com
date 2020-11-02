@@ -98,7 +98,7 @@ function HighlightControls({
   const { oauthClaims } = useContext(UserAuthContext);
   const { orgID } = useParams();
   const [toolbarHeight, setToolbarHeight] = useState(40);
-  const [editor, setEditor] = useState();
+  const [editorReadyReceived, setEditorReadyReceived] = useState(false);
   const [selection, setSelection] = useState();
   const [highlights, setHighlights] = useState();
   const highlightsCache = useRef();
@@ -108,10 +108,12 @@ function HighlightControls({
   const query = useQuery();
 
   readyChannelPort.onmessage = () => {
-    if (quillRef.current) {
-      setEditor(quillRef.current.getEditor());
-    }
+    setEditorReadyReceived(true);
   };
+
+  const getEditor = useCallback(() => {
+    return quillRef.current && quillRef.current.getEditor();
+  }, [quillRef]);
 
   // Reset scroll flag on navigate
   useEffect(() => {
@@ -125,10 +127,16 @@ function HighlightControls({
     if (
       initialScrollRef.current ||
       !scrollHighlightID ||
-      !editor ||
+      !editorReadyReceived ||
       !highlights ||
       !highlights[scrollHighlightID]
     ) {
+      return;
+    }
+
+    let editor = getEditor();
+    if (!editor) {
+      console.debug("useEffect (scroll): editor not available");
       return;
     }
 
@@ -148,10 +156,16 @@ function HighlightControls({
     if (document.body.contains(highlightNode)) {
       scrollToHighlightNode();
     }
-  }, [editor, scrollHighlightID, highlights, initialScrollRef]);
+  }, [editorReadyReceived, scrollHighlightID, highlights, initialScrollRef]);
 
   const getHighlightFromEditor = useCallback(
     (highlightID) => {
+      let editor = getEditor();
+      if (!editor) {
+        console.debug("getHighlightFromEditor: editor not available");
+        return;
+      }
+
       let domNodes = document.getElementsByClassName(
         `highlight-${highlightID}`
       );
@@ -184,15 +198,18 @@ function HighlightControls({
         text: text,
       };
     },
-    [editor]
+    [getEditor]
   );
 
   // selection: a range object with fields 'index' and 'length'
   const computeHighlightsInSelection = useCallback(
     (selection) => {
+      let editor = getEditor();
       if (!editor) {
+        console.debug("getHighlightFromEditor: editor not available");
         return [];
       }
+
       let result = [];
       if (selection === undefined) {
         return result;
@@ -211,7 +228,7 @@ function HighlightControls({
         return [];
       });
     },
-    [editor, getHighlightFromEditor]
+    [getEditor, getHighlightFromEditor]
   );
 
   // selection: a range object with fields 'index' and 'length'
@@ -306,7 +323,12 @@ function HighlightControls({
 
     // This function sends any new highlights to the database.
     const syncHighlightsCreate = () => {
-      if (!editor || !highlightsCache.current) {
+      let editor = getEditor();
+      if (!editor) {
+        console.debug("syncHighlightsCreate: editor not available");
+        return;
+      }
+      if (!highlightsCache.current) {
         return;
       }
       let editorHighlightIDs = getHighlightIDsFromEditor();
@@ -349,7 +371,12 @@ function HighlightControls({
     // This function sends any local updates to highlight content relative
     // to the local editor to the database.
     const syncHighlightsUpdate = () => {
-      if (!editor || !highlightsCache.current) {
+      let editor = getEditor();
+      if (!editor) {
+        console.debug("syncHighlightsUpdate: editor not available");
+        return;
+      }
+      if (!highlightsCache.current) {
         return;
       }
       // Update or delete highlights based on local edits.
@@ -413,7 +440,7 @@ function HighlightControls({
     highlightDocument.ID,
     highlightDocument.deletionTimestamp,
     highlightDocument.personID,
-    editor,
+    getEditor,
     firebase,
   ]);
 
@@ -422,7 +449,10 @@ function HighlightControls({
   const onTagControlChange = useCallback(
     (tag, checked) => {
       console.debug("onTagControlChange", tag, checked, selection);
+
+      let editor = getEditor();
       if (!editor) {
+        console.debug("onTagControlChange: editor not available");
         return;
       }
 
@@ -470,7 +500,12 @@ function HighlightControls({
       setSelection(newRange);
       setTagIDsInSelection(computeTagIDsInSelection(newRange));
     },
-    [editor, selection, computeHighlightsInSelection, computeTagIDsInSelection]
+    [
+      getEditor,
+      selection,
+      computeHighlightsInSelection,
+      computeTagIDsInSelection,
+    ]
   );
 
   if (!highlights || !tags || !toolbarHeight) {
