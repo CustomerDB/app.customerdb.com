@@ -206,7 +206,7 @@ function HighlightControls({
     (selection) => {
       let editor = getEditor();
       if (!editor) {
-        console.debug("getHighlightFromEditor: editor not available");
+        console.debug("computeHighlightsInSelection: editor not available");
         return [];
       }
 
