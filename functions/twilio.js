@@ -245,6 +245,10 @@ exports.startComposition = functions.pubsub
       return Promise.all(
         snapshot.docs.map((doc) => {
           let call = doc.data();
+          if (!call.roomSid) {
+            return;
+          }
+
           return client.video.recordings
             .list({
               groupingSid: [call.roomSid],

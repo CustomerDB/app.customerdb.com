@@ -379,9 +379,12 @@ exports.markHighlightsForIndexing = functions.pubsub
                 )
                 .then(() => {
                   // Update last indexed time
-                  return indexStateRef.update({
-                    highlightTimestamp: admin.firestore.FieldValue.serverTimestamp(),
-                  });
+                  return indexStateRef.set(
+                    {
+                      highlightTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+                    },
+                    { merge: true }
+                  );
                 });
             });
           })
