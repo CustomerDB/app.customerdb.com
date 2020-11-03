@@ -6,8 +6,17 @@ import React, {
   useState,
 } from "react";
 
+import Button from "@material-ui/core/Button";
 import CloudUploadIcon from "@material-ui/icons/CloudUpload";
 import FirebaseContext from "../../util/FirebaseContext.js";
+import FormControl from "@material-ui/core/FormControl";
+import Grid from "@material-ui/core/Grid";
+import InputAdornment from "@material-ui/core/InputAdornment";
+import InputLabel from "@material-ui/core/InputLabel";
+import MenuItem from "@material-ui/core/MenuItem";
+import Select from "@material-ui/core/Select";
+import TextField from "@material-ui/core/TextField";
+import TheatersIcon from "@material-ui/icons/Theaters";
 import UserAuthContext from "../../auth/UserAuthContext.js";
 import { useDropzone } from "react-dropzone";
 import useFirestore from "../../db/Firestore.js";
@@ -22,6 +31,8 @@ export default function TranscriptDropzone({
 }) {
   let { oauthClaims } = useContext(UserAuthContext);
   let { orgID, documentID } = useParams();
+
+  const [speakers, setSpeakers] = useState(2);
   const firebase = useContext(FirebaseContext);
 
   let uploadTask = useRef();
@@ -31,6 +42,7 @@ export default function TranscriptDropzone({
   const { transcriptionsRef, documentsRef } = useFirestore();
 
   const [file, setFile] = useState();
+  const [startUpload, setStartUpload] = useState(false);
 
   const confirmation = (e) => {
     var confirmationMessage =
@@ -40,6 +52,10 @@ export default function TranscriptDropzone({
   };
 
   useEffect(() => {
+    if (!startUpload) {
+      return;
+    }
+
     if (!file) {
       console.debug("File not available");
       return;
@@ -68,7 +84,7 @@ export default function TranscriptDropzone({
       .doc(transcriptionID)
       .set({
         ID: transcriptionID,
-        speakers: 3,
+        speakers: speakers,
         createdBy: oauthClaims.email,
         creationTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
         deletionTimestamp: "",
@@ -135,7 +151,10 @@ export default function TranscriptDropzone({
     setUploading,
     storageRef,
     transcriptionsRef,
+    startUpload,
   ]);
+
+  const handleSpeakerChange = (e) => {};
 
   const onDrop = useCallback((acceptedFiles) => {
     // Do something with the files
@@ -143,6 +162,7 @@ export default function TranscriptDropzone({
     console.log(acceptedFiles[0]);
     setFile(acceptedFiles[0]);
   }, []);
+
   const {
     getRootProps,
     getInputProps,
@@ -150,31 +170,107 @@ export default function TranscriptDropzone({
     fileRejections,
   } = useDropzone({ onDrop, accept: "video/*, audio/*" });
 
-  return (
-    <div
-      {...getRootProps()}
-      style={{
-        textAlign: "center",
-        paddingTop: "4rem",
-        paddingBottom: "4rem",
-        marginTop: "2rem",
-        backgroundColor: "#f7f7f7",
-      }}
-    >
-      <input {...getInputProps()} />
-      <CloudUploadIcon size={70} />
-      {isDragActive ? (
-        <p>Drop the video here ...</p>
-      ) : (
-        <p>
-          Drag 'n' drop a video here to transcribe, or click to select video
-          file
-        </p>
-      )}
+  const maxSpeakers = 6;
 
-      {fileRejections.length !== 0 && (
-        <p>Please select a valid video or audio file</p>
+  return (
+    <>
+      {!file && (
+        <>
+          <div
+            {...getRootProps()}
+            style={{
+              textAlign: "center",
+              paddingTop: "4rem",
+              paddingBottom: "4rem",
+              marginTop: "2rem",
+              backgroundColor: "#f7f7f7",
+            }}
+          >
+            <input {...getInputProps()} />
+            <CloudUploadIcon fontSize="large" />
+            {isDragActive ? (
+              <p>Drop the video here ...</p>
+            ) : (
+              <p>
+                Drag 'n' drop a video here to transcribe, or click to select
+                video file
+              </p>
+            )}
+
+            {fileRejections.length !== 0 && (
+              <p>Please select a valid video or audio file</p>
+            )}
+          </div>
+        </>
       )}
-    </div>
+      {file && (
+        <Grid container justify="center">
+          <Grid container xs={10}>
+            <Grid
+              container
+              item
+              alignItems="center"
+              style={{ marginTop: "1rem" }}
+            >
+              <TextField
+                style={{ width: "100%" }}
+                id="fileName"
+                label="Outlined"
+                variant="outlined"
+                disabled
+                value={file.name}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <TheatersIcon />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Grid>
+            <Grid container item style={{ marginTop: "1rem" }}>
+              <FormControl variant="outlined" style={{ width: "100%" }}>
+                <InputLabel id="speaker-label">Speakers</InputLabel>
+                <Select
+                  labelId="speaker-label"
+                  id="speaker"
+                  value={speakers}
+                  onChange={(e) => setSpeakers(e.target.value)}
+                  label="speakers"
+                >
+                  {[...Array(maxSpeakers).keys()].map((i) => (
+                    <MenuItem value={i + 1}>{i + 1}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid
+              container
+              item
+              alignItems="center"
+              justify="flex-end"
+              style={{ marginTop: "2rem" }}
+            >
+              <Button
+                variant="contained"
+                style={{ marginRight: "1rem" }}
+                onClick={() => setFile()}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="contained"
+                color="secondary"
+                onClick={() => {
+                  setStartUpload(true);
+                }}
+              >
+                Upload
+              </Button>
+            </Grid>
+          </Grid>
+        </Grid>
+      )}
+    </>
   );
 }
