@@ -17,6 +17,9 @@ const client = new Twilio(twilioApiKeySID, twilioApiKeySecret, {
   accountSid: twilioAccountSid,
 });
 
+const E_CALL_ENDED = "CALL_ENDED";
+const E_CALL_NOT_STARTED = "CALL_NOT_STARTED";
+
 function getCallForGuest(callID, token) {
   let db = admin.firestore();
   let callRef = db.collectionGroup("calls").where("ID", "==", callID).limit(1);
@@ -30,11 +33,6 @@ function getCallForGuest(callID, token) {
 
     if (call.token !== token) {
       throw Error(`Incorrect token for call ${data.callID}`);
-    }
-    if (call.callEndedTimestamp) {
-      throw Error(
-        `Call ended at ${call.callEndedTimestamp.toDate().valueOf()}`
-      );
     }
 
     return call;
@@ -55,6 +53,14 @@ exports.getGuestAccessToken = functions.https.onCall((data, context) => {
   }
 
   return getCallForGuest(data.callID, data.token).then((call) => {
+    if (call.callEndedTimestamp) {
+      return { error: E_CALL_ENDED };
+    }
+
+    if (!call.callStartedTimestamp) {
+      return { error: E_CALL_NOT_STARTED };
+    }
+
     let orgID = call.organizationID;
     let db = admin.firestore();
     let documentRef = db
@@ -121,10 +127,15 @@ exports.getInterviewAccessToken = functions.https.onCall((data, context) => {
     if (orgID != call.organizationID) {
       throw Error(`Call ${data.callID} is not in the user's organization`);
     }
+
+    // We return the org and document ID so the meet UI has a chance to redirect
+    // the user to the document so they can restart the call.
     if (call.callEndedTimestamp) {
-      throw Error(
-        `Call ended at ${call.callEndedTimestamp.toDate().valueOf()}`
-      );
+      return {
+        error: E_CALL_ENDED,
+        documentID: call.documentID,
+        orgID: orgID,
+      };
     }
 
     let documentRef = db
@@ -183,34 +194,51 @@ exports.getPreflightAccessTokens = functions.https.onCall((data, context) => {
       throw Error("room, publisherIdentity and subscriberIdentity required");
     }
 
-    const videoGrant = new VideoGrant({ room: data.room });
+    let db = admin.firestore();
+    let callRef = db
+      .collectionGroup("calls")
+      .where("ID", "==", data.callID)
+      .limit(1);
 
-    const publisherToken = new AccessToken(
-      twilioAccountSid,
-      twilioApiKeySID,
-      twilioApiKeySecret,
-      {
-        ttl: MAX_ALLOWED_SESSION_DURATION,
+    return callRef.get().then((snapshot) => {
+      if (snapshot.docs.length == 0) {
+        throw Error(`Call ${data.callID} doesn't exist`);
       }
-    );
-    publisherToken.identity = data.publisherIdentity;
-    publisherToken.addGrant(videoGrant);
 
-    const subscriberToken = new AccessToken(
-      twilioAccountSid,
-      twilioApiKeySID,
-      twilioApiKeySecret,
-      {
-        ttl: MAX_ALLOWED_SESSION_DURATION,
+      let call = snapshot.docs[0].data();
+      if (call.callEndedTimestamp) {
+        return { error: E_CALL_ENDED };
       }
-    );
-    subscriberToken.identity = data.subscriberIdentity;
-    subscriberToken.addGrant(videoGrant);
 
-    return {
-      publisherToken: publisherToken.toJwt(),
-      subscriberToken: subscriberToken.toJwt(),
-    };
+      const videoGrant = new VideoGrant({ room: data.room });
+
+      const publisherToken = new AccessToken(
+        twilioAccountSid,
+        twilioApiKeySID,
+        twilioApiKeySecret,
+        {
+          ttl: MAX_ALLOWED_SESSION_DURATION,
+        }
+      );
+      publisherToken.identity = data.publisherIdentity;
+      publisherToken.addGrant(videoGrant);
+
+      const subscriberToken = new AccessToken(
+        twilioAccountSid,
+        twilioApiKeySID,
+        twilioApiKeySecret,
+        {
+          ttl: MAX_ALLOWED_SESSION_DURATION,
+        }
+      );
+      subscriberToken.identity = data.subscriberIdentity;
+      subscriberToken.addGrant(videoGrant);
+
+      return {
+        publisherToken: publisherToken.toJwt(),
+        subscriberToken: subscriberToken.toJwt(),
+      };
+    });
   });
 });
 
