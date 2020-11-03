@@ -18,6 +18,7 @@ const client = new Twilio(twilioApiKeySID, twilioApiKeySecret, {
 });
 
 const E_CALL_ENDED = "CALL_ENDED";
+const E_CALL_NOT_STARTED = "CALL_NOT_STARTED";
 
 function getCallForGuest(callID, token) {
   let db = admin.firestore();
@@ -54,6 +55,10 @@ exports.getGuestAccessToken = functions.https.onCall((data, context) => {
   return getCallForGuest(data.callID, data.token).then((call) => {
     if (call.callEndedTimestamp) {
       return { error: E_CALL_ENDED };
+    }
+
+    if (!call.callStartedTimestamp) {
+      return { error: E_CALL_NOT_STARTED };
     }
 
     let orgID = call.organizationID;
@@ -123,8 +128,14 @@ exports.getInterviewAccessToken = functions.https.onCall((data, context) => {
       throw Error(`Call ${data.callID} is not in the user's organization`);
     }
 
+    // We return the org and document ID so the meet UI has a chance to redirect
+    // the user to the document so they can restart the call.
     if (call.callEndedTimestamp) {
-      return { error: E_CALL_ENDED };
+      return {
+        error: E_CALL_ENDED,
+        documentID: call.documentID,
+        orgID: orgID,
+      };
     }
 
     let documentRef = db
