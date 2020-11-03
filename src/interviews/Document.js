@@ -9,7 +9,6 @@ import DocumentDeleteDialog from "./DocumentDeleteDialog.js";
 import DocumentDeleteTranscriptDialog from "./DocumentDeleteTranscriptDialog.js";
 import DocumentDeleted from "./DocumentDeleted.js";
 import DocumentSidebar from "./DocumentSidebar.js";
-import FeatureFlags from "../util/FeatureFlags.js";
 import Grid from "@material-ui/core/Grid";
 import Hidden from "@material-ui/core/Hidden";
 import IconButton from "@material-ui/core/IconButton";
@@ -293,16 +292,14 @@ export default function Document(props) {
                   </Grid>
 
                   <Grid item xs={12}>
-                    <FeatureFlags>
-                      <CallDetails
-                        document={document}
-                        isDisabled={(call) => {
-                          return (
-                            document.transcription || call.callEndedTimestamp
-                          );
-                        }}
-                      />
-                    </FeatureFlags>
+                    <CallDetails
+                      document={document}
+                      isDisabled={(call) => {
+                        return (
+                          document.transcription || call.callEndedTimestamp
+                        );
+                      }}
+                    />
                   </Grid>
 
                   <Grid item xs={12} className={classes.tabsContainer}>

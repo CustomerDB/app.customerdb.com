@@ -156,7 +156,13 @@ function HighlightControls({
     if (document.body.contains(highlightNode)) {
       scrollToHighlightNode();
     }
-  }, [editorReadyReceived, scrollHighlightID, highlights, initialScrollRef]);
+  }, [
+    getEditor,
+    editorReadyReceived,
+    scrollHighlightID,
+    highlights,
+    initialScrollRef,
+  ]);
 
   const getHighlightFromEditor = useCallback(
     (highlightID) => {

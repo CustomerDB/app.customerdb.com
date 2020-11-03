@@ -152,9 +152,8 @@ export default function TranscriptDropzone({
     storageRef,
     transcriptionsRef,
     startUpload,
+    speakers,
   ]);
-
-  const handleSpeakerChange = (e) => {};
 
   const onDrop = useCallback((acceptedFiles) => {
     // Do something with the files
