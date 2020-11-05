@@ -235,6 +235,7 @@ function TagGroup(props) {
 
     tagGroupRef.collection("tags").doc(newTagID).set({
       ID: newTagID,
+      tagGroupID: tagGroupID,
       name: "Untitled tag",
       organizationID: orgID,
       color: color.background,
