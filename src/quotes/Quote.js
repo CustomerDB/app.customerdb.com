@@ -100,7 +100,7 @@ export default function Quote({ hit }) {
             <Chip
               size="small"
               label={hit.tagName}
-              style={{ backgroundColor: hit.tagColor }}
+              style={{ backgroundColor: hit.tagColor, color: hit.tagTextColor }}
             />
           </div>
         </CardContent>
