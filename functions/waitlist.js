@@ -70,6 +70,7 @@ exports.signup = functions.https.onCall((data, context) => {
       email: email,
       captchaToken: captchaToken,
       creationTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+      contactCreatedTimestamp: "",
     })
     .then(() => {
       // Validate captcha
