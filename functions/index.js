@@ -16,6 +16,7 @@ exports.highlightIndex = require("./highlightIndexer.js");
 exports.video = require("./video");
 exports.transcript = require("./transcript");
 exports.twilio = require("./twilio");
+exports.waitList = require("./waitlist");
 
 exports.createOrganization = functions.https.onCall((data, context) => {
   if (!context.auth) {
