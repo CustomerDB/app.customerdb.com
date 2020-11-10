@@ -1,6 +1,6 @@
 import "./style.css";
 
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Search, SearchInput } from "./Search.js";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
@@ -15,6 +15,7 @@ import Drawer from "@material-ui/core/Drawer";
 import ExploreIcon from "@material-ui/icons/Explore";
 import FormatQuoteIcon from "@material-ui/icons/FormatQuote";
 import GroupIcon from "@material-ui/icons/Group";
+import Hidden from "@material-ui/core/Hidden";
 import IconButton from "@material-ui/core/IconButton";
 import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
@@ -32,6 +33,7 @@ import UserAuthContext from "../auth/UserAuthContext.js";
 import clsx from "clsx";
 import logo from "../assets/images/logo.svg";
 import logoDarkBG from "../assets/images/logo-dark-bg.svg";
+import useFirestore from "../db/Firestore.js";
 import useMediaQuery from "@material-ui/core/useMediaQuery";
 
 const drawerWidth = 240;
@@ -108,15 +110,25 @@ const useStyles = makeStyles((theme) => ({
 
 export default function Shell({ search, title, children, ...otherProps }) {
   const { oauthUser } = useContext(UserAuthContext);
+  const { orgRef } = useFirestore();
 
   const { orgID } = useParams();
 
+  const [orgName, setOrgName] = useState();
   const [open, setOpen] = useState(false);
-  const [anchorEl, setAnchorEl] = React.useState(null);
+  const [anchorEl, setAnchorEl] = useState(null);
 
   const classes = useStyles();
   const theme = useTheme();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!orgRef) return;
+    return orgRef.onSnapshot((doc) => {
+      let org = doc.data();
+      setOrgName(org.name);
+    });
+  }, [orgRef]);
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -165,6 +177,9 @@ export default function Shell({ search, title, children, ...otherProps }) {
             )}
             {search && <SearchInput />}
             <div className={classes.grow} />
+            <Hidden smDown>
+              <span>{orgName}</span>
+            </Hidden>
             {oauthUser && (
               <>
                 <IconButton

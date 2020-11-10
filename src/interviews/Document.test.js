@@ -260,7 +260,20 @@ it("can delete a document", async () => {
   });
 
   await act(async () => {
-    const archiveButton = container.querySelector("#archive-document-button");
+    const optionsButton = container.querySelector("#document-options");
+    optionsButton.click();
+  });
+
+  await wait(() => {
+    const archiveConfirmButton = document.querySelector(
+      "#archive-document-button"
+    );
+    console.log("archiveConfirmButton: ", archiveConfirmButton);
+    return expect(archiveConfirmButton).toBeTruthy();
+  });
+
+  await act(async () => {
+    const archiveButton = document.querySelector("#archive-document-button");
     archiveButton.click();
   });
 

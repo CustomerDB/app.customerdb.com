@@ -68,6 +68,11 @@ export default function DocumentSidebar(props) {
     return transcriptionsRef
       .doc(props.document.transcription)
       .onSnapshot((doc) => {
+        if (!doc.exists) {
+          setTranscriptionVideo();
+          return;
+        }
+
         let transcriptionData = doc.data();
 
         let storageRef = firebase.storage().ref();
@@ -179,12 +184,9 @@ export default function DocumentSidebar(props) {
                     });
 
                     documentRef
-                      .set(
-                        {
-                          personID: ID,
-                        },
-                        { merge: true }
-                      )
+                      .update({
+                        personID: ID,
+                      })
                       .then(() => {
                         setEditPerson(false);
                       });

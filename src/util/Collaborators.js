@@ -17,7 +17,7 @@ export default function Collaborators(props) {
   const [collaborators, setCollaborators] = useState([]);
 
   useEffect(() => {
-    if (!props.dbRef) {
+    if (!props.dbRef || !oauthUser) {
       return;
     }
 
@@ -73,12 +73,12 @@ export default function Collaborators(props) {
     return () => {
       clearInterval(interval);
     };
-  }, [props.dbRef, oauthUser.displayName, oauthUser.email, oauthUser.photoURL]);
+  }, [props.dbRef, oauthUser]);
 
   return (
     <AvatarGroup max={4} style={{ minHeight: "2.5rem" }}>
       {collaborators.map((collaborator) => (
-        <Tooltip title={collaborator.name}>
+        <Tooltip key={collaborator.email} title={collaborator.name}>
           <Avatar
             key={collaborator.email}
             alt={collaborator.name}

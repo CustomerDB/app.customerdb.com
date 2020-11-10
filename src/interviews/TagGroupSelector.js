@@ -151,12 +151,9 @@ export default function TagGroupSelector(props) {
         }
 
         return documentRef
-          .set(
-            {
-              tagGroupID: newTagGroupID,
-            },
-            { merge: true }
-          )
+          .update({
+            tagGroupID: newTagGroupID,
+          })
           .then(onChange);
       });
     }

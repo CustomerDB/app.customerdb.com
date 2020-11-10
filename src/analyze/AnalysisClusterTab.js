@@ -212,12 +212,7 @@ function RenameGroupModal(props) {
         <Button
           key="rename"
           onClick={() => {
-            groupsRef.doc(props.groupID).set(
-              {
-                name: name,
-              },
-              { merge: true }
-            );
+            groupsRef.doc(props.groupID).update({ name: name });
           }}
         >
           Save

@@ -26,6 +26,7 @@ export default function useFirestore() {
     r.apiKeysRef = r.orgRef.collection("apiKeys");
     r.analysesRef = r.orgRef.collection("analyses");
     r.documentsRef = r.orgRef.collection("documents");
+    r.callsRef = r.orgRef.collection("calls");
     r.membersRef = r.orgRef.collection("members");
     r.peopleRef = r.orgRef.collection("people");
     r.tagGroupsRef = r.orgRef.collection("tagGroups");

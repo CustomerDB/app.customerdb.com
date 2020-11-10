@@ -2,23 +2,27 @@ import React, { useEffect, useRef, useState } from "react";
 import { addTagStyles, removeTagStyles } from "../editor/Tags.js";
 import { useNavigate, useParams } from "react-router-dom";
 
-import Archive from "@material-ui/icons/Archive";
+import CallDetails from "./CallDetails.js";
 import Collaborators from "../util/Collaborators.js";
 import ContentEditable from "react-contenteditable";
 import DocumentDeleteDialog from "./DocumentDeleteDialog.js";
+import DocumentDeleteTranscriptDialog from "./DocumentDeleteTranscriptDialog.js";
 import DocumentDeleted from "./DocumentDeleted.js";
 import DocumentSidebar from "./DocumentSidebar.js";
 import Grid from "@material-ui/core/Grid";
 import Hidden from "@material-ui/core/Hidden";
 import IconButton from "@material-ui/core/IconButton";
 import { Loading } from "../util/Utils.js";
+import Menu from "@material-ui/core/Menu";
+import MenuItem from "@material-ui/core/MenuItem";
 import Moment from "react-moment";
-import Notes from "./Notes.js";
+import MoreVertIcon from "@material-ui/icons/MoreVert";
+import Notes from "./notes/Notes.js";
 import Paper from "@material-ui/core/Paper";
 import Scrollable from "../shell/Scrollable.js";
 import Tab from "@material-ui/core/Tab";
 import Tabs from "@material-ui/core/Tabs";
-import Transcript from "./Transcript.js";
+import Transcript from "./transcript/Transcript.js";
 import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
 import useFirestore from "../db/Firestore.js";
@@ -58,6 +62,10 @@ export default function Document(props) {
 
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [selectedTab, setSelectedTab] = useState();
+  const [
+    openTranscriptDeleteDialog,
+    setOpenTranscriptDeleteDialog,
+  ] = useState();
 
   const transcriptSelectionChan = new MessageChannel();
   const transcriptSelectionSend = transcriptSelectionChan.port1;
@@ -65,7 +73,17 @@ export default function Document(props) {
 
   const [tagGroupName, setTagGroupName] = useState();
 
+  const [anchorEl, setAnchorEl] = useState(null);
+
   const classes = useStyles();
+
+  const handleOptionsClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleOptionsClose = () => {
+    setAnchorEl(null);
+  };
 
   const handleTabChange = (e, newValue) => {
     let tab = "";
@@ -167,6 +185,21 @@ export default function Document(props) {
     );
   }
 
+  let createdAt;
+  if (document.creationTimestamp && document.createdBy) {
+    createdAt = (
+      <Typography
+        variant="body2"
+        color="textSecondary"
+        component="p"
+        className={classes.detailsParagraph}
+      >
+        Created <Moment fromNow date={document.creationTimestamp.toDate()} /> by{" "}
+        {document.createdBy}
+      </Typography>
+    );
+  }
+
   return (
     <Grid container item md={12} lg={9} xl={10} spacing={0}>
       <Grid
@@ -206,46 +239,70 @@ export default function Document(props) {
 
                               console.debug("setting document name", newName);
 
-                              documentRef.set(
-                                { name: newName },
-                                { merge: true }
-                              );
+                              documentRef.update({ name: newName });
                             }
                           }}
                         />
                       </Typography>
-                      <Typography
-                        variant="body2"
-                        color="textSecondary"
-                        component="p"
-                        className={classes.detailsParagraph}
-                      >
-                        Created{" "}
-                        <Moment
-                          fromNow
-                          date={document.creationTimestamp.toDate()}
-                        />{" "}
-                        by {document.createdBy}
-                      </Typography>
+                      {createdAt}
                     </Grid>
 
                     <Grid item xs={1}>
-                      <IconButton
-                        id="archive-document-button"
-                        color="primary"
-                        aria-label="Archive document"
-                        onClick={() => {
-                          console.debug("confirm archive doc");
-                          setOpenDeleteDialog(true);
-                        }}
-                      >
-                        <Archive />
-                      </IconButton>
+                      <>
+                        <IconButton
+                          id="document-options"
+                          edge="end"
+                          aria-label="document options"
+                          aria-haspopup="true"
+                          aria-controls="document-menu"
+                          onClick={handleOptionsClick}
+                          color="inherit"
+                        >
+                          <MoreVertIcon />
+                        </IconButton>
+                        <Menu
+                          id="profile-menu"
+                          anchorEl={anchorEl}
+                          keepMounted
+                          open={Boolean(anchorEl)}
+                          onClose={handleOptionsClose}
+                        >
+                          <MenuItem
+                            id="archive-document-button"
+                            onClick={() => {
+                              setAnchorEl(null);
+                              setOpenDeleteDialog(true);
+                            }}
+                          >
+                            Archive
+                          </MenuItem>
+                          <MenuItem
+                            disabled={!document.transcription}
+                            onClick={() => {
+                              setAnchorEl(null);
+                              setOpenTranscriptDeleteDialog(true);
+                            }}
+                          >
+                            Delete transcript
+                          </MenuItem>
+                        </Menu>
+                      </>
                       <Collaborators dbRef={documentRef} />
                     </Grid>
                   </Grid>
 
-                  <Grid item xs={12} class={classes.tabsContainer}>
+                  <Grid item xs={12}>
+                    <CallDetails
+                      document={document}
+                      isDisabled={(call) => {
+                        return (
+                          document.transcription || call.callEndedTimestamp
+                        );
+                      }}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} className={classes.tabsContainer}>
                     <Tabs
                       value={selectedTab}
                       onChange={handleTabChange}
@@ -253,7 +310,7 @@ export default function Document(props) {
                       textColor="primary"
                       variant="fullWidth"
                       aria-label="full width"
-                      class={classes.tabs}
+                      className={classes.tabs}
                     >
                       <Tab
                         label="notes"
@@ -303,6 +360,12 @@ export default function Document(props) {
       <DocumentDeleteDialog
         open={openDeleteDialog}
         setOpen={setOpenDeleteDialog}
+        document={document}
+      />
+
+      <DocumentDeleteTranscriptDialog
+        open={openTranscriptDeleteDialog}
+        setOpen={setOpenTranscriptDeleteDialog}
         document={document}
       />
     </Grid>

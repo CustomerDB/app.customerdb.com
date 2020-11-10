@@ -91,32 +91,11 @@ export default function Login(props) {
   };
 
   useEffect(() => {
-    if (auth.oauthUser !== null) {
-      firebase
-        .firestore()
-        .collection("userToOrg")
-        .doc(auth.oauthUser.email)
-        .get()
-        .then((doc) => {
-          if (!doc.exists) {
-            firebase.auth().signOut();
-            throw new Error("User map doesn't exist");
-          }
-
-          let userToOrg = doc.data();
-          navigate(`/orgs/${userToOrg.orgID}`);
-        })
-        .catch((e) => {
-          setLoginFailedMessage(
-            <p>
-              Oops - looks like you don't have an account with us yet. If you
-              think this is an error contact us at{" "}
-              <a href="mailto:support@quantap.com">support@quantap.com</a>
-            </p>
-          );
-        });
+    if (!auth.oauthClaims || !auth.oauthClaims.orgID) {
+      return;
     }
-  }, [navigate, auth, firebase]);
+    navigate(`/orgs/${auth.oauthClaims.orgID}`);
+  }, [auth.oauthClaims, navigate]);
 
   return auth.oauthUser === null && auth.oauthLoading === false ? (
     <Grid container justify="center">

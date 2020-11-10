@@ -69,22 +69,12 @@ export default function Members(props) {
       userID: oauthClaims.user_id,
     });
 
-    let actionCodeSettings = {
-      url: `${process.env.REACT_APP_DOMAIN}/join/${orgID}?email=${email}`,
-      handleCodeInApp: true,
-    };
-
-    membersRef
-      .doc(email)
-      .set({
-        invited: true,
-        active: false,
-        email: email,
-        inviteSentTimestamp: "",
-      })
-      .then(() =>
-        firebase.auth().sendSignInLinkToEmail(email, actionCodeSettings)
-      );
+    membersRef.doc(email).set({
+      invited: true,
+      active: false,
+      email: email,
+      inviteSentTimestamp: "",
+    });
   };
 
   const onDelete = (email) => {
@@ -92,44 +82,19 @@ export default function Members(props) {
   };
 
   const onRedact = (email) => {
-    membersRef.doc(email).set(
-      {
-        invited: false,
-      },
-      { merge: true }
-    );
+    membersRef.doc(email).update({ invited: false });
   };
   const onActivate = (email) => {
-    membersRef.doc(email).set(
-      {
-        active: true,
-      },
-      { merge: true }
-    );
+    membersRef.doc(email).update({ active: true });
   };
   const onDisable = (email) => {
-    membersRef.doc(email).set(
-      {
-        active: false,
-      },
-      { merge: true }
-    );
+    membersRef.doc(email).update({ active: false });
   };
   const onUserToAdmin = (email) => {
-    membersRef.doc(email).set(
-      {
-        admin: true,
-      },
-      { merge: true }
-    );
+    membersRef.doc(email).update({ admin: true });
   };
   const onAdminToUser = (email) => {
-    membersRef.doc(email).set(
-      {
-        admin: false,
-      },
-      { merge: true }
-    );
+    membersRef.doc(email).update({ admin: false });
   };
 
   const createData = (member) => {

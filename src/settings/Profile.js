@@ -93,10 +93,7 @@ export default function Profile(props) {
 
                         console.debug("setting member name", newName);
 
-                        memberRef.set(
-                          { displayName: newName },
-                          { merge: true }
-                        );
+                        memberRef.update({ displayName: newName });
                       }
                     }}
                   />

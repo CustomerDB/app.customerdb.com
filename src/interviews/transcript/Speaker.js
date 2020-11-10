@@ -11,6 +11,7 @@ import ListItem from "@material-ui/core/ListItem";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
 import ListItemText from "@material-ui/core/ListItemText";
 import Paper from "@material-ui/core/Paper";
+import PersonAddIcon from "@material-ui/icons/PersonAdd";
 import PersonIcon from "@material-ui/icons/Person";
 import Popover from "@material-ui/core/Popover";
 import Quill from "quill";
@@ -25,12 +26,6 @@ export default function Speaker({
 }) {
   const { transcriptionsRef } = useFirestore();
   const [popOpen, setPopOpen] = useState(false);
-  const chipRef = useRef();
-  const popName = useRef();
-
-  if (!speakers) {
-    return <></>;
-  }
 
   let speakerName = "Unknown speaker";
   if (speakerID) {
@@ -38,6 +33,13 @@ export default function Speaker({
     if (speakers && speakers[speakerID] && speakers[speakerID].name) {
       speakerName = speakers[speakerID].name;
     }
+  }
+
+  const chipRef = useRef();
+  const popName = useRef(speakerName);
+
+  if (!speakers) {
+    return <></>;
   }
 
   // TODO(CD): if photoURL is available, set Avatar alt and src instead
@@ -75,17 +77,35 @@ export default function Speaker({
     let blot = Quill.find(speakerNode);
     if (!blot) return;
     let index = editor.getIndex(blot);
-    let rewriteSpeakerDelta = new Delta([
-      { retain: index },
-      { delete: 1 },
-      { insert: { speaker: { ID: newID } } },
-    ]);
+
+    let ops = [{ delete: 1 }, { insert: { speaker: { ID: newID } } }];
+
+    if (index > 0) {
+      ops.unshift({ retain: index });
+    }
+
+    let rewriteSpeakerDelta = new Delta(ops);
+
     editor.updateContents(rewriteSpeakerDelta, "user");
+  };
+
+  const onAddSpeaker = (e) => {
+    let newSpeakerID = (Math.max(...Object.keys(speakers)) + 1).toString();
+    console.debug("Adding speaker", newSpeakerID);
+    const speakerRef = transcriptionsRef
+      .doc(transcriptionID)
+      .collection("speakers")
+      .doc(newSpeakerID);
+
+    return speakerRef
+      .set({ ID: newSpeakerID })
+      .then(() => setSpeakerID(newSpeakerID));
   };
 
   let speakerOptions = Object.values(speakers).map((speaker) => {
     return (
       <ListItem
+        key={speaker.ID}
         button
         onClick={() => {
           setSpeakerID(speaker.ID);
@@ -103,10 +123,9 @@ export default function Speaker({
     <>
       <Chip
         ref={chipRef}
-        spellcheck="false"
+        spellCheck="false"
         avatar={avatar}
         label={speakerName}
-        variant="outlined"
         onClick={onClick}
       />
       <Popover
@@ -153,7 +172,7 @@ export default function Speaker({
               <Grid item xs={3}>
                 <Button
                   color="primary"
-                  variant="outlined"
+                  variant="contained"
                   size="small"
                   onClick={onClickRename}
                   disableElevation
@@ -165,6 +184,17 @@ export default function Speaker({
 
             <Grid container item xs={12} spacing={0}>
               <List style={{ width: "100%" }}>{speakerOptions}</List>
+            </Grid>
+            <Grid container item xs={12} spacing={0}>
+              <Button
+                color="primary"
+                variant="contained"
+                size="small"
+                onClick={onAddSpeaker}
+                startIcon={<PersonAddIcon />}
+              >
+                Add New Speaker
+              </Button>
             </Grid>
           </Grid>
         </Paper>

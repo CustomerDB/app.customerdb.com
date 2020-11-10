@@ -235,6 +235,7 @@ function TagGroup(props) {
 
     tagGroupRef.collection("tags").doc(newTagID).set({
       ID: newTagID,
+      tagGroupID: tagGroupID,
       name: "Untitled tag",
       organizationID: orgID,
       color: color.background,
@@ -291,12 +292,10 @@ function TagGroup(props) {
               return;
             }
 
-            tagGroupRef.collection("tags").doc(tag.ID).set(
-              {
-                name: tagNames[tag.ID],
-              },
-              { merge: true }
-            );
+            tagGroupRef
+              .collection("tags")
+              .doc(tag.ID)
+              .update({ name: tagNames[tag.ID] });
           }}
           onKeyDown={checkReturn}
         />
@@ -319,13 +318,10 @@ function TagGroup(props) {
               return;
             }
 
-            tagGroupRef.collection("tags").doc(tag.ID).set(
-              {
-                deletedBy: oauthClaims.email,
-                deletionTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
-              },
-              { merge: true }
-            );
+            tagGroupRef.collection("tags").doc(tag.ID).update({
+              deletedBy: oauthClaims.email,
+              deletionTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            });
           }}
         >
           <Archive />
@@ -372,10 +368,7 @@ function TagGroup(props) {
                                   newName
                                 );
 
-                                tagGroupRef.set(
-                                  { name: newName },
-                                  { merge: true }
-                                );
+                                tagGroupRef.update({ name: newName });
                               }
                             }}
                           />
@@ -399,10 +392,7 @@ function TagGroup(props) {
                         <Button
                           variant="contained"
                           onClick={() => {
-                            orgRef.set(
-                              { defaultTagGroupID: tagGroup.ID },
-                              { merge: true }
-                            );
+                            orgRef.update({ defaultTagGroupID: tagGroup.ID });
                           }}
                         >
                           Make default
@@ -479,13 +469,10 @@ function ColorPicker(props) {
               props.tagGroupRef
                 .collection("tags")
                 .doc(props.tag.ID)
-                .set(
-                  {
-                    color: color.hex,
-                    textColor: getTextColorForBackground(color.hex),
-                  },
-                  { merge: true }
-                );
+                .update({
+                  color: color.hex,
+                  textColor: getTextColorForBackground(color.hex),
+                });
 
               setColorPickerOpen(false);
             }}
@@ -527,13 +514,10 @@ function TagGroupDeleteDialog({ tagGroupRef, open, setOpen, tagGroup }) {
       orgID: oauthClaims.orgID,
       userID: oauthClaims.user_id,
     });
-    tagGroupRef.set(
-      {
-        deletedBy: oauthClaims.email,
-        deletionTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
-      },
-      { merge: true }
-    );
+    tagGroupRef.update({
+      deletedBy: oauthClaims.email,
+      deletionTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
+    });
 
     navigate(`/orgs/${orgID}/settings/tags`);
   };

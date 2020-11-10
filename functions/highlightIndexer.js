@@ -282,12 +282,9 @@ function indexHighlight(source, orgID, highlightID, highlightRef) {
               // Write to the algolia index
               return index.saveObject(highlightToIndex).then(
                 // Update last indexed timestamp
-                highlightRef.ref.set(
-                  {
-                    lastIndexTimestamp: admin.firestore.FieldValue.serverTimestamp(),
-                  },
-                  { merge: true }
-                )
+                highlightRef.ref.update({
+                  lastIndexTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+                })
               );
             });
           });
@@ -354,12 +351,9 @@ exports.markHighlightsForIndexing = functions.pubsub
                   Promise.all(
                     highlightsSnapshot.docs.map((highlightDoc) => {
                       console.debug("indexing highlight", highlightDoc.data());
-                      return highlightDoc.ref.set(
-                        {
-                          indexRequestedTimestamp: admin.firestore.FieldValue.serverTimestamp(),
-                        },
-                        { merge: true }
-                      );
+                      return highlightDoc.ref.update({
+                        indexRequestedTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+                      });
                     })
                   )
                 )
@@ -376,12 +370,9 @@ exports.markHighlightsForIndexing = functions.pubsub
                             "indexing transcript highlight",
                             highlightDoc.data()
                           );
-                          return highlightDoc.ref.set(
-                            {
-                              indexRequestedTimestamp: admin.firestore.FieldValue.serverTimestamp(),
-                            },
-                            { merge: true }
-                          );
+                          return highlightDoc.ref.update({
+                            indexRequestedTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+                          });
                         })
                       )
                     )
