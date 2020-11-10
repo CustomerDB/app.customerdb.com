@@ -44,7 +44,7 @@ export default function SelectionFAB({
   }, []);
 
   useEffect(() => {
-    if (!browserSelection || !selection) return;
+    if (!browserSelection || !browserSelection.rangeCount || !selection) return;
 
     let range = browserSelection.getRangeAt(0).cloneRange();
     range.collapse(false);
