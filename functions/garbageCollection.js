@@ -73,3 +73,33 @@ exports.analyses = functions
   .onRun((context) => {
     return garbageCollect("analyses");
   });
+
+exports.tags = functions
+  .runWith({
+    timeoutSeconds: 540,
+    memory: "2GB",
+  })
+  .pubsub.schedule("every 24 hours")
+  .onRun((context) => {
+    return garbageCollect("tags");
+  });
+
+exports.tagGroups = functions
+  .runWith({
+    timeoutSeconds: 540,
+    memory: "2GB",
+  })
+  .pubsub.schedule("every 24 hours")
+  .onRun((context) => {
+    return garbageCollect("tagGroups");
+  });
+
+exports.documents = functions
+  .runWith({
+    timeoutSeconds: 540,
+    memory: "2GB",
+  })
+  .pubsub.schedule("every 24 hours")
+  .onRun((context) => {
+    return garbageCollect("documents");
+  });
