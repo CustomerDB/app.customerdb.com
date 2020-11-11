@@ -21,7 +21,6 @@
     "csv-parser": "^2.3.3",
     "firebase-admin": "^8.10.0",
     "firebase-functions": "^3.8.0",
-    "firebase-tools": "^8.15.1",
     "glob": "^7.1.6",
     "quill-delta": "^4.2.2",
     "request": "^2.88.2",
