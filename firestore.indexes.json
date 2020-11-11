@@ -537,6 +537,16 @@
       ]
     },
     {
+      "collectionGroup": "templates",
+      "fieldPath": "deletionTimestamp",
+      "indexes": [
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION_GROUP"
+        }
+      ]
+    },
+    {
       "collectionGroup": "analyses",
       "fieldPath": "deletionTimestamp",
       "indexes": [
