@@ -63,3 +63,13 @@ exports.templates = functions
   .onRun((context) => {
     return garbageCollect("templates");
   });
+
+exports.analyses = functions
+  .runWith({
+    timeoutSeconds: 540,
+    memory: "2GB",
+  })
+  .pubsub.schedule("every 24 hours")
+  .onRun((context) => {
+    return garbageCollect("analyses");
+  });
