@@ -26,7 +26,12 @@ function garbageCollect(collection) {
           let ref = doc.ref;
           let path = ref._path.segments.join("/");
 
-          console.warn(`Deleting ${path} recursively...`);
+          console.warn(
+            `Deleting ${path} recursively... deleted at ${doc
+              .data()
+              .deletionTimestamp.toDate()
+              .toISOString()}`
+          );
 
           return firebase_tools.firestore.delete(path, {
             project: process.env.GCLOUD_PROJECT,
@@ -44,7 +49,7 @@ exports.people = functions
     timeoutSeconds: 540,
     memory: "2GB",
   })
-  .pubsub.schedule("every 1 hours")
+  .pubsub.schedule("every 24 hours")
   .onRun((context) => {
     return garbageCollect("people");
   });
