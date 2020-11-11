@@ -21,8 +21,6 @@ export default function Quote({ hit }) {
   const [mediaURL, setMediaURL] = useState();
   const playerRef = useRef();
 
-  console.log("hit", hit);
-
   let documentCreationTimestamp = new Date(
     hit.documentCreationTimestamp * 1000
   );
