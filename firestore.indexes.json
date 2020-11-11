@@ -527,16 +527,6 @@
       ]
     },
     {
-      "collectionGroup": "people",
-      "fieldPath": "deletionTimestamp",
-      "indexes": [
-        {
-          "order": "ASCENDING",
-          "queryScope": "COLLECTION_GROUP"
-        }
-      ]
-    },
-    {
       "collectionGroup": "calls",
       "fieldPath": "ID",
       "indexes": [
