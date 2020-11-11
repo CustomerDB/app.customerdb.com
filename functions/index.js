@@ -14,6 +14,7 @@ exports.auth = require("./auth");
 exports.repairJobs = require("./repairJobs");
 exports.highlightIndex = require("./highlightIndexer.js");
 exports.video = require("./video");
+exports.garbageCollection = require("./garbageCollection");
 exports.transcript = require("./transcript");
 exports.twilio = require("./twilio");
 exports.waitList = require("./waitlist");
