@@ -8,6 +8,7 @@ import CardHeader from "@material-ui/core/CardHeader";
 import Chip from "@material-ui/core/Chip";
 import FirebaseContext from "../util/FirebaseContext.js";
 import Grid from "@material-ui/core/Grid";
+import { Highlight } from "react-instantsearch-dom";
 import IconButton from "@material-ui/core/IconButton";
 import Moment from "react-moment";
 import MoreVertIcon from "@material-ui/icons/MoreVert";
@@ -20,7 +21,7 @@ export default function Quote({ hit }) {
   const [mediaURL, setMediaURL] = useState();
   const playerRef = useRef();
 
-  console.log(hit);
+  console.log("hit", hit);
 
   let documentCreationTimestamp = new Date(
     hit.documentCreationTimestamp * 1000
@@ -94,7 +95,7 @@ export default function Quote({ hit }) {
         )}
         <CardContent>
           <Typography variant="body2" color="textSecondary" component="p">
-            {hit.text}
+            <Highlight hit={hit} attribute="text" />
           </Typography>
           <div style={{ padding: "0.25rem" }}>
             <Chip
