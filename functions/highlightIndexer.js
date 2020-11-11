@@ -4,6 +4,7 @@ const functions = require("firebase-functions");
 const algoliasearch = require("algoliasearch");
 const IntervalTree = require("@flatten-js/interval-tree").default;
 const transcript = require("./transcript/timecodes.js");
+const util = require("./util.js");
 const Delta = require("quill-delta");
 const tmp = require("tmp");
 const fs = require("fs");
@@ -38,6 +39,10 @@ const getTimecodes = (timecodePath) => {
     });
 };
 
+// Number of context characters before and after each
+// highlight selection when indexing.
+const CONTEXT_SIZE = 100;
+
 // Add highlight records to the search index when created, updated or deleted.
 function indexHighlight(source, orgID, highlightID, highlightRef) {
   if (!client) {
@@ -56,7 +61,6 @@ function indexHighlight(source, orgID, highlightID, highlightRef) {
 
   let highlight = highlightRef.data();
 
-  // TODO: Check for presense of lastIndexTimestamp and indexRequestedTimestamp.
   if (
     highlight.lastIndexTimestamp &&
     highlight.indexRequestedTimestamp &&
@@ -92,6 +96,25 @@ function indexHighlight(source, orgID, highlightID, highlightRef) {
       index.deleteObject(highlightID);
       return;
     }
+
+    // Compute the latest revision of the source text and extract
+    // the surrounding context.
+    const contextPromise = util
+      .revisionAtTime(orgID, documentID, source, highlight.lastUpdateTimestamp)
+      .then(({ revision }) => {
+        let revisionText = util.deltaToPlaintext(revision);
+        let start = Math.max(0, highlight.selection.index - CONTEXT_SIZE);
+        let end = Math.min(
+          revisionText.length,
+          highlight.selection.index + CONTEXT_SIZE
+        );
+        let context = revisionText.slice(start, end);
+        return {
+          contextStartIndex: start,
+          contextEndIndex: end,
+          context: context,
+        };
+      });
 
     // If the document has a transcription field, we should look for the presence.
     let transcriptionPromise;
@@ -162,6 +185,8 @@ function indexHighlight(source, orgID, highlightID, highlightRef) {
               tagTextColor: tag.textColor,
               personID: highlight.personID,
               text: highlight.text,
+              startIndex: highlight.selection.index,
+              endIndex: highlight.selection.index + highlight.selection.length,
               tagID: highlight.tagID,
               createdBy: highlight.createdBy,
               creationTimestamp: highlight.creationTimestamp.seconds,
@@ -253,40 +278,49 @@ function indexHighlight(source, orgID, highlightID, highlightRef) {
                 });
             }
 
-            // Attach time codes into highlightToIndex.
-            return highlightTime.then((time) => {
-              if (time) {
-                highlightToIndex.startTime = time.startTime;
-                highlightToIndex.endTime = time.endTime;
+            return contextPromise.then(
+              ({ contextStartIndex, contextEndIndex, context }) => {
+                // Attach context to highlightToIndex.
+                highlightToIndex.context = context;
+                highlightToIndex.contextStartIndex = contextStartIndex;
+                highlightToIndex.contextEndIndex = contextEndIndex;
 
-                if (transcription && transcription.thumbnailToken) {
-                  // Calculate sequence number from start time.
-                  const thumbnailInterval = 10;
-                  const sequence =
-                    Math.floor(time.startTime / thumbnailInterval) + 1;
+                // Attach time codes into highlightToIndex.
+                return highlightTime.then((time) => {
+                  if (time) {
+                    highlightToIndex.startTime = time.startTime;
+                    highlightToIndex.endTime = time.endTime;
 
-                  // Generate URL using token from transcription.
-                  let bucket = admin.storage().bucket();
-                  let storagePath = `${orgID}/transcriptions/${transcription.ID}/output/thumbnails/thumb-${sequence}.png`;
-                  let url = `https://firebasestorage.googleapis.com/v0/b/${
-                    bucket.name
-                  }/o/${encodeURIComponent(storagePath)}?alt=media&token=${
-                    transcription.thumbnailToken
-                  }`;
+                    if (transcription && transcription.thumbnailToken) {
+                      // Calculate sequence number from start time.
+                      const thumbnailInterval = 10;
+                      const sequence =
+                        Math.floor(time.startTime / thumbnailInterval) + 1;
 
-                  // Save URL in index object.
-                  highlightToIndex.thumbnailURL = url;
-                }
+                      // Generate URL using token from transcription.
+                      let bucket = admin.storage().bucket();
+                      let storagePath = `${orgID}/transcriptions/${transcription.ID}/output/thumbnails/thumb-${sequence}.png`;
+                      let url = `https://firebasestorage.googleapis.com/v0/b/${
+                        bucket.name
+                      }/o/${encodeURIComponent(storagePath)}?alt=media&token=${
+                        transcription.thumbnailToken
+                      }`;
+
+                      // Save URL in index object.
+                      highlightToIndex.thumbnailURL = url;
+                    }
+                  }
+
+                  // Write to the algolia index
+                  return index.saveObject(highlightToIndex).then(
+                    // Update last indexed timestamp
+                    highlightRef.ref.update({
+                      lastIndexTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+                    })
+                  );
+                });
               }
-
-              // Write to the algolia index
-              return index.saveObject(highlightToIndex).then(
-                // Update last indexed timestamp
-                highlightRef.ref.update({
-                  lastIndexTimestamp: admin.firestore.FieldValue.serverTimestamp(),
-                })
-              );
-            });
+            );
           });
       })
     );
