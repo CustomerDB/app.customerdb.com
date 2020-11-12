@@ -117,7 +117,7 @@ function indexHighlight(source, orgID, highlightID, highlightRef) {
         let start = Math.max(0, highlight.selection.index - CONTEXT_SIZE);
         let end = Math.min(
           revisionText.length,
-          highlight.selection.index + CONTEXT_SIZE
+          highlight.selection.index + highlight.selection.length + CONTEXT_SIZE
         );
         let context = revisionText.slice(start, end);
         return {
