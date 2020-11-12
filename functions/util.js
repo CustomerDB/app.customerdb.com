@@ -13,6 +13,14 @@ exports.deltaToPlaintext = (delta) => {
 };
 
 exports.revisionAtTime = (orgID, documentID, source, timestamp) => {
+  console.debug(
+    "util.revisionAtTime:",
+    orgID,
+    documentID,
+    source,
+    JSON.stringify(timestamp)
+  );
+
   if (![NOTES, TRANSCRIPT].includes(source)) {
     throw `source parameter must be one of "${NOTES}" or "${TRANSCRIPT}"`;
   }
@@ -31,7 +39,7 @@ exports.revisionAtTime = (orgID, documentID, source, timestamp) => {
           timestamp: new admin.firestore.Timestamp(0, 0),
         };
       }
-      let data = snapshot.docs[0].data();
+      const data = snapshot.docs[0].data();
       return {
         delta: new Delta(data.delta.ops),
         timestamp: data.timestamp,
@@ -39,6 +47,7 @@ exports.revisionAtTime = (orgID, documentID, source, timestamp) => {
     });
 
   return revisionPromise.then((revision) => {
+    console.debug("util.revisionAtTime -- revision", JSON.stringify(revision));
     return deltasRef
       .where("timestamp", "<=", timestamp)
       .where("timestamp", ">", revision.timestamp)
@@ -48,12 +57,17 @@ exports.revisionAtTime = (orgID, documentID, source, timestamp) => {
         // apply uncompacted deltas to revision delta.
         let result = revision.delta;
 
-        snapshot.docs.forEach((doc) => {
+        console.debug(
+          `util.revisionAtTime -- applying ${snapshot.size} deltas`
+        );
+
+        snapshot.forEach((doc) => {
           let deltaDoc = doc.data();
           let delta = new Delta(deltaDoc.ops);
           result = result.compose(delta);
         });
 
+        console.debug("util.revisionAtTime -- result", JSON.stringify(result));
         return result;
       });
   });

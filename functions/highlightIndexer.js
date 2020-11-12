@@ -61,6 +61,8 @@ function indexHighlight(source, orgID, highlightID, highlightRef) {
 
   let highlight = highlightRef.data();
 
+  console.debug("indexHighlight", JSON.stringify(highlight));
+
   if (
     highlight.lastIndexTimestamp &&
     highlight.indexRequestedTimestamp &&
@@ -106,7 +108,11 @@ function indexHighlight(source, orgID, highlightID, highlightRef) {
         source,
         highlight.lastUpdateTimestamp
       )
-      .then(({ revision }) => {
+      .then((revision) => {
+        console.debug(
+          "extracting context from revision",
+          JSON.stringify(revision)
+        );
         let revisionText = util.deltaToPlaintext(revision);
         let start = Math.max(0, highlight.selection.index - CONTEXT_SIZE);
         let end = Math.min(
