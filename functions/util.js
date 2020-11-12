@@ -1,4 +1,5 @@
 const admin = require("firebase-admin");
+const Delta = require("quill-delta");
 
 const NOTES = "notes";
 const TRANSCRIPT = "transcript";
