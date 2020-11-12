@@ -15,6 +15,18 @@ import MoreVertIcon from "@material-ui/icons/MoreVert";
 import ReactPlayer from "react-player";
 import Typography from "@material-ui/core/Typography";
 
+const hexToRGB = (hex) => {
+  if (hex.startsWith("#")) hex = hex.slice(1);
+  const base = 16;
+  const mask = 255;
+  const decimal = parseInt(hex, base);
+  return {
+    r: (decimal >> 16) & mask,
+    g: (decimal >> 8) & mask,
+    b: decimal & mask,
+  };
+};
+
 export default function Quote({ hit }) {
   const firebase = useContext(FirebaseContext);
   const { orgID } = useParams();
@@ -43,9 +55,23 @@ export default function Quote({ hit }) {
       });
   }, [hit.mediaPath, firebase]);
 
-  let quoteURL = `/orgs/${orgID}/interviews/${hit.documentID}/${hit.source}?quote=${hit.objectID}`;
+  const quoteURL = `/orgs/${orgID}/interviews/${hit.documentID}/${hit.source}?quote=${hit.objectID}`;
 
-  let linkedTitle = <Link to={quoteURL}>{hit.documentName}</Link>;
+  const linkedTitle = <Link to={quoteURL}>{hit.documentName}</Link>;
+
+  let contextPrefix, contextSuffix;
+  if (hit.context) {
+    const start = hit.startIndex - hit.contextStartIndex;
+    const end = hit.endIndex - hit.contextStartIndex;
+    contextPrefix = hit.context.slice(0, start).trimStart();
+    contextSuffix = hit.context.slice(end).trimEnd();
+    if (contextPrefix) contextPrefix = `...${contextPrefix}`;
+    if (contextSuffix) contextSuffix = `${contextSuffix}...`;
+  }
+
+  const rgb = hexToRGB(hit.tagColor);
+  const opacity = 0.33;
+  const attenuatedHighlightColor = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${opacity})`;
 
   return (
     <Grid container item xs={12} md={6} lg={4} xl={3}>
@@ -93,7 +119,16 @@ export default function Quote({ hit }) {
         )}
         <CardContent>
           <Typography variant="body2" color="textSecondary" component="p">
-            <Highlight hit={hit} attribute="text" />
+            <span className="quoteContext">{contextPrefix}</span>
+            <span
+              style={{
+                backgroundColor: attenuatedHighlightColor,
+                color: hit.tagTextColor,
+              }}
+            >
+              <Highlight hit={hit} attribute="text" />
+            </span>
+            <span className="quoteContext">{contextSuffix}</span>
           </Typography>
           <div style={{ padding: "0.25rem" }}>
             <Chip
