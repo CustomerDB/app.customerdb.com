@@ -49,6 +49,7 @@ exports.revisionAtTime = (orgID, documentID, source, timestamp) => {
         let result = revision.delta;
 
         snapshot.docs.forEach((doc) => {
+          let deltaDoc = doc.data();
           let delta = new Delta(deltaDoc.ops);
           result = result.compose(delta);
         });
