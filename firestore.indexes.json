@@ -562,6 +562,10 @@
       "indexes": [
         {
           "order": "ASCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "ASCENDING",
           "queryScope": "COLLECTION_GROUP"
         }
       ]
@@ -570,6 +574,10 @@
       "collectionGroup": "tagGroups",
       "fieldPath": "deletionTimestamp",
       "indexes": [
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION"
+        },
         {
           "order": "ASCENDING",
           "queryScope": "COLLECTION_GROUP"
