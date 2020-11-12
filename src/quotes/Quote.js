@@ -51,8 +51,10 @@ export default function Quote({ hit }) {
   if (hit.context) {
     const start = hit.startIndex - hit.contextStartIndex;
     const end = hit.endIndex - hit.contextStartIndex;
-    contextPrefix = hit.context.slice(0, start);
-    contextSuffix = hit.context.slice(end);
+    contextPrefix = hit.context.slice(0, start).trim();
+    contextSuffix = hit.context.slice(end).trim();
+    if (contextPrefix) contextPrefix = `...${contextPrefix}`;
+    if (contextSuffix) contextSuffix = `${contextSuffix}...`;
   }
 
   return (
@@ -101,13 +103,13 @@ export default function Quote({ hit }) {
         )}
         <CardContent>
           <Typography variant="body2" color="textSecondary" component="p">
-            <span className="quoteContext">...{contextPrefix}</span>
+            <span className="quoteContext">{contextPrefix}</span>
             <span
               style={{ backgroundColor: hit.tagColor, color: hit.tagTextColor }}
             >
               <Highlight hit={hit} attribute="text" />
             </span>
-            <span className="quoteContext">{contextSuffix}...</span>
+            <span className="quoteContext">{contextSuffix}</span>
           </Typography>
           <div style={{ padding: "0.25rem" }}>
             <Chip
