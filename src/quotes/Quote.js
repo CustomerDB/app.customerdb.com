@@ -51,8 +51,8 @@ export default function Quote({ hit }) {
   if (hit.context) {
     const start = hit.startIndex - hit.contextStartIndex;
     const end = hit.endIndex - hit.contextStartIndex;
-    contextPrefix = hit.context.slice(0, start).trim();
-    contextSuffix = hit.context.slice(end).trim();
+    contextPrefix = hit.context.slice(0, start).trimStart();
+    contextSuffix = hit.context.slice(end).trimEnd();
     if (contextPrefix) contextPrefix = `...${contextPrefix}`;
     if (contextSuffix) contextSuffix = `${contextSuffix}...`;
   }
