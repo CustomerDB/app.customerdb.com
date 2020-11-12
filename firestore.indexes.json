@@ -595,6 +595,26 @@
       ]
     },
     {
+      "collectionGroup": "documents",
+      "fieldPath": "deletionTimestamp",
+      "indexes": [
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "documents",
+      "fieldPath": "needsIndex",
+      "indexes": [
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION"
+        }
+      ]
+    },
+    {
       "collectionGroup": "calls",
       "fieldPath": "ID",
       "indexes": [
