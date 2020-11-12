@@ -15,6 +15,18 @@ import MoreVertIcon from "@material-ui/icons/MoreVert";
 import ReactPlayer from "react-player";
 import Typography from "@material-ui/core/Typography";
 
+const hexToRGB = (hex) => {
+  if (hex.startsWith("#")) hex = hex.slice(1);
+  const base = 16;
+  const mask = 255;
+  const decimal = parseInt(hex, base);
+  return {
+    r: (decimal >> 16) & mask,
+    g: (decimal >> 8) & mask,
+    b: decimal & mask,
+  };
+};
+
 export default function Quote({ hit }) {
   const firebase = useContext(FirebaseContext);
   const { orgID } = useParams();
@@ -56,6 +68,10 @@ export default function Quote({ hit }) {
     if (contextPrefix) contextPrefix = `...${contextPrefix}`;
     if (contextSuffix) contextSuffix = `${contextSuffix}...`;
   }
+
+  const rgb = hexToRGB(hit.tagColor);
+  const opacity = 0.33;
+  const attenuatedHighlightColor = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${opacity})`;
 
   return (
     <Grid container item xs={12} md={6} lg={4} xl={3}>
@@ -105,7 +121,10 @@ export default function Quote({ hit }) {
           <Typography variant="body2" color="textSecondary" component="p">
             <span className="quoteContext">{contextPrefix}</span>
             <span
-              style={{ backgroundColor: hit.tagColor, color: hit.tagTextColor }}
+              style={{
+                backgroundColor: attenuatedHighlightColor,
+                color: hit.tagTextColor,
+              }}
             >
               <Highlight hit={hit} attribute="text" />
             </span>
