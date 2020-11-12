@@ -100,7 +100,12 @@ function indexHighlight(source, orgID, highlightID, highlightRef) {
     // Compute the latest revision of the source text and extract
     // the surrounding context.
     const contextPromise = util
-      .revisionAtTime(orgID, documentID, source, highlight.lastUpdateTimestamp)
+      .revisionAtTime(
+        orgID,
+        highlight.documentID,
+        source,
+        highlight.lastUpdateTimestamp
+      )
       .then(({ revision }) => {
         let revisionText = util.deltaToPlaintext(revision);
         let start = Math.max(0, highlight.selection.index - CONTEXT_SIZE);
