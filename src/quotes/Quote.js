@@ -78,7 +78,7 @@ export default function Quote({ hit }) {
       <Card
         style={{
           width: "100%",
-          minHeight: "16rem",
+          minHeight: "10rem",
           margin: "1rem",
         }}
       >
