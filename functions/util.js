@@ -1,3 +1,5 @@
+const admin = require("firebase-admin");
+
 const NOTES = "notes";
 const TRANSCRIPT = "transcript";
 
