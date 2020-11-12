@@ -43,9 +43,17 @@ export default function Quote({ hit }) {
       });
   }, [hit.mediaPath, firebase]);
 
-  let quoteURL = `/orgs/${orgID}/interviews/${hit.documentID}/${hit.source}?quote=${hit.objectID}`;
+  const quoteURL = `/orgs/${orgID}/interviews/${hit.documentID}/${hit.source}?quote=${hit.objectID}`;
 
-  let linkedTitle = <Link to={quoteURL}>{hit.documentName}</Link>;
+  const linkedTitle = <Link to={quoteURL}>{hit.documentName}</Link>;
+
+  let contextPrefix, contextSuffix;
+  if (hit.context) {
+    const start = hit.startIndex - hit.contextStartIndex;
+    const end = hit.endIndex - hit.contextStartIndex;
+    contextPrefix = hit.context.slice(0, start);
+    contextSuffix = hit.context.slice(end);
+  }
 
   return (
     <Grid container item xs={12} md={6} lg={4} xl={3}>
@@ -93,7 +101,13 @@ export default function Quote({ hit }) {
         )}
         <CardContent>
           <Typography variant="body2" color="textSecondary" component="p">
-            <Highlight hit={hit} attribute="text" />
+            <span className="quoteContext">...{contextPrefix}</span>
+            <span
+              style={{ backgroundColor: hit.tagColor, color: hit.tagTextColor }}
+            >
+              <Highlight hit={hit} attribute="text" />
+            </span>
+            <span className="quoteContext">{contextSuffix}...</span>
           </Typography>
           <div style={{ padding: "0.25rem" }}>
             <Chip
