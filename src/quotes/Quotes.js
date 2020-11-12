@@ -5,7 +5,7 @@ import {
   connectHits,
   connectSearchBox,
 } from "react-instantsearch-dom";
-import { fade, makeStyles } from "@material-ui/core/styles";
+import { fade, makeStyles, useTheme } from "@material-ui/core/styles";
 
 import Grid from "@material-ui/core/Grid";
 import InputBase from "@material-ui/core/InputBase";
@@ -14,6 +14,7 @@ import React from "react";
 import SearchIcon from "@material-ui/icons/Search";
 import Shell from "../shell/Shell.js";
 import { useSearchClient } from "../search/client.js";
+import useMediaQuery from "@material-ui/core/useMediaQuery";
 
 function SearchBox({
   currentRefinement,
@@ -90,6 +91,13 @@ function SearchBox({
 
 export default function Quotes(props) {
   const searchClient = useSearchClient();
+  const theme = useTheme();
+
+  const xsBreakpoint = useMediaQuery(theme.breakpoints.up("xs"));
+  const mdBreakpoint = useMediaQuery(theme.breakpoints.up("md"));
+  const lgBreakpoint = useMediaQuery(theme.breakpoints.up("lg"));
+  const xlBreakpoint = useMediaQuery(theme.breakpoints.up("xl"));
+
   // const [searchState, setSearchState] = useState({});
 
   if (!searchClient) {
@@ -104,12 +112,27 @@ export default function Quotes(props) {
   const quoteIndex = process.env.REACT_APP_ALGOLIA_HIGHLIGHTS_INDEX;
   const CustomSearchBox = connectSearchBox(SearchBox);
 
+  let colCount;
+  if (xlBreakpoint) {
+    colCount = 4;
+  } else if (lgBreakpoint) {
+    colCount = 3;
+  } else if (mdBreakpoint) {
+    colCount = 2;
+  } else if (xsBreakpoint) {
+    colCount = 1;
+  }
+
   const SearchResults = connectHits((result) => {
     console.debug(`got ${result.hits.length} results`);
-    return result.hits.map((hit) => {
-      console.debug("hit", hit);
-      return <Quote key={hit.objectID} hit={hit} />;
-    });
+    let cols = Array.from(Array(colCount), () => new Array());
+    for (let i=0; i < result.hits.length; i++) {
+      cols[i % colCount].push(result.hits[i]);
+    }
+
+    return cols.map(col => <Grid container item direction="row" xs={12} md={6} lg={4} xl={3}>
+      {col.map(hit => <Quote key={hit.objectID} hit={hit} />)}
+    </Grid>);
   });
 
   let searchGrid = (
@@ -122,7 +145,7 @@ export default function Quotes(props) {
         >
           <CustomSearchBox />
         </Grid>
-        <Grid container item spacing={0} direction="column" style={{maxHeight: "100rem"}}>
+        <Grid container item spacing={0}>
           <SearchResults />
         </Grid>
       </Grid>

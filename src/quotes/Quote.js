@@ -74,7 +74,7 @@ export default function Quote({ hit }) {
   const attenuatedHighlightColor = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${opacity})`;
 
   return (
-    <Grid container item xs={12} md={6} lg={4} xl={3}>
+    <Grid container item>
       <Card
         style={{
           width: "100%",
