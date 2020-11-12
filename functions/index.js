@@ -4,6 +4,7 @@ const fs = require("fs");
 const algoliasearch = require("algoliasearch");
 const Delta = require("quill-delta");
 const { v4: uuidv4 } = require("uuid");
+const util = require("./util.js");
 
 const firestore = require("@google-cloud/firestore");
 const adminClient = new firestore.v1.FirestoreAdminClient();
@@ -14,6 +15,7 @@ exports.auth = require("./auth");
 exports.repairJobs = require("./repairJobs");
 exports.highlightIndex = require("./highlightIndexer.js");
 exports.video = require("./video");
+exports.garbageCollection = require("./garbageCollection");
 exports.transcript = require("./transcript");
 exports.twilio = require("./twilio");
 exports.waitList = require("./waitlist");
@@ -285,14 +287,6 @@ exports.updateHighlightsForUpdatedDocument = functions.firestore
     }
   });
 
-const deltaToPlaintext = (delta) => {
-  return delta.reduce(function (text, op) {
-    if (!op.insert) return text;
-    if (typeof op.insert !== "string") return text + " ";
-    return text + op.insert;
-  }, "");
-};
-
 const latestRevision = (collectionRef) => {
   return collectionRef
     .orderBy("timestamp", "desc")
@@ -413,8 +407,8 @@ const indexUpdated = (index) => {
                   newNotes.timestamp,
                   newTranscript.timestamp
                 ).seconds,
-                notesText: deltaToPlaintext(newNotes.delta),
-                transcriptText: deltaToPlaintext(newTranscript.delta),
+                notesText: util.deltaToPlaintext(newNotes.delta),
+                transcriptText: util.deltaToPlaintext(newTranscript.delta),
               };
 
               return index.saveObject(docToIndex).then(() => {
@@ -477,8 +471,8 @@ const indexUpdated = (index) => {
             oldNotes.timestamp,
             oldTranscript.timestamp
           ).seconds,
-          notesText: deltaToPlaintext(oldNotes.delta),
-          transcriptText: deltaToPlaintext(oldTranscript.delta),
+          notesText: util.deltaToPlaintext(oldNotes.delta),
+          transcriptText: util.deltaToPlaintext(oldTranscript.delta),
         });
       });
     });

@@ -162,6 +162,15 @@ div.listTitleButtonContainer {
   padding: 0.5rem;
 }
 
+span.quoteContext {
+  color: #777;
+}
+
+.ais-Highlight-highlighted,
+.ais-Snippet-highlighted {
+  color: #000;
+}
+
 div.speaker {
   height: 2rem;
   margin-top: 0.5rem;

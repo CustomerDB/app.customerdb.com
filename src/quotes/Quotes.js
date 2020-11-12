@@ -122,7 +122,7 @@ export default function Quotes(props) {
         >
           <CustomSearchBox />
         </Grid>
-        <Grid container item spacing={0}>
+        <Grid container item spacing={0} direction="column" style={{maxHeight: "100rem"}}>
           <SearchResults />
         </Grid>
       </Grid>
