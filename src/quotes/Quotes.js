@@ -125,7 +125,7 @@ export default function Quotes(props) {
 
   const SearchResults = connectHits((result) => {
     console.debug(`got ${result.hits.length} results`);
-    let cols = Array.from(Array(colCount), () => new Array());
+    let cols = Array.from(Array(colCount), () => []);
     for (let i=0; i < result.hits.length; i++) {
       cols[i % colCount].push(result.hits[i]);
     }
