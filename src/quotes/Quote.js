@@ -67,10 +67,8 @@ export default function Quote({ hit }) {
   }
 
   const rgb = hexToRGB(hit.tagColor);
-  const opacity = 0.33;
+  const opacity = 0.2;
   const attenuatedHighlightColor = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${opacity})`;
-
-  console.log(hit);
 
   return (
     <Grid container item>
@@ -81,24 +79,9 @@ export default function Quote({ hit }) {
           borderRadius: "0.5rem",
         }}
       >
-        {/* <CardHeader
-          disableTypography={true}
-          avatar={
-            hit.personName && (
-              <Avatar
-                size={30}
-                name={hit.personName}
-                round={true}
-                src={hit.personImageURL}
-              />
-            )
-          }
-          title={linkedTitle}
-          subheader={<Moment fromNow date={documentCreationTimestamp} />}
-        /> */}
 
         <CardContent>
-          <Typography variant="h6" gutterBottom>
+          <Typography variant="h6" gutterBottom style={{fontWeight: "bold"}}>
             {linkedTitle}
           </Typography>
           <div>
@@ -155,11 +138,15 @@ export default function Quote({ hit }) {
               </span>
               <span className="quoteContext">{contextSuffix}</span>
             </Typography>
-            <div style={{ padding: "0.5rem" }}>
+            <div style={{ paddingTop: "1rem" }}>
               <Chip
                 size="small"
                 label={hit.tagName}
-                style={{ backgroundColor: hit.tagColor, color: hit.tagTextColor }}
+                style={{
+                  backgroundColor: attenuatedHighlightColor,
+                  color: hit.tagColor,
+                  fontWeight: "bold",
+                }}
               />
             </div>
           </div>

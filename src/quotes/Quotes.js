@@ -39,7 +39,6 @@ function SearchBox({
       },
     },
     search: {
-      position: "relative",
       borderRadius: theme.shape.borderRadius,
       backgroundColor: fade(theme.palette.common.white, 0.15),
       "&:hover": {
@@ -141,7 +140,8 @@ export default function Quotes(props) {
         <Grid
           container
           item
-          style={{ height: "3rem", backgroundColor: "white" }}
+          style={{ height: "3rem", backgroundColor: "white", position: "sticky",
+          top: "64px", }}
         >
           <CustomSearchBox />
         </Grid>
