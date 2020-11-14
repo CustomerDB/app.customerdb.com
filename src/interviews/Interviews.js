@@ -74,7 +74,7 @@ export default function Interviews(props) {
 
   const onAddDocument = () => {
     event(firebase, "create_interview", {
-      orgID: oauthClaims.orgID,
+      orgID: orgID,
       userID: oauthClaims.user_id,
     });
 

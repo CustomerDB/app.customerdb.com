@@ -13,12 +13,14 @@ import LinearProgress from "@material-ui/core/LinearProgress";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
 import useFirestore from "../db/Firestore.js";
+import { useParams } from "react-router-dom";
 
 export default function DocumentRestartCallDialog({ open, setOpen, document }) {
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
   const { documentsRef } = useFirestore();
   const [deleting, setDeleting] = useState(false);
+  const { orgID } = useParams();
 
   const deleteTranscript = firebase
     .functions()
@@ -42,7 +44,7 @@ export default function DocumentRestartCallDialog({ open, setOpen, document }) {
     }
 
     event(firebase, "restart_call", {
-      orgID: oauthClaims.orgID,
+      orgID: orgID,
       userID: oauthClaims.user_id,
     });
 

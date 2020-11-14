@@ -13,7 +13,7 @@ import { useParams } from "react-router-dom";
 export default function TagGroupSelector(props) {
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
-  const { guideID } = useParams();
+  const { orgID, guideID } = useParams();
 
   const { templatesRef, tagGroupsRef } = useFirestore();
 
@@ -67,7 +67,7 @@ export default function TagGroupSelector(props) {
     if (!templateRef || !template) return;
 
     event(firebase, "change_guide_tag_group", {
-      orgID: oauthClaims.orgID,
+      orgID: orgID,
       userID: oauthClaims.user_id,
     });
 

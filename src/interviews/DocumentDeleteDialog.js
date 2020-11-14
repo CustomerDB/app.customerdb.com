@@ -40,7 +40,7 @@ export default function AlertDialog({ open, setOpen, document }) {
     }
 
     event(firebase, "delete_interview", {
-      orgID: oauthClaims.orgID,
+      orgID: orgID,
       userID: oauthClaims.user_id,
     });
     documentsRef

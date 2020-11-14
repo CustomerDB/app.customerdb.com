@@ -58,7 +58,7 @@ export default function PersonDeleteDialog(props) {
         <Button
           onClick={() => {
             event(firebase, "delete_person", {
-              orgID: oauthClaims.orgID,
+              orgID: orgID,
               userID: oauthClaims.user_id,
             });
             props.personRef.update({

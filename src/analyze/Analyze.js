@@ -103,7 +103,7 @@ export default function Analyze(props) {
 
   const onAdd = () => {
     event(firebase, "create_analysis", {
-      orgID: oauthClaims.orgID,
+      orgID: orgID,
       userID: oauthClaims.user_id,
     });
 

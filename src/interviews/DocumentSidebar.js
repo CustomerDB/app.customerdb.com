@@ -179,7 +179,7 @@ export default function DocumentSidebar(props) {
                   default={person ? person.name : ""}
                   onChange={(ID, name) => {
                     event(firebase, "link_interview_to_person", {
-                      orgID: oauthClaims.orgID,
+                      orgID: orgID,
                       userID: oauthClaims.user_id,
                     });
 
