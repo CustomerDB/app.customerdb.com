@@ -4,14 +4,11 @@ import React, { useContext, useEffect, useRef, useState } from "react";
 import Avatar from "react-avatar";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
-import CardHeader from "@material-ui/core/CardHeader";
 import Chip from "@material-ui/core/Chip";
 import FirebaseContext from "../util/FirebaseContext.js";
 import Grid from "@material-ui/core/Grid";
 import { Highlight } from "react-instantsearch-dom";
-import IconButton from "@material-ui/core/IconButton";
 import Moment from "react-moment";
-import MoreVertIcon from "@material-ui/icons/MoreVert";
 import ReactPlayer from "react-player";
 import Typography from "@material-ui/core/Typography";
 
@@ -57,7 +54,7 @@ export default function Quote({ hit }) {
 
   const quoteURL = `/orgs/${orgID}/interviews/${hit.documentID}/${hit.source}?quote=${hit.objectID}`;
 
-  const linkedTitle = <Link to={quoteURL}>{hit.documentName}</Link>;
+  const linkedTitle = <Link style={{color: "black"}} to={quoteURL}>{hit.documentName}</Link>;
 
   let contextPrefix, contextSuffix;
   if (hit.context) {
@@ -70,7 +67,7 @@ export default function Quote({ hit }) {
   }
 
   const rgb = hexToRGB(hit.tagColor);
-  const opacity = 0.33;
+  const opacity = 0.2;
   const attenuatedHighlightColor = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${opacity})`;
 
   return (
@@ -78,64 +75,80 @@ export default function Quote({ hit }) {
       <Card
         style={{
           width: "100%",
-          minHeight: "10rem",
           margin: "1rem",
+          borderRadius: "0.5rem",
         }}
       >
-        <CardHeader
-          avatar={
-            hit.personName && (
+
+        <CardContent>
+          <Typography variant="h6" gutterBottom style={{fontWeight: "bold"}}>
+            {linkedTitle}
+          </Typography>
+          <div>
+            {hit.personName && (
               <Avatar
-                size={50}
+                size={30}
                 name={hit.personName}
                 round={true}
                 src={hit.personImageURL}
+                style={{ display: "inline", paddingRight: "0.5rem" }}
               />
-            )
-          }
-          action={
-            <IconButton aria-label="settings">
-              <MoreVertIcon />
-            </IconButton>
-          }
-          title={linkedTitle}
-          subheader={<Moment fromNow date={documentCreationTimestamp} />}
-        />
-        {mediaURL && (
-          <ReactPlayer
-            ref={playerRef}
-            url={mediaURL}
-            width="100%"
-            height="12rem"
-            light={hit.thumbnailURL || true}
-            playing={true}
-            onReady={() => {
-              if (hit.startTime && playerRef.current.getCurrentTime() === 0) {
-                playerRef.current.seekTo(hit.startTime);
-              }
-            }}
-            controls
-          />
-        )}
-        <CardContent>
-          <Typography variant="body2" color="textSecondary" component="p">
-            <span className="quoteContext">{contextPrefix}</span>
-            <span
+            )}
+            <p style={{ display: "inline" }}>
+              {hit.personName} <Moment fromNow date={documentCreationTimestamp} />
+            </p>
+          </div>
+
+
+          {mediaURL && (
+            <div
               style={{
-                backgroundColor: attenuatedHighlightColor,
-                color: hit.tagTextColor,
+                borderRadius: "0.5rem",
+                overflow: "hidden",
+                margin: "0.5rem",
               }}
             >
-              <Highlight hit={hit} attribute="text" />
-            </span>
-            <span className="quoteContext">{contextSuffix}</span>
-          </Typography>
-          <div style={{ padding: "0.25rem" }}>
-            <Chip
-              size="small"
-              label={hit.tagName}
-              style={{ backgroundColor: hit.tagColor, color: hit.tagTextColor }}
-            />
+              <ReactPlayer
+                ref={playerRef}
+                url={mediaURL}
+                width="100%"
+                height="12rem"
+                light={hit.thumbnailURL || true}
+                playing={true}
+                onReady={() => {
+                  if (hit.startTime && playerRef.current.getCurrentTime() === 0) {
+                    playerRef.current.seekTo(hit.startTime);
+                  }
+                }}
+                controls
+              />
+            </div>
+          )}
+
+          <div style={{ margin: "0.5rem" }}>
+            <Typography variant="body2" color="textSecondary" component="p">
+              <span className="quoteContext">{contextPrefix}</span>
+              <span
+                style={{
+                  backgroundColor: attenuatedHighlightColor,
+                  color: hit.tagTextColor,
+                }}
+              >
+                <Highlight hit={hit} attribute="text" />
+              </span>
+              <span className="quoteContext">{contextSuffix}</span>
+            </Typography>
+            <div style={{ paddingTop: "1rem" }}>
+              <Chip
+                size="small"
+                label={hit.tagName}
+                style={{
+                  backgroundColor: hit.tagColor,
+                  color: hit.tagTextColor,
+                  fontWeight: "bold",
+                }}
+              />
+            </div>
           </div>
         </CardContent>
       </Card>
