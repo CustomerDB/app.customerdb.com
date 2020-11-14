@@ -143,8 +143,8 @@ export default function Quote({ hit }) {
                 size="small"
                 label={hit.tagName}
                 style={{
-                  backgroundColor: attenuatedHighlightColor,
-                  color: hit.tagColor,
+                  backgroundColor: hit.tagColor,
+                  color: hit.tagTextColor,
                   fontWeight: "bold",
                 }}
               />
