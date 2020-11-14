@@ -13,6 +13,7 @@ import LinearProgress from "@material-ui/core/LinearProgress";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
 import useFirestore from "../db/Firestore.js";
+import { useParams } from "react-router-dom";
 
 export default function DocumentDeleteTranscriptDialog({
   open,
@@ -23,6 +24,7 @@ export default function DocumentDeleteTranscriptDialog({
   const firebase = useContext(FirebaseContext);
   const { documentsRef } = useFirestore();
   const [deleting, setDeleting] = useState(false);
+  const { orgID } = useParams();
 
   const deleteTranscript = firebase
     .functions()
@@ -46,7 +48,7 @@ export default function DocumentDeleteTranscriptDialog({
     }
 
     event(firebase, "delete_transcript", {
-      orgID: oauthClaims.orgID,
+      orgID: orgID,
       userID: oauthClaims.user_id,
     });
 

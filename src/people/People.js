@@ -150,7 +150,7 @@ export default function People(props) {
         aria-label="add"
         onClick={() => {
           event(firebase, "create_person", {
-            orgID: oauthClaims.orgID,
+            orgID: orgID,
             userID: oauthClaims.user_id,
           });
           peopleRef

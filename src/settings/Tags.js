@@ -511,7 +511,7 @@ function TagGroupDeleteDialog({ tagGroupRef, open, setOpen, tagGroup }) {
     console.debug("archiving tag group");
 
     event(firebase, "delete_tag_group", {
-      orgID: oauthClaims.orgID,
+      orgID: orgID,
       userID: oauthClaims.user_id,
     });
     tagGroupRef.update({

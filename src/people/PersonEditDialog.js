@@ -10,6 +10,7 @@ import Row from "react-bootstrap/Row";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
 import { v4 as uuidv4 } from "uuid";
+import { useParams } from "react-router-dom";
 
 export default function PersonEditDialog(props) {
   const { oauthClaims } = useContext(UserAuthContext);
@@ -23,6 +24,8 @@ export default function PersonEditDialog(props) {
   const [country, setCountry] = useState();
   const [state, setState] = useState();
   const [city, setCity] = useState();
+
+  const { orgID } = useParams();
 
   const [customFields, setCustomFields] = useState({});
   const [labels, setLabels] = useState({});
@@ -141,7 +144,7 @@ export default function PersonEditDialog(props) {
           key={person.ID}
           onClick={() => {
             event(firebase, "edit_person", {
-              orgID: oauthClaims.orgID,
+              orgID: orgID,
               userID: oauthClaims.user_id,
             });
 

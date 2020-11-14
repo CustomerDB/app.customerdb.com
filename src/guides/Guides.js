@@ -95,7 +95,7 @@ export default function Guides(props) {
 
   const onAdd = () => {
     event(firebase, "create_guide", {
-      orgID: oauthClaims.orgID,
+      orgID: orgID,
       userID: oauthClaims.user_id,
     });
 
@@ -191,7 +191,7 @@ export default function Guides(props) {
 function Guide({ templateRef }) {
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
-  const { guideID } = useParams();
+  const { orgID, guideID } = useParams();
   const { templatesRef, tagGroupsRef } = useFirestore();
 
   const [template, setTemplate] = useState();
@@ -261,7 +261,7 @@ function Guide({ templateRef }) {
       }
 
       event(firebase, "edit_guide", {
-        orgID: oauthClaims.orgID,
+        orgID: orgID,
         userID: oauthClaims.user_id,
       });
 
@@ -295,7 +295,7 @@ function Guide({ templateRef }) {
     reactQuillRef,
     guideID,
     oauthClaims.email,
-    oauthClaims.orgID,
+    orgID,
     oauthClaims.user_id,
     firebase,
   ]);
@@ -524,7 +524,7 @@ function GuideDeleteDialog({ templateRef, open, setOpen, template }) {
     console.debug("archiving template");
 
     event(firebase, "delete_guide", {
-      orgID: oauthClaims.orgID,
+      orgID: orgID,
       userID: oauthClaims.user_id,
     });
     templateRef.update({

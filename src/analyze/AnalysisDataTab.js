@@ -8,12 +8,14 @@ import Row from "react-bootstrap/Row";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
 import useFirestore from "../db/Firestore.js";
+import { useParams } from "react-router-dom";
 
 export default function AnalysisDataTab(props) {
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
   const { analysisRef, documentsRef, cardsRef } = useFirestore();
   const [documents, setDocuments] = useState([]);
+  const { orgID } = useParams();
 
   useEffect(() => {
     if (!documentsRef) {
@@ -47,13 +49,13 @@ export default function AnalysisDataTab(props) {
 
   const onClick = (documentID) => {
     event(firebase, "edit_analysis_data", {
-      orgID: oauthClaims.orgID,
+      orgID: orgID,
       userID: oauthClaims.user_id,
     });
 
     let newDocumentIDs = props.analysis.documentIDs.slice();
 
-    let deleteDocumentCardsIfNecessary = () => {};
+    let deleteDocumentCardsIfNecessary = () => { };
 
     if (props.analysis.documentIDs.includes(documentID)) {
       // Remove it.

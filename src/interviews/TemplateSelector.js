@@ -11,6 +11,7 @@ import event from "../analytics/event.js";
 import { initialDelta } from "../editor/delta.js";
 import useFirestore from "../db/Firestore.js";
 import { useOrganization } from "../organization/hooks.js";
+import { useParams } from "react-router-dom";
 
 export default function TemplateSelector(props) {
   const { oauthClaims } = useContext(UserAuthContext);
@@ -18,7 +19,7 @@ export default function TemplateSelector(props) {
   const [doc, setDoc] = useState();
   const [templates, setTemplates] = useState();
   const { defaultTagGroupID } = useOrganization();
-
+  const { orgID } = useParams();
   const { documentRef, templatesRef } = useFirestore();
 
   useEffect(() => {
@@ -55,7 +56,7 @@ export default function TemplateSelector(props) {
 
     console.log("onTagGroupChange", e);
     event(firebase, "change_interview_template", {
-      orgID: oauthClaims.orgID,
+      orgID: orgID,
       userID: oauthClaims.user_id,
     });
 

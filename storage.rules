@@ -15,7 +15,7 @@ service firebase.storage {
                   && request.auth.token.orgID == orgID;
     }
 
-      match /{orgID}/avatars/{personID}/{media} {
+    match /{orgID}/avatars/{personID}/{media} {
       allow read, write: if signedInAndVerified()
                          && request.auth.token.orgID == orgID;
     }

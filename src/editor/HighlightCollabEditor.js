@@ -365,7 +365,7 @@ function HighlightControls({
             newHighlight
           );
           event(firebase, "create_highlight", {
-            orgID: oauthClaims.orgID,
+            orgID: orgID,
             userID: oauthClaims.user_id,
           });
 
@@ -394,7 +394,7 @@ function HighlightControls({
           console.debug("syncHighlightsUpdate: deleting highlight", h);
 
           event(firebase, "delete_highlight", {
-            orgID: oauthClaims.orgID,
+            orgID: orgID,
             userID: oauthClaims.user_id,
           });
 
