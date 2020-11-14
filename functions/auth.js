@@ -64,29 +64,6 @@ exports.installMemberOAuthClaim = functions.firestore
       return;
     }
 
-    // Remove custom claims if necessary.
-    // TODO(CD): only delete claims for this orgID.
-
-    let memberRecordDeleted = !change.after.exists;
-    if (memberRecordDeleted) {
-      console.log(`member record deleted -- deleting custom claims`);
-      return admin.auth().setCustomUserClaims(uid, null);
-    }
-
-    let memberInactive = !after.active;
-    if (memberInactive) {
-      console.log(`member is inactive -- deleting custom claims`);
-      return admin.auth().setCustomUserClaims(uid, null);
-    }
-
-    // Add custom claims if necessary.
-    // TODO(CD): Make this work for multiple orgs
-
-    let newCustomClaims = {
-      orgID: context.params.orgID,
-      admin: after.admin,
-    };
-
     console.log(`getting user record ${uid} to read custom claims`);
     return admin
       .auth()
@@ -96,8 +73,34 @@ exports.installMemberOAuthClaim = functions.firestore
 
         console.log(`found existing custom claims for ${uid}`, oldClaims);
 
+        oldOrgs = (oldCustomClaims && oldCustomClaims.orgs) || {};
+
+        // Remove custom claims if necessary.
+        // only delete claims for this orgID.
+        let memberRecordDeleted = !change.after.exists;
+        if (memberRecordDeleted) {
+          let newOrgs = Object.assign(oldOrgs, {});
+          delete newOrgs[context.params.orgID];
+          let newClaims = { orgs: newOrgs };
+          console.log(`member record deleted -- updating custom claims`);
+          return admin.auth().setCustomUserClaims(uid, newClaims);
+        }
+
+        let memberInactive = !after.active;
+        if (memberInactive) {
+          let newOrgs = Object.assign(oldOrgs, {});
+          delete newOrgs[context.params.orgID];
+          let newClaims = { orgs: newOrgs };
+          console.log(`member is inactive -- deleting custom claims`);
+          return admin.auth().setCustomUserClaims(uid, null);
+        }
+
         let missingClaims =
-          !oldClaims || !("orgID" in oldClaims) || !("admin" in oldClaims);
+          !oldClaims ||
+          !oldClaims.orgID ||
+          !oldClaims.admin ||
+          !oldClaims.orgs ||
+          !oldClaims.orgs[orgID];
 
         // True if the user is an active org member (should have claims)
         // but does not have claims for any reason.
@@ -111,6 +114,17 @@ exports.installMemberOAuthClaim = functions.firestore
 
         if (needsClaims || memberJoined || adminChanged) {
           console.log("writing new custom claims", newCustomClaims);
+
+          let newOrg = {};
+          newOrg[context.params.orgID] = { admin: after.admin };
+          let newOrgs = Object.assign(oldOrgs, newOrg);
+
+          // Add custom claims if necessary.
+          let newCustomClaims = {
+            orgID: context.params.orgID,
+            admin: after.admin,
+            orgs: newOrgs,
+          };
 
           // Set custom claims for the user.
           return admin
