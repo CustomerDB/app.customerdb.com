@@ -73,7 +73,7 @@ exports.installMemberOAuthClaim = functions.firestore
 
         console.log(`found existing custom claims for ${uid}`, oldClaims);
 
-        oldOrgs = (oldCustomClaims && oldCustomClaims.orgs) || {};
+        let oldOrgs = (oldClaims && oldClaims.orgs) || {};
 
         // Remove custom claims if necessary.
         // only delete claims for this orgID.
