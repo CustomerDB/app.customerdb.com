@@ -113,8 +113,6 @@ exports.installMemberOAuthClaim = functions.firestore
         let adminChanged = before.admin !== after.admin;
 
         if (needsClaims || memberJoined || adminChanged) {
-          console.log("writing new custom claims", newCustomClaims);
-
           let newOrg = {};
           newOrg[context.params.orgID] = { admin: after.admin };
           let newOrgs = Object.assign(oldOrgs, newOrg);
@@ -125,6 +123,8 @@ exports.installMemberOAuthClaim = functions.firestore
             admin: after.admin,
             orgs: newOrgs,
           };
+
+          console.log("writing new custom claims", newCustomClaims);
 
           // Set custom claims for the user.
           return admin
