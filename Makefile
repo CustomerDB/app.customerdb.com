@@ -28,8 +28,7 @@ local:
 		firebase emulators:exec --project=customerdb-development --only functions,firestore,ui "yarn start"
 
 apply-format:
-	./node_modules/.bin/import-sort --write `find src -name \*.js|tr '\n' ' '`
-	./node_modules/.bin/import-sort --write `find functions -name \*.js|tr '\n' ' '`
+	./node_modules/.bin/import-sort --write src/\*.js functions/\*.js
 	yarn prettier --write src/
 	yarn prettier --write functions/
 	yarn prettier --write public/
