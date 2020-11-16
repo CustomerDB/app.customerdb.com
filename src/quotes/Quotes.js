@@ -144,8 +144,12 @@ export default function Quotes(props) {
         <Grid
           container
           item
-          style={{ height: "3rem", backgroundColor: "white", position: "sticky",
-          top: "64px", }}
+          style={{
+            height: "3rem",
+            backgroundColor: "white",
+            position: "sticky",
+            top: "64px",
+          }}
         >
           <CustomSearchBox />
         </Grid>

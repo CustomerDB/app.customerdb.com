@@ -9,8 +9,8 @@ import Modal from "../shell_obsolete/Modal.js";
 import Row from "react-bootstrap/Row";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
-import { v4 as uuidv4 } from "uuid";
 import { useParams } from "react-router-dom";
+import { v4 as uuidv4 } from "uuid";
 
 export default function PersonEditDialog(props) {
   const { oauthClaims } = useContext(UserAuthContext);
