@@ -87,7 +87,10 @@ exports.installMemberOAuthClaim = functions.firestore
         let memberInactive = !after.active;
         if (memberInactive) {
           console.log(`member is inactive -- deleting custom claims`);
-          return admin.auth().setCustomUserClaims(uid, null);
+          let newOrgs = Object.assign(oldOrgs, {});
+          delete newOrgs[context.params.orgID];
+          let newClaims = { orgs: newOrgs };
+          return admin.auth().setCustomUserClaims(uid, newClaims);
         }
 
         let missingClaims =
