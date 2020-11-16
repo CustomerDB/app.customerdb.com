@@ -91,10 +91,20 @@ export default function Login(props) {
   };
 
   useEffect(() => {
-    if (!auth.oauthClaims || !auth.oauthClaims.orgID) {
+    if (!auth.oauthClaims || !auth.oauthClaims.orgs) {
       return;
     }
-    navigate(`/orgs/${auth.oauthClaims.orgID}`);
+
+    db.collection("userToOrg")
+      .doc(user.email)
+      .get()
+      .then((doc) => {
+        let userToOrg = doc.data();
+        if (!userToOrg.lastOrgID) {
+          return;
+        }
+        navigate(`/orgs/${userToOrg.lastOrgID}`);
+      });
   }, [auth.oauthClaims, navigate]);
 
   return auth.oauthUser === null && auth.oauthLoading === false ? (
