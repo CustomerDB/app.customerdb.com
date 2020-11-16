@@ -43,7 +43,6 @@ export default function OrgSelector({}) {
         snapshot.forEach((doc) => {
           newOrgMap[doc.id] = doc.data().name;
         });
-        console.log(newOrgMap);
         setOrgMap(newOrgMap);
       });
   }, [oauthClaims.orgs]);
@@ -52,12 +51,11 @@ export default function OrgSelector({}) {
     <Hidden smDown>
       <FormControl>
         <Select
-          labelId="tag-group-select-label"
-          id="tag-group-select"
+          labelId="org-select-label"
+          id="org-select"
           value={selectedOrgID}
           style={{ width: "10rem", color: "white" }}
           onChange={(event) => {
-            console.log(`Event target: ${event.target.value}`);
             setSelectedOrgID(event.target.value);
             navigate(`/orgs/${event.target.value}`);
           }}
