@@ -57,19 +57,17 @@ exports.installMemberOAuthClaim = functions.firestore
     let before = change.before.data();
     let after = change.after.data();
 
-    let uid = before && before.uid ? before.uid : after && after.uid;
+    let email = context.params.email;
+    let orgID = context.params.orgID;
 
-    if (!uid) {
-      console.log("no uid -- terminating");
-      return;
-    }
-
-    console.log(`getting user record ${uid} to read custom claims`);
+    console.log(`getting user record for ${email} to read custom claims`);
     return admin
       .auth()
-      .getUser(uid)
+      .getUserByEmail(email)
       .then((userRecord) => {
         let oldClaims = userRecord.customClaims;
+
+        let uid = userRecord.uid;
 
         console.log(`found existing custom claims for ${uid}`, oldClaims);
 
@@ -88,11 +86,11 @@ exports.installMemberOAuthClaim = functions.firestore
 
         let memberInactive = !after.active;
         if (memberInactive) {
+          console.log(`member is inactive -- deleting custom claims`);
           let newOrgs = Object.assign(oldOrgs, {});
           delete newOrgs[context.params.orgID];
           let newClaims = { orgs: newOrgs };
-          console.log(`member is inactive -- deleting custom claims`);
-          return admin.auth().setCustomUserClaims(uid, null);
+          return admin.auth().setCustomUserClaims(uid, newClaims);
         }
 
         let missingClaims =

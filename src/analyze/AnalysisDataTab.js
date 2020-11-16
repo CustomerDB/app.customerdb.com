@@ -55,7 +55,7 @@ export default function AnalysisDataTab(props) {
 
     let newDocumentIDs = props.analysis.documentIDs.slice();
 
-    let deleteDocumentCardsIfNecessary = () => { };
+    let deleteDocumentCardsIfNecessary = () => {};
 
     if (props.analysis.documentIDs.includes(documentID)) {
       // Remove it.

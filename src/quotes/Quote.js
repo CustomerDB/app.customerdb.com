@@ -54,7 +54,11 @@ export default function Quote({ hit }) {
 
   const quoteURL = `/orgs/${orgID}/interviews/${hit.documentID}/${hit.source}?quote=${hit.objectID}`;
 
-  const linkedTitle = <Link style={{color: "black"}} to={quoteURL}>{hit.documentName}</Link>;
+  const linkedTitle = (
+    <Link style={{ color: "black" }} to={quoteURL}>
+      {hit.documentName}
+    </Link>
+  );
 
   let contextPrefix, contextSuffix;
   if (hit.context) {
@@ -79,9 +83,8 @@ export default function Quote({ hit }) {
           borderRadius: "0.5rem",
         }}
       >
-
         <CardContent>
-          <Typography variant="h6" gutterBottom style={{fontWeight: "bold"}}>
+          <Typography variant="h6" gutterBottom style={{ fontWeight: "bold" }}>
             {linkedTitle}
           </Typography>
           <div>
@@ -95,10 +98,10 @@ export default function Quote({ hit }) {
               />
             )}
             <p style={{ display: "inline" }}>
-              {hit.personName} <Moment fromNow date={documentCreationTimestamp} />
+              {hit.personName}{" "}
+              <Moment fromNow date={documentCreationTimestamp} />
             </p>
           </div>
-
 
           {mediaURL && (
             <div
@@ -116,7 +119,10 @@ export default function Quote({ hit }) {
                 light={hit.thumbnailURL || true}
                 playing={true}
                 onReady={() => {
-                  if (hit.startTime && playerRef.current.getCurrentTime() === 0) {
+                  if (
+                    hit.startTime &&
+                    playerRef.current.getCurrentTime() === 0
+                  ) {
                     playerRef.current.seekTo(hit.startTime);
                   }
                 }}
