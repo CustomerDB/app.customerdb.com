@@ -90,10 +90,19 @@ exports.rewriteOauthClaims = functions.pubsub
           return auth.getUserByEmail(member.email).then((userRecord) => {
             const uid = userRecord.uid;
             const oldClaims = userRecord.customClaims;
+
+            if (!oldClaims) {
+              console.log(
+                `no custom claims found for ${member.email} (${uid}) -- skipping`
+              );
+              return;
+            }
+
             console.log(
               `found existing custom claims for ${member.email} (${uid})`,
               oldClaims
             );
+
             if (oldClaims.orgs) {
               console.log(
                 "existing claims already contains orgs field -- skipping"

@@ -501,16 +501,6 @@
           "order": "ASCENDING"
         }
       ]
-    },
-    {
-      "collectionGroup": "members",
-      "queryScope": "COLLECTION_GROUP",
-      "fields": [
-        {
-          "fieldPath": "active",
-          "order": "ASCENDING"
-        }
-      ]
     }
   ],
   "fieldOverrides": [
@@ -631,6 +621,16 @@
     {
       "collectionGroup": "calls",
       "fieldPath": "roomSid",
+      "indexes": [
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION_GROUP"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "members",
+      "fieldPath": "active",
       "indexes": [
         {
           "order": "ASCENDING",
