@@ -110,7 +110,9 @@ exports.rewriteOauthClaims = functions.pubsub
               return;
             }
             const newClaims = Object.assign(oldClaims, {
-              orgs: { admin: member.admin },
+              orgs: {
+                admin: member.admin == true,
+              },
             });
             console.log(
               `writing new custom claims for ${member.email} (${uid})`,
