@@ -65,3 +65,50 @@ exports.reIndexAllHighlights = functions.pubsub
 
     return Promise.all([highlightsPromise, transcriptHighlightsPromise]);
   });
+
+exports.rewriteOauthClaims = functions.pubsub
+  .topic("rewrite-oauth-claims")
+  .onPublish((message) => {
+    const auth = admin.auth();
+    const db = admin.firestore();
+    return db
+      .collectionGroup("members")
+      .where("active", "==", true)
+      .get()
+      .then((snapshot) => {
+        console.log(`rewriting oauth claims for ${snapshot.size} users`);
+        return snapshot.docs.map((doc) => {
+          const member = doc.data();
+
+          // TODO(CD): remove -- for testing
+          const TEST_EMAIL = "connor.p.d@gmail.com";
+          if (!member.email !== TEST_EMAIL) {
+            console.debug(`email is not "${TEST_EMAIL}" -- skipping`);
+            return;
+          }
+
+          return auth.getUserByEmail(member.email).then((userRecord) => {
+            const uid = userRecord.uid;
+            const oldClaims = userRecord.customClaims;
+            console.log(
+              `found existing custom claims for ${member.email} (${uid})`,
+              oldClaims
+            );
+            if (oldClaims.orgs) {
+              console.log(
+                "existing claims already contains orgs field -- skipping"
+              );
+              return;
+            }
+            const newClaims = Object.assign(oldClaims, {
+              orgs: { admin: member.admin },
+            });
+            console.log(
+              `writing new custom claims for ${member.email} (${uid})`,
+              newClaims
+            );
+            return admin.auth().setCustomUserClaims(uid, newClaims);
+          });
+        });
+      });
+  });
