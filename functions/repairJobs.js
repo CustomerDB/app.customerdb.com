@@ -71,72 +71,79 @@ exports.rewriteOauthClaims = functions.pubsub
   .onPublish((message) => {
     const auth = admin.auth();
     const db = admin.firestore();
+
     return db
-      .collectionGroup("members")
-      .where("active", "==", true)
+      .collection("organizations")
       .get()
       .then((snapshot) => {
-        console.log(`rewriting oauth claims for ${snapshot.size} users`);
+        console.log(
+          `rewriting oauth claims for ${snapshot.size} organizations`
+        );
         return snapshot.docs.map((doc) => {
-          const member = doc.data();
+          const organization = doc.data();
+          organization.id = doc.id;
 
-          // TODO(CD): remove -- for testing
-          const TEST_EMAIL = "connor.p.d@gmail.com";
-          if (member.email !== TEST_EMAIL) {
-            console.debug(`email is not "${TEST_EMAIL}" -- skipping`);
-            return;
-          }
+          const membersRef = doc.ref.collection("members");
 
-          return auth.getUserByEmail(member.email).then((userRecord) => {
-            const uid = userRecord.uid;
-            const oldClaims = userRecord.customClaims;
-
-            if (!oldClaims) {
-              console.log(
-                `no custom claims found for ${member.email} (${uid}) -- skipping`
-              );
-              return;
-            }
-
+          return membersRef.get().then((snapshot) => {
             console.log(
-              `found existing custom claims for ${member.email} (${uid})`,
-              oldClaims
+              `rewriting oauth claims for ${snapshot.size} users in organization "${organization.name}"`
             );
+            return snapshot.docs.map((doc) => {
+              const member = doc.data();
 
-            if (oldClaims.orgs) {
-              console.log(
-                "existing claims already contains orgs field -- skipping"
-              );
-              return;
-            }
-            const newClaims = Object.assign(oldClaims, {
-              orgs: {
-                admin: member.admin == true,
-              },
-            });
-            console.log(
-              `writing new custom claims for ${member.email} (${uid})`,
-              newClaims
-            );
-            return admin
-              .auth()
-              .setCustomUserClaims(uid, newClaims)
-              .then(() => {
-                // Touch the uid record (`/uids/{uid}`) to trigger id
-                // token refresh in the client.
-                //
-                // NOTE: The client refresh trigger subscription is
-                //       set up and handled in the WithOauthUser component.
-                return db
-                  .collection("uids")
-                  .doc(uid)
-                  .set({
-                    refreshTime: admin.firestore.FieldValue.serverTimestamp(),
-                  })
+              if (!member.active) {
+                console.log(`member ${member.email} is not active -- skipping`);
+                return;
+              }
+
+              return auth.getUserByEmail(member.email).then((userRecord) => {
+                const uid = userRecord.uid;
+                const oldClaims = userRecord.customClaims;
+
+                if (!oldClaims) {
+                  console.log(
+                    `no custom claims found for ${member.email} (${uid}) -- skipping`
+                  );
+                  return;
+                }
+
+                console.log(
+                  `found existing custom claims for ${member.email} (${uid})`,
+                  oldClaims
+                );
+
+                const oldOrgs = oldClaims.orgs || {};
+                const newOrgs = Object.assign(oldOrgs, {});
+                newOrgs[organization.id] = {
+                  admin: member.admin == true,
+                };
+                const newClaims = Object.assign(oldClaims, { orgs: newOrgs });
+                console.log(
+                  `writing new custom claims for ${member.email} (${uid})`,
+                  newClaims
+                );
+                return admin
+                  .auth()
+                  .setCustomUserClaims(uid, newClaims)
                   .then(() => {
-                    console.log("done triggering token refresh");
+                    // Touch the uid record (`/uids/{uid}`) to trigger id
+                    // token refresh in the client.
+                    //
+                    // NOTE: The client refresh trigger subscription is
+                    //       set up and handled in the WithOauthUser component.
+                    return db
+                      .collection("uids")
+                      .doc(uid)
+                      .set({
+                        refreshTime: admin.firestore.FieldValue.serverTimestamp(),
+                      })
+                      .then(() => {
+                        console.log("done triggering token refresh");
+                      });
                   });
               });
+            });
           });
         });
       });
