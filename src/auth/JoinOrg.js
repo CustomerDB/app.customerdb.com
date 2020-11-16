@@ -84,10 +84,10 @@ export default function JoinOrg(props) {
 
   useEffect(() => {
     console.log("useEffect auth", auth);
-    if (!auth || !auth.oauthClaims || !auth.oauthClaims.orgID) {
+    if (!auth || !auth.oauthClaims || !auth.oauthClaims.orgs) {
       return;
     }
-    if (orgID === auth.oauthClaims.orgID) {
+    if (auth.oauthClaims.orgs[orgID]) {
       navigate(`/orgs/${orgID}`);
       return;
     }
@@ -157,7 +157,7 @@ export default function JoinOrg(props) {
       .then(() => {
         // Success
         return db.collection("userToOrg").doc(user.email).set({
-          orgID: orgID,
+          lastOrgID: orgID,
         });
       });
   };
@@ -192,7 +192,7 @@ export default function JoinOrg(props) {
               .then(() => {
                 // Success
                 return db.collection("userToOrg").doc(email).set({
-                  orgID: orgID,
+                  lastOrgID: orgID,
                 });
               })
               .then(() => {
@@ -205,7 +205,12 @@ export default function JoinOrg(props) {
       });
   };
 
-  if (auth.oauthUser && auth.oauthClaims && !auth.oauthClaims.orgID) {
+  if (
+    auth.oauthUser &&
+    auth.oauthClaims &&
+    !auth.oauthClaims.orgs &&
+    !auth.oauthClaims.orgs[orgID]
+  ) {
     return <Loading />;
   }
 

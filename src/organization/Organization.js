@@ -27,14 +27,14 @@ export default function Organization() {
     }
 
     if (oauthClaims) {
-      if (!oauthClaims.orgID || oauthClaims.orgID !== orgID) {
+      if (!oauthClaims.orgs || !oauthClaims.org[orgID]) {
         console.debug("user not authorized", oauthClaims);
         navigate("/");
         setAuthorized(false);
         return;
       }
 
-      if (oauthClaims.orgID === orgID) {
+      if (oauthClaims.org[orgID]) {
         setAuthorized(true);
       }
     }

@@ -13,8 +13,8 @@ import Quote from "./Quote.js";
 import React from "react";
 import SearchIcon from "@material-ui/icons/Search";
 import Shell from "../shell/Shell.js";
-import { useSearchClient } from "../search/client.js";
 import useMediaQuery from "@material-ui/core/useMediaQuery";
+import { useSearchClient } from "../search/client.js";
 
 function SearchBox({
   currentRefinement,
@@ -125,13 +125,17 @@ export default function Quotes(props) {
   const SearchResults = connectHits((result) => {
     console.debug(`got ${result.hits.length} results`);
     let cols = Array.from(Array(colCount), () => []);
-    for (let i=0; i < result.hits.length; i++) {
+    for (let i = 0; i < result.hits.length; i++) {
       cols[i % colCount].push(result.hits[i]);
     }
 
-    return cols.map(col => <Grid container item direction="row" xs={12} md={6} lg={4} xl={3}>
-      {col.map(hit => <Quote key={hit.objectID} hit={hit} />)}
-    </Grid>);
+    return cols.map((col) => (
+      <Grid container item direction="row" xs={12} md={6} lg={4} xl={3}>
+        {col.map((hit) => (
+          <Quote key={hit.objectID} hit={hit} />
+        ))}
+      </Grid>
+    ));
   });
 
   let searchGrid = (
@@ -140,8 +144,12 @@ export default function Quotes(props) {
         <Grid
           container
           item
-          style={{ height: "3rem", backgroundColor: "white", position: "sticky",
-          top: "64px", }}
+          style={{
+            height: "3rem",
+            backgroundColor: "white",
+            position: "sticky",
+            top: "64px",
+          }}
         >
           <CustomSearchBox />
         </Grid>
