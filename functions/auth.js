@@ -35,7 +35,7 @@ exports.sendMemberEmail = functions.firestore
             .then((link) => {
               const msg = {
                 to: email,
-                from: "no-reply@quantap.com",
+                from: "hello@customerdb.com",
                 subject: `Join CustomerDB Organization ${orgName}`,
                 text: `Open ${link} in a browser to get started`,
                 html: `<a href="${link}">Get started</a> with CustomerDB`,

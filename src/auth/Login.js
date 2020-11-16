@@ -94,16 +94,17 @@ export default function Login(props) {
     if (!auth.oauthClaims || !auth.oauthClaims.orgs) {
       return;
     }
+    const db = firebase.firestore();
 
     db.collection("userToOrg")
-      .doc(user.email)
+      .doc(auth.oauthUser.email)
       .get()
       .then((doc) => {
         let userToOrg = doc.data();
-        if (!userToOrg.lastOrgID) {
+        if (!userToOrg.orgID) {
           return;
         }
-        navigate(`/orgs/${userToOrg.lastOrgID}`);
+        navigate(`/orgs/${userToOrg.orgID}`);
       });
   }, [auth.oauthClaims, navigate]);
 
