@@ -82,7 +82,7 @@ exports.rewriteOauthClaims = functions.pubsub
 
           // TODO(CD): remove -- for testing
           const TEST_EMAIL = "connor.p.d@gmail.com";
-          if (!member.email !== TEST_EMAIL) {
+          if (member.email !== TEST_EMAIL) {
             console.debug(`email is not "${TEST_EMAIL}" -- skipping`);
             return;
           }
@@ -116,7 +116,25 @@ exports.rewriteOauthClaims = functions.pubsub
               `writing new custom claims for ${member.email} (${uid})`,
               newClaims
             );
-            return admin.auth().setCustomUserClaims(uid, newClaims);
+            return admin
+              .auth()
+              .setCustomUserClaims(uid, newClaims)
+              .then(() => {
+                // Touch the uid record (`/uids/{uid}`) to trigger id
+                // token refresh in the client.
+                //
+                // NOTE: The client refresh trigger subscription is
+                //       set up and handled in the WithOauthUser component.
+                return db
+                  .collection("uids")
+                  .doc(uid)
+                  .set({
+                    refreshTime: admin.firestore.FieldValue.serverTimestamp(),
+                  })
+                  .then(() => {
+                    console.log("done triggering token refresh");
+                  });
+              });
           });
         });
       });
