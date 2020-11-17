@@ -7,17 +7,17 @@ service firebase.storage {
 
     match /{orgID}/transcriptions/{transcriptionID}/input/{media} {
       allow read, write: if signedInAndVerified()
-                         && request.auth.token.orgs[orgID];
+                         && orgID in request.auth.token.orgs;
     }
 
     match /{orgID}/transcriptions/{transcriptionID}/output/{media} {
       allow read: if signedInAndVerified()
-                  && request.auth.token.orgs[orgID];
+                  && orgID in request.auth.token.orgs;
     }
 
     match /{orgID}/avatars/{personID}/{media} {
       allow read, write: if signedInAndVerified()
-                         && request.auth.token.orgs[orgID];
+                         && orgID in request.auth.token.orgs;
     }
   }
 }
