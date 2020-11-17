@@ -107,7 +107,14 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function Shell({ search, title, children, ...otherProps }) {
+export default function Shell({
+  search,
+  title,
+  children,
+  noSidebar,
+  noOrgSelector,
+  ...otherProps
+}) {
   const { oauthUser } = useContext(UserAuthContext);
 
   const { orgID } = useParams();
@@ -148,25 +155,37 @@ export default function Shell({ search, title, children, ...otherProps }) {
           })}
         >
           <Toolbar>
-            <IconButton
-              color="inherit"
-              aria-label="open drawer"
-              onClick={handleDrawerOpen}
-              edge="start"
-              className={clsx(classes.menuButton, {
-                [classes.hide]: open || lgBreakpoint,
-              })}
-            >
-              <MenuIcon />
-            </IconButton>
-            {!lgBreakpoint && (
+            {!noSidebar && (
+              <IconButton
+                color="inherit"
+                aria-label="open drawer"
+                onClick={handleDrawerOpen}
+                edge="start"
+                className={clsx(classes.menuButton, {
+                  [classes.hide]: open || lgBreakpoint,
+                })}
+              >
+                <MenuIcon />
+              </IconButton>
+            )}
+            {!lgBreakpoint && !noSidebar && (
               <Typography variant="h6" noWrap>
                 {title}
               </Typography>
             )}
+
+            {noSidebar && (
+              <img
+                style={{ height: "2rem" }}
+                src={logoDarkBG}
+                alt="CustomerDB"
+              />
+            )}
+
             {search && <SearchInput />}
+
             <div className={classes.grow} />
-            <OrgSelector />
+            {!noOrgSelector && <OrgSelector />}
             {oauthUser && (
               <>
                 <IconButton
@@ -190,14 +209,16 @@ export default function Shell({ search, title, children, ...otherProps }) {
                   open={Boolean(anchorEl)}
                   onClose={handleClose}
                 >
-                  <MenuItem
-                    onClick={() => {
-                      setAnchorEl(null);
-                      navigate(`/orgs/${orgID}/settings/profile`);
-                    }}
-                  >
-                    Profile
-                  </MenuItem>
+                  {orgID && (
+                    <MenuItem
+                      onClick={() => {
+                        setAnchorEl(null);
+                        navigate(`/orgs/${orgID}/settings/profile`);
+                      }}
+                    >
+                      Profile
+                    </MenuItem>
+                  )}
                   <MenuItem
                     onClick={() => {
                       setAnchorEl(null);
@@ -211,80 +232,82 @@ export default function Shell({ search, title, children, ...otherProps }) {
             )}
           </Toolbar>
         </AppBar>
-        <Drawer
-          variant="permanent"
-          className={clsx(classes.drawer, {
-            [classes.drawerOpen]: open,
-            [classes.drawerClose]: !open,
-          })}
-          classes={{
-            paper: clsx({
+        {!noSidebar && (
+          <Drawer
+            variant="permanent"
+            className={clsx(classes.drawer, {
               [classes.drawerOpen]: open,
               [classes.drawerClose]: !open,
-            }),
-          }}
-        >
-          <div className={classes.toolbar}>
-            <img
-              style={{ width: "80%" }}
-              src={lgBreakpoint ? logoDarkBG : logo}
-              alt="CustomerDB product logo"
-            />
-            {!lgBreakpoint && (
-              <IconButton onClick={handleDrawerClose}>
-                {theme.direction === "rtl" ? (
-                  <ChevronRightIcon />
-                ) : (
-                  <ChevronLeftIcon />
-                )}
-              </IconButton>
-            )}
-          </div>
-          <Divider />
-          <List>
-            <NavListItem key="Interviews" to={`/orgs/${orgID}/interviews`}>
-              <ListItemIcon>
-                <RecordVoiceOverIcon />
-              </ListItemIcon>
-              <ListItemText primary="Interviews" />
-            </NavListItem>
-            <NavListItem key="Quotes" to={`/orgs/${orgID}/quotes`}>
-              <ListItemIcon>
-                <FormatQuoteIcon />
-              </ListItemIcon>
-              <ListItemText primary="Quotes" />
-            </NavListItem>
-            <NavListItem key="Guides" to={`/orgs/${orgID}/guides`}>
-              <ListItemIcon>
-                <ExploreIcon />
-              </ListItemIcon>
-              <ListItemText primary="Guides" />
-            </NavListItem>
-            <NavListItem key="Customers" to={`/orgs/${orgID}/people`}>
-              <ListItemIcon>
-                <GroupIcon />
-              </ListItemIcon>
-              <ListItemText primary="Customers" />
-            </NavListItem>
-            <NavListItem key="Analysis" to={`/orgs/${orgID}/analyze`}>
-              <ListItemIcon>
-                <MultilineChartIcon />
-              </ListItemIcon>
-              <ListItemText primary="Analysis" />
-            </NavListItem>
-          </List>
+            })}
+            classes={{
+              paper: clsx({
+                [classes.drawerOpen]: open,
+                [classes.drawerClose]: !open,
+              }),
+            }}
+          >
+            <div className={classes.toolbar}>
+              <img
+                style={{ width: "80%" }}
+                src={lgBreakpoint ? logoDarkBG : logo}
+                alt="CustomerDB"
+              />
+              {!lgBreakpoint && (
+                <IconButton onClick={handleDrawerClose}>
+                  {theme.direction === "rtl" ? (
+                    <ChevronRightIcon />
+                  ) : (
+                    <ChevronLeftIcon />
+                  )}
+                </IconButton>
+              )}
+            </div>
+            <Divider />
+            <List>
+              <NavListItem key="Interviews" to={`/orgs/${orgID}/interviews`}>
+                <ListItemIcon>
+                  <RecordVoiceOverIcon />
+                </ListItemIcon>
+                <ListItemText primary="Interviews" />
+              </NavListItem>
+              <NavListItem key="Quotes" to={`/orgs/${orgID}/quotes`}>
+                <ListItemIcon>
+                  <FormatQuoteIcon />
+                </ListItemIcon>
+                <ListItemText primary="Quotes" />
+              </NavListItem>
+              <NavListItem key="Guides" to={`/orgs/${orgID}/guides`}>
+                <ListItemIcon>
+                  <ExploreIcon />
+                </ListItemIcon>
+                <ListItemText primary="Guides" />
+              </NavListItem>
+              <NavListItem key="Customers" to={`/orgs/${orgID}/people`}>
+                <ListItemIcon>
+                  <GroupIcon />
+                </ListItemIcon>
+                <ListItemText primary="Customers" />
+              </NavListItem>
+              <NavListItem key="Analysis" to={`/orgs/${orgID}/analyze`}>
+                <ListItemIcon>
+                  <MultilineChartIcon />
+                </ListItemIcon>
+                <ListItemText primary="Analysis" />
+              </NavListItem>
+            </List>
 
-          <Divider />
+            <Divider />
 
-          <List>
-            <NavListItem key="Settings" to={`/orgs/${orgID}/settings`}>
-              <ListItemIcon>
-                <SettingsIcon />
-              </ListItemIcon>
-              <ListItemText primary="Settings" />
-            </NavListItem>
-          </List>
-        </Drawer>
+            <List>
+              <NavListItem key="Settings" to={`/orgs/${orgID}/settings`}>
+                <ListItemIcon>
+                  <SettingsIcon />
+                </ListItemIcon>
+                <ListItemText primary="Settings" />
+              </NavListItem>
+            </List>
+          </Drawer>
+        )}
         <main className={classes.content}>
           <div className={classes.toolbar} />
           {children}
