@@ -39,6 +39,53 @@ exports.sendSignupEmail = functions.firestore
     }
   });
 
+function sendVerifyEmail(email) {
+  return admin
+    .auth()
+    .getUserByEmail(email)
+    .then((userRecord) => {
+      // Check that the email hasn't already been verified.
+      if (userRecord.email_verified) {
+        console.debug("email already verified -- quitting");
+        return;
+      }
+
+      let baseURL = functions.config().invite_email.base_url;
+      let urlEncodedEmail = encodeURIComponent(email);
+
+      let actionCodeSettings = {
+        url: `${baseURL}/verify?email=${urlEncodedEmail}`,
+        handleCodeInApp: true,
+      };
+      return admin
+        .auth()
+        .generateSignInWithEmailLink(email, actionCodeSettings)
+        .then((link) => {
+          const msg = {
+            to: email,
+            from: "hello@customerdb.com",
+            subject: `Verify your email for CustomerDB`,
+            text: `Click ${link} in a browser to verify your email`,
+            html: `<a href="${link}">Click here</a> to verify your email with CustomerDB`,
+          };
+
+          return sgMail.send(msg);
+        });
+    });
+}
+
+exports.sendVerifyEmail = functions.https.onCall((data, context) => {
+  // We expect a user to have logged in successfully before requesting a new verification email.
+  if (!context.auth) {
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      "Authentication required."
+    );
+  }
+
+  return sendVerifyEmail(context.auth.email);
+});
+
 exports.signupEmail = functions.https.onCall((data, context) => {
   if (!data.name || !data.email || !data.password) {
     throw new functions.https.HttpsError(
@@ -60,12 +107,11 @@ exports.signupEmail = functions.https.onCall((data, context) => {
       console.log("Found existing record for ${email} - aborting");
       throw new functions.https.HttpsError(
         "already-exists",
-        `user already exists with email ${email}`
+        `user already exists`
       );
     })
     .catch((error) => {
       if (error.code !== "auth/user-not-found") {
-        console.log("error is not user not found: ", error);
         throw new functions.https.HttpsError("internal", error);
       }
 
@@ -100,24 +146,7 @@ exports.signupEmail = functions.https.onCall((data, context) => {
           })
           .then(() => {
             // Send the verify email email.
-            let actionCodeSettings = {
-              url: `${baseURL}/verify?email=${urlEncodedEmail}`,
-              handleCodeInApp: true,
-            };
-            admin
-              .auth()
-              .generateSignInWithEmailLink(email, actionCodeSettings)
-              .then((link) => {
-                const msg = {
-                  to: email,
-                  from: "hello@customerdb.com",
-                  subject: `Verify your email for CustomerDB`,
-                  text: `Click ${link} in a browser to verify your email`,
-                  html: `<a href="${link}">Click here</a> to verify your email with CustomerDB`,
-                };
-
-                return sgMail.send(msg);
-              });
+            return sendVerifyEmail(email);
           });
       });
     });
