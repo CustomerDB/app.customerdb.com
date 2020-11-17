@@ -184,7 +184,7 @@ exports.getSearchKey = functions.https.onCall((data, context) => {
 
   let orgID = data.orgID;
   const orgsFromClaim = context.auth.token.orgs;
-  if (!orgsFromClaim || !orgsFromClaim.includes(orgID)) {
+  if (!orgsFromClaim || !orgsFromClaim[orgID]) {
     throw new functions.https.HttpsError(
       "permission-denied",
       `user does not have permision to search org ${orgID}`
