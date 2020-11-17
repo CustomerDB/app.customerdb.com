@@ -91,7 +91,7 @@ export default function Login(props) {
   };
 
   useEffect(() => {
-    if (!auth.oauthClaims || !auth.oauthClaims.orgs) {
+    if (!auth.oauthClaims || !auth.oauthClaims.orgs || !auth.oauthUser.email) {
       return;
     }
     const db = firebase.firestore();
@@ -106,7 +106,7 @@ export default function Login(props) {
         }
         navigate(`/orgs/${userToOrg.orgID}`);
       });
-  }, [auth.oauthClaims, navigate, auth.oauthUser.email, firebase]);
+  }, [auth.oauthClaims, navigate, auth, firebase]);
 
   return auth.oauthUser === null && auth.oauthLoading === false ? (
     <Grid container justify="center">
