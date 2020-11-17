@@ -45,7 +45,7 @@ function sendVerifyEmail(email) {
     .getUserByEmail(email)
     .then((userRecord) => {
       // Check that the email hasn't already been verified.
-      if (userRecord.email_verified) {
+      if (userRecord.emailVerified) {
         console.debug("email already verified -- quitting");
         return;
       }
@@ -184,10 +184,18 @@ exports.getInvitedOrgs = functions.https.onCall((data, context) => {
       "Authentication required."
     );
   }
+
+  if (!context.auth.token.email_verified) {
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      "Email verification required."
+    );
+  }
+
   const db = admin.firestore();
   return db
     .collectionGroup("members")
-    .where("email", "==", context.auth.email)
+    .where("email", "==", context.auth.token.email)
     .where("invited", "==", true)
     .get()
     .then((snapshot) => {
