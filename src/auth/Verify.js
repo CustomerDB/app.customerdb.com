@@ -62,7 +62,7 @@ export default function Verify() {
             <a
               href="#"
               onClick={() => {
-                sendVerifyEmailFunc({ email: email }).then(() => {
+                sendVerifyEmailFunc().then(() => {
                   setEmailSent(true);
                 });
               }}

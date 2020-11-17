@@ -83,9 +83,7 @@ exports.sendVerifyEmail = functions.https.onCall((data, context) => {
     );
   }
 
-  console.log(JSON.stringify(context.auth));
-
-  return sendVerifyEmail(context.auth.email);
+  return sendVerifyEmail(context.auth.token.email);
 });
 
 exports.signupEmail = functions.https.onCall((data, context) => {
