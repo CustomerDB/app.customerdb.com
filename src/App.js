@@ -11,9 +11,12 @@ import JoinOrg from "./auth/JoinOrg.js";
 import Login from "./auth/Login.js";
 import Logout from "./auth/Logout.js";
 import Organization from "./organization/Organization.js";
+import Organizations from "./orgs/Organizations.js";
 import React from "react";
+import RequireVerifiedEmail from "./auth/RequireVerifiedEmail.js";
 import ResetPassword from "./auth/ResetPassword.js";
 import { BrowserRouter as Router } from "react-router-dom";
+import VerifyEmail from "./auth/VerifyEmail.js";
 import WithOauthUser from "./auth/WithOauthUser.js";
 
 export default function App() {
@@ -64,14 +67,35 @@ export default function App() {
                 />
               </Route>
 
+              <Route
+                path="verify-email"
+                element={
+                  <WithOauthUser>
+                    <VerifyEmail />
+                  </WithOauthUser>
+                }
+              />
+
               <Route path="/reset-password" element={<ResetPassword />} />
 
               <Route path="orgs">
                 <Route
+                  path="/"
+                  element={
+                    <WithOauthUser>
+                      <RequireVerifiedEmail>
+                        <Organizations />
+                      </RequireVerifiedEmail>
+                    </WithOauthUser>
+                  }
+                />
+                <Route
                   path=":orgID/*"
                   element={
                     <WithOauthUser>
-                      <Organization />
+                      <RequireVerifiedEmail>
+                        <Organization />
+                      </RequireVerifiedEmail>
                     </WithOauthUser>
                   }
                 />
@@ -81,7 +105,9 @@ export default function App() {
                 path="admin"
                 element={
                   <WithOauthUser>
-                    <Admin />
+                    <RequireVerifiedEmail>
+                      <Admin />
+                    </RequireVerifiedEmail>
                   </WithOauthUser>
                 }
               />

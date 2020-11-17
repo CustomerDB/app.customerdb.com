@@ -29,7 +29,7 @@ export default function OrgSelector() {
   }, [orgID]);
 
   useEffect(() => {
-    if (!oauthClaims.orgs) {
+    if (!oauthClaims || !oauthClaims.orgs) {
       return;
     }
 
@@ -45,7 +45,7 @@ export default function OrgSelector() {
         });
         setOrgMap(newOrgMap);
       });
-  }, [oauthClaims.orgs, db, firebase.firestore.FieldPath]);
+  }, [oauthClaims, db, firebase.firestore.FieldPath]);
 
   return (
     <Hidden smDown>
