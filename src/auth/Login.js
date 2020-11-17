@@ -106,7 +106,7 @@ export default function Login(props) {
         }
         navigate(`/orgs/${userToOrg.orgID}`);
       });
-  }, [auth.oauthClaims, navigate]);
+  }, [auth.oauthClaims, navigate, auth.oauthUser.email, firebase]);
 
   return auth.oauthUser === null && auth.oauthLoading === false ? (
     <Grid container justify="center">

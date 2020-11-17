@@ -48,7 +48,7 @@ export default function Organization() {
         });
       }
     }
-  }, [navigate, orgID, oauthUser, oauthClaims]);
+  }, [navigate, orgID, oauthUser, oauthClaims, db]);
 
   // Initialize intercom on load
   useEffect(() => {

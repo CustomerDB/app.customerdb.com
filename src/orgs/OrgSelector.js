@@ -8,7 +8,7 @@ import MenuItem from "@material-ui/core/MenuItem";
 import Select from "@material-ui/core/Select";
 import UserAuthContext from "../auth/UserAuthContext";
 
-export default function OrgSelector({}) {
+export default function OrgSelector() {
   const { orgID } = useParams();
   const { oauthClaims } = useContext(UserAuthContext);
   const navigate = useNavigate();
@@ -45,7 +45,7 @@ export default function OrgSelector({}) {
         });
         setOrgMap(newOrgMap);
       });
-  }, [oauthClaims.orgs]);
+  }, [oauthClaims.orgs, db, firebase.firestore.FieldPath]);
 
   return (
     <Hidden smDown>
