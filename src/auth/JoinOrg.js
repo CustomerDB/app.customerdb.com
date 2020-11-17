@@ -182,7 +182,6 @@ export default function JoinOrg(props) {
               .collection("members")
               .doc(email)
               .update({
-                uid: user.uid,
                 email: user.email,
                 displayName: name,
                 invited: false,
