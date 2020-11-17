@@ -206,8 +206,7 @@ export default function JoinOrg(props) {
   if (
     auth.oauthUser &&
     auth.oauthClaims &&
-    !auth.oauthClaims.orgs &&
-    !auth.oauthClaims.orgs[orgID]
+    !(auth.oauthClaims.orgs && auth.oauthClaims.orgs[orgID])
   ) {
     return <Loading />;
   }
