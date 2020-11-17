@@ -13,10 +13,15 @@ export default function Speakers({
   const { transcriptionsRef } = useFirestore();
   const { orgID } = useParams();
   const [speakers, setSpeakers] = useState();
-  const [speakerNodes, setSpeakerNodes] = useState([]);
+  const [speakerNodes, setSpeakerNodes] = useState();
 
   const refreshNodes = () => {
     let nodes = document.getElementsByClassName("speaker");
+
+    // TODO(NN): Find a more stable way of detecting "document loaded"
+    if (nodes.length === 0) {
+      return;
+    }
 
     let newSpeakerNodes = [];
     for (let i = 0; i < nodes.length; i++) {
@@ -25,6 +30,7 @@ export default function Speakers({
         newSpeakerNodes.push(node);
       }
     }
+
     setSpeakerNodes(newSpeakerNodes);
   };
 
@@ -103,6 +109,10 @@ export default function Speakers({
       }
     });
   }, [transcriptionID, transcriptionsRef, speakerNodes, speakers]);
+
+  if (!speakerNodes) {
+    return <></>;
+  }
 
   return speakerNodes.map((sn) => {
     return ReactDOM.createPortal(
