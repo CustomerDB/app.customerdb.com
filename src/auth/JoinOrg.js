@@ -146,7 +146,6 @@ export default function JoinOrg(props) {
       .collection("members")
       .doc(user.email)
       .update({
-        uid: user.uid,
         email: user.email,
         displayName: user.displayName,
         photoURL: user.photoURL,
@@ -157,7 +156,7 @@ export default function JoinOrg(props) {
       .then(() => {
         // Success
         return db.collection("userToOrg").doc(user.email).set({
-          lastOrgID: orgID,
+          orgID: orgID,
         });
       });
   };
@@ -191,7 +190,7 @@ export default function JoinOrg(props) {
               .then(() => {
                 // Success
                 return db.collection("userToOrg").doc(email).set({
-                  lastOrgID: orgID,
+                  orgID: orgID,
                 });
               })
               .then(() => {
