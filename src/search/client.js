@@ -55,7 +55,7 @@ function getSearchClient(firebase, orgID, userID) {
     .get()
     .then((doc) => {
       if (!doc.exists) {
-        return getSearchKey().then((result) => result.data.key);
+        return getSearchKey({ orgID: orgID }).then((result) => result.data.key);
       }
 
       let data = doc.data();
