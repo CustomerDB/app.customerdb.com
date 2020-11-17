@@ -8,7 +8,7 @@ export default function RequireVerifiedEmail({ children }) {
   if (!oauthUser) return <></>;
 
   if (!oauthUser.emailVerified) {
-    return <Navigate to="/verify-email" />;
+    return <Navigate to="/verify" />;
   }
 
   return children;

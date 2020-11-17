@@ -70,14 +70,7 @@ export default function App() {
 
               <Route path="signup" element={<Signup />} />
 
-              <Route
-                path="verify"
-                element={
-                  <WithOauthUser>
-                    <Route path="verify" element={<Verify />} />
-                  </WithOauthUser>
-                }
-              />
+              <Route path="verify" element={<Verify />} />
 
               <Route path="/reset-password" element={<ResetPassword />} />
 

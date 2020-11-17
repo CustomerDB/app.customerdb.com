@@ -83,6 +83,8 @@ exports.sendVerifyEmail = functions.https.onCall((data, context) => {
     );
   }
 
+  console.log(JSON.stringify(context.auth));
+
   return sendVerifyEmail(context.auth.email);
 });
 

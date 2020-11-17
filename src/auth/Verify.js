@@ -30,7 +30,7 @@ export default function Verify() {
   useEffect(() => {
     firebase
       .auth()
-      .checkActionCode(oobCode)
+      .checkActionCode(oobCode || "")
       .then((info) => {
         return firebase
           .auth()
@@ -40,7 +40,7 @@ export default function Verify() {
           });
       })
       .catch(() => {
-        setVerificationSucceeded(true);
+        setVerificationSucceeded(false);
       });
   }, []);
 
@@ -50,22 +50,28 @@ export default function Verify() {
 
   return (
     <div>
-      <h1>Could not verify email</h1>
-      {emailSent ? (
-        <p>
-          Click{" "}
-          <a
-            href="#"
-            onClick={() => {
-              sendVerifyEmailFunc({ email: email }).then(() => {
-                setEmailSent(true);
-              });
-            }}
-          >
-            here to resend
-          </a>{" "}
-          the verification email
-        </p>
+      <h1>Need to verify email</h1>
+      {!emailSent ? (
+        <>
+          <p>
+            You should already have an email in your inbox with a verification
+            link.
+          </p>
+          <p>
+            In case you didn't, click{" "}
+            <a
+              href="#"
+              onClick={() => {
+                sendVerifyEmailFunc({ email: email }).then(() => {
+                  setEmailSent(true);
+                });
+              }}
+            >
+              here to resend
+            </a>{" "}
+            the verification email
+          </p>
+        </>
       ) : (
         <p>Email sent</p>
       )}
