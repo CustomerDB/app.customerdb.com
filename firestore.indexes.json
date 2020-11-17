@@ -501,6 +501,20 @@
           "order": "ASCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "members",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "email",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "invited",
+          "order": "ASCENDING"
+        }
+      ]
     }
   ],
   "fieldOverrides": [

@@ -14,6 +14,8 @@ import Organization from "./organization/Organization.js";
 import React from "react";
 import ResetPassword from "./auth/ResetPassword.js";
 import { BrowserRouter as Router } from "react-router-dom";
+import Signup from "./auth/Signup.js";
+import Verify from "./auth/Verify.js";
 import WithOauthUser from "./auth/WithOauthUser.js";
 
 export default function App() {
@@ -63,6 +65,10 @@ export default function App() {
                   }
                 />
               </Route>
+
+              <Route path="signup" element={<Signup />} />
+
+              <Route path="verify" element={<Verify />} />
 
               <Route path="/reset-password" element={<ResetPassword />} />
 
