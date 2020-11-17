@@ -176,6 +176,36 @@ exports.signupGoogle = functions.https.onCall((data, context) => {
   });
 });
 
+// Returns an array of organization objects, each with name, ID
+exports.getInvitedOrgs = functions.https.onCall((data, context) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      "Authentication required."
+    );
+  }
+  const db = admin.firestore();
+  return db
+    .collectionGroup("members")
+    .where("email", "==", context.auth.email)
+    .where("invited", "==", true)
+    .get()
+    .then((snapshot) => {
+      return snapshot.docs.map((memberDoc) => {
+        const member = memberDoc.data();
+        const orgRef = memberDoc.parent.parent;
+        return orgRef.get().then((orgDoc) => {
+          let org = orgDoc.data();
+          return {
+            inviteSentTimestamp: member.inviteSentTimestamp,
+            orgID: orgDoc.id,
+            orgName: org.name,
+          };
+        });
+      });
+    });
+});
+
 // Authentication trigger adds custom claims to the user's auth token
 // when members are written
 exports.installMemberOAuthClaim = functions.firestore
