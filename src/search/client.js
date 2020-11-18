@@ -4,10 +4,14 @@ import FirebaseContext from "../util/FirebaseContext.js";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import algoliasearch from "algoliasearch/lite";
 
+import { useParams } from "react-router-dom";
+
 export function useSearchClient() {
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
   const [client, setClient] = useState();
+
+  const { orgID } = useParams();
 
   useEffect(() => {
     if (
@@ -23,7 +27,8 @@ export function useSearchClient() {
     if (
       !firebase ||
       !oauthClaims ||
-      !oauthClaims.orgID ||
+      !oauthClaims.orgs ||
+      !oauthClaims.orgs[orgID] ||
       !oauthClaims.user_id
     ) {
       return;
@@ -33,12 +38,10 @@ export function useSearchClient() {
       return;
     }
 
-    getSearchClient(firebase, oauthClaims.orgID, oauthClaims.user_id).then(
-      (client) => {
-        setClient(client);
-      }
-    );
-  }, [firebase, oauthClaims, oauthClaims.orgID, oauthClaims.user_id, client]);
+    getSearchClient(firebase, orgID, oauthClaims.user_id).then((client) => {
+      setClient(client);
+    });
+  }, [firebase, oauthClaims, orgID, oauthClaims.user_id, client]);
 
   return client;
 }
