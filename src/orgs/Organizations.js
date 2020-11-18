@@ -23,7 +23,7 @@ export default function Organizations() {
         <PendingInvites />
         <Grid container item xs>
           {orgIDs.map((id) => (
-            <OrgCard orgID={id} />
+            <OrgCard key={id} orgID={id} />
           ))}
         </Grid>
       </Grid>
@@ -33,26 +33,27 @@ export default function Organizations() {
 
 function PendingInvites() {
   const firebase = useContext(FirebaseContext);
-  const getInvitedOrgs = firebase
-    .functions()
-    .httpsCallable("auth-getInvitedOrgs");
   const [invitedOrgs, setInvitedOrgs] = useState();
 
   useEffect(() => {
-    if (!getInvitedOrgs) {
+    if (!firebase) {
       return;
     }
+    const getInvitedOrgs = firebase
+      .functions()
+      .httpsCallable("auth-getInvitedOrgs");
     getInvitedOrgs().then((result) => {
-      console.debug("invited orgs", result);
+      console.debug("invited orgs", result.data);
       setInvitedOrgs(result.data);
     });
-  }, [getInvitedOrgs]);
+  }, [firebase]);
 
-  if (!invitedOrgs) return <></>;
+  if (!invitedOrgs || !invitedOrgs.length) return <></>;
 
   const inviteCards = invitedOrgs.map(
     ({ orgID, orgName, inviteSentTimestamp }) => (
       <InviteCard
+        key={orgID}
         orgID={orgID}
         orgName={orgName}
         inviteSentTimestamp={inviteSentTimestamp}
@@ -61,11 +62,14 @@ function PendingInvites() {
   );
 
   return (
-    <Grid container item xs>
-      <Grid item xs>
-        <p>Pending invites</p>
+    <>
+      <Grid container item xs>
+        <Grid item xs>
+          <p>Pending invites</p>
+        </Grid>
+        {inviteCards}
       </Grid>
-      {inviteCards}
-    </Grid>
+      <hr />
+    </>
   );
 }

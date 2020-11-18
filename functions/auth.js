@@ -201,7 +201,7 @@ exports.getInvitedOrgs = functions.https.onCall((data, context) => {
     .then((snapshot) => {
       return snapshot.docs.map((memberDoc) => {
         const member = memberDoc.data();
-        const orgRef = memberDoc.parent.parent;
+        const orgRef = memberDoc.ref.parent.parent;
         return orgRef.get().then((orgDoc) => {
           let org = orgDoc.data();
           return {
