@@ -176,7 +176,8 @@ exports.signupGoogle = functions.https.onCall((data, context) => {
   });
 });
 
-// Returns an array of organization objects, each with name, ID
+// Returns an array of organization objects, each with
+// name, ID, and the timestamp of when the user was invited.
 exports.getInvitedOrgs = functions.https.onCall((data, context) => {
   if (!context.auth) {
     throw new functions.https.HttpsError(
