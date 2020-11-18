@@ -163,7 +163,7 @@ exports.signupGoogle = functions.https.onCall((data, context) => {
   let db = admin.firestore();
   let membersRef = db
     .collectionGroup("members")
-    .where("email", "==", context.auth.email)
+    .where("email", "==", context.auth.token.email)
     .where("invited", "==", true);
   return membersRef.get().then((snapshot) => {
     if (snapshot.size === 0) {
