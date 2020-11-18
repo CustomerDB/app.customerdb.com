@@ -38,6 +38,7 @@ export default function Organizations() {
 function PendingInvites() {
   const firebase = useContext(FirebaseContext);
   const [invitedOrgs, setInvitedOrgs] = useState();
+  const [rerender, setRerender] = useState();
 
   useEffect(() => {
     if (!firebase) {
@@ -51,7 +52,7 @@ function PendingInvites() {
       console.debug("invited orgs", result.data);
       setInvitedOrgs(result.data);
     });
-  }, [firebase]);
+  }, [firebase, rerender]);
 
   if (!invitedOrgs || !invitedOrgs.length) return <></>;
 
@@ -62,6 +63,7 @@ function PendingInvites() {
         orgID={orgID}
         orgName={orgName}
         inviteSentTimestamp={inviteSentTimestamp}
+        setRerender={setRerender}
       />
     )
   );

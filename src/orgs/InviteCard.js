@@ -10,14 +10,17 @@ import UserAuthContext from "../auth/UserAuthContext";
 import FirebaseContext from "../util/FirebaseContext";
 import CheckIcon from "@material-ui/icons/Check";
 import ClearIcon from "@material-ui/icons/Clear";
+import LinearProgress from "@material-ui/core/LinearProgress";
 
-export default function InviteCard({ orgID, orgName, inviteSentTimestamp }) {
+const { v4: uuidv4 } = require("uuid");
+
+export default function InviteCard({ orgID, orgName, setRerender }) {
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
   const db = firebase.firestore();
 
   const [loading, setLoading] = useState(false);
-  const [joined, setJoined] = useState(false);
+  const [show, setShow] = useState(true);
 
   const linkedTitle = orgID && orgName && (
     <Link style={{ color: "black" }} to={`/orgs/${orgID}`}>
@@ -26,6 +29,8 @@ export default function InviteCard({ orgID, orgName, inviteSentTimestamp }) {
   );
 
   const onAccept = (e) => {
+    setLoading(true);
+
     if (!db || !oauthClaims || !oauthClaims.email) {
       return;
     }
@@ -44,17 +49,35 @@ export default function InviteCard({ orgID, orgName, inviteSentTimestamp }) {
         joinedTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
       })
       .then(() => {
-        console.debug("joined!");
+        setShow(false);
+        setRerender(uuidv4());
+      })
+      .catch((err) => {
+        setLoading(false);
+        console.error(err);
       });
   };
 
   const onIgnore = (e) => {
+    setLoading(true);
     const ignoreInviteFunc = firebase
       .functions()
       .httpsCallable("auth-ignoreInvite");
 
-    ignoreInviteFunc({ orgID: orgID }).then(() => {});
+    ignoreInviteFunc({ orgID: orgID })
+      .then(() => {
+        setShow(false);
+        setRerender(uuidv4());
+      })
+      .catch((err) => {
+        setLoading(false);
+        console.error(err);
+      });
   };
+
+  if (!show) {
+    return <></>;
+  }
 
   return (
     <Card
@@ -69,6 +92,7 @@ export default function InviteCard({ orgID, orgName, inviteSentTimestamp }) {
         <Typography variant="h6" gutterBottom style={{ fontWeight: "bold" }}>
           {linkedTitle}
         </Typography>
+        {loading && <LinearProgress />}
         <CardActions>
           <Button
             startIcon={<ClearIcon />}
