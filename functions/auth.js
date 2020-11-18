@@ -98,13 +98,13 @@ exports.signupEmail = functions.https.onCall((data, context) => {
   let email = data.email;
   let password = data.password;
 
-  console.log(`Looking up email ${email}`);
+  console.debug(`Looking up email ${email}`);
 
   return admin
     .auth()
     .getUserByEmail(email)
     .then((userRecord) => {
-      console.log("Found existing record for ${email} - aborting");
+      console.debug("Found existing record for ${email} - aborting");
       throw new functions.https.HttpsError(
         "already-exists",
         `user already exists`
@@ -125,7 +125,7 @@ exports.signupEmail = functions.https.onCall((data, context) => {
           throw new functions.https.HttpsError("internal", "user not invited");
         }
 
-        console.log(`Creating user for email ${email}`);
+        console.debug(`Creating user for email ${email}`);
 
         // Create firebase user.
         return admin
@@ -160,18 +160,36 @@ exports.signupGoogle = functions.https.onCall((data, context) => {
     );
   }
 
+  // Detect whether user already have access to an organization.
   let db = admin.firestore();
-  let membersRef = db
+  let email = context.auth.token.email;
+  return db
     .collectionGroup("members")
-    .where("email", "==", context.auth.token.email)
-    .where("invited", "==", true);
-  return membersRef.get().then((snapshot) => {
-    if (snapshot.size === 0) {
-      throw new functions.https.HttpsError("internal", "user not invited");
-    }
+    .where("email", "==", email)
+    .where("active", "==", true)
+    .get()
+    .then((activeSnapshot) => {
+      if (activeSnapshot.size !== 0) {
+        // User already have access to an org and should be redirected to the orgs page.
+        throw new functions.https.HttpsError("internal", "user already exists");
+      }
 
-    return {};
-  });
+      return db
+        .collectionGroup("members")
+        .where("email", "==", email)
+        .where("invited", "==", true)
+        .get()
+        .then((invitedSnapshot) => {
+          if (invitedSnapshot.size === 0) {
+            throw new functions.https.HttpsError(
+              "internal",
+              "user not invited"
+            );
+          }
+
+          return {};
+        });
+    });
 });
 
 // Returns an array of organization objects, each with
@@ -220,7 +238,7 @@ exports.getInvitedOrgs = functions.https.onCall((data, context) => {
 exports.installMemberOAuthClaim = functions.firestore
   .document("organizations/{orgID}/members/{email}")
   .onWrite((change, context) => {
-    console.log("handling update (params):", context.params);
+    console.debug("handling update (params):", context.params);
 
     let before = change.before.data();
     let after = change.after.data();
@@ -228,7 +246,7 @@ exports.installMemberOAuthClaim = functions.firestore
     let email = context.params.email;
     let orgID = context.params.orgID;
 
-    console.log(`getting user record for ${email} to read custom claims`);
+    console.debug(`getting user record for ${email} to read custom claims`);
     return admin
       .auth()
       .getUserByEmail(email)
@@ -237,7 +255,7 @@ exports.installMemberOAuthClaim = functions.firestore
 
         let uid = userRecord.uid;
 
-        console.log(`found existing custom claims for ${uid}`, oldClaims);
+        console.debug(`found existing custom claims for ${uid}`, oldClaims);
 
         let oldOrgs = (oldClaims && oldClaims.orgs) || {};
 
@@ -248,13 +266,13 @@ exports.installMemberOAuthClaim = functions.firestore
           let newOrgs = Object.assign(oldOrgs, {});
           delete newOrgs[context.params.orgID];
           let newClaims = { orgs: newOrgs };
-          console.log(`member record deleted -- updating custom claims`);
+          console.debug(`member record deleted -- updating custom claims`);
           return admin.auth().setCustomUserClaims(uid, newClaims);
         }
 
         let memberInactive = !after.active;
         if (memberInactive) {
-          console.log(`member is inactive -- deleting custom claims`);
+          console.debug(`member is inactive -- deleting custom claims`);
           let newOrgs = Object.assign(oldOrgs, {});
           delete newOrgs[context.params.orgID];
           let newClaims = { orgs: newOrgs };
@@ -290,14 +308,14 @@ exports.installMemberOAuthClaim = functions.firestore
             orgs: newOrgs,
           };
 
-          console.log("writing new custom claims", newCustomClaims);
+          console.debug("writing new custom claims", newCustomClaims);
 
           // Set custom claims for the user.
           return admin
             .auth()
             .setCustomUserClaims(uid, newCustomClaims)
             .then(() => {
-              console.log(`triggering token refresh for /uids/${uid}`);
+              console.debug(`triggering token refresh for /uids/${uid}`);
               // Touch the uid record (`/uids/{uid}`) to trigger id
               // token refresh in the client.
               //
@@ -311,7 +329,7 @@ exports.installMemberOAuthClaim = functions.firestore
                   refreshTime: admin.firestore.FieldValue.serverTimestamp(),
                 })
                 .then(() => {
-                  console.log("done triggering token refresh");
+                  console.debug("done triggering token refresh");
                 });
             });
         }
