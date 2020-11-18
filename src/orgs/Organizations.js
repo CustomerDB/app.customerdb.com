@@ -19,9 +19,13 @@ export default function Organizations() {
 
   return (
     <Shell title="Organizations" noOrgSelector noSidebar>
-      <Grid container>
+      <Grid container style={{ padding: "1rem" }}>
         <PendingInvites orgIDs={orgIDs} />
+
         <Grid container item xs={12}>
+          <Grid item xs={12}>
+            <h5>Organizations</h5>
+          </Grid>
           {orgIDs.map((id) => (
             <OrgCard key={id} orgID={id} />
           ))}
@@ -34,6 +38,7 @@ export default function Organizations() {
 function PendingInvites() {
   const firebase = useContext(FirebaseContext);
   const [invitedOrgs, setInvitedOrgs] = useState();
+  const [rerender, setRerender] = useState();
 
   useEffect(() => {
     if (!firebase) {
@@ -47,7 +52,7 @@ function PendingInvites() {
       console.debug("invited orgs", result.data);
       setInvitedOrgs(result.data);
     });
-  }, [firebase]);
+  }, [firebase, rerender]);
 
   if (!invitedOrgs || !invitedOrgs.length) return <></>;
 
@@ -58,18 +63,17 @@ function PendingInvites() {
         orgID={orgID}
         orgName={orgName}
         inviteSentTimestamp={inviteSentTimestamp}
+        setRerender={setRerender}
       />
     )
   );
 
   return (
-    <>
-      <Grid container item xs={12}>
-        <Grid item xs>
-          <p>Pending invites</p>
-        </Grid>
-        {inviteCards}
+    <Grid container item xs={12}>
+      <Grid item xs={12}>
+        <h5>Pending invites</h5>
       </Grid>
-    </>
+      {inviteCards}
+    </Grid>
   );
 }

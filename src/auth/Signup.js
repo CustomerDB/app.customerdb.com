@@ -137,7 +137,11 @@ export default function Signup(props) {
 
         if (err.message.endsWith("user not invited")) {
           setErrorMessage(
-            "It doesn't look like you have been invited to an organization yet"
+            <>
+              It doesn't look like you have been invited to an organization yet.
+              Please go to <a href="https://customerdb.com">customerdb.com</a>{" "}
+              to sign up for our waitlist.
+            </>
           );
         } else if (err.message.endsWith("user already exists")) {
           navigate("/orgs");
@@ -165,7 +169,11 @@ export default function Signup(props) {
 
         if (err.message.endsWith("user not invited")) {
           setErrorMessage(
-            "It doesn't look like you have been invited to an organization yet"
+            <>
+              It doesn't look like you have been invited to an organization yet.
+              Please go to <a href="https://customerdb.com">customerdb.com</a>{" "}
+              to sign up for our waitlist.
+            </>
           );
         } else if (err.message.endsWith("user already exists")) {
           setErrorMessage(
