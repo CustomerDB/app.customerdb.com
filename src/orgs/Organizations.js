@@ -19,9 +19,9 @@ export default function Organizations() {
 
   return (
     <Shell title="Organizations" noOrgSelector noSidebar>
-      <Grid container className="fullHeight">
-        <PendingInvites />
-        <Grid container item xs>
+      <Grid container>
+        <PendingInvites orgIDs={orgIDs} />
+        <Grid container item xs={12}>
           {orgIDs.map((id) => (
             <OrgCard key={id} orgID={id} />
           ))}
@@ -42,6 +42,7 @@ function PendingInvites() {
     const getInvitedOrgs = firebase
       .functions()
       .httpsCallable("auth-getInvitedOrgs");
+
     getInvitedOrgs().then((result) => {
       console.debug("invited orgs", result.data);
       setInvitedOrgs(result.data);
@@ -63,13 +64,12 @@ function PendingInvites() {
 
   return (
     <>
-      <Grid container item xs>
+      <Grid container item xs={12}>
         <Grid item xs>
           <p>Pending invites</p>
         </Grid>
         {inviteCards}
       </Grid>
-      <hr />
     </>
   );
 }

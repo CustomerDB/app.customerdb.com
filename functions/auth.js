@@ -199,18 +199,20 @@ exports.getInvitedOrgs = functions.https.onCall((data, context) => {
     .where("invited", "==", true)
     .get()
     .then((snapshot) => {
-      return snapshot.docs.map((memberDoc) => {
-        const member = memberDoc.data();
-        const orgRef = memberDoc.ref.parent.parent;
-        return orgRef.get().then((orgDoc) => {
-          let org = orgDoc.data();
-          return {
-            inviteSentTimestamp: member.inviteSentTimestamp,
-            orgID: orgDoc.id,
-            orgName: org.name,
-          };
-        });
-      });
+      return Promise.all(
+        snapshot.docs.map((memberDoc) => {
+          const member = memberDoc.data();
+          const orgRef = memberDoc.ref.parent.parent;
+          return orgRef.get().then((orgDoc) => {
+            let org = orgDoc.data();
+            return {
+              inviteSentTimestamp: member.inviteSentTimestamp,
+              orgID: orgDoc.id,
+              orgName: org.name,
+            };
+          });
+        })
+      );
     });
 });
 
