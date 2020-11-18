@@ -6,8 +6,8 @@ import { useNavigate } from "react-router-dom";
 import FirebaseContext from "../util/FirebaseContext.js";
 import Grid from "@material-ui/core/Grid";
 import logo from "../assets/images/logo.svg";
-import Alert from "@material-ui/lab/Alert";
 import { makeStyles } from "@material-ui/core/styles";
+import Button from "@material-ui/core/Button";
 
 const useStyles = makeStyles((theme) => {
   return {
@@ -52,13 +52,12 @@ export default function Verify() {
 
   const [verificationSucceeded, setVerificationSucceeded] = useState();
   const [emailSent, setEmailSent] = useState(false);
-  const [errorMessage, setErrorMessage] = useState(undefined);
 
   useEffect(() => {
     if (verificationSucceeded) {
       navigate("/orgs");
     }
-  }, [verificationSucceeded]);
+  }, [verificationSucceeded, navigate]);
 
   useEffect(() => {
     firebase
@@ -75,7 +74,7 @@ export default function Verify() {
       .catch(() => {
         setVerificationSucceeded(false);
       });
-  }, []);
+  }, [email, firebase, oobCode]);
 
   if (verificationSucceeded === undefined) {
     return <Loading />;
@@ -97,36 +96,30 @@ export default function Verify() {
             </Grid>
             <Grid container item>
               <Grid item className={classes.loginText}>
-                <h3>We need to verify email</h3>
+                <h3>We need to verify your email</h3>
                 {!emailSent ? (
                   <>
                     <p>
                       You should already have an email in your inbox with a
                       verification link.
                     </p>
-                    <p>
-                      In case you didn't receive an email yet, click{" "}
-                      <a
-                        href="#"
-                        onClick={() => {
-                          sendVerifyEmailFunc().then(() => {
-                            setEmailSent(true);
-                          });
-                        }}
-                      >
-                        here to resend
-                      </a>{" "}
-                      the verification email
-                    </p>
+
+                    <Button
+                      component="button"
+                      variant="contained"
+                      color="primary"
+                      onClick={() => {
+                        sendVerifyEmailFunc().then(() => {
+                          setEmailSent(true);
+                        });
+                      }}
+                    >
+                      resend verification email
+                    </Button>
                   </>
                 ) : (
                   <p>Email sent</p>
                 )}
-              </Grid>
-            </Grid>
-            <Grid container item>
-              <Grid item>
-                {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
               </Grid>
             </Grid>
           </Grid>

@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import { TextValidator, ValidatorForm } from "react-material-ui-form-validator";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import Alert from "@material-ui/lab/Alert";
 import Button from "@material-ui/core/Button";
