@@ -19,9 +19,13 @@ export default function Organizations() {
 
   return (
     <Shell title="Organizations" noOrgSelector noSidebar>
-      <Grid container>
+      <Grid container style={{ padding: "1rem" }}>
         <PendingInvites orgIDs={orgIDs} />
+
         <Grid container item xs={12}>
+          <Grid item xs={12}>
+            <h5>Organizations</h5>
+          </Grid>
           {orgIDs.map((id) => (
             <OrgCard key={id} orgID={id} />
           ))}
@@ -63,13 +67,11 @@ function PendingInvites() {
   );
 
   return (
-    <>
-      <Grid container item xs={12}>
-        <Grid item xs>
-          <p>Pending invites</p>
-        </Grid>
-        {inviteCards}
+    <Grid container item xs={12}>
+      <Grid item xs={12}>
+        <h5>Pending invites</h5>
       </Grid>
-    </>
+      {inviteCards}
+    </Grid>
   );
 }

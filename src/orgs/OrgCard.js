@@ -48,21 +48,20 @@ export default function OrgCard({ orgID }) {
   }
 
   return (
-    <Grid container item>
-      <Card
-        style={{
-          margin: "1rem",
-          borderRadius: "0.5rem",
-          maxHeight: "10rem",
-        }}
-      >
-        <CardContent>
-          <Typography variant="h6" gutterBottom style={{ fontWeight: "bold" }}>
-            {linkedTitle}
-          </Typography>
-          {members}
-        </CardContent>
-      </Card>
-    </Grid>
+    <Card
+      style={{
+        margin: "1rem",
+        borderRadius: "0.5rem",
+        maxHeight: "10rem",
+        width: "20rem",
+      }}
+    >
+      <CardContent>
+        <Typography variant="h6" gutterBottom style={{ fontWeight: "bold" }}>
+          {linkedTitle}
+        </Typography>
+        {members}
+      </CardContent>
+    </Card>
   );
 }

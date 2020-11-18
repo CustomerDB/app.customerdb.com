@@ -335,3 +335,49 @@ exports.installMemberOAuthClaim = functions.firestore
         }
       });
   });
+
+exports.ignoreInvite = functions.https.onCall((data, context) => {
+  // If signed in and email verified, a user can delete an invited member record.
+  if (!context.auth) {
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      "Authentication required."
+    );
+  }
+
+  if (!context.auth.token.email_verified) {
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      "Email verification required."
+    );
+  }
+
+  let email = context.auth.token.email;
+
+  if (!data.orgID) {
+    throw new functions.https.HttpsError("invalid-argument", "orgID required");
+  }
+
+  let db = admin.firestore();
+  return db
+    .collection("organizations")
+    .doc(data.orgID)
+    .collection("members")
+    .doc(email)
+    .get()
+    .then((doc) => {
+      if (!doc.exists) {
+        throw new functions.https.HttpsError("not-found", "member not found");
+      }
+
+      let member = doc.data();
+      if (!member.invited || member.active) {
+        throw new functions.https.HttpsError(
+          "internal",
+          "member already accepted invite"
+        );
+      }
+
+      return doc.ref.delete();
+    });
+});
