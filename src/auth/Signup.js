@@ -12,6 +12,7 @@ import googleLogo from "../assets/images/google-logo.svg";
 import loginFigure from "../assets/images/login.svg";
 import logo from "../assets/images/logo.svg";
 import { makeStyles } from "@material-ui/core/styles";
+import LinearProgress from "@material-ui/core/LinearProgress";
 
 const useStyles = makeStyles((theme) => {
   return {
@@ -61,6 +62,7 @@ export default function Signup(props) {
   const [password, setPassword] = useState();
   const [repeatPassword, setRepeatPassword] = useState();
   const [errorMessage, setErrorMessage] = useState(undefined);
+  const [loading, setLoading] = useState(false);
 
   const defaultErrorMessage =
     "Couldn't add you to the organization. Please reach out to your administrator and verify your email has been added.";
@@ -72,7 +74,9 @@ export default function Signup(props) {
   let navigate = useNavigate();
 
   const urlParams = new URLSearchParams(window.location.search);
-  const email = urlParams.get("email");
+  const [email, setEmail] = useState(urlParams.get("email"));
+
+  const urlProvidedEmail = urlParams.get("email");
 
   const signupGoogleFunc = firebase
     .functions()
@@ -122,15 +126,21 @@ export default function Signup(props) {
   };
 
   const signupGoogle = (user) => {
+    setLoading(true);
+
     return signupGoogleFunc(user.email)
       .then((result) => {
         navigate("/orgs");
       })
       .catch((err) => {
-        if (err.message === "user not invited") {
+        setLoading(false);
+
+        if (err.message.endsWith("user not invited")) {
           setErrorMessage(
             "It doesn't look like you have been invited to an organization yet"
           );
+        } else if (err.message.endsWith("user already exists")) {
+          navigate("/orgs");
         } else {
           setErrorMessage(
             "An error occured while trying to sign you in. Please try again later"
@@ -140,6 +150,7 @@ export default function Signup(props) {
   };
 
   const signupEmail = () => {
+    setLoading(true);
     return signupEmailFunc({ name, email, password })
       .then((result) => {
         return firebase
@@ -150,16 +161,17 @@ export default function Signup(props) {
           });
       })
       .catch((err) => {
-        console.log(err.message);
-        if (err.message === "user not invited") {
+        setLoading(false);
+
+        if (err.message.endsWith("user not invited")) {
           setErrorMessage(
             "It doesn't look like you have been invited to an organization yet"
           );
-        } else if (err.message === "user already exists") {
+        } else if (err.message.endsWith("user already exists")) {
           setErrorMessage(
             <>
-              It doesn't look like you already have an account with us. Please
-              go to <a href="/login">login to get started.</a>
+              It looks like you already have an account with us. Please go to{" "}
+              <a href="/login">login to get started.</a>
             </>
           );
         } else {
@@ -190,6 +202,7 @@ export default function Signup(props) {
                   Create an account by filling in the form below. If you already
                   have a CustomerDB account <a href="/login">log in here</a>
                 </p>
+                {loading && <LinearProgress />}
               </Grid>
             </Grid>
             <Grid container item>
@@ -205,7 +218,8 @@ export default function Signup(props) {
                   margin="normal"
                   fullWidth
                   label="Email"
-                  disabled
+                  disabled={urlProvidedEmail || loading}
+                  onChange={(e) => setEmail(e.target.value)}
                   name="email"
                   validators={["required", "isEmail"]}
                   errorMessages={[
@@ -218,6 +232,7 @@ export default function Signup(props) {
                   variant="outlined"
                   margin="normal"
                   fullWidth
+                  disabled={loading}
                   label="Full name"
                   onChange={(e) => setName(e.target.value)}
                   name="name"
@@ -230,6 +245,7 @@ export default function Signup(props) {
                   variant="outlined"
                   margin="normal"
                   fullWidth
+                  disabled={loading}
                   label="Password"
                   onChange={(e) => setPassword(e.target.value)}
                   name="password"
@@ -245,6 +261,7 @@ export default function Signup(props) {
                   variant="outlined"
                   margin="normal"
                   fullWidth
+                  disabled={loading}
                   label="Repeat password"
                   onChange={(e) => setRepeatPassword(e.target.value)}
                   name="repeatPassword"
@@ -259,6 +276,7 @@ export default function Signup(props) {
                 <Button
                   type="submit"
                   fullWidth
+                  disabled={loading}
                   variant="contained"
                   color="primary"
                   className={classes.submit}
@@ -280,6 +298,7 @@ export default function Signup(props) {
                   className={classes.loginButton}
                   color="primary"
                   fullWidth
+                  disabled={loading}
                   variant="outlined"
                   onClick={loginGoogle}
                 >
