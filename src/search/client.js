@@ -41,7 +41,7 @@ export function useSearchClient() {
     getSearchClient(firebase, orgID, oauthClaims.user_id).then((client) => {
       setClient(client);
     });
-  }, [firebase, oauthClaims, orgID, oauthClaims.user_id, client]);
+  }, [firebase, oauthClaims, orgID, client]);
 
   return client;
 }

@@ -97,6 +97,13 @@ service cloud.firestore {
                   && activeOrgMember(resource.data.organizationID);
     }
 
+    // Verified users can read their own member records via the
+    // members collectionGroup index.
+    match /{path=**}/members/{document} {
+      allow read: if signedInAndVerified()
+                  && request.auth.token.email == resource.data.email;
+    }
+
     // Active non-admin users can write **ORGANIZATION METADATA** in the org.
     match /organizations/{orgID} {
       allow write: if signedInAndVerified()
