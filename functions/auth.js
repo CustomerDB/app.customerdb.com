@@ -51,10 +51,8 @@ function sendVerifyEmail(email) {
       }
 
       let baseURL = functions.config().invite_email.base_url;
-      let urlEncodedEmail = encodeURIComponent(email);
-
       let actionCodeSettings = {
-        url: `${baseURL}/verify?email=${urlEncodedEmail}`,
+        url: `${baseURL}/login`,
         handleCodeInApp: true,
       };
       return admin
