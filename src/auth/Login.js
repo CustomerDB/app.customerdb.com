@@ -91,7 +91,7 @@ export default function Login(props) {
   };
 
   useEffect(() => {
-    if (!auth.oauthClaims || !auth.oauthClaims.orgs || !auth.oauthUser.email) {
+    if (!auth.oauthClaims || !auth.oauthUser.email) {
       return;
     }
 
