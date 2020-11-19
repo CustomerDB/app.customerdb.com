@@ -13,6 +13,7 @@ import Logout from "./auth/Logout.js";
 import Organization from "./organization/Organization.js";
 import Organizations from "./orgs/Organizations.js";
 import React from "react";
+import RequireMembership from "./auth/RequireMembership.js";
 import RequireVerifiedEmail from "./auth/RequireVerifiedEmail.js";
 import ResetPassword from "./auth/ResetPassword.js";
 import { BrowserRouter as Router } from "react-router-dom";
@@ -80,7 +81,9 @@ export default function App() {
                   element={
                     <WithOauthUser>
                       <RequireVerifiedEmail>
-                        <Organizations />
+                        <RequireMembership>
+                          <Organizations />
+                        </RequireMembership>
                       </RequireVerifiedEmail>
                     </WithOauthUser>
                   }
@@ -90,7 +93,9 @@ export default function App() {
                   element={
                     <WithOauthUser>
                       <RequireVerifiedEmail>
-                        <Organization />
+                        <RequireMembership>
+                          <Organization />
+                        </RequireMembership>
                       </RequireVerifiedEmail>
                     </WithOauthUser>
                   }
