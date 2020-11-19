@@ -44,7 +44,7 @@ exports.createOrganization = functions.https.onCall((data, context) => {
   }
 
   const name = data["name"];
-  const email = data["email"];
+  const email = data["email"].toLowerCase();
 
   let db = admin.firestore();
 

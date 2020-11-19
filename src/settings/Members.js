@@ -69,10 +69,12 @@ export default function Members(props) {
       userID: oauthClaims.user_id,
     });
 
-    membersRef.doc(email).set({
+    let lowerCaseEmail = email.toLowerCase();
+
+    membersRef.doc(lowerCaseEmail).set({
       invited: true,
       active: false,
-      email: email,
+      email: lowerCaseEmail,
       inviteSentTimestamp: "",
     });
   };
