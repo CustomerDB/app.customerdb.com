@@ -35,50 +35,59 @@ const generateFromVideo = (file, imageHeight, outputPrefix) => {
     });
 };
 
-exports.ensureCBRVersion = functions.storage.object().onFinalize((object) => {
-  const filePath = object.name;
-  const contentType = object.contentType;
+exports.ensureCBRVersion = functions
+  .runWith({
+    timeoutSeconds: 300,
+    memory: "2GB",
+  })
+  .storage.object()
+  .onFinalize((object) => {
+    const filePath = object.name;
+    const contentType = object.contentType;
 
-  let matches = filePath.match(/(.+)\/transcriptions\/(.+)\/input\/(.+)/);
+    let matches = filePath.match(/(.+)\/transcriptions\/(.+)\/input\/(.+)/);
 
-  if (!matches || matches.length != 4) {
-    return;
-  }
+    if (!matches || matches.length != 4) {
+      return;
+    }
 
-  if (!contentType.startsWith("video/") && !contentType.startsWith("audio/")) {
-    console.log(
-      "object content type is not video or audio -- skipping",
-      contentType
-    );
-    return;
-  }
+    if (
+      !contentType.startsWith("video/") &&
+      !contentType.startsWith("audio/")
+    ) {
+      console.log(
+        "object content type is not video or audio -- skipping",
+        contentType
+      );
+      return;
+    }
 
-  const videoobj = tmp.fileSync();
-  return admin
-    .storage()
-    .bucket()
-    .file(filePath)
-    .download({
-      destination: videoobj.name,
-    })
-    .then(() => {
-      return mediainfo(videoobj.name).then((result) => {
-        let tracks = result.media.track;
-        let vbr = false;
+    const videoobj = tmp.fileSync();
+    return admin
+      .storage()
+      .bucket()
+      .file(filePath)
+      .download({
+        destination: videoobj.name,
+      })
+      .then(() => {
+        return mediainfo(videoobj.name).then((result) => {
+          let tracks = result.media.track;
+          let vbr = false;
 
-        tracks.forEach((track) => {
-          if (
-            track.OverallBitRate_Mode === "VBR" ||
-            track.BitRate_Mode === "VBR"
-          ) {
-            vbr = true;
-          }
+          tracks.forEach((track) => {
+            if (
+              track.OverallBitRate_Mode === "VBR" ||
+              track.BitRate_Mode === "VBR"
+            ) {
+              vbr = true;
+            }
+          });
+
+          console.log(`${filePath} vbr: ${vbr}`);
         });
-
-        console.log(`${filePath} vbr: ${vbr}`);
       });
-    });
-});
+  });
 
 exports.renderThumbnails = functions.storage
   .object()
