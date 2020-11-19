@@ -5,6 +5,7 @@ const admin = require("firebase-admin");
 const spawn = require("child-process-promise").spawn;
 const ffmpegPath = require("@ffmpeg-installer/ffmpeg").path;
 const { v4: uuidv4 } = require("uuid");
+const mediainfo = require("node-mediainfo");
 
 const generateFromVideo = (file, imageHeight, outputPrefix) => {
   // ffmpeg -i input.mp4 -f image2 -vf fps=1/10,scale=-1:192 thumb-%d.png
@@ -33,6 +34,51 @@ const generateFromVideo = (file, imageHeight, outputPrefix) => {
       return promise;
     });
 };
+
+exports.ensureCBRVersion = functions.storage.object().onFinalize((object) => {
+  const filePath = object.name;
+  const contentType = object.contentType;
+
+  let matches = filePath.match(/(.+)\/transcriptions\/(.+)\/input\/(.+)/);
+
+  if (!matches || matches.length != 4) {
+    return;
+  }
+
+  if (!contentType.startsWith("video/") && !contentType.startsWith("audio/")) {
+    console.log(
+      "object content type is not video or audio -- skipping",
+      contentType
+    );
+    return;
+  }
+
+  const videoobj = tmp.fileSync();
+  return admin
+    .storage()
+    .bucket()
+    .file(filePath)
+    .download({
+      destination: videoobj.name,
+    })
+    .then(() => {
+      return mediainfo(videoobj.name).then((result) => {
+        let tracks = result.media.track;
+        let vbr = false;
+
+        tracks.forEach((track) => {
+          if (
+            track.OverallBitRate_Mode === "VBR" ||
+            track.BitRate_Mode === "VBR"
+          ) {
+            vbr = true;
+          }
+        });
+
+        console.log(`${filePath} vbr: ${vbr}`);
+      });
+    });
+});
 
 exports.renderThumbnails = functions.storage
   .object()
