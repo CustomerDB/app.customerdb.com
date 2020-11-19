@@ -11,9 +11,14 @@ import JoinOrg from "./auth/JoinOrg.js";
 import Login from "./auth/Login.js";
 import Logout from "./auth/Logout.js";
 import Organization from "./organization/Organization.js";
+import Organizations from "./orgs/Organizations.js";
 import React from "react";
+import RequireMembership from "./auth/RequireMembership.js";
+import RequireVerifiedEmail from "./auth/RequireVerifiedEmail.js";
 import ResetPassword from "./auth/ResetPassword.js";
 import { BrowserRouter as Router } from "react-router-dom";
+import Signup from "./auth/Signup.js";
+import Verify from "./auth/Verify.js";
 import WithOauthUser from "./auth/WithOauthUser.js";
 
 export default function App() {
@@ -64,14 +69,34 @@ export default function App() {
                 />
               </Route>
 
+              <Route path="signup" element={<Signup />} />
+
+              <Route path="verify" element={<Verify />} />
+
               <Route path="/reset-password" element={<ResetPassword />} />
 
               <Route path="orgs">
                 <Route
+                  path="/"
+                  element={
+                    <WithOauthUser>
+                      <RequireVerifiedEmail>
+                        <RequireMembership>
+                          <Organizations />
+                        </RequireMembership>
+                      </RequireVerifiedEmail>
+                    </WithOauthUser>
+                  }
+                />
+                <Route
                   path=":orgID/*"
                   element={
                     <WithOauthUser>
-                      <Organization />
+                      <RequireVerifiedEmail>
+                        <RequireMembership>
+                          <Organization />
+                        </RequireMembership>
+                      </RequireVerifiedEmail>
                     </WithOauthUser>
                   }
                 />
@@ -81,7 +106,9 @@ export default function App() {
                 path="admin"
                 element={
                   <WithOauthUser>
-                    <Admin />
+                    <RequireVerifiedEmail>
+                      <Admin />
+                    </RequireVerifiedEmail>
                   </WithOauthUser>
                 }
               />

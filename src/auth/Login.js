@@ -94,18 +94,8 @@ export default function Login(props) {
     if (!auth.oauthClaims || !auth.oauthClaims.orgs || !auth.oauthUser.email) {
       return;
     }
-    const db = firebase.firestore();
 
-    db.collection("userToOrg")
-      .doc(auth.oauthUser.email)
-      .get()
-      .then((doc) => {
-        let userToOrg = doc.data();
-        if (!userToOrg.orgID) {
-          return;
-        }
-        navigate(`/orgs/${userToOrg.orgID}`);
-      });
+    navigate("/orgs");
   }, [auth.oauthClaims, navigate, auth, firebase]);
 
   return auth.oauthUser === null && auth.oauthLoading === false ? (
