@@ -3,6 +3,9 @@ import { Navigate } from "react-router-dom";
 import FirebaseContext from "../util/FirebaseContext.js";
 import UserAuthContext from "./UserAuthContext.js";
 
+// RequireMembership renders the children only if the currently
+// signed in user has any org membership (one or more active
+// membership, or pending invite)
 export default function RequireMembership({ children }) {
   const { oauthUser } = useContext(UserAuthContext);
   const [loaded, setLoaded] = useState(false);
