@@ -50,16 +50,17 @@ service cloud.firestore {
                   && request.auth.uid == uid;
     }
 
-    // Active admin users can read and write **MEMBERS** in the org
-    match /organizations/{orgID}/members/{document=**} {
-      allow read, write: if signedInAndVerified()
-                         && activeOrgAdmin(orgID);
-    }
-
     // Active non-admin users can read anything in the org.
     match /organizations/{orgID}/{document=**} {
       allow read: if signedInAndVerified()
                   && activeOrgMember(orgID);
+    }
+
+    // Active admin users can read and write **MEMBERS** in the org
+    match /organizations/{orgID}/members/{document=**} {
+      allow write, delete: if signedInAndVerified()
+                           && activeOrgAdmin(orgID)
+                           && (!('email' in request.resource.data) || request.resource.data.email == request.resource.id);
     }
 
     // Active users can read highlights from their org via the
