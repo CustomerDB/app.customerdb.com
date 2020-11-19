@@ -1,5 +1,6 @@
 steps:
 - name: 'gcr.io/$PROJECT_ID/firebase'
+  waitFor: ["-"]
   args: ['/bin/sh', './scripts/slack.sh', 'Starting deployment of $_DOMAIN']
   env:
   - 'SLACK_WEB_HOOK=$_SLACK_WEB_HOOK'
@@ -7,8 +8,13 @@ steps:
   - 'PROJECT=$PROJECT_ID'
   - 'REV=$REVISION_ID'
 - name: 'gcr.io/$PROJECT_ID/firebase'
+  id: yarn
+  waitFor: ["-"]
   args: ['/usr/local/bin/yarn']
 - name: 'gcr.io/$PROJECT_ID/firebase'
+  id: yarn-build
+  waitFor:
+  - yarn
   args: ['/usr/local/bin/yarn', 'build']
   env:
   - 'REACT_APP_DOMAIN=$_DOMAIN'
@@ -28,14 +34,22 @@ steps:
   - 'REACT_APP_ERROR_API_KEY=$_ERROR_API_KEY'
   - 'REACT_APP_VERSION=$REVISION_ID'
 - name: 'gcr.io/$PROJECT_ID/firebase'
+  id: npm-install
+  waitFor: ["-"]
   args: ['/usr/local/bin/npm', '--prefix=/workspace/functions', 'install']
 - name: 'gcr.io/$PROJECT_ID/firebase'
+  id: deploy
+  waitFor:
+  - yarn-build
+  - npm-install
   args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force']
   env:
   - 'BUILD=$BUILD_ID'
   - 'PROJECT=$PROJECT_ID'
   - 'REV=$REVISION_ID'
 - name: 'gcr.io/$PROJECT_ID/firebase'
+  waitFor:
+  - deploy
   args: ['/bin/sh', './scripts/slack.sh', 'Finished deployment of $_DOMAIN']
   env:
   - 'SLACK_WEB_HOOK=$_SLACK_WEB_HOOK'
