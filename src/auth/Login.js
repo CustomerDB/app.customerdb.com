@@ -94,7 +94,6 @@ export default function Login(props) {
     if (!auth.oauthClaims || !auth.oauthClaims.orgs || !auth.oauthUser.email) {
       return;
     }
-    const db = firebase.firestore();
 
     navigate("/orgs");
   }, [auth.oauthClaims, navigate, auth, firebase]);
