@@ -7,6 +7,7 @@ import Hidden from "@material-ui/core/Hidden";
 import MenuItem from "@material-ui/core/MenuItem";
 import Select from "@material-ui/core/Select";
 import UserAuthContext from "../auth/UserAuthContext";
+import Divider from "@material-ui/core/Divider";
 
 export default function OrgSelector() {
   const { orgID } = useParams();
@@ -56,10 +57,22 @@ export default function OrgSelector() {
           value={selectedOrgID}
           style={{ width: "10rem", color: "white" }}
           onChange={(event) => {
-            setSelectedOrgID(event.target.value);
-            navigate(`/orgs/${event.target.value}`);
+            let value = event.target.value;
+            setSelectedOrgID(value);
+
+            if (value === "orgs") {
+              navigate("/orgs");
+              return;
+            }
+
+            navigate(`/orgs/${value}`);
           }}
         >
+          <MenuItem key="orgs" value="">
+            See all organizations
+          </MenuItem>
+          <Divider />
+          <MenuItem disabled>Organizations</MenuItem>
           {Object.keys(orgMap).map((orgID) => (
             <MenuItem key={orgID} value={orgID}>
               {orgMap[orgID]}
