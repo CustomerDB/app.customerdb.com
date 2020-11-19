@@ -59,7 +59,7 @@ function sendVerifyEmail(email) {
       };
       return admin
         .auth()
-        .generateSignInWithEmailLink(email, actionCodeSettings)
+        .generateEmailVerificationLink(email, actionCodeSettings)
         .then((link) => {
           const msg = {
             to: email,
