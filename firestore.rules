@@ -25,12 +25,13 @@ service cloud.firestore {
 
     // Only allow verified emails with the 'invited' bit set, to change to 'active' (and remove the invited 'bit' in the same operation).
     match /organizations/{orgID}/members/{email} {
-      allow write: if signedInAndVerified()
-                   && request.auth.token.email == email
-                   && resource.data.invited == true
-                   && resource.data.active == false
-                   && request.resource.data.invited == false
-                   && request.resource.data.active == true;
+      allow update: if signedInAndVerified()
+                    && request.auth.token.email == email
+                    && resource.data.invited == true
+                    && resource.data.active == false
+                    && request.resource.data.invited == false
+                    && request.resource.data.active == true
+                    && (!('email' in request.resource.data) || request.resource.data.email == email);
     }
 
     // FIXME: Users can read and write their own user to org mapping. Currently only allows for 1 active org.
@@ -50,16 +51,21 @@ service cloud.firestore {
                   && request.auth.uid == uid;
     }
 
-    // Active admin users can read and write **MEMBERS** in the org
-    match /organizations/{orgID}/members/{document=**} {
-      allow read, write: if signedInAndVerified()
-                         && activeOrgAdmin(orgID);
-    }
-
     // Active non-admin users can read anything in the org.
     match /organizations/{orgID}/{document=**} {
       allow read: if signedInAndVerified()
                   && activeOrgMember(orgID);
+    }
+
+    // Active admin users can read and write **MEMBERS** in the org
+    match /organizations/{orgID}/members/{document=**} {
+      allow create, update: if signedInAndVerified()
+                            && activeOrgAdmin(orgID)
+                            && (!('email' in request.resource.data)
+                                || request.resource.data.email == request.resource.id);
+
+      allow delete: if signedInAndVerified()
+                    && activeOrgAdmin(orgID);
     }
 
     // Active users can read highlights from their org via the
