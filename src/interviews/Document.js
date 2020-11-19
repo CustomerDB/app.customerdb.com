@@ -88,10 +88,10 @@ export default function Document(props) {
   const handleTabChange = (e, newValue) => {
     let tab = "";
     if (newValue === 0) {
-      tab = "notes";
+      tab = "transcript";
     }
     if (newValue === 1) {
-      tab = "transcript";
+      tab = "notes";
     }
     navigate(`/orgs/${orgID}/interviews/${documentID}/${tab}`);
   };
@@ -104,11 +104,11 @@ export default function Document(props) {
       return;
     }
 
-    if (tabID === "notes") {
+    if (tabID === "transcript") {
       setSelectedTab(0);
     }
 
-    if (tabID === "transcript") {
+    if (tabID === "notes") {
       setSelectedTab(1);
     }
   }, [tabID]);
@@ -313,32 +313,31 @@ export default function Document(props) {
                       className={classes.tabs}
                     >
                       <Tab
-                        label="notes"
-                        id="notes"
-                        aria-controls="tabpanel-notes"
-                      />
-                      <Tab
                         label="transcript"
                         id="transcript"
                         aria-controls="tabpanel-transcript"
                       />
+                      <Tab
+                        label="notes"
+                        id="notes"
+                        aria-controls="tabpanel-notes"
+                      />
                     </Tabs>
                   </Grid>
-
                   {selectedTab === 0 && (
-                    <Notes
-                      document={document}
-                      tags={tags}
-                      reactQuillRef={props.reactQuillNotesRef}
-                    />
-                  )}
-
-                  {selectedTab === 1 && (
                     <Transcript
                       document={document}
                       tags={tags}
                       reactQuillRef={reactQuillTranscriptRef}
                       selectionChannelPort={transcriptSelectionSend}
+                    />
+                  )}
+
+                  {selectedTab === 1 && (
+                    <Notes
+                      document={document}
+                      tags={tags}
+                      reactQuillRef={props.reactQuillNotesRef}
                     />
                   )}
                 </Grid>
