@@ -47,8 +47,8 @@ export default function InviteCard({ orgID, orgName, setRerender }) {
       .doc(oauthClaims.email)
       .update({
         email: oauthClaims.email,
-        displayName: oauthClaims.name,
-        photoURL: oauthClaims.picture,
+        displayName: oauthClaims.name || "",
+        photoURL: oauthClaims.picture || "",
         invited: false,
         active: true,
         joinedTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
