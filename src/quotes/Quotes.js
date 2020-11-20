@@ -15,6 +15,7 @@ import SearchIcon from "@material-ui/icons/Search";
 import Shell from "../shell/Shell.js";
 import useMediaQuery from "@material-ui/core/useMediaQuery";
 import { useSearchClient } from "../search/client.js";
+import QuotesHelp from "./QuotesHelp.js";
 
 function SearchBox({
   currentRefinement,
@@ -127,6 +128,10 @@ export default function Quotes(props) {
     let cols = Array.from(Array(colCount), () => []);
     for (let i = 0; i < result.hits.length; i++) {
       cols[i % colCount].push(result.hits[i]);
+    }
+
+    if (result.hits.length === 0) {
+      return <QuotesHelp />;
     }
 
     return cols.map((col) => (
