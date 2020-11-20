@@ -77,7 +77,6 @@ export default function Admin(props) {
         <TableRow>
           <TableCell align="left">ID</TableCell>
           <TableCell align="left">Name</TableCell>
-          <TableCell align="left">Join link</TableCell>
         </TableRow>
       </TableHead>
       <TableBody>
@@ -85,11 +84,6 @@ export default function Admin(props) {
           <TableRow key={row.ID}>
             <TableCell align="left">{row.ID}</TableCell>
             <TableCell align="left">{row.name}</TableCell>
-            <TableCell align="left">
-              <a href={`https://app.customerdb.com/join/${row.ID}`}>
-                join link
-              </a>
-            </TableCell>
           </TableRow>
         ))}
       </TableBody>

@@ -28,8 +28,7 @@ local:
 		firebase emulators:exec --project=customerdb-development --only functions,firestore,ui "yarn start"
 
 apply-format:
-	./node_modules/.bin/import-sort --write `find src -name \*.js|tr '\n' ' '`
-	./node_modules/.bin/import-sort --write `find functions -name \*.js|tr '\n' ' '`
+	./node_modules/.bin/import-sort --write src/\*.js functions/\*.js
 	yarn prettier --write src/
 	yarn prettier --write functions/
 	yarn prettier --write public/
@@ -43,7 +42,7 @@ check-format:
 # make test WHAT="-t existing src/interviews/Document.test.js"
 test:
 	GOOGLE_APPLICATION_CREDENTIALS=$(FIREBASE_CREDENTIALS_FILE) \
-		firebase --project=customerdb-development emulators:exec "yarn test --watchAll=false --forceExit $(WHAT)"
+		firebase --project=customerdb-development emulators:exec --only=firestore "yarn test --watchAll=false --forceExit $(WHAT)"
 
 install-git-hooks:
 	cp scripts/pre-commit .git/hooks/pre-commit

@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import { TextValidator, ValidatorForm } from "react-material-ui-form-validator";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import Alert from "@material-ui/lab/Alert";
 import Button from "@material-ui/core/Button";
@@ -8,13 +8,11 @@ import FirebaseContext from "../util/FirebaseContext.js";
 import Grid from "@material-ui/core/Grid";
 import Hidden from "@material-ui/core/Hidden";
 import Link from "@material-ui/core/Link";
-import { Loading } from "../util/Utils.js";
-import UserAuthContext from "./UserAuthContext.js";
-import event from "../analytics/event.js";
 import googleLogo from "../assets/images/google-logo.svg";
 import loginFigure from "../assets/images/login.svg";
 import logo from "../assets/images/logo.svg";
 import { makeStyles } from "@material-ui/core/styles";
+import LinearProgress from "@material-ui/core/LinearProgress";
 
 const useStyles = makeStyles((theme) => {
   return {
@@ -57,14 +55,14 @@ const useStyles = makeStyles((theme) => {
   };
 });
 
-export default function JoinOrg(props) {
-  const auth = useContext(UserAuthContext);
+export default function Signup(props) {
   const firebase = useContext(FirebaseContext);
 
   const [name, setName] = useState();
   const [password, setPassword] = useState();
   const [repeatPassword, setRepeatPassword] = useState();
   const [errorMessage, setErrorMessage] = useState(undefined);
+  const [loading, setLoading] = useState(false);
 
   const defaultErrorMessage =
     "Couldn't add you to the organization. Please reach out to your administrator and verify your email has been added.";
@@ -72,26 +70,20 @@ export default function JoinOrg(props) {
   const classes = useStyles();
 
   var provider = new firebase.auth.GoogleAuthProvider();
-  var db = firebase.firestore();
 
   let navigate = useNavigate();
 
-  const { orgID } = useParams();
-
   const urlParams = new URLSearchParams(window.location.search);
-  const oobCode = urlParams.get("oobCode");
-  const email = urlParams.get("email");
+  const [email, setEmail] = useState(urlParams.get("email"));
 
-  useEffect(() => {
-    console.log("useEffect auth", auth);
-    if (!auth || !auth.oauthClaims || !auth.oauthClaims.orgID) {
-      return;
-    }
-    if (orgID === auth.oauthClaims.orgID) {
-      navigate(`/orgs/${orgID}`);
-      return;
-    }
-  }, [auth, orgID, navigate]);
+  const urlProvidedEmail = urlParams.get("email");
+
+  const signupGoogleFunc = firebase
+    .functions()
+    .httpsCallable("auth-signupGoogle");
+  const signupEmailFunc = firebase
+    .functions()
+    .httpsCallable("auth-signupEmail");
 
   useEffect(() => {
     ValidatorForm.addValidationRule("isPasswordMatch", (value) => {
@@ -115,7 +107,7 @@ export default function JoinOrg(props) {
           return;
         }
 
-        return googleJoin(result.user).catch(() => {
+        return signupGoogle(result.user).catch(() => {
           setErrorMessage(defaultErrorMessage);
         });
       });
@@ -133,81 +125,70 @@ export default function JoinOrg(props) {
       });
   };
 
-  const googleJoin = (user) => {
-    event(firebase, "join_org", {
-      orgID: orgID,
-      userID: user.uid,
-    });
+  const signupGoogle = (user) => {
+    setLoading(true);
 
-    // Get invite object.
-    return db
-      .collection("organizations")
-      .doc(orgID)
-      .collection("members")
-      .doc(user.email)
-      .update({
-        uid: user.uid,
-        email: user.email,
-        displayName: user.displayName,
-        photoURL: user.photoURL,
-        invited: false,
-        active: true,
-        joinedTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
+    return signupGoogleFunc(user.email)
+      .then((result) => {
+        navigate("/orgs");
       })
-      .then(() => {
-        // Success
-        return db.collection("userToOrg").doc(user.email).set({
-          orgID: orgID,
-        });
+      .catch((err) => {
+        setLoading(false);
+
+        if (err.message.endsWith("user not invited")) {
+          setErrorMessage(
+            <>
+              It doesn't look like you have been invited to an organization yet.
+              Please go to <a href="https://customerdb.com">customerdb.com</a>{" "}
+              to sign up for our waitlist.
+            </>
+          );
+        } else if (err.message.endsWith("user already exists")) {
+          navigate("/orgs");
+        } else {
+          setErrorMessage(
+            "An error occured while trying to sign you in. Please try again later"
+          );
+        }
       });
   };
 
-  const createAccount = () => {
-    firebase
-      .auth()
-      .checkActionCode(oobCode)
-      .then((info) => {
-        console.log(info);
-
+  const signupEmail = () => {
+    setLoading(true);
+    return signupEmailFunc({ name, email, password })
+      .then((result) => {
         return firebase
           .auth()
-          .signInWithEmailLink(email, window.location.href)
-          .then((result) => {
-            const user = result.user;
-
-            // Get invite object.
-            return db
-              .collection("organizations")
-              .doc(orgID)
-              .collection("members")
-              .doc(email)
-              .update({
-                uid: user.uid,
-                email: user.email,
-                displayName: name,
-                invited: false,
-                active: true,
-                joinedTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
-              })
-              .then(() => {
-                // Success
-                return db.collection("userToOrg").doc(email).set({
-                  orgID: orgID,
-                });
-              })
-              .then(() => {
-                return firebase.auth().currentUser.updatePassword(password);
-              });
-          })
-          .catch((error) => {
-            setErrorMessage(defaultErrorMessage);
+          .signInWithEmailAndPassword(email, password)
+          .then((user) => {
+            navigate("/orgs");
           });
+      })
+      .catch((err) => {
+        setLoading(false);
+
+        if (err.message.endsWith("user not invited")) {
+          setErrorMessage(
+            <>
+              It doesn't look like you have been invited to an organization yet.
+              Please go to <a href="https://customerdb.com">customerdb.com</a>{" "}
+              to sign up for our waitlist.
+            </>
+          );
+        } else if (err.message.endsWith("user already exists")) {
+          setErrorMessage(
+            <>
+              It looks like you already have an account with us. Please go to{" "}
+              <a href="/login">login to get started.</a>
+            </>
+          );
+        } else {
+          setErrorMessage(
+            "An error occured while trying to sign you in. Please try again later"
+          );
+        }
       });
   };
-
-  if (auth.oauthUser && auth.oauthClaims && !auth.oauthClaims.orgID) {
-    return <Loading />;
-  }
 
   return (
     <Grid container justify="center">
@@ -225,7 +206,11 @@ export default function JoinOrg(props) {
             </Grid>
             <Grid container item>
               <Grid item className={classes.loginText}>
-                <p>Create an account by filling in the form below:</p>
+                <p>
+                  Create an account by filling in the form below. If you already
+                  have a CustomerDB account <a href="/login">log in here</a>
+                </p>
+                {loading && <LinearProgress />}
               </Grid>
             </Grid>
             <Grid container item>
@@ -234,14 +219,15 @@ export default function JoinOrg(props) {
               </Grid>
             </Grid>
             <Grid container item>
-              <ValidatorForm onSubmit={createAccount} style={{ width: "100%" }}>
+              <ValidatorForm onSubmit={signupEmail} style={{ width: "100%" }}>
                 <TextValidator
                   autoComplete="username"
                   variant="outlined"
                   margin="normal"
                   fullWidth
                   label="Email"
-                  disabled
+                  disabled={urlProvidedEmail || loading}
+                  onChange={(e) => setEmail(e.target.value)}
                   name="email"
                   validators={["required", "isEmail"]}
                   errorMessages={[
@@ -254,6 +240,7 @@ export default function JoinOrg(props) {
                   variant="outlined"
                   margin="normal"
                   fullWidth
+                  disabled={loading}
                   label="Full name"
                   onChange={(e) => setName(e.target.value)}
                   name="name"
@@ -266,6 +253,7 @@ export default function JoinOrg(props) {
                   variant="outlined"
                   margin="normal"
                   fullWidth
+                  disabled={loading}
                   label="Password"
                   onChange={(e) => setPassword(e.target.value)}
                   name="password"
@@ -281,6 +269,7 @@ export default function JoinOrg(props) {
                   variant="outlined"
                   margin="normal"
                   fullWidth
+                  disabled={loading}
                   label="Repeat password"
                   onChange={(e) => setRepeatPassword(e.target.value)}
                   name="repeatPassword"
@@ -295,6 +284,7 @@ export default function JoinOrg(props) {
                 <Button
                   type="submit"
                   fullWidth
+                  disabled={loading}
                   variant="contained"
                   color="primary"
                   className={classes.submit}
@@ -316,6 +306,7 @@ export default function JoinOrg(props) {
                   className={classes.loginButton}
                   color="primary"
                   fullWidth
+                  disabled={loading}
                   variant="outlined"
                   onClick={loginGoogle}
                 >

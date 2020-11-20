@@ -44,7 +44,7 @@ exports.createOrganization = functions.https.onCall((data, context) => {
   }
 
   const name = data["name"];
-  const email = data["email"];
+  const email = data["email"].toLowerCase();
 
   let db = admin.firestore();
 
@@ -182,11 +182,12 @@ exports.getSearchKey = functions.https.onCall((data, context) => {
     );
   }
 
-  let orgID = context.auth.token.orgID;
-  if (!orgID) {
+  let orgID = data.orgID;
+  const orgsFromClaim = context.auth.token.orgs;
+  if (!orgsFromClaim || !orgsFromClaim[orgID]) {
     throw new functions.https.HttpsError(
       "permission-denied",
-      "user organization not found"
+      `user does not have permision to search org ${orgID}`
     );
   }
 

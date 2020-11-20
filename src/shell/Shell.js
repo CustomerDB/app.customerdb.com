@@ -1,6 +1,6 @@
 import "./style.css";
 
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useState } from "react";
 import { Search, SearchInput } from "./Search.js";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
@@ -15,7 +15,6 @@ import Drawer from "@material-ui/core/Drawer";
 import ExploreIcon from "@material-ui/icons/Explore";
 import FormatQuoteIcon from "@material-ui/icons/FormatQuote";
 import GroupIcon from "@material-ui/icons/Group";
-import Hidden from "@material-ui/core/Hidden";
 import IconButton from "@material-ui/core/IconButton";
 import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
@@ -25,6 +24,7 @@ import Menu from "@material-ui/core/Menu";
 import MenuIcon from "@material-ui/icons/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
 import MultilineChartIcon from "@material-ui/icons/MultilineChart";
+import OrgSelector from "../orgs/OrgSelector.js";
 import RecordVoiceOverIcon from "@material-ui/icons/RecordVoiceOver";
 import SettingsIcon from "@material-ui/icons/Settings";
 import Toolbar from "@material-ui/core/Toolbar";
@@ -33,7 +33,6 @@ import UserAuthContext from "../auth/UserAuthContext.js";
 import clsx from "clsx";
 import logo from "../assets/images/logo.svg";
 import logoDarkBG from "../assets/images/logo-dark-bg.svg";
-import useFirestore from "../db/Firestore.js";
 import useMediaQuery from "@material-ui/core/useMediaQuery";
 
 const drawerWidth = 240;
@@ -108,27 +107,24 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function Shell({ search, title, children, ...otherProps }) {
+export default function Shell({
+  search,
+  title,
+  children,
+  noSidebar,
+  noOrgSelector,
+  ...otherProps
+}) {
   const { oauthUser } = useContext(UserAuthContext);
-  const { orgRef } = useFirestore();
 
   const { orgID } = useParams();
 
-  const [orgName, setOrgName] = useState();
   const [open, setOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
 
   const classes = useStyles();
   const theme = useTheme();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!orgRef) return;
-    return orgRef.onSnapshot((doc) => {
-      let org = doc.data();
-      setOrgName(org.name);
-    });
-  }, [orgRef]);
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -159,27 +155,37 @@ export default function Shell({ search, title, children, ...otherProps }) {
           })}
         >
           <Toolbar>
-            <IconButton
-              color="inherit"
-              aria-label="open drawer"
-              onClick={handleDrawerOpen}
-              edge="start"
-              className={clsx(classes.menuButton, {
-                [classes.hide]: open || lgBreakpoint,
-              })}
-            >
-              <MenuIcon />
-            </IconButton>
-            {!lgBreakpoint && (
+            {!noSidebar && (
+              <IconButton
+                color="inherit"
+                aria-label="open drawer"
+                onClick={handleDrawerOpen}
+                edge="start"
+                className={clsx(classes.menuButton, {
+                  [classes.hide]: open || lgBreakpoint,
+                })}
+              >
+                <MenuIcon />
+              </IconButton>
+            )}
+            {!lgBreakpoint && !noSidebar && (
               <Typography variant="h6" noWrap>
                 {title}
               </Typography>
             )}
+
+            {noSidebar && (
+              <img
+                style={{ height: "2rem" }}
+                src={logoDarkBG}
+                alt="CustomerDB"
+              />
+            )}
+
             {search && <SearchInput />}
+
             <div className={classes.grow} />
-            <Hidden smDown>
-              <span>{orgName}</span>
-            </Hidden>
+            {!noOrgSelector && <OrgSelector />}
             {oauthUser && (
               <>
                 <IconButton
@@ -203,14 +209,16 @@ export default function Shell({ search, title, children, ...otherProps }) {
                   open={Boolean(anchorEl)}
                   onClose={handleClose}
                 >
-                  <MenuItem
-                    onClick={() => {
-                      setAnchorEl(null);
-                      navigate(`/orgs/${orgID}/settings/profile`);
-                    }}
-                  >
-                    Profile
-                  </MenuItem>
+                  {orgID && (
+                    <MenuItem
+                      onClick={() => {
+                        setAnchorEl(null);
+                        navigate(`/orgs/${orgID}/settings/profile`);
+                      }}
+                    >
+                      Profile
+                    </MenuItem>
+                  )}
                   <MenuItem
                     onClick={() => {
                       setAnchorEl(null);
@@ -224,80 +232,82 @@ export default function Shell({ search, title, children, ...otherProps }) {
             )}
           </Toolbar>
         </AppBar>
-        <Drawer
-          variant="permanent"
-          className={clsx(classes.drawer, {
-            [classes.drawerOpen]: open,
-            [classes.drawerClose]: !open,
-          })}
-          classes={{
-            paper: clsx({
+        {!noSidebar && (
+          <Drawer
+            variant="permanent"
+            className={clsx(classes.drawer, {
               [classes.drawerOpen]: open,
               [classes.drawerClose]: !open,
-            }),
-          }}
-        >
-          <div className={classes.toolbar}>
-            <img
-              style={{ width: "80%" }}
-              src={lgBreakpoint ? logoDarkBG : logo}
-              alt="CustomerDB product logo"
-            />
-            {!lgBreakpoint && (
-              <IconButton onClick={handleDrawerClose}>
-                {theme.direction === "rtl" ? (
-                  <ChevronRightIcon />
-                ) : (
-                  <ChevronLeftIcon />
-                )}
-              </IconButton>
-            )}
-          </div>
-          <Divider />
-          <List>
-            <NavListItem key="Interviews" to={`/orgs/${orgID}/interviews`}>
-              <ListItemIcon>
-                <RecordVoiceOverIcon />
-              </ListItemIcon>
-              <ListItemText primary="Interviews" />
-            </NavListItem>
-            <NavListItem key="Quotes" to={`/orgs/${orgID}/quotes`}>
-              <ListItemIcon>
-                <FormatQuoteIcon />
-              </ListItemIcon>
-              <ListItemText primary="Quotes" />
-            </NavListItem>
-            <NavListItem key="Guides" to={`/orgs/${orgID}/guides`}>
-              <ListItemIcon>
-                <ExploreIcon />
-              </ListItemIcon>
-              <ListItemText primary="Guides" />
-            </NavListItem>
-            <NavListItem key="Customers" to={`/orgs/${orgID}/people`}>
-              <ListItemIcon>
-                <GroupIcon />
-              </ListItemIcon>
-              <ListItemText primary="Customers" />
-            </NavListItem>
-            <NavListItem key="Analysis" to={`/orgs/${orgID}/analyze`}>
-              <ListItemIcon>
-                <MultilineChartIcon />
-              </ListItemIcon>
-              <ListItemText primary="Analysis" />
-            </NavListItem>
-          </List>
+            })}
+            classes={{
+              paper: clsx({
+                [classes.drawerOpen]: open,
+                [classes.drawerClose]: !open,
+              }),
+            }}
+          >
+            <div className={classes.toolbar}>
+              <img
+                style={{ width: "80%" }}
+                src={lgBreakpoint ? logoDarkBG : logo}
+                alt="CustomerDB"
+              />
+              {!lgBreakpoint && (
+                <IconButton onClick={handleDrawerClose}>
+                  {theme.direction === "rtl" ? (
+                    <ChevronRightIcon />
+                  ) : (
+                    <ChevronLeftIcon />
+                  )}
+                </IconButton>
+              )}
+            </div>
+            <Divider />
+            <List>
+              <NavListItem key="Interviews" to={`/orgs/${orgID}/interviews`}>
+                <ListItemIcon>
+                  <RecordVoiceOverIcon />
+                </ListItemIcon>
+                <ListItemText primary="Interviews" />
+              </NavListItem>
+              <NavListItem key="Quotes" to={`/orgs/${orgID}/quotes`}>
+                <ListItemIcon>
+                  <FormatQuoteIcon />
+                </ListItemIcon>
+                <ListItemText primary="Quotes" />
+              </NavListItem>
+              <NavListItem key="Guides" to={`/orgs/${orgID}/guides`}>
+                <ListItemIcon>
+                  <ExploreIcon />
+                </ListItemIcon>
+                <ListItemText primary="Guides" />
+              </NavListItem>
+              <NavListItem key="Customers" to={`/orgs/${orgID}/people`}>
+                <ListItemIcon>
+                  <GroupIcon />
+                </ListItemIcon>
+                <ListItemText primary="Customers" />
+              </NavListItem>
+              <NavListItem key="Analysis" to={`/orgs/${orgID}/analyze`}>
+                <ListItemIcon>
+                  <MultilineChartIcon />
+                </ListItemIcon>
+                <ListItemText primary="Analysis" />
+              </NavListItem>
+            </List>
 
-          <Divider />
+            <Divider />
 
-          <List>
-            <NavListItem key="Settings" to={`/orgs/${orgID}/settings`}>
-              <ListItemIcon>
-                <SettingsIcon />
-              </ListItemIcon>
-              <ListItemText primary="Settings" />
-            </NavListItem>
-          </List>
-        </Drawer>
+            <List>
+              <NavListItem key="Settings" to={`/orgs/${orgID}/settings`}>
+                <ListItemIcon>
+                  <SettingsIcon />
+                </ListItemIcon>
+                <ListItemText primary="Settings" />
+              </NavListItem>
+            </List>
+          </Drawer>
+        )}
         <main className={classes.content}>
           <div className={classes.toolbar} />
           {children}

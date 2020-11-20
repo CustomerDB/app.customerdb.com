@@ -43,7 +43,7 @@ export default function AnalysisDeleteModal(props) {
           key={analysis.ID}
           onClick={() => {
             event(firebase, "delete_analysis", {
-              orgID: oauthClaims.orgID,
+              orgID: orgID,
               userID: oauthClaims.user_id,
             });
 

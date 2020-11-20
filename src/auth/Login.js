@@ -91,11 +91,12 @@ export default function Login(props) {
   };
 
   useEffect(() => {
-    if (!auth.oauthClaims || !auth.oauthClaims.orgID) {
+    if (!auth.oauthClaims || !auth.oauthUser.email) {
       return;
     }
-    navigate(`/orgs/${auth.oauthClaims.orgID}`);
-  }, [auth.oauthClaims, navigate]);
+
+    navigate("/orgs");
+  }, [auth.oauthClaims, navigate, auth, firebase]);
 
   return auth.oauthUser === null && auth.oauthLoading === false ? (
     <Grid container justify="center">

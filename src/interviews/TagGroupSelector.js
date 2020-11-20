@@ -8,10 +8,12 @@ import Select from "@material-ui/core/Select";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
 import useFirestore from "../db/Firestore.js";
+import { useParams } from "react-router-dom";
 
 export default function TagGroupSelector(props) {
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
+  const { orgID } = useParams();
 
   const {
     documentRef,
@@ -61,7 +63,7 @@ export default function TagGroupSelector(props) {
   const onTagGroupChange = (e) => {
     console.log("onTagGroupChange", e);
     event(firebase, "change_interview_tag_group", {
-      orgID: oauthClaims.orgID,
+      orgID: orgID,
       userID: oauthClaims.user_id,
     });
 
