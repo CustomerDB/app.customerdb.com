@@ -39,6 +39,11 @@ export default function Notes({ reactQuillRef, tags, document }) {
             ["link", "image"],
             ["clean"],
           ],
+          history: {
+            // delay: 2000,
+            // maxStack: 500,
+            userOnly: true,
+          },
         }}
       />
     </Grid>
