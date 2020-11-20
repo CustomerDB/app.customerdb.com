@@ -240,13 +240,6 @@ function CollabEditorWithCache({
       onChange={onEdit}
       defaultValue={revisionCache.delta}
       scrollingContainer="#editorScrollContainer"
-      modules={{
-        history: {
-          delay: 2000,
-          maxStack: 500,
-          userOnly: true,
-        },
-      }}
       {...otherProps}
     />
   );
