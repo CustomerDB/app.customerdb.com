@@ -16,13 +16,13 @@ steps:
   waitFor: ["-"]
   args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=firestore:rules,storage:rules']
 - name: 'gcr.io/$PROJECT_ID/firebase'
-  id: yarn
+  id: yarn-install
   waitFor: ["-"]
-  args: ['/usr/local/bin/yarn']
+  args: ['/usr/local/bin/yarn', 'install', '--production']
 - name: 'gcr.io/$PROJECT_ID/firebase'
   id: yarn-build
   waitFor:
-  - yarn
+  - yarn-install
   args: ['/usr/local/bin/yarn', 'build']
   env:
   - 'REACT_APP_DOMAIN=$_DOMAIN'
