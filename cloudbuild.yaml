@@ -8,14 +8,6 @@ steps:
   - 'PROJECT=$PROJECT_ID'
   - 'REV=$REVISION_ID'
 - name: 'gcr.io/$PROJECT_ID/firebase'
-  id: firebase-indexes
-  waitFor: ["-"]
-  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=firestore:indexes']
-- name: 'gcr.io/$PROJECT_ID/firebase'
-  id: firebase-rules
-  waitFor: ["-"]
-  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=firestore:rules,storage:rules']
-- name: 'gcr.io/$PROJECT_ID/firebase'
   id: yarn-install
   waitFor: ["-"]
   args: ['/usr/local/bin/yarn', 'install', '--production']
@@ -46,23 +38,18 @@ steps:
   waitFor: ["-"]
   args: ['/usr/local/bin/npm', '--prefix=/workspace/functions', 'install']
 - name: 'gcr.io/$PROJECT_ID/firebase'
-  id: deploy-functions
-  waitFor:
-  - npm-install
-  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=functions']
-- name: 'gcr.io/$PROJECT_ID/firebase'
-  id: deploy-hosting
+  id: deploy
   waitFor:
   - yarn-build
-  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=hosting']
+  - npm-install
+  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force']
   env:
   - 'BUILD=$BUILD_ID'
   - 'PROJECT=$PROJECT_ID'
   - 'REV=$REVISION_ID'
 - name: 'gcr.io/$PROJECT_ID/firebase'
   waitFor:
-  - deploy-functions
-  - deploy-hosting
+  - deploy
   args: ['/bin/sh', './scripts/slack.sh', 'Finished deployment of $_DOMAIN']
   env:
   - 'SLACK_WEB_HOOK=$_SLACK_WEB_HOOK'
