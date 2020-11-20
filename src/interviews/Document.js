@@ -34,7 +34,7 @@ const useStyles = makeStyles({
     minHeight: "48rem",
     width: "100%",
     maxWidth: "80rem",
-    borderRight: "1px solid rgba(0, 0, 0, 0.12)"
+    borderRight: "1px solid rgba(0, 0, 0, 0.12)",
   },
   tabs: {
     width: "100%",
@@ -202,7 +202,15 @@ export default function Document(props) {
   }
 
   return (
-    <Grid container item md={12} lg={9} xl={10} spacing={0} style={{backgroundColor: "white"}}>
+    <Grid
+      container
+      item
+      md={12}
+      lg={9}
+      xl={10}
+      spacing={0}
+      style={{ backgroundColor: "white" }}
+    >
       <Grid
         style={{ position: "relative", height: "100%" }}
         container
