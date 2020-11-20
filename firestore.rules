@@ -2,8 +2,12 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    function signedIn() {
+      return request.auth.uid != null;
+    }
+
     function signedInAndVerified() {
-      return request.auth.uid != null &&
+      return signedIn() &&
              request.auth.token.email_verified == true;
     }
 
@@ -19,7 +23,7 @@ service cloud.firestore {
 
     // Allow clients to subscribe to their own token refresh trigger
     match /uids/{uid} {
-      allow read: if signedInAndVerified()
+      allow read: if signedIn()
                   && request.auth.uid == uid;
     }
 
