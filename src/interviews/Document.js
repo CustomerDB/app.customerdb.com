@@ -29,7 +29,7 @@ import useFirestore from "../db/Firestore.js";
 
 const useStyles = makeStyles({
   documentPaper: {
-    margin: "0 1rem 1rem 2rem",
+    margin: "0 1rem 0 2rem",
     padding: "1rem 2rem 4rem 2rem",
     minHeight: "48rem",
     width: "100%",
@@ -220,7 +220,7 @@ export default function Document(props) {
         xl={9}
       >
         <Scrollable id="editorScrollContainer">
-          <Grid container item spacing={0} xs={12}>
+          <Grid container item spacing={0} xs={12} style={{ height: "100%" }}>
             <Grid container item justify="center">
               <Paper elevation={5} className={classes.documentPaper}>
                 <Grid container>
