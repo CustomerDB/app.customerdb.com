@@ -143,7 +143,7 @@ const cleanupData = async () => {
 };
 
 const renderDocument = async (route, container) => {
-  const path = "/org/:orgID/interviews/:documentID";
+  const path = "/org/:orgID/interviews/:documentID/:tabID";
   if (!container) {
     container = document.createElement("div");
     document.body.appendChild(container);
@@ -180,7 +180,7 @@ const renderDocument = async (route, container) => {
 
 it("can render an existing document", async () => {
   let container = await renderDocument(
-    `/org/acme-0001/interviews/${documentID}`
+    `/org/acme-0001/interviews/${documentID}/notes`
   );
 
   await wait(() => {
@@ -196,7 +196,7 @@ it("can render an existing document", async () => {
 
 it("can edit a document", async () => {
   let container = await renderDocument(
-    `/org/acme-0001/interviews/${documentID}`
+    `/org/acme-0001/interviews/${documentID}/notes`
   );
   await wait(() => {
     const editorNode = container.querySelector(".ql-editor");
@@ -242,7 +242,7 @@ it("can edit a document", async () => {
   });
 
   let container2 = await renderDocument(
-    `/org/acme-0001/interviews/${documentID}`
+    `/org/acme-0001/interviews/${documentID}/notes`
   );
   await wait(() => {
     let editorNode = container2.querySelector(".ql-editor");
@@ -252,7 +252,7 @@ it("can edit a document", async () => {
 
 it("can delete a document", async () => {
   let container = await renderDocument(
-    `/org/acme-0001/interviews/${documentID}`
+    `/org/acme-0001/interviews/${documentID}/notes`
   );
   await wait(() => {
     const editorNode = container.querySelector(".ql-editor");
@@ -312,7 +312,7 @@ it("can delete a document", async () => {
 
 it("can receive and render highlights in a document", async () => {
   let container = await renderDocument(
-    `/org/acme-0001/interviews/${documentID}`
+    `/org/acme-0001/interviews/${documentID}/notes`
   );
   await wait(() => {
     const editorNode = container.querySelector(".ql-editor");
