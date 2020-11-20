@@ -7,7 +7,6 @@ import Error404 from "./404.js";
 import ErrorBoundary from "./util/ErrorBoundary.js";
 import Firebase from "./util/Firebase.js";
 import FirebaseContext from "./util/FirebaseContext.js";
-import JoinOrg from "./auth/JoinOrg.js";
 import Login from "./auth/Login.js";
 import Logout from "./auth/Logout.js";
 import Organization from "./organization/Organization.js";
@@ -59,14 +58,7 @@ export default function App() {
               />
 
               <Route path="join">
-                <Route
-                  path=":orgID"
-                  element={
-                    <WithOauthUser>
-                      <JoinOrg />
-                    </WithOauthUser>
-                  }
-                />
+                <Route path=":orgID" element={<RedirectToSignup />} />
               </Route>
 
               <Route path="signup" element={<Signup />} />
@@ -132,4 +124,11 @@ export default function App() {
       </ErrorBoundary>
     </Router>
   );
+}
+
+function RedirectToSignup() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const email = urlParams.get("email");
+  const urlEncodedEmail = encodeURIComponent(email);
+  return <Navigate to={`/signup?email=${urlEncodedEmail}`} />;
 }
