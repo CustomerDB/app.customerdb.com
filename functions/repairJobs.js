@@ -66,8 +66,12 @@ exports.reIndexAllHighlights = functions.pubsub
     return Promise.all([highlightsPromise, transcriptHighlightsPromise]);
   });
 
-exports.rewriteOauthClaims = functions.pubsub
-  .topic("rewrite-oauth-claims")
+exports.rewriteOauthClaims = functions
+  .runWith({
+    timeoutSeconds: 300,
+    memory: "2GB",
+  })
+  .pubsub.topic("rewrite-oauth-claims")
   .onPublish((message) => {
     const auth = admin.auth();
     const db = admin.firestore();
@@ -79,77 +83,85 @@ exports.rewriteOauthClaims = functions.pubsub
         console.log(
           `rewriting oauth claims for ${snapshot.size} organizations`
         );
-        return snapshot.docs.map((doc) => {
-          const organization = doc.data();
-          organization.id = doc.id;
+        return Promise.all(
+          snapshot.docs.map((doc) => {
+            const organization = doc.data();
+            organization.id = doc.id;
 
-          const membersRef = doc.ref.collection("members");
+            const membersRef = doc.ref.collection("members");
 
-          return membersRef.get().then((snapshot) => {
-            console.log(
-              `rewriting oauth claims for ${snapshot.size} users in organization "${organization.name}"`
-            );
-            return snapshot.docs.map((doc) => {
-              const member = doc.data();
+            return membersRef.get().then((snapshot) => {
+              console.log(
+                `rewriting oauth claims for ${snapshot.size} users in organization "${organization.name}"`
+              );
+              return Promise.all(
+                snapshot.docs.map((doc) => {
+                  const member = doc.data();
 
-              if (!member.active) {
-                console.log(`member ${member.email} is not active -- skipping`);
-                return;
-              }
-
-              return auth
-                .getUserByEmail(member.email)
-                .then((userRecord) => {
-                  const uid = userRecord.uid;
-                  const oldClaims = userRecord.customClaims;
-
-                  if (!oldClaims) {
+                  if (!member.active) {
                     console.log(
-                      `no custom claims found for ${member.email} (${uid}) -- skipping`
+                      `member ${member.email} is not active -- skipping`
                     );
                     return;
                   }
 
-                  console.log(
-                    `found existing custom claims for ${member.email} (${uid})`,
-                    oldClaims
-                  );
+                  return auth
+                    .getUserByEmail(member.email)
+                    .then((userRecord) => {
+                      const uid = userRecord.uid;
+                      const oldClaims = userRecord.customClaims;
 
-                  const oldOrgs = oldClaims.orgs || {};
-                  const newOrgs = Object.assign(oldOrgs, {});
-                  newOrgs[organization.id] = {
-                    admin: member.admin == true,
-                  };
-                  const newClaims = Object.assign(oldClaims, { orgs: newOrgs });
-                  console.log(
-                    `writing new custom claims for ${member.email} (${uid})`,
-                    newClaims
-                  );
-                  return admin
-                    .auth()
-                    .setCustomUserClaims(uid, newClaims)
-                    .then(() => {
-                      // Touch the uid record (`/uids/{uid}`) to trigger id
-                      // token refresh in the client.
-                      //
-                      // NOTE: The client refresh trigger subscription is
-                      //       set up and handled in the WithOauthUser component.
-                      return db
-                        .collection("uids")
-                        .doc(uid)
-                        .set({
-                          refreshTime: admin.firestore.FieldValue.serverTimestamp(),
-                        })
+                      if (!oldClaims) {
+                        console.log(
+                          `no custom claims found for ${member.email} (${uid}) -- skipping`
+                        );
+                        return;
+                      }
+
+                      console.log(
+                        `found existing custom claims for ${member.email} (${uid})`,
+                        oldClaims
+                      );
+
+                      const oldOrgs = oldClaims.orgs || {};
+                      const newOrgs = Object.assign(oldOrgs, {});
+                      newOrgs[organization.id] = {
+                        admin: member.admin == true,
+                      };
+                      const newClaims = Object.assign(oldClaims, {
+                        orgs: newOrgs,
+                      });
+                      console.log(
+                        `writing new custom claims for ${member.email} (${uid})`,
+                        newClaims
+                      );
+                      return admin
+                        .auth()
+                        .setCustomUserClaims(uid, newClaims)
                         .then(() => {
-                          console.log("done triggering token refresh");
+                          // Touch the uid record (`/uids/{uid}`) to trigger id
+                          // token refresh in the client.
+                          //
+                          // NOTE: The client refresh trigger subscription is
+                          //       set up and handled in the WithOauthUser component.
+                          return db
+                            .collection("uids")
+                            .doc(uid)
+                            .set({
+                              refreshTime: admin.firestore.FieldValue.serverTimestamp(),
+                            })
+                            .then(() => {
+                              console.log("done triggering token refresh");
+                            });
                         });
+                    })
+                    .catch((err) => {
+                      console.warn("failed to get user", err);
                     });
                 })
-                .catch((err) => {
-                  console.warn("failed to get user", err);
-                });
+              );
             });
-          });
-        });
+          })
+        );
       });
   });
