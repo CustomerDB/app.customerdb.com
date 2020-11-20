@@ -98,6 +98,8 @@ exports.rewriteOauthClaims = functions
                 snapshot.docs.map((doc) => {
                   const member = doc.data();
 
+                  console.log(`processing member ${member.email}`);
+
                   if (!member.active) {
                     console.log(
                       `member ${member.email} is not active -- skipping`
