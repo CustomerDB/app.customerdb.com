@@ -264,17 +264,17 @@ export default function Shell({
             </div>
             <Divider />
             <List>
-              <NavListItem key="Interviews" to={`/orgs/${orgID}/interviews`}>
-                <ListItemIcon>
-                  <RecordVoiceOverIcon />
-                </ListItemIcon>
-                <ListItemText primary="Interviews" />
-              </NavListItem>
               <NavListItem key="Quotes" to={`/orgs/${orgID}/quotes`}>
                 <ListItemIcon>
                   <FormatQuoteIcon />
                 </ListItemIcon>
                 <ListItemText primary="Quotes" />
+              </NavListItem>
+              <NavListItem key="Interviews" to={`/orgs/${orgID}/interviews`}>
+                <ListItemIcon>
+                  <RecordVoiceOverIcon />
+                </ListItemIcon>
+                <ListItemText primary="Interviews" />
               </NavListItem>
               <NavListItem key="Guides" to={`/orgs/${orgID}/guides`}>
                 <ListItemIcon>
