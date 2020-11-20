@@ -38,9 +38,9 @@ export default function QuotesHelp(props) {
         <h3>Hear directly from your customers</h3>
         <br />
         <h5>
-          Capture{" "}
-          <Link href={`/orgs/${orgID}/interviews`}>your interviews</Link>,
-          highlight your customer quotes and they'll will appear here.
+          Customer quotes you highlight in{" "}
+          <Link href={`/orgs/${orgID}/interviews`}>your interviews</Link> appear
+          here.
         </h5>
       </Grid>
     </Grid>
