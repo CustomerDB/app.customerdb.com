@@ -415,6 +415,9 @@ function Guide({ templateRef }) {
                           ["link", "image"],
                           ["clean"],
                         ],
+                        history: {
+                          userOnly: true,
+                        },
                       }}
                     />
                   </Grid>

@@ -29,11 +29,12 @@ import useFirestore from "../db/Firestore.js";
 
 const useStyles = makeStyles({
   documentPaper: {
-    margin: "1rem 1rem 1rem 2rem",
+    margin: "0 1rem 0 2rem",
     padding: "1rem 2rem 4rem 2rem",
     minHeight: "48rem",
     width: "100%",
     maxWidth: "80rem",
+    borderRight: "1px solid rgba(0, 0, 0, 0.12)",
   },
   tabs: {
     width: "100%",
@@ -88,10 +89,10 @@ export default function Document(props) {
   const handleTabChange = (e, newValue) => {
     let tab = "";
     if (newValue === 0) {
-      tab = "notes";
+      tab = "transcript";
     }
     if (newValue === 1) {
-      tab = "transcript";
+      tab = "notes";
     }
     navigate(`/orgs/${orgID}/interviews/${documentID}/${tab}`);
   };
@@ -104,11 +105,11 @@ export default function Document(props) {
       return;
     }
 
-    if (tabID === "notes") {
+    if (tabID === "transcript") {
       setSelectedTab(0);
     }
 
-    if (tabID === "transcript") {
+    if (tabID === "notes") {
       setSelectedTab(1);
     }
   }, [tabID]);
@@ -201,7 +202,15 @@ export default function Document(props) {
   }
 
   return (
-    <Grid container item md={12} lg={9} xl={10} spacing={0}>
+    <Grid
+      container
+      item
+      md={12}
+      lg={9}
+      xl={10}
+      spacing={0}
+      style={{ backgroundColor: "white" }}
+    >
       <Grid
         style={{ position: "relative", height: "100%" }}
         container
@@ -211,7 +220,7 @@ export default function Document(props) {
         xl={9}
       >
         <Scrollable id="editorScrollContainer">
-          <Grid container item spacing={0} xs={12}>
+          <Grid container item spacing={0} xs={12} style={{ height: "100%" }}>
             <Grid container item justify="center">
               <Paper elevation={5} className={classes.documentPaper}>
                 <Grid container>
@@ -313,32 +322,31 @@ export default function Document(props) {
                       className={classes.tabs}
                     >
                       <Tab
-                        label="notes"
-                        id="notes"
-                        aria-controls="tabpanel-notes"
-                      />
-                      <Tab
                         label="transcript"
                         id="transcript"
                         aria-controls="tabpanel-transcript"
                       />
+                      <Tab
+                        label="notes"
+                        id="notes"
+                        aria-controls="tabpanel-notes"
+                      />
                     </Tabs>
                   </Grid>
-
                   {selectedTab === 0 && (
-                    <Notes
-                      document={document}
-                      tags={tags}
-                      reactQuillRef={props.reactQuillNotesRef}
-                    />
-                  )}
-
-                  {selectedTab === 1 && (
                     <Transcript
                       document={document}
                       tags={tags}
                       reactQuillRef={reactQuillTranscriptRef}
                       selectionChannelPort={transcriptSelectionSend}
+                    />
+                  )}
+
+                  {selectedTab === 1 && (
+                    <Notes
+                      document={document}
+                      tags={tags}
+                      reactQuillRef={props.reactQuillNotesRef}
                     />
                   )}
                 </Grid>
