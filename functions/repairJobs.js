@@ -97,52 +97,57 @@ exports.rewriteOauthClaims = functions.pubsub
                 return;
               }
 
-              return auth.getUserByEmail(member.email).then((userRecord) => {
-                const uid = userRecord.uid;
-                const oldClaims = userRecord.customClaims;
+              return auth
+                .getUserByEmail(member.email)
+                .then((userRecord) => {
+                  const uid = userRecord.uid;
+                  const oldClaims = userRecord.customClaims;
 
-                if (!oldClaims) {
+                  if (!oldClaims) {
+                    console.log(
+                      `no custom claims found for ${member.email} (${uid}) -- skipping`
+                    );
+                    return;
+                  }
+
                   console.log(
-                    `no custom claims found for ${member.email} (${uid}) -- skipping`
+                    `found existing custom claims for ${member.email} (${uid})`,
+                    oldClaims
                   );
-                  return;
-                }
 
-                console.log(
-                  `found existing custom claims for ${member.email} (${uid})`,
-                  oldClaims
-                );
-
-                const oldOrgs = oldClaims.orgs || {};
-                const newOrgs = Object.assign(oldOrgs, {});
-                newOrgs[organization.id] = {
-                  admin: member.admin == true,
-                };
-                const newClaims = Object.assign(oldClaims, { orgs: newOrgs });
-                console.log(
-                  `writing new custom claims for ${member.email} (${uid})`,
-                  newClaims
-                );
-                return admin
-                  .auth()
-                  .setCustomUserClaims(uid, newClaims)
-                  .then(() => {
-                    // Touch the uid record (`/uids/{uid}`) to trigger id
-                    // token refresh in the client.
-                    //
-                    // NOTE: The client refresh trigger subscription is
-                    //       set up and handled in the WithOauthUser component.
-                    return db
-                      .collection("uids")
-                      .doc(uid)
-                      .set({
-                        refreshTime: admin.firestore.FieldValue.serverTimestamp(),
-                      })
-                      .then(() => {
-                        console.log("done triggering token refresh");
-                      });
-                  });
-              });
+                  const oldOrgs = oldClaims.orgs || {};
+                  const newOrgs = Object.assign(oldOrgs, {});
+                  newOrgs[organization.id] = {
+                    admin: member.admin == true,
+                  };
+                  const newClaims = Object.assign(oldClaims, { orgs: newOrgs });
+                  console.log(
+                    `writing new custom claims for ${member.email} (${uid})`,
+                    newClaims
+                  );
+                  return admin
+                    .auth()
+                    .setCustomUserClaims(uid, newClaims)
+                    .then(() => {
+                      // Touch the uid record (`/uids/{uid}`) to trigger id
+                      // token refresh in the client.
+                      //
+                      // NOTE: The client refresh trigger subscription is
+                      //       set up and handled in the WithOauthUser component.
+                      return db
+                        .collection("uids")
+                        .doc(uid)
+                        .set({
+                          refreshTime: admin.firestore.FieldValue.serverTimestamp(),
+                        })
+                        .then(() => {
+                          console.log("done triggering token refresh");
+                        });
+                    });
+                })
+                .catch((err) => {
+                  console.warn("failed to get user", err);
+                });
             });
           });
         });
