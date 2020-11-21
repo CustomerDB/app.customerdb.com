@@ -137,7 +137,7 @@ export default function Quote({ hit }) {
               <span
                 style={{
                   backgroundColor: attenuatedHighlightColor,
-                  color: hit.tagTextColor,
+                  color: "#000",
                 }}
               >
                 <Highlight hit={hit} attribute="text" />
