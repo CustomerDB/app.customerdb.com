@@ -23,6 +23,7 @@
     "firebase-functions": "^3.8.0",
     "firebase-tools": "^8.15.1",
     "glob": "^7.1.6",
+    "node-mediainfo": "^1.0.3",
     "quill-delta": "^4.2.2",
     "request": "^2.88.2",
     "tmp": "^0.2.1",

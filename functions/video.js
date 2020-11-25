@@ -5,6 +5,7 @@ const admin = require("firebase-admin");
 const spawn = require("child-process-promise").spawn;
 const ffmpegPath = require("@ffmpeg-installer/ffmpeg").path;
 const { v4: uuidv4 } = require("uuid");
+const mediainfo = require("node-mediainfo");
 
 const generateFromVideo = (file, imageHeight, outputPrefix) => {
   // ffmpeg -i input.mp4 -f image2 -vf fps=1/10,scale=-1:192 thumb-%d.png
@@ -33,6 +34,106 @@ const generateFromVideo = (file, imageHeight, outputPrefix) => {
       return promise;
     });
 };
+
+exports.ensureCBRVersion = functions
+  .runWith({
+    timeoutSeconds: 300,
+    memory: "2GB",
+  })
+  .storage.object()
+  .onFinalize((object) => {
+    const filePath = object.name;
+    const contentType = object.contentType;
+
+    let matches = filePath.match(/(.+)\/transcriptions\/(.+)\/input\/(.+)/);
+
+    if (!matches || matches.length != 4) {
+      return;
+    }
+
+    let orgID = matches[1];
+    let transcriptionID = matches[2];
+
+    if (!contentType.startsWith("audio/")) {
+      console.log("object content type is not audio -- skipping", contentType);
+      return;
+    }
+
+    const videoobj = tmp.fileSync();
+    return admin
+      .storage()
+      .bucket()
+      .file(filePath)
+      .download({
+        destination: videoobj.name,
+      })
+      .then(() => {
+        return mediainfo(videoobj.name).then((result) => {
+          let tracks = result.media.track;
+          let vbr = false;
+
+          tracks.forEach((track) => {
+            if (
+              track.OverallBitRate_Mode === "VBR" ||
+              track.BitRate_Mode === "VBR"
+            ) {
+              vbr = true;
+            }
+          });
+
+          console.log(`${filePath} vbr: ${vbr}`);
+
+          if (!vbr) {
+            console.debug("not a variable bit rate file -- skipping");
+            return;
+          }
+
+          let cbrFilePath = tmp.fileSync().name + ".mp3";
+
+          // Force audio in 32k bit rate.
+          const promise = spawn(ffmpegPath, [
+            "-i",
+            videoobj.name,
+            "-b:a",
+            "32k",
+            cbrFilePath,
+          ]);
+
+          // TODO: Remove this once the conversion works.
+          promise.childProcess.stdout.on("data", (data) =>
+            console.info("[spawn] stdout: ", data.toString())
+          );
+          promise.childProcess.stderr.on("data", (data) =>
+            console.info("[spawn] stderr: ", data.toString())
+          );
+
+          let destination = `${orgID}/transcriptions/${transcriptionID}/output/cbr-version.mp3`;
+
+          console.log(`Uploading ${cbrFilePath} to ${destination}`);
+          return promise.then(() => {
+            // Upload file (out-cbr.mp3)
+            return admin
+              .storage()
+              .bucket()
+              .upload(cbrFilePath, {
+                destination: destination,
+              })
+              .then(() => {
+                // Store it in the transcript object
+                let db = admin.firestore();
+                return db
+                  .collection("organizations")
+                  .doc(orgID)
+                  .collection("transcriptions")
+                  .doc(transcriptionID)
+                  .update({
+                    cbrPath: destination,
+                  });
+              });
+          });
+        });
+      });
+  });
 
 exports.renderThumbnails = functions.storage
   .object()
