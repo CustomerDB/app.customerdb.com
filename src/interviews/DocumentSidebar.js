@@ -77,7 +77,7 @@ export default function DocumentSidebar(props) {
 
         let storageRef = firebase.storage().ref();
         storageRef
-          .child(transcriptionData.inputPath)
+          .child(transcriptionData.cbrPath || transcriptionData.inputPath)
           .getDownloadURL()
           .then((url) => {
             setTranscriptionVideo(url);
