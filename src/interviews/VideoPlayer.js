@@ -183,17 +183,18 @@ export default function VideoPlayer({
 
   return (
     <>
-      <ReactPlayer
-        ref={playerRef}
-        url={transcriptionVideo}
-        onProgress={onVideoProgress}
-        progressInterval={100}
-        playbackRate={playerRate}
-        controls
-        width="100%"
-        height="100%"
-      />
-
+      <div>
+        <ReactPlayer
+          ref={playerRef}
+          url={transcriptionVideo}
+          onProgress={onVideoProgress}
+          progressInterval={100}
+          playbackRate={playerRate}
+          controls
+          width="100%"
+          height="100%"
+        />
+      </div>
       <FormControl>
         <Select
           labelId="player-rate-select-label"
