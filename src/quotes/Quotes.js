@@ -158,7 +158,7 @@ export default function Quotes(props) {
         >
           <CustomSearchBox />
         </Grid>
-        <Grid container item spacing={0}>
+        <Grid container item spacing={0} alignItems="baseline">
           <SearchResults />
         </Grid>
       </Grid>
