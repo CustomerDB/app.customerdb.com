@@ -51,14 +51,11 @@ exports.ensureCBRVersion = functions
       return;
     }
 
-    if (
-      !contentType.startsWith("video/") &&
-      !contentType.startsWith("audio/")
-    ) {
-      console.log(
-        "object content type is not video or audio -- skipping",
-        contentType
-      );
+    let orgID = matches[1];
+    let transcriptionID = matches[2];
+
+    if (!contentType.startsWith("audio/")) {
+      console.log("object content type is not audio -- skipping", contentType);
       return;
     }
 
@@ -85,6 +82,55 @@ exports.ensureCBRVersion = functions
           });
 
           console.log(`${filePath} vbr: ${vbr}`);
+
+          if (!vbr) {
+            console.debug("not a variable bit rate file -- skipping");
+            return;
+          }
+
+          let cbrFilePath = tmp.fileSync().name + ".mp3";
+
+          // Force audio in 32k bit rate.
+          const promise = spawn(ffmpegPath, [
+            "-i",
+            videoobj.name,
+            "-b:a",
+            "32k",
+            cbrFilePath,
+          ]);
+
+          // TODO: Remove this once the conversion works.
+          promise.childProcess.stdout.on("data", (data) =>
+            console.info("[spawn] stdout: ", data.toString())
+          );
+          promise.childProcess.stderr.on("data", (data) =>
+            console.info("[spawn] stderr: ", data.toString())
+          );
+
+          let destination = `${orgID}/transcriptions/${transcriptionID}/output/cbr-version.mp3`;
+
+          console.log(`Uploading ${cbrFilePath} to ${destination}`);
+          return promise.then(() => {
+            // Upload file (out-cbr.mp3)
+            return admin
+              .storage()
+              .bucket()
+              .upload(cbrFilePath, {
+                destination: destination,
+              })
+              .then(() => {
+                // Store it in the transcript object
+                let db = admin.firestore();
+                return db
+                  .collection("organizations")
+                  .doc(orgID)
+                  .collection("transcriptions")
+                  .doc(transcriptionID)
+                  .update({
+                    cbrPath: destination,
+                  });
+              });
+          });
         });
       });
   });
