@@ -15,6 +15,7 @@ import SearchIcon from "@material-ui/icons/Search";
 import Shell from "../shell/Shell.js";
 import useMediaQuery from "@material-ui/core/useMediaQuery";
 import { useSearchClient } from "../search/client.js";
+import QuotesHelp from "./QuotesHelp.js";
 
 function SearchBox({
   currentRefinement,
@@ -129,6 +130,10 @@ export default function Quotes(props) {
       cols[i % colCount].push(result.hits[i]);
     }
 
+    if (result.hits.length === 0) {
+      return <QuotesHelp />;
+    }
+
     return cols.map((col) => (
       <Grid container item direction="row" xs={12} md={6} lg={4} xl={3}>
         {col.map((hit) => (
@@ -153,7 +158,7 @@ export default function Quotes(props) {
         >
           <CustomSearchBox />
         </Grid>
-        <Grid container item spacing={0}>
+        <Grid container item spacing={0} alignItems="baseline">
           <SearchResults />
         </Grid>
       </Grid>

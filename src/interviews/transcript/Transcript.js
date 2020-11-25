@@ -315,6 +315,9 @@ export default function Transcript({
               ["link", "image"],
               ["clean"],
             ],
+            history: {
+              userOnly: true,
+            },
           }}
         />
         <Speakers
