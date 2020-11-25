@@ -9,6 +9,9 @@ import IntervalTree from "@flatten-js/interval-tree";
 import ReactPlayer from "react-player";
 import useFirestore from "../db/Firestore.js";
 import { useParams } from "react-router-dom";
+import MenuItem from "@material-ui/core/MenuItem";
+import FormControl from "@material-ui/core/FormControl";
+import Select from "@material-ui/core/Select";
 
 export default function VideoPlayer({
   doc,
@@ -27,6 +30,12 @@ export default function VideoPlayer({
   const playerRef = useRef();
   const [currentPlayhead, setCurrentPlayhead] = useState();
   const [selection, setSelection] = useState();
+
+  const [playerRate, setPlayerRate] = useState(1);
+
+  const onPlayerRateChange = (event) => {
+    setPlayerRate(event.target.value);
+  };
 
   selectionChannelPort.onmessage = (msg) => {
     setSelection(msg.data);
@@ -179,10 +188,24 @@ export default function VideoPlayer({
         url={transcriptionVideo}
         onProgress={onVideoProgress}
         progressInterval={100}
+        playbackRate={playerRate}
         controls
         width="100%"
         height="100%"
       />
+
+      <FormControl>
+        <Select
+          labelId="player-rate-select-label"
+          id="player-rate-select"
+          value={playerRate}
+          onChange={onPlayerRateChange}
+        >
+          <MenuItem value={1}>1x</MenuItem>
+          <MenuItem value={1.5}>1.5x</MenuItem>
+          <MenuItem value={2}>2x</MenuItem>
+        </Select>
+      </FormControl>
     </>
   );
 }
