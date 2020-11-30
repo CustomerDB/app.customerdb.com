@@ -63,10 +63,9 @@ export default function Document(props) {
 
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [selectedTab, setSelectedTab] = useState();
-  const [
-    openTranscriptDeleteDialog,
-    setOpenTranscriptDeleteDialog,
-  ] = useState();
+  const [openTranscriptDeleteDialog, setOpenTranscriptDeleteDialog] = useState(
+    false
+  );
 
   const transcriptSelectionChan = new MessageChannel();
   const transcriptSelectionSend = transcriptSelectionChan.port1;
@@ -305,7 +304,7 @@ export default function Document(props) {
                     <CallDetails
                       document={document}
                       isDisabled={(call) => {
-                        return (
+                        return !!(
                           document.transcription || call.callEndedTimestamp
                         );
                       }}

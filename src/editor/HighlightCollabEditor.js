@@ -118,9 +118,8 @@ function HighlightControls({
   // Reset scroll flag on navigate
   useEffect(() => {
     let highlightID = query.get("quote");
-    initialScrollRef.current = false;
     setScrollHighlightID(highlightID);
-  }, [query, initialScrollRef]);
+  }, [query]);
 
   // Scroll to quote ID from URL on load.
   useEffect(() => {
