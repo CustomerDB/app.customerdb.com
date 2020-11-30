@@ -19,7 +19,7 @@ export default function OrgSelector() {
 
   const [selectedOrgID, setSelectedOrgID] = useState();
 
-  const [orgMap, setOrgMap] = useState({});
+  const [orgMap, setOrgMap] = useState();
 
   useEffect(() => {
     if (!orgID) {
@@ -47,6 +47,8 @@ export default function OrgSelector() {
         setOrgMap(newOrgMap);
       });
   }, [oauthClaims, db, firebase.firestore.FieldPath]);
+
+  if (!orgID || !orgMap) return <></>;
 
   return (
     <Hidden smDown>

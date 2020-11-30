@@ -22,7 +22,7 @@ import WithOauthUser from "./auth/WithOauthUser.js";
 
 export default function App() {
   const appTheme = createMuiTheme({
-    shadows: ["none"],
+    shadows: [...Array(25).keys()].map((i) => "none"),
     palette: {
       primary: {
         main: "#1b2a4e",

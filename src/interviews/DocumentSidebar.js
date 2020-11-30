@@ -106,7 +106,7 @@ export default function DocumentSidebar(props) {
       }}
     >
       {transcriptionVideo ? (
-        <Card elevation={2} className={classes.videoCard}>
+        <Card className={classes.videoCard}>
           <VideoPlayer
             doc={props.document}
             transcriptionVideo={transcriptionVideo}
@@ -118,7 +118,7 @@ export default function DocumentSidebar(props) {
         <></>
       )}
 
-      <Card elevation={2} className={classes.documentSidebarCard}>
+      <Card className={classes.documentSidebarCard}>
         <CardActionArea
           onClick={() => {
             person &&
@@ -224,7 +224,7 @@ export default function DocumentSidebar(props) {
         </CardActions>
       </Card>
 
-      <Card elevation={2} className={classes.documentSidebarCard}>
+      <Card className={classes.documentSidebarCard}>
         <CardContent>
           {props.tagGroupName && !editTagGroup ? (
             <>
