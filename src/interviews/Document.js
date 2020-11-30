@@ -98,6 +98,7 @@ export default function Document(props) {
   };
 
   const reactQuillTranscriptRef = useRef();
+  const reactQuillNotesRef = useRef();
 
   useEffect(() => {
     if (!tabID) {
@@ -346,7 +347,7 @@ export default function Document(props) {
                     <Notes
                       document={document}
                       tags={tags}
-                      reactQuillRef={props.reactQuillNotesRef}
+                      reactQuillRef={reactQuillNotesRef}
                     />
                   )}
                 </Grid>
