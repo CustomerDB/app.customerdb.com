@@ -1,6 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
 
-import Delta from "quill-delta";
 import FirebaseContext from "../util/FirebaseContext.js";
 import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
@@ -8,9 +7,7 @@ import MenuItem from "@material-ui/core/MenuItem";
 import Select from "@material-ui/core/Select";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
-import { initialDelta } from "../editor/delta.js";
 import useFirestore from "../db/Firestore.js";
-import { useOrganization } from "../organization/hooks.js";
 import { useParams } from "react-router-dom";
 
 export default function TemplateSelector(props) {
@@ -18,7 +15,7 @@ export default function TemplateSelector(props) {
   const firebase = useContext(FirebaseContext);
   const [doc, setDoc] = useState();
   const [templates, setTemplates] = useState();
-  const { defaultTagGroupID } = useOrganization();
+  const [templateID, setTemplateID] = useState("");
   const { orgID } = useParams();
   const { documentRef, templatesRef } = useFirestore();
 
@@ -48,66 +45,15 @@ export default function TemplateSelector(props) {
   }, [templatesRef]);
 
   const onTemplateChange = (e) => {
-    let editor;
-    if (!props.reactQuillNotesRef || !props.reactQuillNotesRef.current) {
-      return;
-    }
-    editor = props.reactQuillNotesRef.current.getEditor();
-
     console.log("onTagGroupChange", e);
     event(firebase, "change_interview_template", {
       orgID: orgID,
       userID: oauthClaims.user_id,
     });
-
-    // Preserve synthetic event reference for use in async code below
-    e.persist();
-
-    let newTemplateID = e.target.value;
-
-    // Handle setting the template to `None`.
-    if (newTemplateID === "") {
-      return documentRef
-        .update({
-          templateID: "",
-          tagGroupID: defaultTagGroupID,
-        })
-        .then(() => {
-          editor.setContents(initialDelta(), "user");
-        });
-    }
-
-    if (newTemplateID !== doc.templateID) {
-      return templatesRef
-        .doc(newTemplateID)
-        .get()
-        .then((templateDoc) => {
-          let template = templateDoc.data();
-
-          return templatesRef
-            .doc(newTemplateID)
-            .collection("snapshots")
-            .orderBy("timestamp", "desc")
-            .limit(1)
-            .get()
-            .then((snapshot) => {
-              if (snapshot.size === 0) return;
-
-              let templateSnapshot = snapshot.docs[0].data();
-              return documentRef
-                .update({
-                  templateID: newTemplateID,
-                  tagGroupID: template.tagGroupID || defaultTagGroupID,
-                })
-                .then(() => {
-                  editor.setContents(
-                    new Delta(templateSnapshot.delta.ops),
-                    "user"
-                  );
-                });
-            });
-        });
-    }
+    const newTemplateID = e.target.value;
+    const newTemplate = templates.find((t) => t.ID === newTemplateID);
+    setTemplateID(newTemplateID);
+    props.onChange(newTemplate);
   };
 
   if (!doc || !templates) {
@@ -121,7 +67,7 @@ export default function TemplateSelector(props) {
         labelId="template-select-label"
         id="template-select"
         onChange={onTemplateChange}
-        value={doc.templateID}
+        value={templateID}
       >
         <MenuItem value="">None</MenuItem>
         {templates &&
