@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import AddIcon from "@material-ui/icons/Add";
@@ -43,11 +43,6 @@ export default function Interviews(props) {
   let { documentsRef, callsRef } = useFirestore();
   let { oauthClaims } = useContext(UserAuthContext);
   let firebase = useContext(FirebaseContext);
-
-  // We have to create a handle for the notes editor here
-  // as using guides will have to set the contents during
-  // interview creation.
-  const reactQuillNotesRef = useRef();
 
   useEffect(() => {
     if (!documentsRef) {
@@ -207,9 +202,7 @@ export default function Interviews(props) {
 
   let content = undefined;
   if (documentID) {
-    content = (
-      <Document key={documentID} reactQuillNotesRef={reactQuillNotesRef} />
-    );
+    content = <Document key={documentID} />;
   } else if (documentItems.length > 0) {
     content = (
       <Hidden smDown>
@@ -224,7 +217,6 @@ export default function Interviews(props) {
       onHide={() => {
         setAddModalShow(false);
       }}
-      reactQuillNotesRef={reactQuillNotesRef}
     />
   );
 
