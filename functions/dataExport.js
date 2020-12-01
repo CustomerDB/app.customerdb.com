@@ -3,6 +3,7 @@ const admin = require("firebase-admin");
 const tmp = require("tmp");
 const createCsvWriter = require("csv-writer").createObjectCsvWriter;
 const fs = require("fs");
+const util = require("./util.js");
 
 exports.interviewsAndHighlights = functions.pubsub
   .schedule("every 24 hours")
