@@ -21,7 +21,7 @@ exports.interviewsAndHighlights = functions
       .then(() => exportInterviewsCollectionGroup(timestamp));
   });
 
-function exportInterviewsCollectionGroup(collectionGroupName, timestamp) {
+function exportInterviewsCollectionGroup(timestamp) {
   // Iterate all interviews
   let db = admin.firestore();
 
