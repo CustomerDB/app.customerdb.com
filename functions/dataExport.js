@@ -65,28 +65,28 @@ function exportInterviewsCollectionGroup(collectionGroupName, timestamp) {
               );
               return util.deltaToPlaintext(revision);
             });
-        })
-      ).then(() => {
-        return notesPromise
-          .then((notesText) => {
-            const notesPath = tmp.fileSync().name + ".txt";
-            fs.writeFileSync(notesPath, notesText);
-            const destination = `exports/${timestamp}/${documentID}/notes.txt`;
-            return admin.storage().bucket().upload(notesPath, {
-              destination: destination,
-            });
-          })
-          .then(() => {
-            return transcriptPromise.then((transcriptText) => {
-              const transcriptPath = tmp.fileSync().name + ".txt";
-              fs.writeFileSync(transcriptPath, transcriptText);
-              const destination = `exports/${timestamp}/${documentID}/transcript.txt`;
-              return admin.storage().bucket().upload(transcriptPath, {
+
+          return notesPromise
+            .then((notesText) => {
+              const notesPath = tmp.fileSync().name + ".txt";
+              fs.writeFileSync(notesPath, notesText);
+              const destination = `exports/${timestamp}/${documentID}/notes.txt`;
+              return admin.storage().bucket().upload(notesPath, {
                 destination: destination,
               });
+            })
+            .then(() => {
+              return transcriptPromise.then((transcriptText) => {
+                const transcriptPath = tmp.fileSync().name + ".txt";
+                fs.writeFileSync(transcriptPath, transcriptText);
+                const destination = `exports/${timestamp}/${documentID}/transcript.txt`;
+                return admin.storage().bucket().upload(transcriptPath, {
+                  destination: destination,
+                });
+              });
             });
-          });
-      });
+        })
+      );
     });
 }
 
