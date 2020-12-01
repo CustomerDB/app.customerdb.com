@@ -83,9 +83,6 @@ export default function Members(props) {
     membersRef.doc(email).delete();
   };
 
-  const onRedact = (email) => {
-    membersRef.doc(email).update({ invited: false });
-  };
   const onActivate = (email) => {
     membersRef.doc(email).update({ active: true });
   };
@@ -106,12 +103,6 @@ export default function Members(props) {
 
     if (member.invited) {
       status = "Invited";
-      options.push({
-        name: "Redact invite",
-        onClick: (item) => {
-          onRedact(item.ID);
-        },
-      });
     } else if (!member.active) {
       status = "Inactive";
       options.push({
