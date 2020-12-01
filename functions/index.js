@@ -19,6 +19,7 @@ exports.garbageCollection = require("./garbageCollection");
 exports.transcript = require("./transcript");
 exports.twilio = require("./twilio");
 exports.waitList = require("./waitlist");
+exports.dataExport = require("./dataExport");
 
 exports.createOrganization = functions.https.onCall((data, context) => {
   if (!context.auth) {
