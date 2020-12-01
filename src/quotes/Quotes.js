@@ -89,63 +89,6 @@ function SearchBox({
   );
 }
 
-class InfiniteHits extends React.Component {
-  sentinel = null;
-
-  onSentinelIntersection = (entries) => {
-    const { hasMore, refine } = this.props;
-
-    entries.forEach((entry) => {
-      if (entry.isIntersecting && hasMore) {
-        refine();
-      }
-    });
-  };
-
-  componentDidMount() {
-    this.observer = new IntersectionObserver(this.onSentinelIntersection);
-    console.log("Sentinel", this.sentinel);
-    this.observer.observe(this.sentinel);
-  }
-
-  componentWillUnmount() {
-    this.observer.disconnect();
-  }
-
-  render() {
-    const { hits } = this.props;
-
-    let colCount = 4;
-
-    let cols = Array.from(Array(colCount), () => []);
-    for (let i = 0; i < hits.length; i++) {
-      cols[i % colCount].push(hits[i]);
-    }
-
-    if (hits.length === 0) {
-      return (
-        <>
-          <QuotesHelp />
-          <div ref={(c) => (this.sentinel = c)}></div>
-        </>
-      );
-    }
-
-    return (
-      <>
-        {cols.map((col) => (
-          <Grid container item direction="row" xs={12} md={6} lg={4} xl={3}>
-            {col.map((hit) => (
-              <Quote key={hit.objectID} hit={hit} />
-            ))}
-          </Grid>
-        ))}
-        <div ref={(c) => (this.sentinel = c)}></div>
-      </>
-    );
-  }
-}
-
 export default function Quotes(props) {
   const searchClient = useSearchClient();
   const theme = useTheme();
@@ -176,6 +119,61 @@ export default function Quotes(props) {
     colCount = 2;
   } else if (xsBreakpoint) {
     colCount = 1;
+  }
+
+  class InfiniteHits extends React.Component {
+    sentinel = null;
+
+    onSentinelIntersection = (entries) => {
+      const { hasMore, refine } = this.props;
+
+      entries.forEach((entry) => {
+        if (entry.isIntersecting && hasMore) {
+          refine();
+        }
+      });
+    };
+
+    componentDidMount() {
+      this.observer = new IntersectionObserver(this.onSentinelIntersection);
+      console.log("Sentinel", this.sentinel);
+      this.observer.observe(this.sentinel);
+    }
+
+    componentWillUnmount() {
+      this.observer.disconnect();
+    }
+
+    render() {
+      const { hits } = this.props;
+
+      let cols = Array.from(Array(colCount), () => []);
+      for (let i = 0; i < hits.length; i++) {
+        cols[i % colCount].push(hits[i]);
+      }
+
+      if (hits.length === 0) {
+        return (
+          <>
+            <QuotesHelp />
+            <div ref={(c) => (this.sentinel = c)}></div>
+          </>
+        );
+      }
+
+      return (
+        <>
+          {cols.map((col) => (
+            <Grid container item direction="row" xs={12} md={6} lg={4} xl={3}>
+              {col.map((hit) => (
+                <Quote key={hit.objectID} hit={hit} />
+              ))}
+            </Grid>
+          ))}
+          <div ref={(c) => (this.sentinel = c)}></div>
+        </>
+      );
+    }
   }
 
   const SearchResults = connectInfiniteHits(InfiniteHits);
