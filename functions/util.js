@@ -27,8 +27,12 @@ exports.revisionAtTime = (orgID, documentID, source, timestamp) => {
 
   const { revisionsRef, deltasRef } = contentRefs(orgID, documentID, source);
 
-  const revisionPromise = revisionsRef
-    .where("timestamp", "<=", timestamp)
+  let revRef = revisionsRef;
+  if (timestamp) {
+    revRef = revisionsRef.where("timestamp", "<=", timestamp);
+  }
+
+  const revisionPromise = revRef
     .orderBy("timestamp", "desc")
     .limit(1)
     .get()
@@ -48,8 +52,13 @@ exports.revisionAtTime = (orgID, documentID, source, timestamp) => {
 
   return revisionPromise.then((revision) => {
     console.debug("util.revisionAtTime -- revision", JSON.stringify(revision));
-    return deltasRef
-      .where("timestamp", "<=", timestamp)
+
+    let dRef = deltasRef;
+    if (timestamp) {
+      dRef = deltasRef.where("timestamp", "<=", timestamp);
+    }
+
+    return dRef
       .where("timestamp", ">", revision.timestamp)
       .orderBy("timestamp", "asc")
       .get()
