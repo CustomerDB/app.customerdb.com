@@ -2,7 +2,7 @@ import "react-quill/dist/quill.snow.css";
 
 import {
   InstantSearch,
-  connectHits,
+  connectInfiniteHits,
   connectSearchBox,
 } from "react-instantsearch-dom";
 import { fade, makeStyles, useTheme } from "@material-ui/core/styles";
@@ -10,7 +10,7 @@ import { fade, makeStyles, useTheme } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
 import InputBase from "@material-ui/core/InputBase";
 import Quote from "./Quote.js";
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import SearchIcon from "@material-ui/icons/Search";
 import Shell from "../shell/Shell.js";
 import useMediaQuery from "@material-ui/core/useMediaQuery";
@@ -89,8 +89,7 @@ function SearchBox({
   );
 }
 
-export default function Quotes(props) {
-  const searchClient = useSearchClient();
+function InfiniteHits({ hasMore, refine, hits }) {
   const theme = useTheme();
 
   const xsBreakpoint = useMediaQuery(theme.breakpoints.up("xs"));
@@ -98,7 +97,73 @@ export default function Quotes(props) {
   const lgBreakpoint = useMediaQuery(theme.breakpoints.up("lg"));
   const xlBreakpoint = useMediaQuery(theme.breakpoints.up("xl"));
 
-  // const [searchState, setSearchState] = useState({});
+  let colCount;
+  if (xlBreakpoint) {
+    colCount = 4;
+  } else if (lgBreakpoint) {
+    colCount = 3;
+  } else if (mdBreakpoint) {
+    colCount = 2;
+  } else if (xsBreakpoint) {
+    colCount = 1;
+  }
+
+  let sentinel = useRef();
+  let observer = useRef();
+
+  useEffect(() => {
+    if (!sentinel.current) {
+      return;
+    }
+
+    observer.current = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting && hasMore) {
+          refine();
+        }
+      });
+    });
+
+    observer.current.observe(sentinel.current);
+
+    return () => {
+      observer.current.disconnect();
+    };
+  }, [sentinel, hasMore, refine]);
+
+  let cols = Array.from(Array(colCount), () => []);
+  for (let i = 0; i < hits.length; i++) {
+    cols[i % colCount].push(hits[i]);
+  }
+
+  if (hits.length === 0) {
+    return (
+      <>
+        <QuotesHelp />
+        <div ref={(c) => (sentinel.current = c)}></div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      {cols.map((col) => (
+        <Grid container item direction="row" xs={12} md={6} lg={4} xl={3}>
+          {col.map((hit) => (
+            <Quote key={hit.objectID} hit={hit} />
+          ))}
+        </Grid>
+      ))}
+      <div
+        ref={(c) => (sentinel.current = c)}
+        style={{ height: "1rem", width: "1rem" }}
+      ></div>
+    </>
+  );
+}
+
+export default function Quotes(props) {
+  const searchClient = useSearchClient();
 
   if (!searchClient) {
     console.error("search client not available");
@@ -112,36 +177,7 @@ export default function Quotes(props) {
   const quoteIndex = process.env.REACT_APP_ALGOLIA_HIGHLIGHTS_INDEX;
   const CustomSearchBox = connectSearchBox(SearchBox);
 
-  let colCount;
-  if (xlBreakpoint) {
-    colCount = 4;
-  } else if (lgBreakpoint) {
-    colCount = 3;
-  } else if (mdBreakpoint) {
-    colCount = 2;
-  } else if (xsBreakpoint) {
-    colCount = 1;
-  }
-
-  const SearchResults = connectHits((result) => {
-    console.debug(`got ${result.hits.length} results`);
-    let cols = Array.from(Array(colCount), () => []);
-    for (let i = 0; i < result.hits.length; i++) {
-      cols[i % colCount].push(result.hits[i]);
-    }
-
-    if (result.hits.length === 0) {
-      return <QuotesHelp />;
-    }
-
-    return cols.map((col) => (
-      <Grid container item direction="row" xs={12} md={6} lg={4} xl={3}>
-        {col.map((hit) => (
-          <Quote key={hit.objectID} hit={hit} />
-        ))}
-      </Grid>
-    ));
-  });
+  const SearchResults = connectInfiniteHits(InfiniteHits);
 
   let searchGrid = (
     <InstantSearch indexName={quoteIndex} searchClient={searchClient}>
