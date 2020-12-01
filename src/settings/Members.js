@@ -106,12 +106,6 @@ export default function Members(props) {
 
     if (member.invited) {
       status = "Invited";
-      options.push({
-        name: "Redact invite",
-        onClick: (item) => {
-          onRedact(item.ID);
-        },
-      });
     } else if (!member.active) {
       status = "Inactive";
       options.push({
