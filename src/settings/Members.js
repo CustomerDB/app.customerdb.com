@@ -83,9 +83,6 @@ export default function Members(props) {
     membersRef.doc(email).delete();
   };
 
-  const onRedact = (email) => {
-    membersRef.doc(email).update({ invited: false });
-  };
   const onActivate = (email) => {
     membersRef.doc(email).update({ active: true });
   };

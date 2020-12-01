@@ -28,7 +28,7 @@ export default function Settings(props) {
     <Tab key={IMPORT} value={IMPORT} label="Bulk Import" />,
   ];
 
-  if (auth.oauthClaims.admin === true) {
+  if (auth.oauthClaims.orgs[orgID].admin === true) {
     tabs.push(<Tab key={MEMBERS} value={MEMBERS} label="Members" />);
   }
 
