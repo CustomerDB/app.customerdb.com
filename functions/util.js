@@ -27,7 +27,7 @@ exports.revisionAtTime = (orgID, documentID, source, timestamp) => {
 
   const { revisionsRef, deltasRef } = contentRefs(orgID, documentID, source);
 
-  let refRev = revisionsRef;
+  let revRef = revisionsRef;
   if (timestamp) {
     revRef = revisionsRef.where("timestamp", "<=", timestamp);
   }
