@@ -5,8 +5,12 @@ const createCsvWriter = require("csv-writer").createObjectCsvWriter;
 const fs = require("fs");
 const util = require("./util.js");
 
-exports.interviewsAndHighlights = functions.pubsub
-  .schedule("every 24 hours")
+exports.interviewsAndHighlights = functions
+  .runWith({
+    timeoutSeconds: 300,
+    memory: "2GB",
+  })
+  .pubsub.schedule("every 24 hours")
   .onRun((context) => {
     let timestamp = new Date().toISOString();
 
@@ -62,27 +66,27 @@ function exportInterviewsCollectionGroup(collectionGroupName, timestamp) {
               return util.deltaToPlaintext(revision);
             });
         })
-      );
-
-      return notesPromise
-        .then((notesText) => {
-          const notesPath = tmp.fileSync().name + ".txt";
-          fs.writeFileSync(notesPath, notesText);
-          const destination = `exports/${timestamp}/${documentID}/notes.txt`;
-          return admin.storage().bucket().upload(notesPath, {
-            destination: destination,
-          });
-        })
-        .then(() => {
-          return transcriptPromise.then((transcriptText) => {
-            const transcriptPath = tmp.fileSync().name + ".txt";
-            fs.writeFileSync(transcriptPath, transcriptText);
-            const destination = `exports/${timestamp}/${documentID}/transcript.txt`;
-            return admin.storage().bucket().upload(transcriptPath, {
+      ).then(() => {
+        return notesPromise
+          .then((notesText) => {
+            const notesPath = tmp.fileSync().name + ".txt";
+            fs.writeFileSync(notesPath, notesText);
+            const destination = `exports/${timestamp}/${documentID}/notes.txt`;
+            return admin.storage().bucket().upload(notesPath, {
               destination: destination,
             });
+          })
+          .then(() => {
+            return transcriptPromise.then((transcriptText) => {
+              const transcriptPath = tmp.fileSync().name + ".txt";
+              fs.writeFileSync(transcriptPath, transcriptText);
+              const destination = `exports/${timestamp}/${documentID}/transcript.txt`;
+              return admin.storage().bucket().upload(transcriptPath, {
+                destination: destination,
+              });
+            });
           });
-        });
+      });
     });
 }
 
