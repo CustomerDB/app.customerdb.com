@@ -414,7 +414,7 @@ exports.deleteTranscript = functions.https.onCall((data, context) => {
           transcription: "",
         })
         .then(() => {
-          callResetPromise.then(() => {
+          return callResetPromise.then(() => {
             // Delete all deltas, revisions and highlights.
             return documentRef
               .collection("transcriptDeltas")
