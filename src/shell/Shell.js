@@ -28,7 +28,6 @@ import OrgSelector from "../orgs/OrgSelector.js";
 import RecordVoiceOverIcon from "@material-ui/icons/RecordVoiceOver";
 import SettingsIcon from "@material-ui/icons/Settings";
 import Toolbar from "@material-ui/core/Toolbar";
-import Typography from "@material-ui/core/Typography";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import clsx from "clsx";
 import logo from "../assets/images/logo.svg";

@@ -1,11 +1,11 @@
 import "react-quill/dist/quill.snow.css";
 
-import { connectInfiniteHits, connectSearchBox } from "react-instantsearch-dom";
-import { fade, makeStyles, useTheme } from "@material-ui/core/styles";
+import { connectInfiniteHits } from "react-instantsearch-dom";
+import { useTheme } from "@material-ui/core/styles";
 
 import Grid from "@material-ui/core/Grid";
 import Quote from "./Quote.js";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import Shell from "../shell/Shell.js";
 import useMediaQuery from "@material-ui/core/useMediaQuery";
 import { useSearchClient } from "../search/client.js";
@@ -14,7 +14,6 @@ import QuotesHelp from "./QuotesHelp.js";
 function InfiniteHits({ hasMore, refine, hits }) {
   const theme = useTheme();
 
-  const xsBreakpoint = useMediaQuery(theme.breakpoints.up("xs"));
   const mdBreakpoint = useMediaQuery(theme.breakpoints.up("md"));
   const lgBreakpoint = useMediaQuery(theme.breakpoints.up("lg"));
   const xlBreakpoint = useMediaQuery(theme.breakpoints.up("xl"));
@@ -91,8 +90,6 @@ function InfiniteHits({ hasMore, refine, hits }) {
 }
 
 export default function Quotes(props) {
-  const [showResults, setShowResults] = useState();
-
   const searchClient = useSearchClient();
 
   if (!searchClient) {
@@ -110,9 +107,7 @@ export default function Quotes(props) {
   if (process.env.REACT_APP_ALGOLIA_HIGHLIGHTS_INDEX) {
     searchConfig = {
       index: process.env.REACT_APP_ALGOLIA_HIGHLIGHTS_INDEX,
-      setShowResults: (value) => {
-        setShowResults(value);
-      },
+      setShowResults: (value) => {},
     };
   }
 
