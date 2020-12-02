@@ -188,7 +188,7 @@ export default function People(props) {
   }
 
   return (
-    <Shell title="Customers" search={searchConfig}>
+    <Shell search={searchConfig}>
       <Grid container className="fullHeight">
         {list}
         {content}

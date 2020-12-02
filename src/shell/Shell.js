@@ -34,6 +34,7 @@ import clsx from "clsx";
 import logo from "../assets/images/logo.svg";
 import logoDarkBG from "../assets/images/logo-dark-bg.svg";
 import useMediaQuery from "@material-ui/core/useMediaQuery";
+import { white } from "material-ui/styles/colors";
 
 const drawerWidth = 240;
 
@@ -47,6 +48,9 @@ const useStyles = makeStyles((theme) => ({
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.leavingScreen,
     }),
+    background: "white",
+    color: "#869AB8",
+    borderBottom: "1px solid rgba(0, 0, 0, 0.12)",
   },
   appBarShift: {
     marginLeft: drawerWidth,
@@ -73,6 +77,9 @@ const useStyles = makeStyles((theme) => ({
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.enteringScreen,
     }),
+    background: "#1B2A4E",
+    color: "#869AB8",
+    padding: "1rem",
   },
   drawerClose: {
     transition: theme.transitions.create("width", {
@@ -81,12 +88,19 @@ const useStyles = makeStyles((theme) => ({
     }),
     overflowX: "hidden",
     width: 0,
+    padding: "1rem",
+    [theme.breakpoints.up("xs")]: {
+      padding: 0,
+    },
     [theme.breakpoints.up("sm")]: {
-      width: theme.spacing(9) + 1,
+      width: theme.spacing(11) + 1,
+      padding: "1rem",
     },
     [theme.breakpoints.up("lg")]: {
       width: drawerWidth,
     },
+    background: "#1B2A4E",
+    color: "#869AB8",
   },
   toolbar: {
     display: "flex",
@@ -94,9 +108,7 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: "center",
     padding: theme.spacing(0, 1),
     ...theme.mixins.toolbar,
-    [theme.breakpoints.up("lg")]: {
-      backgroundColor: "#1b2a4e",
-    },
+    background: "#1B2A4E",
   },
   content: {
     flexGrow: 1,
@@ -105,11 +117,22 @@ const useStyles = makeStyles((theme) => ({
   grow: {
     flexGrow: 1,
   },
+  sideIcon: {
+    color: "#869AB8",
+  },
+  sideIconSelected: {
+    color: white,
+  },
+  listItem: {},
+  listItemSelected: {
+    background: "#121C32",
+    color: "white",
+    borderRadius: "0.5rem",
+  },
 }));
 
 export default function Shell({
   search,
-  title,
   children,
   noSidebar,
   noOrgSelector,
@@ -151,7 +174,7 @@ export default function Shell({
         <AppBar
           position="fixed"
           className={clsx(classes.appBar, {
-            [classes.appBarShift]: open || lgBreakpoint,
+            [classes.appBarShift]: !noSidebar && (open || lgBreakpoint),
           })}
         >
           <Toolbar>
@@ -168,18 +191,9 @@ export default function Shell({
                 <MenuIcon />
               </IconButton>
             )}
-            {!lgBreakpoint && !noSidebar && (
-              <Typography variant="h6" noWrap>
-                {title}
-              </Typography>
-            )}
 
             {noSidebar && (
-              <img
-                style={{ height: "2rem" }}
-                src={logoDarkBG}
-                alt="CustomerDB"
-              />
+              <img style={{ height: "2rem" }} src={logo} alt="CustomerDB" />
             )}
 
             {search && <SearchInput />}
@@ -247,11 +261,7 @@ export default function Shell({
             }}
           >
             <div className={classes.toolbar}>
-              <img
-                style={{ width: "80%" }}
-                src={lgBreakpoint ? logoDarkBG : logo}
-                alt="CustomerDB"
-              />
+              <img style={{ width: "80%" }} src={logoDarkBG} alt="CustomerDB" />
               {!lgBreakpoint && (
                 <IconButton onClick={handleDrawerClose}>
                   {theme.direction === "rtl" ? (
@@ -264,47 +274,47 @@ export default function Shell({
             </div>
             <Divider />
             <List>
-              <NavListItem key="Quotes" to={`/orgs/${orgID}/quotes`}>
-                <ListItemIcon>
-                  <FormatQuoteIcon />
-                </ListItemIcon>
-                <ListItemText primary="Quotes" />
-              </NavListItem>
-              <NavListItem key="Interviews" to={`/orgs/${orgID}/interviews`}>
-                <ListItemIcon>
-                  <RecordVoiceOverIcon />
-                </ListItemIcon>
-                <ListItemText primary="Interviews" />
-              </NavListItem>
-              <NavListItem key="Guides" to={`/orgs/${orgID}/guides`}>
-                <ListItemIcon>
-                  <ExploreIcon />
-                </ListItemIcon>
-                <ListItemText primary="Guides" />
-              </NavListItem>
-              <NavListItem key="Customers" to={`/orgs/${orgID}/people`}>
-                <ListItemIcon>
-                  <GroupIcon />
-                </ListItemIcon>
-                <ListItemText primary="Customers" />
-              </NavListItem>
-              <NavListItem key="Analysis" to={`/orgs/${orgID}/analyze`}>
-                <ListItemIcon>
-                  <MultilineChartIcon />
-                </ListItemIcon>
-                <ListItemText primary="Analysis" />
-              </NavListItem>
+              <NavListItem
+                key="Quotes"
+                to={`/orgs/${orgID}/quotes`}
+                icon={FormatQuoteIcon}
+                label="Quotes"
+              />
+              <NavListItem
+                key="Interviews"
+                to={`/orgs/${orgID}/interviews`}
+                icon={RecordVoiceOverIcon}
+                label="Interviews"
+              />
+              <NavListItem
+                key="Guides"
+                to={`/orgs/${orgID}/guides`}
+                icon={ExploreIcon}
+                label="Guides"
+              />
+              <NavListItem
+                key="Customers"
+                to={`/orgs/${orgID}/people`}
+                icon={GroupIcon}
+                label="Customers"
+              />
+              <NavListItem
+                key="Analysis"
+                to={`/orgs/${orgID}/analyze`}
+                icon={MultilineChartIcon}
+                label="Analysis"
+              />
             </List>
 
             <Divider />
 
             <List>
-              <NavListItem key="Settings" to={`/orgs/${orgID}/settings`}>
-                <ListItemIcon>
-                  <SettingsIcon />
-                </ListItemIcon>
-                <ListItemText primary="Settings" />
-              </NavListItem>
+              <NavListItem
+                key="Settings"
+                to={`/orgs/${orgID}/settings`}
+                icon={SettingsIcon}
+                label="Settings"
+              />
             </List>
           </Drawer>
         )}
@@ -320,6 +330,8 @@ export default function Shell({
 }
 
 function NavListItem(props) {
+  const classes = useStyles();
+
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -327,9 +339,20 @@ function NavListItem(props) {
     ? location.pathname === props.to
     : location.pathname.startsWith(props.to);
 
+  let IconComponent = props.icon;
+
   return (
-    <ListItem button selected={selected} onClick={() => navigate(props.to)}>
-      {props.children}
+    <ListItem
+      button
+      className={selected ? classes.listItemSelected : classes.listItem}
+      onClick={() => navigate(props.to)}
+    >
+      <ListItemIcon>
+        <IconComponent
+          className={selected ? classes.sideIconSelected : classes.sideIcon}
+        />
+      </ListItemIcon>
+      <ListItemText primary={props.label} />
     </ListItem>
   );
 }

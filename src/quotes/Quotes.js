@@ -1,93 +1,15 @@
 import "react-quill/dist/quill.snow.css";
 
-import {
-  InstantSearch,
-  connectInfiniteHits,
-  connectSearchBox,
-} from "react-instantsearch-dom";
+import { connectInfiniteHits, connectSearchBox } from "react-instantsearch-dom";
 import { fade, makeStyles, useTheme } from "@material-ui/core/styles";
 
 import Grid from "@material-ui/core/Grid";
-import InputBase from "@material-ui/core/InputBase";
 import Quote from "./Quote.js";
-import React, { useEffect, useRef } from "react";
-import SearchIcon from "@material-ui/icons/Search";
+import React, { useEffect, useRef, useState } from "react";
 import Shell from "../shell/Shell.js";
 import useMediaQuery from "@material-ui/core/useMediaQuery";
 import { useSearchClient } from "../search/client.js";
 import QuotesHelp from "./QuotesHelp.js";
-
-function SearchBox({
-  currentRefinement,
-  isSearchStalled,
-  refine,
-  placeholder,
-}) {
-  const useStyles = makeStyles((theme) => ({
-    inputRoot: {
-      color: "inherit",
-      padding: 0,
-    },
-    inputInput: {
-      // vertical padding + font size from searchIcon
-      paddingLeft: `calc(1em + ${theme.spacing(4)}px)`,
-      transition: theme.transitions.create("width"),
-      width: "100%",
-      height: "3rem",
-      padding: 0,
-      [theme.breakpoints.up("md")]: {
-        width: "20ch",
-      },
-    },
-    search: {
-      borderRadius: theme.shape.borderRadius,
-      backgroundColor: fade(theme.palette.common.white, 0.15),
-      "&:hover": {
-        backgroundColor: fade(theme.palette.common.white, 0.25),
-      },
-      marginRight: theme.spacing(2),
-      marginLeft: 0,
-      width: "100%",
-      [theme.breakpoints.up("sm")]: {
-        marginLeft: theme.spacing(3),
-        width: "auto",
-      },
-      justifyContent: "center",
-      alignItems: "center",
-      height: "3rem",
-    },
-    searchIcon: {
-      padding: theme.spacing(0, 2),
-      height: "100%",
-      position: "absolute",
-      pointerEvents: "none",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-    },
-  }));
-  const classes = useStyles();
-
-  return (
-    <div className={classes.search}>
-      <div className={classes.searchIcon}>
-        <SearchIcon />
-      </div>
-      <InputBase
-        placeholder="Search…"
-        classes={{
-          root: classes.inputRoot,
-          input: classes.inputInput,
-        }}
-        inputProps={{ "aria-label": "search" }}
-        value={currentRefinement}
-        onChange={(event) => {
-          refine(event.currentTarget.value);
-        }}
-      />
-    </div>
-  );
-}
 
 function InfiniteHits({ hasMore, refine, hits }) {
   const theme = useTheme();
@@ -97,15 +19,18 @@ function InfiniteHits({ hasMore, refine, hits }) {
   const lgBreakpoint = useMediaQuery(theme.breakpoints.up("lg"));
   const xlBreakpoint = useMediaQuery(theme.breakpoints.up("xl"));
 
-  let colCount;
+  let colCount = 1;
+
+  if (mdBreakpoint) {
+    colCount = 2;
+  }
+
+  if (lgBreakpoint) {
+    colCount = 3;
+  }
+
   if (xlBreakpoint) {
     colCount = 4;
-  } else if (lgBreakpoint) {
-    colCount = 3;
-  } else if (mdBreakpoint) {
-    colCount = 2;
-  } else if (xsBreakpoint) {
-    colCount = 1;
   }
 
   let sentinel = useRef();
@@ -131,7 +56,10 @@ function InfiniteHits({ hasMore, refine, hits }) {
     };
   }, [sentinel, hasMore, refine]);
 
+  console.log(colCount);
+
   let cols = Array.from(Array(colCount), () => []);
+  console.log("colCount", colCount, "cols", cols);
   for (let i = 0; i < hits.length; i++) {
     cols[i % colCount].push(hits[i]);
   }
@@ -163,6 +91,8 @@ function InfiniteHits({ hasMore, refine, hits }) {
 }
 
 export default function Quotes(props) {
+  const [showResults, setShowResults] = useState();
+
   const searchClient = useSearchClient();
 
   if (!searchClient) {
@@ -174,35 +104,28 @@ export default function Quotes(props) {
     return <></>;
   }
 
-  const quoteIndex = process.env.REACT_APP_ALGOLIA_HIGHLIGHTS_INDEX;
-  const CustomSearchBox = connectSearchBox(SearchBox);
-
   const SearchResults = connectInfiniteHits(InfiniteHits);
 
+  let searchConfig;
+  if (process.env.REACT_APP_ALGOLIA_HIGHLIGHTS_INDEX) {
+    searchConfig = {
+      index: process.env.REACT_APP_ALGOLIA_HIGHLIGHTS_INDEX,
+      setShowResults: (value) => {
+        setShowResults(value);
+      },
+    };
+  }
+
   let searchGrid = (
-    <InstantSearch indexName={quoteIndex} searchClient={searchClient}>
-      <Grid container item xs={12} alignItems="flex-start" direction="column">
-        <Grid
-          container
-          item
-          style={{
-            height: "3rem",
-            backgroundColor: "white",
-            position: "sticky",
-            top: "64px",
-          }}
-        >
-          <CustomSearchBox />
-        </Grid>
-        <Grid container item spacing={0} alignItems="baseline">
-          <SearchResults />
-        </Grid>
+    <Grid container item xs={12} alignItems="flex-start" direction="column">
+      <Grid container item spacing={0} alignItems="baseline">
+        <SearchResults />
       </Grid>
-    </InstantSearch>
+    </Grid>
   );
 
   return (
-    <Shell title="Quotes">
+    <Shell search={searchConfig}>
       <Grid container className="fullHeight">
         <Grid container item xs>
           {searchGrid}

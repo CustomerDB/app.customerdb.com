@@ -57,7 +57,7 @@ export default function OrgSelector() {
           labelId="org-select-label"
           id="org-select"
           value={selectedOrgID}
-          style={{ width: "10rem", color: "white" }}
+          style={{ width: "10rem" }}
           onChange={(event) => {
             let value = event.target.value;
             setSelectedOrgID(value);

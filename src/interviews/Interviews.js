@@ -231,7 +231,7 @@ export default function Interviews(props) {
   }
 
   return (
-    <Shell title="Interviews" search={searchConfig}>
+    <Shell search={searchConfig}>
       <Grid container className="fullHeight">
         {list}
         {content}

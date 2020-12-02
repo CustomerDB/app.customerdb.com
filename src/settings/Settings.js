@@ -65,7 +65,7 @@ export default function Settings(props) {
   if (!content) navigate("/404");
 
   return (
-    <Shell title="Settings">
+    <Shell>
       <Grid
         container
         direction="column"
