@@ -18,7 +18,7 @@ export default function Organizations() {
   }, [oauthClaims]);
 
   return (
-    <Shell title="Organizations" noOrgSelector noSidebar>
+    <Shell noOrgSelector noSidebar>
       <Grid container style={{ padding: "1rem" }}>
         <PendingInvites orgIDs={orgIDs} />
 

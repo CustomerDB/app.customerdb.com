@@ -177,7 +177,7 @@ export default function Guides(props) {
   }
 
   return (
-    <Shell title="Guides">
+    <Shell>
       <Grid container className="fullHeight">
         <Grid container item xs style={{ width: "100%" }}>
           {list}

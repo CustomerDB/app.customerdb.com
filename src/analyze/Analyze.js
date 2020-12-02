@@ -209,7 +209,7 @@ export default function Analyze(props) {
   }
 
   return (
-    <Shell title="Analysis">
+    <Shell>
       <Grid container className="fullHeight">
         {list}
         {content}
