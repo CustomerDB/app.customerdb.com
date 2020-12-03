@@ -1,4 +1,5 @@
 const functions = require("firebase-functions");
+const algoliasearch = require("algoliasearch");
 
 const ALGOLIA_ID = functions.config().algolia
   ? functions.config().algolia.app_id
