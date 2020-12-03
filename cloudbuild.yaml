@@ -37,19 +37,98 @@ steps:
   id: npm-install
   waitFor: ["-"]
   args: ['/usr/local/bin/npm', '--prefix=/workspace/functions', 'install']
+
 - name: 'gcr.io/$PROJECT_ID/firebase'
-  id: deploy
+  id: deploy-functions-auth
+  waitFor:
+  - npm-install
+  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=functions:auth']
+
+- name: 'gcr.io/$PROJECT_ID/firebase'
+  id: deploy-functions-dataExport
+  waitFor:
+  - deploy-functions-auth
+  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=functions:dataExport']
+
+- name: 'gcr.io/$PROJECT_ID/firebase'
+  id: deploy-functions-documentIndexer
+  waitFor:
+  - deploy-functions-dataExport
+  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=functions:documentIndexer']
+
+- name: 'gcr.io/$PROJECT_ID/firebase'
+  id: deploy-functions-garbageCollection
+  waitFor:
+  - deploy-functions-documentIndexer
+  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=functions:garbageCollection']
+
+- name: 'gcr.io/$PROJECT_ID/firebase'
+  id: deploy-functions-highlightIndex
+  waitFor:
+  - deploy-functions-garbageCollection
+  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=functions:highlightIndex']
+
+- name: 'gcr.io/$PROJECT_ID/firebase'
+  id: deploy-functions-organizations
+  waitFor:
+  - deploy-functions-highlightIndex
+  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=functions:organizations']
+
+- name: 'gcr.io/$PROJECT_ID/firebase'
+  id: deploy-functions-people
+  waitFor:
+  - deploy-functions-organizations
+  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=functions:people']
+
+- name: 'gcr.io/$PROJECT_ID/firebase'
+  id: deploy-functions-repairJobs
+  waitFor:
+  - deploy-functions-people
+  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=functions:repairJobs']
+
+- name: 'gcr.io/$PROJECT_ID/firebase'
+  id: deploy-functions-search
+  waitFor:
+  - deploy-functions-repairJobs
+  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=functions:search']
+
+- name: 'gcr.io/$PROJECT_ID/firebase'
+  id: deploy-functions-transcript
+  waitFor:
+  - deploy-functions-search
+  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=functions:transcript']
+
+- name: 'gcr.io/$PROJECT_ID/firebase'
+  id: deploy-functions-twilio
+  waitFor:
+  - deploy-functions-transcript
+  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=functions:twilio']
+
+- name: 'gcr.io/$PROJECT_ID/firebase'
+  id: deploy-functions-video
+  waitFor:
+  - deploy-functions-twilio
+  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=functions:video']
+
+- name: 'gcr.io/$PROJECT_ID/firebase'
+  id: deploy-functions-waitList
+  waitFor:
+  - deploy-functions-video
+  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=functions:waitList']
+
+- name: 'gcr.io/$PROJECT_ID/firebase'
+  id: deploy-hosting
   waitFor:
   - yarn-build
-  - npm-install
-  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force']
+  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=hosting']
   env:
   - 'BUILD=$BUILD_ID'
   - 'PROJECT=$PROJECT_ID'
   - 'REV=$REVISION_ID'
 - name: 'gcr.io/$PROJECT_ID/firebase'
   waitFor:
-  - deploy
+  - deploy-functions-waitList
+  - deploy-hosting
   args: ['/bin/sh', './scripts/slack.sh', 'Finished deployment of $_DOMAIN']
   env:
   - 'SLACK_WEB_HOOK=$_SLACK_WEB_HOOK'
