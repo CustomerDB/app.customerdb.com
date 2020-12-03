@@ -1,5 +1,8 @@
 const admin = require("firebase-admin");
 const functions = require("firebase-functions");
+const algoliasearch = require("algoliasearch");
+const Delta = require("quill-delta");
+const util = require("./util.js");
 
 const ALGOLIA_ID = functions.config().algolia
   ? functions.config().algolia.app_id
