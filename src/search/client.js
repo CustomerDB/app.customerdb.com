@@ -47,7 +47,9 @@ export function useSearchClient() {
 }
 
 function getSearchClient(firebase, orgID, userID) {
-  const getSearchKey = firebase.functions().httpsCallable("getSearchKey");
+  const getSearchKey = firebase
+    .functions()
+    .httpsCallable("search-getSearchKey");
 
   return firebase
     .firestore()
