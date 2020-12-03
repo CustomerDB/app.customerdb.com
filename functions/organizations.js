@@ -1,6 +1,7 @@
 const admin = require("firebase-admin");
 const functions = require("firebase-functions");
 const { v4: uuidv4 } = require("uuid");
+const fs = require("fs");
 
 exports.createOrganization = functions.https.onCall((data, context) => {
   if (!context.auth) {
