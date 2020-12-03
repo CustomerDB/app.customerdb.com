@@ -457,20 +457,24 @@ exports.updateHighlightPeopleForDocument = functions.firestore
         .then((snapshot) =>
           Promise.all(
             snapshot.docs.map((doc) =>
-              doc.ref.update({ personID: newPersonID })
+              doc.ref.update({
+                personID: newPersonID,
+                lastUpdateTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+              })
             )
           )
         )
         .then(() =>
-          transcriptHighlightsRef
-            .get()
-            .then((snapshot) =>
-              Promise.all(
-                snapshot.docs.map((doc) =>
-                  doc.ref.update({ personID: newPersonID })
-                )
+          transcriptHighlightsRef.get().then((snapshot) =>
+            Promise.all(
+              snapshot.docs.map((doc) =>
+                doc.ref.update({
+                  personID: newPersonID,
+                  lastUpdateTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+                })
               )
             )
+          )
         );
     }
   });
