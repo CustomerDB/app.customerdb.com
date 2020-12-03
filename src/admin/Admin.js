@@ -39,7 +39,7 @@ export default function Admin(props) {
 
   const createOrganization = firebase
     .functions()
-    .httpsCallable("createOrganization");
+    .httpsCallable("organizations-createOrganization");
 
   useEffect(() => {
     return firebase
