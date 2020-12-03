@@ -83,7 +83,16 @@ steps:
   waitFor:
   - deploy-functions-waitList
   args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=functions:dataExport']
-
+- name: 'gcr.io/$PROJECT_ID/firebase'
+  id: deploy-functions-search
+  waitFor:
+  - deploy-functions-dataExport
+  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=functions:search']
+- name: 'gcr.io/$PROJECT_ID/firebase'
+  id: deploy-functions-people
+  waitFor:
+  - deploy-functions-search
+  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=functions:people']
 - name: 'gcr.io/$PROJECT_ID/firebase'
   id: deploy-hosting
   waitFor:
@@ -95,7 +104,8 @@ steps:
   - 'REV=$REVISION_ID'
 - name: 'gcr.io/$PROJECT_ID/firebase'
   waitFor:
-  - deploy
+  - deploy-functions-people
+  - deploy-hosting
   args: ['/bin/sh', './scripts/slack.sh', 'Finished deployment of $_DOMAIN']
   env:
   - 'SLACK_WEB_HOOK=$_SLACK_WEB_HOOK'

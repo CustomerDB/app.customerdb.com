@@ -4,6 +4,9 @@ const tmp = require("tmp");
 const createCsvWriter = require("csv-writer").createObjectCsvWriter;
 const fs = require("fs");
 const util = require("./util.js");
+const firestore = require("@google-cloud/firestore");
+
+const adminClient = new firestore.v1.FirestoreAdminClient();
 
 exports.interviewsAndHighlights = functions
   .runWith({
