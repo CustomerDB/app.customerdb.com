@@ -124,11 +124,7 @@ export default function Transcript({
   }, [transcriptionsRef, document.transcription]);
 
   useEffect(() => {
-    if (!call) {
-      return;
-    }
-
-    if (call.callStartedTimestamp) {
+    if (call && call.callStartedTimestamp) {
       setProgressType("call");
       setActiveStep(0);
 
