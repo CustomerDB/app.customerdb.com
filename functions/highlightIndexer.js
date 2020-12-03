@@ -1,5 +1,4 @@
 const admin = require("firebase-admin");
-const firestore = require("@google-cloud/firestore");
 const functions = require("firebase-functions");
 const algoliasearch = require("algoliasearch");
 const IntervalTree = require("@flatten-js/interval-tree").default;
@@ -435,4 +434,47 @@ exports.markHighlightsForIndexing = functions.pubsub
           })
         );
       });
+  });
+
+// Update highlights if an interview's personID changes.
+exports.updateHighlightPeopleForDocument = functions.firestore
+  .document("organizations/{orgID}/documents/{documentID}")
+  .onUpdate((change) => {
+    let documentRef = change.after.ref;
+    let highlightsRef = documentRef.collection("highlights");
+    let transcriptHighlightsRef = documentRef.collection(
+      "transcriptHighlights"
+    );
+
+    let before = change.before.data();
+    let after = change.after.data();
+
+    if (before.personID !== after.personID) {
+      let newPersonID = after.personID || "";
+
+      return highlightsRef
+        .get()
+        .then((snapshot) =>
+          Promise.all(
+            snapshot.docs.map((doc) =>
+              doc.ref.update({
+                personID: newPersonID,
+                lastUpdateTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+              })
+            )
+          )
+        )
+        .then(() =>
+          transcriptHighlightsRef.get().then((snapshot) =>
+            Promise.all(
+              snapshot.docs.map((doc) =>
+                doc.ref.update({
+                  personID: newPersonID,
+                  lastUpdateTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+                })
+              )
+            )
+          )
+        );
+    }
   });

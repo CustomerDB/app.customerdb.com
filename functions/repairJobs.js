@@ -1,8 +1,5 @@
 const functions = require("firebase-functions");
-const tmp = require("tmp");
 const admin = require("firebase-admin");
-const fs = require("fs");
-const { v4: uuidv4 } = require("uuid");
 
 exports.reThumbnailEverything = functions.pubsub
   .topic("reThumbnailEverything")
@@ -163,6 +160,168 @@ exports.rewriteOauthClaims = functions
                 })
               );
             });
+          })
+        );
+      });
+  });
+
+exports.tagRepair = functions.pubsub
+  .schedule("every 4 hours")
+  .onRun((context) => {
+    let db = admin.firestore();
+
+    // Per organization
+    return db
+      .collection("organizations")
+      .get()
+      .then((snapshot) => {
+        return Promise.all(
+          snapshot.docs.map((orgDoc) => {
+            // Go through each tag group
+            return orgDoc.ref
+              .collection("tagGroups")
+              .get()
+              .then((snapshot) => {
+                return Promise.all(
+                  snapshot.docs.map((tagGroupDoc) => {
+                    // Go through each tag
+                    const tagGroupID = tagGroupDoc.id;
+                    return tagGroupDoc.ref
+                      .collection("tags")
+                      .get()
+                      .then((snapshot) => {
+                        return Promise.all(
+                          snapshot.docs.map((tagDoc) => {
+                            // Set tag group id if not already set
+                            let tag = tagDoc.data();
+                            if (
+                              tag.tagGroupID !== tagGroupID ||
+                              tag.ID !== tagDoc.id
+                            ) {
+                              return tagDoc.ref.update({
+                                tagGroupID: tagGroupID,
+                                ID: tagDoc.id,
+                              });
+                            }
+                          })
+                        );
+                      });
+                  })
+                );
+              });
+          })
+        );
+      });
+  });
+
+// Remove deleted documents from analysis
+exports.repairAnalysis = functions.pubsub
+  .schedule("every 5 minutes")
+  .onRun((context) => {
+    const db = admin.firestore();
+
+    return db
+      .collection("organizations")
+      .get()
+      .then((snapshot) =>
+        Promise.all(
+          snapshot.docs.map((doc) => {
+            let orgID = doc.id;
+            let orgRef = db.collection("organizations").doc(orgID);
+            let analysesRef = orgRef.collection("analyses");
+            let documentsRef = orgRef.collection("documents");
+
+            return analysesRef
+              .where("deletionTimestamp", "==", "")
+              .get()
+              .then((snapshot) =>
+                Promise.all(
+                  snapshot.docs.map((doc) => {
+                    let analysisRef = doc.ref;
+                    let analysis = doc.data();
+
+                    if (
+                      !analysis.documentIDs ||
+                      analysis.documentIDs.length === 0
+                    ) {
+                      return;
+                    }
+
+                    let analysisDocsRef = documentsRef.where(
+                      "ID",
+                      "in",
+                      analysis.documentIDs
+                    );
+
+                    return analysisDocsRef.get().then((snapshot) => {
+                      let needsUpdate = false;
+                      let newDocumentIDs = [];
+
+                      snapshot.docs.forEach((doc) => {
+                        let document = doc.data();
+                        if (document.deletionTimestamp !== "") {
+                          needsUpdate = true;
+                          return;
+                        }
+                        newDocumentIDs.push(doc.id);
+                      });
+
+                      if (needsUpdate) {
+                        return analysisRef.update({
+                          documentIDs: newDocumentIDs,
+                        });
+                      }
+                    });
+                  })
+                )
+              );
+          })
+        )
+      );
+  });
+
+exports.highlightRepair = functions.pubsub
+  .schedule("every 4 hours")
+  .onRun((context) => {
+    let db = admin.firestore();
+
+    return db
+      .collection("organizations")
+      .get()
+      .then((snapshot) => {
+        return Promise.all(
+          snapshot.docs.map((orgDoc) => {
+            console.log(`Repairing highlights in org ${orgDoc.id}`);
+            return orgDoc.ref
+              .collection("documents")
+              .get()
+              .then((snapshot) => {
+                return Promise.all(
+                  snapshot.docs.map((doc) => {
+                    let document = doc.data();
+                    let deletionTimestamp = document.deletionTimestamp;
+
+                    return doc.ref
+                      .collection("highlights")
+                      .get()
+                      .then((snapshot) => {
+                        return Promise.all(
+                          snapshot.docs.map((doc) => {
+                            let partialUpdate = {
+                              deletionTimestamp: deletionTimestamp,
+                            };
+
+                            if (document.personID) {
+                              partialUpdate.personID = document.personID;
+                            }
+
+                            return doc.ref.update(partialUpdate);
+                          })
+                        );
+                      });
+                  })
+                );
+              });
           })
         );
       });

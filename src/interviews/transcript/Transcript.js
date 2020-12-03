@@ -124,11 +124,7 @@ export default function Transcript({
   }, [transcriptionsRef, document.transcription]);
 
   useEffect(() => {
-    if (!call) {
-      return;
-    }
-
-    if (call.callStartedTimestamp) {
+    if (call && call.callStartedTimestamp) {
       setProgressType("call");
       setActiveStep(0);
 
@@ -163,9 +159,15 @@ export default function Transcript({
     return <></>;
   }
 
-  let callNotStarted = call && call.callStartedTimestamp === "";
+  let callNotStarted = !call || (call && call.callStartedTimestamp === "");
   let transcriptionNotStarted = !operation;
 
+  console.log(
+    "callNotStarted && transcriptionNotStarted && !uploading",
+    callNotStarted,
+    transcriptionNotStarted,
+    !uploading
+  );
   if (callNotStarted && transcriptionNotStarted && !uploading) {
     return (
       <PageContainer>
