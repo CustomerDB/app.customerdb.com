@@ -1,5 +1,20 @@
 const functions = require("firebase-functions");
 
+const ALGOLIA_ID = functions.config().algolia
+  ? functions.config().algolia.app_id
+  : undefined;
+const ALGOLIA_ADMIN_KEY = functions.config().algolia
+  ? functions.config().algolia.api_key
+  : undefined;
+const ALGOLIA_PEOPLE_INDEX_NAME = functions.config().algolia
+  ? functions.config().algolia.people_index
+  : undefined;
+
+let client;
+if (ALGOLIA_ID && ALGOLIA_ADMIN_KEY) {
+  client = algoliasearch(ALGOLIA_ID, ALGOLIA_ADMIN_KEY);
+}
+
 // Add people records to the search index when created or updated.
 exports.onPersonWritten = functions.firestore
   .document("organizations/{orgID}/people/{personID}")

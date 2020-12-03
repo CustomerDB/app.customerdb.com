@@ -1,8 +1,4 @@
-const functions = require("firebase-functions");
 const admin = require("firebase-admin");
-const fs = require("fs");
-const Delta = require("quill-delta");
-const util = require("./util.js");
 
 admin.initializeApp();
 
