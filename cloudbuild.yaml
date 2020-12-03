@@ -39,82 +39,22 @@ steps:
   args: ['/usr/local/bin/npm', '--prefix=/workspace/functions', 'install']
 
 - name: 'gcr.io/$PROJECT_ID/firebase'
-  id: deploy-functions-auth
+  id: deploy-functions-group-1
   waitFor:
   - npm-install
-  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=functions:auth']
+  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=functions:auth,functions:dataExport,functions:documentIndexer,functions:garbageCollection']
 
 - name: 'gcr.io/$PROJECT_ID/firebase'
-  id: deploy-functions-dataExport
+  id: deploy-functions-group-2
   waitFor:
-  - deploy-functions-auth
-  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=functions:dataExport']
+  - deploy-functions-group-1
+  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=functions:highlightIndex,functions:organizations,functions:people,functions:repairJobs,functions:search']
 
 - name: 'gcr.io/$PROJECT_ID/firebase'
-  id: deploy-functions-documentIndexer
+  id: deploy-functions-group-3
   waitFor:
-  - deploy-functions-dataExport
-  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=functions:documentIndexer']
-
-- name: 'gcr.io/$PROJECT_ID/firebase'
-  id: deploy-functions-garbageCollection
-  waitFor:
-  - deploy-functions-documentIndexer
-  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=functions:garbageCollection']
-
-- name: 'gcr.io/$PROJECT_ID/firebase'
-  id: deploy-functions-highlightIndex
-  waitFor:
-  - deploy-functions-garbageCollection
-  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=functions:highlightIndex']
-
-- name: 'gcr.io/$PROJECT_ID/firebase'
-  id: deploy-functions-organizations
-  waitFor:
-  - deploy-functions-highlightIndex
-  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=functions:organizations']
-
-- name: 'gcr.io/$PROJECT_ID/firebase'
-  id: deploy-functions-people
-  waitFor:
-  - deploy-functions-organizations
-  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=functions:people']
-
-- name: 'gcr.io/$PROJECT_ID/firebase'
-  id: deploy-functions-repairJobs
-  waitFor:
-  - deploy-functions-people
-  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=functions:repairJobs']
-
-- name: 'gcr.io/$PROJECT_ID/firebase'
-  id: deploy-functions-search
-  waitFor:
-  - deploy-functions-repairJobs
-  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=functions:search']
-
-- name: 'gcr.io/$PROJECT_ID/firebase'
-  id: deploy-functions-transcript
-  waitFor:
-  - deploy-functions-search
-  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=functions:transcript']
-
-- name: 'gcr.io/$PROJECT_ID/firebase'
-  id: deploy-functions-twilio
-  waitFor:
-  - deploy-functions-transcript
-  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=functions:twilio']
-
-- name: 'gcr.io/$PROJECT_ID/firebase'
-  id: deploy-functions-video
-  waitFor:
-  - deploy-functions-twilio
-  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=functions:video']
-
-- name: 'gcr.io/$PROJECT_ID/firebase'
-  id: deploy-functions-waitList
-  waitFor:
-  - deploy-functions-video
-  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=functions:waitList']
+  - deploy-functions-group-2
+  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=functions:transcript,functions:twilio,functions:video,functions:waitList']
 
 - name: 'gcr.io/$PROJECT_ID/firebase'
   id: deploy-hosting
@@ -127,7 +67,7 @@ steps:
   - 'REV=$REVISION_ID'
 - name: 'gcr.io/$PROJECT_ID/firebase'
   waitFor:
-  - deploy-functions-waitList
+  - deploy-functions-group-3
   - deploy-hosting
   args: ['/bin/sh', './scripts/slack.sh', 'Finished deployment of $_DOMAIN']
   env:
