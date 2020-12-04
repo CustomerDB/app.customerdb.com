@@ -51,9 +51,11 @@ exports.highlights = functions.firestore
 
     const modelClient = new PredictionServiceClient();
 
-    // TODO(CD): clear old suggestions or somehow update in-place
+    let deleteSuggestionsPromise = 
+      suggestionsRef.get().then(snapshot => Promise.all(snapshot.docs.map(doc => doc.delete()))
+    )
 
-    return Promise.all(
+    return deleteSuggestionsPromise.then(() => Promise.all(
       suggestions.map((suggestion, i) => {
         const sentence = revisionSentences[i];
         if (sentence.length < MIN_SENTENCE_LENGTH) return Promise.resolve();
@@ -74,16 +76,8 @@ exports.highlights = functions.firestore
               annotation.classification.score;
           });
 
-          // high pass filter
-          if (
-            !suggestion.prediction.highlight ||
-            suggestion.prediction.highlight < 0.5
-          ) {
-            return Promise.resolve();
-          }
-
           return suggestionsRef.doc().set(suggestion);
         });
       })
-    );
+    ));
   });
