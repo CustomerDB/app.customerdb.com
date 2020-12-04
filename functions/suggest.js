@@ -51,33 +51,37 @@ exports.highlights = functions.firestore
 
     const modelClient = new PredictionServiceClient();
 
-    let deleteSuggestionsPromise = 
-      suggestionsRef.get().then(snapshot => Promise.all(snapshot.docs.map(doc => doc.delete()))
-    )
+    let deleteSuggestionsPromise = suggestionsRef
+      .get()
+      .then((snapshot) =>
+        Promise.all(snapshot.docs.map((doc) => doc.ref.delete()))
+      );
 
-    return deleteSuggestionsPromise.then(() => Promise.all(
-      suggestions.map((suggestion, i) => {
-        const sentence = revisionSentences[i];
-        if (sentence.length < MIN_SENTENCE_LENGTH) return Promise.resolve();
+    return deleteSuggestionsPromise.then(() =>
+      Promise.all(
+        suggestions.map((suggestion, i) => {
+          const sentence = revisionSentences[i];
+          if (sentence.length < MIN_SENTENCE_LENGTH) return Promise.resolve();
 
-        const request = {
-          name: modelClient.modelPath(projectID, location, model),
-          payload: {
-            textSnippet: {
-              content: sentence,
-              mimeType: "text/plain",
+          const request = {
+            name: modelClient.modelPath(projectID, location, model),
+            payload: {
+              textSnippet: {
+                content: sentence,
+                mimeType: "text/plain",
+              },
             },
-          },
-        };
-        return modelClient.predict(request).then(([response]) => {
-          suggestion.prediction = {};
-          response.payload.forEach((annotation) => {
-            suggestion.prediction[annotation.displayName] =
-              annotation.classification.score;
-          });
+          };
+          return modelClient.predict(request).then(([response]) => {
+            suggestion.prediction = {};
+            response.payload.forEach((annotation) => {
+              suggestion.prediction[annotation.displayName] =
+                annotation.classification.score;
+            });
 
-          return suggestionsRef.doc().set(suggestion);
-        });
-      })
-    ));
+            return suggestionsRef.doc().set(suggestion);
+          });
+        })
+      )
+    );
   });
