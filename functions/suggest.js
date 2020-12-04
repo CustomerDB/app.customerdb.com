@@ -73,6 +73,15 @@ exports.highlights = functions.firestore
             suggestion.prediction[annotation.displayName] =
               annotation.classification.score;
           });
+
+          // high pass filter
+          if (
+            !suggestion.prediction.highlight ||
+            suggestion.prediction.highlight < 0.5
+          ) {
+            return Promise.resolve();
+          }
+
           return suggestionsRef.doc().set(suggestion);
         });
       })
