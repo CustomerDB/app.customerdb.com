@@ -38,7 +38,7 @@ export default function DocumentCreateModal({ show, onHide }) {
 
     if (template) {
       templateID = template.ID;
-      tagGroupID = template.tagGroupID;
+      tagGroupID = template.tagGroupID || "";
 
       templatePromise = templatesRef
         .doc(templateID)
