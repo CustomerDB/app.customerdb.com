@@ -71,7 +71,7 @@ exports.highlights = functions.firestore
           suggestion.prediction = {};
           response.payload.forEach((annotation) => {
             suggestion.prediction[annotation.displayName] =
-              annotationPayload.classification.score;
+              annotation.classification.score;
           });
           return suggestionsRef.doc().set(suggestion);
         });
