@@ -22,6 +22,7 @@ export default function Notes({ reactQuillRef, tags, document }) {
         revisionsRef={documentRef.collection("revisions")}
         deltasRef={documentRef.collection("deltas")}
         highlightsRef={highlightsRef}
+        suggestionsRef={documentRef.collection("suggestions")}
         tags={tags}
         id="quill-notes-editor"
         theme="snow"

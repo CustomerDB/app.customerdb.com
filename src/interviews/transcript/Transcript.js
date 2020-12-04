@@ -162,12 +162,6 @@ export default function Transcript({
   let callNotStarted = !call || (call && call.callStartedTimestamp === "");
   let transcriptionNotStarted = !operation;
 
-  console.log(
-    "callNotStarted && transcriptionNotStarted && !uploading",
-    callNotStarted,
-    transcriptionNotStarted,
-    !uploading
-  );
   if (callNotStarted && transcriptionNotStarted && !uploading) {
     return (
       <PageContainer>
