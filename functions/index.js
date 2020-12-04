@@ -11,6 +11,7 @@ exports.organizations = require("./organizations");
 exports.people = require("./people");
 exports.repairJobs = require("./repairJobs");
 exports.search = require("./search");
+exports.suggest = require("./suggest");
 exports.transcript = require("./transcript");
 exports.twilio = require("./twilio");
 exports.video = require("./video");
