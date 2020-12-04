@@ -59,7 +59,7 @@ exports.highlights = functions.firestore
         if (sentence.length < MIN_SENTENCE_LENGTH) return Promise.resolve();
 
         const request = {
-          name: client.modelPath(projectID, location, model),
+          name: modelClient.modelPath(projectID, location, model),
           payload: {
             textSnippet: {
               content: sentence,
