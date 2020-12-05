@@ -16,9 +16,9 @@ import { Loading } from "../util/Utils.js";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
-import FlashOnRoundedIcon from '@material-ui/icons/FlashOnRounded';
-import DeleteSweepIcon from '@material-ui/icons/DeleteSweep';
-import ArchiveIcon from '@material-ui/icons/Archive';
+import FlashOnRoundedIcon from "@material-ui/icons/FlashOnRounded";
+import DeleteSweepIcon from "@material-ui/icons/DeleteSweep";
+import ArchiveIcon from "@material-ui/icons/Archive";
 import Moment from "react-moment";
 import MoreVertIcon from "@material-ui/icons/MoreVert";
 import Notes from "./notes/Notes.js";
@@ -227,7 +227,7 @@ export default function Document(props) {
         <Scrollable id="editorScrollContainer">
           <Grid container item spacing={0} xs={12} style={{ height: "100%" }}>
             <Grid container item justify="center">
-              <Paper elevation={5} className={classes.documentPaper}>
+              <Paper className={classes.documentPaper}>
                 <Grid container>
                   <Grid container item xs={12} alignItems="flex-start">
                     <Grid item xs={11}>
@@ -291,7 +291,6 @@ export default function Document(props) {
                             <ListItemIcon>
                               <ArchiveIcon />
                             </ListItemIcon>
-
                             Archive
                           </MenuItem>
                           <MenuItem
@@ -304,7 +303,6 @@ export default function Document(props) {
                             <ListItemIcon>
                               <DeleteSweepIcon />
                             </ListItemIcon>
-
                             Delete transcript
                           </MenuItem>
                           <MenuItem

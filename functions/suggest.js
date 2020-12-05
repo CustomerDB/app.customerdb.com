@@ -87,7 +87,7 @@ exports.highlights = functions.firestore
     "organizations/{orgID}/documents/{documentID}/revisions/{revisionID}"
   )
   .onCreate((doc, context) => {
-    return suggestHighlight(doc, "suggestions")
+    return suggestHighlight(doc, "suggestions");
   });
 
 exports.transcriptHighlights = functions.firestore
@@ -95,5 +95,5 @@ exports.transcriptHighlights = functions.firestore
     "organizations/{orgID}/documents/{documentID}/transcriptRevisions/{revisionID}"
   )
   .onCreate((doc, context) => {
-    return suggestHighlight(doc, "transcriptSuggestions")
+    return suggestHighlight(doc, "transcriptSuggestions");
   });

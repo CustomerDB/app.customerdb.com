@@ -1,8 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
-import Popper from '@material-ui/core/Popper';
-import Fade from '@material-ui/core/Fade';
-import Paper from '@material-ui/core/Paper';
-import Button from '@material-ui/core/Button';
+import Popper from "@material-ui/core/Popper";
+import Paper from "@material-ui/core/Paper";
+import Button from "@material-ui/core/Button";
 
 export default function SuggestionControls({
   suggestionsRef,
@@ -11,17 +10,21 @@ export default function SuggestionControls({
   suggestionsOpen,
   setSuggestionsOpen,
 }) {
+  const [anchor, setAnchor] = useState();
   const [suggestions, setSuggestions] = useState();
-  const [editorReady, setEditorReady] = useState(false);
+  const [topSuggestions, setTopSuggestions] = useState([]);
+  const [editorReady, setEditorReady] = useState(0);
 
   readyChannelPort.onmessage = () => {
-    setEditorReady(true);
+    setEditorReady(editorReady + 1);
   };
 
   const getEditor = useCallback(() => {
     return quillRef.current && quillRef.current.getEditor();
   }, [quillRef]);
 
+  // subscribe to suggestions collection and sort by
+  // confidence of highlight
   useEffect(() => {
     const editor = getEditor();
     if (!suggestionsRef || !editor) {
@@ -31,45 +34,134 @@ export default function SuggestionControls({
     }
 
     return suggestionsRef.onSnapshot((snapshot) => {
-      setSuggestions(
-        snapshot.docs.map((doc) => {
-          let suggestion = doc.data();
-          suggestion.ID = doc.id;
-          suggestion.text = editor.getText(
-            suggestion.selection.index,
-            suggestion.selection.length
-          );
-          return suggestion;
-        })
-      );
+      const newSuggestions = snapshot.docs.map((doc) => {
+        let suggestion = doc.data();
+        suggestion.ID = doc.id;
+        const { index, length } = suggestion.selection;
+        suggestion.text = editor.getText(index, length);
+        return suggestion;
+      });
+
+      newSuggestions.sort((a, b) => {
+        return b.prediction.highlights - a.prediction.highlights;
+      });
+
+      setSuggestions(newSuggestions);
     });
   }, [suggestionsRef, getEditor, editorReady]);
 
   useEffect(() => {
-    if (!suggestions) return;
+    if (!editorReady || !quillRef.current) return;
+    let toolbarElements = document.getElementsByClassName("ql-toolbar");
+    setAnchor(toolbarElements.item(0)); // .item returns undefined if empty
+  }, [quillRef, editorReady]);
 
-    let suggestionsCopy = Object.assign(suggestions);
+  const containsHighlight = (suggestion, editor) => {
+    const { index, length } = suggestion.selection;
+    const contents = editor.getContents(index, length);
+    return contents.ops.find((op) => {
+      return op.attributes && op.attributes.highlight;
+    });
+  };
 
-    let sortedSuggestions = suggestionsCopy.sort(
-      (a, b) => b.prediction.highlights - a.prediction.highlights
+  // compute top suggestions:
+  // - not overlapping with existing highlights
+  // - in document order
+  useEffect(() => {
+    const editor = getEditor();
+    if (!suggestions || !editor) return;
+    const newTopSuggestions = [];
+    const numSuggestions = 5;
+    for (
+      let i = 0;
+      i < suggestions.length && newTopSuggestions.length < numSuggestions;
+      i++
+    ) {
+      const suggestion = suggestions[i];
+      if (containsHighlight(suggestion, editor)) {
+        continue;
+      }
+      newTopSuggestions.push(suggestion);
+    }
+    newTopSuggestions.sort((a, b) => {
+      return a.selection.index - b.selection.index;
+    });
+    setTopSuggestions(newTopSuggestions);
+  }, [suggestions, editorReady, getEditor]);
+
+  useEffect(() => {
+    console.debug("top suggestions", topSuggestions);
+  }, [topSuggestions]);
+
+  const prevSuggestion = () => {
+    const editor = getEditor();
+    if (!editor) return;
+    const selection = editor.getSelection() || { index: 0, length: 0 };
+    const selectionIndex = selection.index;
+
+    console.debug("selectionIndex", selectionIndex);
+
+    const reverseTopSuggestions = [...topSuggestions];
+    reverseTopSuggestions.sort((a, b) => {
+      return b.selection.index - a.selection.index;
+    });
+
+    console.debug("reverseTopSuggestions", reverseTopSuggestions);
+
+    return reverseTopSuggestions.find(
+      (s) => s.selection.index < selectionIndex
     );
+  };
 
-    console.debug("top-5 suggestions", sortedSuggestions.slice(0, 5));
-  }, [suggestions]);
+  const nextSuggestion = () => {
+    const editor = getEditor();
+    if (!editor) return;
+    const selection = editor.getSelection() || { index: 0, length: 0 };
+    const selectionIndex = selection.index + selection.length;
+    return topSuggestions.find((s) => s.selection.index > selectionIndex);
+  };
 
-  console.log("suggestionsOpen", suggestionsOpen);
-  console.log("suggestionsOpen", quillRef.current);
+  const onPrev = () => {
+    const editor = getEditor();
+    if (!editor) return;
+    const prev = prevSuggestion();
+    if (prev) {
+      const { index, length } = prev.selection;
+      editor.setSelection(index, length, "user");
+    }
+  };
 
-  let toolbarElements = document.getElementsByClassName("ql-toolbar");
-  let anchor;
-  if (toolbarElements.length > 0) {
-    anchor = toolbarElements.item(0);
-  }
+  const onNext = () => {
+    const editor = getEditor();
+    if (!editor) return;
+    const next = nextSuggestion();
+    if (next) {
+      const { index, length } = next.selection;
+      editor.setSelection(index, length, "user");
+    }
+  };
 
-  return quillRef.current ? <Popper open={suggestionsOpen} anchorEl={anchor}>
-    <Paper style={{width: "15rem", height: "5rem"}}>
-      <Button variant="contained">Previous</Button>
-      <Button variant="contained" color="secondary">Next</Button>
-    </Paper>
-  </Popper> : <></>;
+  if (!anchor) return <></>;
+
+  return (
+    <Popper open={suggestionsOpen} anchorEl={anchor}>
+      <Paper elevation={3} style={{ padding: "2rem" }}>
+        <h2>Suggest Highlights</h2>
+        <Button variant="contained" onClick={onPrev}>
+          Previous
+        </Button>
+        <Button variant="contained" onClick={onNext}>
+          Next
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() => {
+            setSuggestionsOpen(false);
+          }}
+        >
+          X
+        </Button>
+      </Paper>
+    </Popper>
+  );
 }

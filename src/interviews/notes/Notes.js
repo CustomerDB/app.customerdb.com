@@ -7,7 +7,13 @@ import React from "react";
 import useFirestore from "../../db/Firestore.js";
 
 // Notes augments a collaborative editor with tags and text highlights.
-export default function Notes({ reactQuillRef, tags, document, suggestionsOpen, setSuggestionsOpen }) {
+export default function Notes({
+  reactQuillRef,
+  tags,
+  document,
+  suggestionsOpen,
+  setSuggestionsOpen,
+}) {
   const { documentRef, highlightsRef } = useFirestore();
 
   if (!documentRef || !highlightsRef) {

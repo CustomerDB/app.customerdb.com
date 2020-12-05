@@ -22,7 +22,15 @@ import WithOauthUser from "./auth/WithOauthUser.js";
 
 export default function App() {
   const appTheme = createMuiTheme({
-    shadows: [...Array(25).keys()].map((i) => "none"),
+    // change the default elevation for paper and cards to 0
+    props: {
+      MuiPaper: {
+        elevation: 0,
+      },
+      MuiCard: {
+        elevation: 0,
+      },
+    },
     palette: {
       primary: {
         main: "#1b2a4e",

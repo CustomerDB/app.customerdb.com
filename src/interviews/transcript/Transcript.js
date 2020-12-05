@@ -38,7 +38,7 @@ export default function Transcript({
   document,
   selectionChannelPort,
   suggestionsOpen,
-  setSuggestionsOpen
+  setSuggestionsOpen,
 }) {
   const {
     documentRef,
