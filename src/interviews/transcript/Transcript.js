@@ -37,6 +37,8 @@ export default function Transcript({
   tags,
   document,
   selectionChannelPort,
+  suggestionsOpen,
+  setSuggestionsOpen
 }) {
   const {
     documentRef,
@@ -293,6 +295,7 @@ export default function Transcript({
           revisionsRef={documentRef.collection("transcriptRevisions")}
           deltasRef={documentRef.collection("transcriptDeltas")}
           highlightsRef={transcriptHighlightsRef}
+          suggestionsRef={documentRef.collection("transcriptSuggestions")}
           tags={tags}
           onChangeSelection={onChangeSelection}
           id="quill-notes-editor"
@@ -315,6 +318,8 @@ export default function Transcript({
               userOnly: true,
             },
           }}
+          suggestionsOpen={suggestionsOpen}
+          setSuggestionsOpen={setSuggestionsOpen}
         />
         <Speakers
           quillRef={reactQuillRef}

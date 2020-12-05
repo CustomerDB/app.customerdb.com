@@ -17,6 +17,8 @@ export default function HighlightCollabEditor({
   tags,
   onChangeSelection,
   onReady,
+  suggestionsOpen,
+  setSuggestionsOpen,
   ...otherProps
 }) {
   const [selectionSend, selectionReceive] = makePortPair();
@@ -66,6 +68,8 @@ export default function HighlightCollabEditor({
         quillRef={quillRef}
         suggestionsRef={suggestionsRef}
         readyChannelPort={readyReceive2}
+        suggestionsOpen={suggestionsOpen}
+        setSuggestionsOpen={setSuggestionsOpen}
       />
     </>
   );
