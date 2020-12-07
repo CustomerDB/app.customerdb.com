@@ -39,6 +39,7 @@ export default function Transcript({
   selectionChannelPort,
   suggestionsOpen,
   setSuggestionsOpen,
+  setHasSuggestions,
 }) {
   const {
     documentRef,
@@ -320,6 +321,7 @@ export default function Transcript({
           }}
           suggestionsOpen={suggestionsOpen}
           setSuggestionsOpen={setSuggestionsOpen}
+          setHasSuggestions={setHasSuggestions}
         />
         <Speakers
           quillRef={reactQuillRef}

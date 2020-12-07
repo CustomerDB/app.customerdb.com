@@ -1,7 +1,12 @@
 import React, { useCallback, useEffect, useState } from "react";
 import Popper from "@material-ui/core/Popper";
 import Paper from "@material-ui/core/Paper";
-import Button from "@material-ui/core/Button";
+import Tooltip from "@material-ui/core/Tooltip";
+import IconButton from "@material-ui/core/IconButton";
+import Divider from "@material-ui/core/Divider";
+import NavigateNextIcon from "@material-ui/icons/NavigateNext";
+import NavigateBeforeIcon from "@material-ui/icons/NavigateBefore";
+import CloseIcon from "@material-ui/icons/Close";
 import Delta from "quill-delta";
 
 export default function SuggestionControls({
@@ -11,6 +16,7 @@ export default function SuggestionControls({
   readyChannelPort,
   suggestionsOpen,
   setSuggestionsOpen,
+  setHasSuggestions,
 }) {
   const [anchor, setAnchor] = useState();
   const [suggestions, setSuggestions] = useState();
@@ -19,6 +25,10 @@ export default function SuggestionControls({
 
   const [revisionID, setRevisionID] = useState();
   const [revisionDelta, setRevisionDelta] = useState();
+
+  const [prefix, setPrefix] = useState();
+  const [suggestionText, setSuggestionText] = useState();
+  const [suffix, setSuffix] = useState();
 
   readyChannelPort.onmessage = () => {
     setEditorReady(editorReady + 1);
@@ -55,6 +65,7 @@ export default function SuggestionControls({
         setRevisionID(newSuggestions[0].revisionID);
       }
 
+      setHasSuggestions(newSuggestions.length > 0);
       setSuggestions(newSuggestions);
     });
   }, [suggestionsRef, getEditor, editorReady]);
@@ -115,10 +126,14 @@ export default function SuggestionControls({
   }, [suggestions, editorReady, getEditor]);
 
   useEffect(() => {
-    console.debug("top suggestions", topSuggestions);
-  }, [topSuggestions]);
+    if (!suggestionsOpen) {
+      return;
+    }
 
-  const transformIndex = (index) => {
+    onNext();
+  }, [suggestionsOpen]);
+
+  const transformIndex = (index, length) => {
     const editor = getEditor();
     if (!editor) return;
 
@@ -131,7 +146,12 @@ export default function SuggestionControls({
     console.log("diff", diff);
 
     // Transform index
-    return diff.transformPosition(index);
+    let begin = diff.transformPosition(index);
+    let end = diff.transformPosition(index + length);
+    return {
+      transformedIndex: begin,
+      transformedLength: end - begin,
+    };
   };
 
   const prevSuggestion = () => {
@@ -154,6 +174,29 @@ export default function SuggestionControls({
     );
   };
 
+  const setContext = (editor, transformedIndex, transformedLength) => {
+    // Grab context
+    const contextSize = 100;
+    let contextStart = Math.max(0, transformedIndex - contextSize);
+    let contextEnd = Math.min(
+      editor.getLength(),
+      transformedIndex + transformedLength + contextSize
+    );
+
+    let context = editor.getText(contextStart, contextEnd - contextStart);
+
+    let start = transformedIndex - contextStart;
+    let end = transformedIndex + transformedLength - contextStart;
+    let computedPrefix = context.slice(0, start).trimStart();
+    let computedSuffix = context.slice(end).trimEnd();
+    if (computedPrefix) computedPrefix = `...${computedPrefix}`;
+    if (computedSuffix) computedSuffix = `${computedSuffix}...`;
+
+    setPrefix(computedPrefix);
+    setSuggestionText(context.slice(start, end));
+    setSuffix(computedSuffix);
+  };
+
   const nextSuggestion = () => {
     const editor = getEditor();
     if (!editor) return;
@@ -168,7 +211,13 @@ export default function SuggestionControls({
     const prev = prevSuggestion();
     if (prev) {
       const { index, length } = prev.selection;
-      editor.setSelection(index, length, "user");
+      let { transformedIndex, transformedLength } = transformIndex(
+        index,
+        length
+      );
+      editor.setSelection(transformedIndex, transformedLength, "user");
+
+      setContext(editor, transformedIndex, transformedLength);
     }
   };
 
@@ -179,32 +228,51 @@ export default function SuggestionControls({
     if (next) {
       const { index, length } = next.selection;
 
-      let transformedIndex = transformIndex(index);
+      let { transformedIndex, transformedLength } = transformIndex(
+        index,
+        length
+      );
+      editor.setSelection(transformedIndex, transformedLength, "user");
 
-      editor.setSelection(transformedIndex, length, "user");
+      setContext(editor, transformedIndex, transformedLength);
     }
   };
 
   if (!anchor) return <></>;
 
   return (
-    <Popper open={suggestionsOpen} anchorEl={anchor}>
-      <Paper elevation={3} style={{ padding: "2rem" }}>
-        <h2>Suggest Highlights</h2>
-        <Button variant="contained" onClick={onPrev}>
-          Previous
-        </Button>
-        <Button variant="contained" onClick={onNext}>
-          Next
-        </Button>
-        <Button
-          variant="outline"
-          onClick={() => {
-            setSuggestionsOpen(false);
-          }}
-        >
-          X
-        </Button>
+    <Popper open={suggestionsOpen} anchorEl={anchor} placement="bottom-end">
+      <Paper elevation={3} style={{ maxWidth: "20rem" }}>
+        <div style={{ padding: "0.5rem" }}>
+          <b>Suggestions</b>
+          <Tooltip title="Previous suggestion">
+            <IconButton onClick={onPrev}>
+              <NavigateBeforeIcon />
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title="Next suggestion">
+            <IconButton onClick={onNext}>
+              <NavigateNextIcon />
+            </IconButton>
+          </Tooltip>
+
+          <IconButton
+            onClick={() => {
+              setSuggestionsOpen(false);
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </div>
+        <Divider />
+        <div style={{ padding: "0.5rem" }}>
+          <p>
+            <span className="quoteContext">{prefix}</span>
+            <span style={{ backgroundColor: "#FFFBB9" }}>{suggestionText}</span>
+            <span className="quoteContext">{suffix}</span>
+          </p>
+        </div>
       </Paper>
     </Popper>
   );

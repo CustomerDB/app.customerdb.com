@@ -30,6 +30,9 @@ export default function App() {
       MuiCard: {
         elevation: 0,
       },
+      MuiAppBar: {
+        elevation: 0,
+      },
     },
     palette: {
       primary: {

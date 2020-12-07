@@ -13,6 +13,7 @@ export default function Notes({
   document,
   suggestionsOpen,
   setSuggestionsOpen,
+  setHasSuggestions,
 }) {
   const { documentRef, highlightsRef } = useFirestore();
 
@@ -54,6 +55,7 @@ export default function Notes({
         }}
         suggestionsOpen={suggestionsOpen}
         setSuggestionsOpen={setSuggestionsOpen}
+        setHasSuggestions={setHasSuggestions}
       />
     </Grid>
   );

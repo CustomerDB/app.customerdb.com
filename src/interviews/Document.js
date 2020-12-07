@@ -80,6 +80,8 @@ export default function Document(props) {
 
   const [anchorEl, setAnchorEl] = useState(null);
 
+  const [hasSuggestions, setHasSuggestions] = useState();
+
   const classes = useStyles();
 
   const handleOptionsClick = (event) => {
@@ -178,6 +180,12 @@ export default function Document(props) {
       unsubscribeTags();
     };
   }, [document, tagGroupsRef]);
+
+  useEffect(() => {
+    if (!documentRef) {
+      return;
+    }
+  }, [documentRef]);
 
   if (!document) {
     return <Loading />;
@@ -306,6 +314,7 @@ export default function Document(props) {
                             Delete transcript
                           </MenuItem>
                           <MenuItem
+                            disabled={!hasSuggestions}
                             onClick={() => {
                               setAnchorEl(null);
                               setSuggestionsOpen(true);
@@ -363,6 +372,7 @@ export default function Document(props) {
                       selectionChannelPort={transcriptSelectionSend}
                       suggestionsOpen={suggestionsOpen}
                       setSuggestionsOpen={setSuggestionsOpen}
+                      setHasSuggestions={setHasSuggestions}
                     />
                   )}
 
@@ -373,6 +383,7 @@ export default function Document(props) {
                       reactQuillRef={reactQuillNotesRef}
                       suggestionsOpen={suggestionsOpen}
                       setSuggestionsOpen={setSuggestionsOpen}
+                      setHasSuggestions={setHasSuggestions}
                     />
                   )}
                 </Grid>
