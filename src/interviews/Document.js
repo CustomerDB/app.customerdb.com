@@ -80,7 +80,7 @@ export default function Document(props) {
 
   const [anchorEl, setAnchorEl] = useState(null);
 
-  const [hasSuggestions, setHasSuggestions] = useState();
+  const [hasSuggestions, setHasSuggestions] = useState(false);
 
   const classes = useStyles();
 
