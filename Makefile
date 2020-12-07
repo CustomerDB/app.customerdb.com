@@ -10,7 +10,7 @@ credentials:
 		--iam-account=customerdb-development@appspot.gserviceaccount.com
 
 runtimeconfig:
-	firebase --project=customerdb-staging \
+	firebase --project=customerdb-development \
 	functions:config:get \
 	> functions/.runtimeconfig.json
 
