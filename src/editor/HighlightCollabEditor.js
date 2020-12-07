@@ -12,6 +12,7 @@ const makePortPair = () => {
 export default function HighlightCollabEditor({
   quillRef,
   document,
+  revisionsRef,
   highlightsRef,
   suggestionsRef,
   tags,
@@ -53,6 +54,7 @@ export default function HighlightCollabEditor({
         quillRef={quillRef}
         onChangeSelection={thisOnChangeSelection}
         onReady={thisOnReady}
+        revisionsRef={revisionsRef}
         {...otherProps}
       />
       <HighlightControls
@@ -70,6 +72,7 @@ export default function HighlightCollabEditor({
         readyChannelPort={readyReceive2}
         suggestionsOpen={suggestionsOpen}
         setSuggestionsOpen={setSuggestionsOpen}
+        revisionsRef={revisionsRef}
       />
     </>
   );

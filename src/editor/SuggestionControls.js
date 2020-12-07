@@ -2,9 +2,11 @@ import React, { useCallback, useEffect, useState } from "react";
 import Popper from "@material-ui/core/Popper";
 import Paper from "@material-ui/core/Paper";
 import Button from "@material-ui/core/Button";
+import Delta from "quill-delta";
 
 export default function SuggestionControls({
   suggestionsRef,
+  revisionsRef,
   quillRef,
   readyChannelPort,
   suggestionsOpen,
@@ -14,6 +16,9 @@ export default function SuggestionControls({
   const [suggestions, setSuggestions] = useState();
   const [topSuggestions, setTopSuggestions] = useState([]);
   const [editorReady, setEditorReady] = useState(0);
+
+  const [revisionID, setRevisionID] = useState();
+  const [revisionDelta, setRevisionDelta] = useState();
 
   readyChannelPort.onmessage = () => {
     setEditorReady(editorReady + 1);
@@ -46,9 +51,29 @@ export default function SuggestionControls({
         return b.prediction.highlights - a.prediction.highlights;
       });
 
+      if (newSuggestions.length > 0) {
+        setRevisionID(newSuggestions[0].revisionID);
+      }
+
       setSuggestions(newSuggestions);
     });
   }, [suggestionsRef, getEditor, editorReady]);
+
+  // Fetch revision delta to compute the transform delta for the suggestion indexes.
+  useEffect(() => {
+    if (!revisionID || !revisionsRef) {
+      return;
+    }
+
+    return revisionsRef.doc(revisionID).onSnapshot((doc) => {
+      let revision = doc.data();
+      if (!revision.delta) {
+        return;
+      }
+
+      setRevisionDelta(new Delta(revision.delta.ops));
+    });
+  }, [revisionID]);
 
   useEffect(() => {
     if (!editorReady || !quillRef.current) return;
@@ -92,6 +117,22 @@ export default function SuggestionControls({
   useEffect(() => {
     console.debug("top suggestions", topSuggestions);
   }, [topSuggestions]);
+
+  const transformIndex = (index) => {
+    const editor = getEditor();
+    if (!editor) return;
+
+    // Get current editor delta
+    let editorContent = editor.getContents();
+
+    // Compute difference between that and revision
+    let diff = revisionDelta.diff(editorContent);
+
+    console.log("diff", diff);
+
+    // Transform index
+    return diff.transformPosition(index);
+  };
 
   const prevSuggestion = () => {
     const editor = getEditor();
@@ -137,7 +178,10 @@ export default function SuggestionControls({
     const next = nextSuggestion();
     if (next) {
       const { index, length } = next.selection;
-      editor.setSelection(index, length, "user");
+
+      let transformedIndex = transformIndex(index);
+
+      editor.setSelection(transformedIndex, length, "user");
     }
   };
 
