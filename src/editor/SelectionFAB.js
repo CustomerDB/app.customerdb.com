@@ -143,6 +143,7 @@ export default function SelectionFAB({
           aria-label="expand tag controls"
           onMouseOver={expandTagControls}
           size="medium"
+          className="selectionFAB"
         >
           <Label />
         </Fab>

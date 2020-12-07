@@ -42,7 +42,7 @@ steps:
   id: deploy-functions-group-1
   waitFor:
   - npm-install
-  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=functions:auth,functions:dataExport,functions:documentIndexer,functions:garbageCollection']
+  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=functions:auth,functions:dataExport,functions:documentIndexer,functions:garbageCollection,functions:suggest']
 
 - name: 'gcr.io/$PROJECT_ID/firebase'
   id: deploy-functions-group-2

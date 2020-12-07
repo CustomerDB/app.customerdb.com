@@ -15,6 +15,10 @@ import IconButton from "@material-ui/core/IconButton";
 import { Loading } from "../util/Utils.js";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
+import ListItemIcon from "@material-ui/core/ListItemIcon";
+import FlashOnRoundedIcon from "@material-ui/icons/FlashOnRounded";
+import DeleteSweepIcon from "@material-ui/icons/DeleteSweep";
+import ArchiveIcon from "@material-ui/icons/Archive";
 import Moment from "react-moment";
 import MoreVertIcon from "@material-ui/icons/MoreVert";
 import Notes from "./notes/Notes.js";
@@ -60,6 +64,7 @@ export default function Document(props) {
   const navigate = useNavigate();
   const [document, setDocument] = useState();
   const [tags, setTags] = useState();
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
 
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [selectedTab, setSelectedTab] = useState();
@@ -74,6 +79,8 @@ export default function Document(props) {
   const [tagGroupName, setTagGroupName] = useState();
 
   const [anchorEl, setAnchorEl] = useState(null);
+
+  const [hasSuggestions, setHasSuggestions] = useState(false);
 
   const classes = useStyles();
 
@@ -174,6 +181,12 @@ export default function Document(props) {
     };
   }, [document, tagGroupsRef]);
 
+  useEffect(() => {
+    if (!documentRef) {
+      return;
+    }
+  }, [documentRef]);
+
   if (!document) {
     return <Loading />;
   }
@@ -222,7 +235,7 @@ export default function Document(props) {
         <Scrollable id="editorScrollContainer">
           <Grid container item spacing={0} xs={12} style={{ height: "100%" }}>
             <Grid container item justify="center">
-              <Paper elevation={5} className={classes.documentPaper}>
+              <Paper className={classes.documentPaper}>
                 <Grid container>
                   <Grid container item xs={12} alignItems="flex-start">
                     <Grid item xs={11}>
@@ -283,6 +296,9 @@ export default function Document(props) {
                               setOpenDeleteDialog(true);
                             }}
                           >
+                            <ListItemIcon>
+                              <ArchiveIcon />
+                            </ListItemIcon>
                             Archive
                           </MenuItem>
                           <MenuItem
@@ -292,7 +308,22 @@ export default function Document(props) {
                               setOpenTranscriptDeleteDialog(true);
                             }}
                           >
+                            <ListItemIcon>
+                              <DeleteSweepIcon />
+                            </ListItemIcon>
                             Delete transcript
+                          </MenuItem>
+                          <MenuItem
+                            disabled={!hasSuggestions}
+                            onClick={() => {
+                              setAnchorEl(null);
+                              setSuggestionsOpen(true);
+                            }}
+                          >
+                            <ListItemIcon>
+                              <FlashOnRoundedIcon />
+                            </ListItemIcon>
+                            Suggest highlights
                           </MenuItem>
                         </Menu>
                       </>
@@ -339,6 +370,9 @@ export default function Document(props) {
                       tags={tags}
                       reactQuillRef={reactQuillTranscriptRef}
                       selectionChannelPort={transcriptSelectionSend}
+                      suggestionsOpen={suggestionsOpen}
+                      setSuggestionsOpen={setSuggestionsOpen}
+                      setHasSuggestions={setHasSuggestions}
                     />
                   )}
 
@@ -347,6 +381,9 @@ export default function Document(props) {
                       document={document}
                       tags={tags}
                       reactQuillRef={reactQuillNotesRef}
+                      suggestionsOpen={suggestionsOpen}
+                      setSuggestionsOpen={setSuggestionsOpen}
+                      setHasSuggestions={setHasSuggestions}
                     />
                   )}
                 </Grid>
