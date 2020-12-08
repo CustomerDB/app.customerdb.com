@@ -2,10 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import FirebaseContext from "../util/FirebaseContext.js";
-import FormControl from "@material-ui/core/FormControl";
-import Hidden from "@material-ui/core/Hidden";
 import MenuItem from "@material-ui/core/MenuItem";
-import Select from "@material-ui/core/Select";
 import UserAuthContext from "../auth/UserAuthContext";
 import Divider from "@material-ui/core/Divider";
 
@@ -51,37 +48,22 @@ export default function OrgSelector() {
   if (!orgID || !orgMap) return <></>;
 
   return (
-    <Hidden smDown>
-      <FormControl>
-        <Select
-          labelId="org-select-label"
-          id="org-select"
-          value={selectedOrgID}
-          style={{ width: "10rem" }}
-          onChange={(event) => {
-            let value = event.target.value;
-            setSelectedOrgID(value);
-
-            if (value === "orgs") {
-              navigate("/orgs");
-              return;
-            }
-
-            navigate(`/orgs/${value}`);
-          }}
+    <>
+      <MenuItem disabled>Organizations</MenuItem>
+      {Object.keys(orgMap).map((orgID) => (
+        <MenuItem
+          key={orgID}
+          value={orgID}
+          selected={orgID === selectedOrgID}
+          onClick={() => navigate(`/orgs/${orgID}`)}
         >
-          <MenuItem key="orgs" value="">
-            See all organizations
-          </MenuItem>
-          <Divider />
-          <MenuItem disabled>Organizations</MenuItem>
-          {Object.keys(orgMap).map((orgID) => (
-            <MenuItem key={orgID} value={orgID}>
-              {orgMap[orgID]}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-    </Hidden>
+          {orgMap[orgID]}
+        </MenuItem>
+      ))}
+      <Divider />
+      <MenuItem key="orgs" onClick={() => navigate("/orgs")}>
+        See all organizations
+      </MenuItem>
+    </>
   );
 }
