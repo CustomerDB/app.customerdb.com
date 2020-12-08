@@ -62,7 +62,6 @@ const PeopleAutocomplete = ({
       getOptionLabel={(option) => option.name}
       getOptionSelected={(option, value) => option.name === value.name}
       options={hits}
-      style={{ width: 300 }}
       renderInput={(params) => (
         <TextField {...params} label="Customer" variant="outlined" />
       )}
