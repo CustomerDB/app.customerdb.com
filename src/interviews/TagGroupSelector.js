@@ -177,7 +177,9 @@ export default function TagGroupSelector(props) {
         <MenuItem value="">None</MenuItem>
         {tagGroups &&
           tagGroups.map((group) => (
-            <MenuItem value={group.ID}>{group.name}</MenuItem>
+            <MenuItem key={group.ID} value={group.ID}>
+              {group.name}
+            </MenuItem>
           ))}
       </Select>
     </FormControl>

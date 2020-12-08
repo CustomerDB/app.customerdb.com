@@ -333,7 +333,7 @@ function Guide({ templateRef }) {
         <Scrollable>
           <Grid container item spacing={0} xs={12}>
             <Grid container item justify="center">
-              <Paper elevation={5} className={classes.documentPaper}>
+              <Paper className={classes.documentPaper}>
                 <Grid container>
                   <Grid container item xs={12} alignItems="flex-start">
                     <Grid item xs={11}>
@@ -443,7 +443,7 @@ function Guide({ templateRef }) {
             paddingTop: "1rem",
           }}
         >
-          <Card elevation={2} className={classes.documentSidebarCard}>
+          <Card className={classes.documentSidebarCard}>
             <CardContent>
               {tagGroupName && !editTagGroup ? (
                 <>

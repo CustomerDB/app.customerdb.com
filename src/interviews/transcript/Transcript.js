@@ -37,6 +37,9 @@ export default function Transcript({
   tags,
   document,
   selectionChannelPort,
+  suggestionsOpen,
+  setSuggestionsOpen,
+  setHasSuggestions,
 }) {
   const {
     documentRef,
@@ -162,12 +165,6 @@ export default function Transcript({
   let callNotStarted = !call || (call && call.callStartedTimestamp === "");
   let transcriptionNotStarted = !operation;
 
-  console.log(
-    "callNotStarted && transcriptionNotStarted && !uploading",
-    callNotStarted,
-    transcriptionNotStarted,
-    !uploading
-  );
   if (callNotStarted && transcriptionNotStarted && !uploading) {
     return (
       <PageContainer>
@@ -299,6 +296,7 @@ export default function Transcript({
           revisionsRef={documentRef.collection("transcriptRevisions")}
           deltasRef={documentRef.collection("transcriptDeltas")}
           highlightsRef={transcriptHighlightsRef}
+          suggestionsRef={documentRef.collection("transcriptSuggestions")}
           tags={tags}
           onChangeSelection={onChangeSelection}
           id="quill-notes-editor"
@@ -321,6 +319,9 @@ export default function Transcript({
               userOnly: true,
             },
           }}
+          suggestionsOpen={suggestionsOpen}
+          setSuggestionsOpen={setSuggestionsOpen}
+          setHasSuggestions={setHasSuggestions}
         />
         <Speakers
           quillRef={reactQuillRef}

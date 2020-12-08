@@ -1,10 +1,9 @@
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import React, { useContext, useEffect, useState } from "react";
 
 import Avatar from "react-avatar";
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
-import CardActionArea from "@material-ui/core/CardActionArea";
 import CardActions from "@material-ui/core/CardActions";
 import CardContent from "@material-ui/core/CardContent";
 import FirebaseContext from "../util/FirebaseContext.js";
@@ -33,8 +32,6 @@ export default function DocumentSidebar(props) {
   const firebase = useContext(FirebaseContext);
   const { orgID } = useParams();
   const { documentRef, peopleRef, transcriptionsRef } = useFirestore();
-
-  const navigate = useNavigate();
 
   const [person, setPerson] = useState();
   const [editPerson, setEditPerson] = useState(false);
@@ -119,83 +116,88 @@ export default function DocumentSidebar(props) {
       )}
 
       <Card className={classes.documentSidebarCard}>
-        <CardActionArea
-          onClick={() => {
-            person &&
-              !editPerson &&
-              navigate(`/orgs/${orgID}/people/${person.ID}`);
-          }}
-        >
-          <CardContent>
-            {person && !editPerson ? (
-              <Grid container spacing={0}>
+        <CardContent>
+          {person && !editPerson ? (
+            <Grid container spacing={0}>
+              <Grid
+                container
+                item
+                xs={12}
+                direction="row"
+                style={{ marginTop: "1rem" }}
+              >
                 <Grid
-                  container
                   item
-                  xs={12}
-                  direction="row"
-                  style={{ marginTop: "1rem" }}
+                  xl={3}
+                  md={12}
+                  style={{ marginBottom: "1rem", paddingRight: "1rem" }}
                 >
-                  <Grid
-                    item
-                    xl={3}
-                    md={12}
-                    style={{ marginBottom: "1rem", paddingRight: "1rem" }}
-                  >
-                    <Avatar
-                      size={70}
-                      name={person.name}
-                      round={true}
-                      src={person.imageURL}
-                    />
-                  </Grid>
-                  <Grid item xl={9} md={12} style={{ marginBottom: "1rem" }}>
-                    <Typography gutterBottom variant="h5" component="h2">
-                      <Link to={`/orgs/${orgID}/people/${person.ID}`}>
-                        {person.name}
-                      </Link>
-                    </Typography>
-                  </Grid>
+                  <Avatar
+                    size={70}
+                    name={person.name}
+                    round={true}
+                    src={person.imageURL}
+                  />
                 </Grid>
-                <Grid item xs={12}>
-                  <Typography
-                    variant="body2"
-                    color="textSecondary"
-                    component="p"
-                  >
-                    {person.job}
-                    <br />
-                    {person.company}
+                <Grid item xl={9} md={12} style={{ marginBottom: "1rem" }}>
+                  <Typography gutterBottom variant="h5" component="h2">
+                    <Link to={`/orgs/${orgID}/people/${person.ID}`}>
+                      {person.name}
+                    </Link>
                   </Typography>
                 </Grid>
               </Grid>
-            ) : (
-              <>
-                <Typography gutterBottom color="textSecondary">
-                  Link customer
+              <Grid item xs={12}>
+                <Typography variant="body2" color="textSecondary" component="p">
+                  {person.job}
+                  <br />
+                  {person.company}
                 </Typography>
-                <SearchDropdown
-                  index={process.env.REACT_APP_ALGOLIA_PEOPLE_INDEX}
-                  default={person ? person.name : ""}
-                  onChange={(ID, name) => {
-                    event(firebase, "link_interview_to_person", {
-                      orgID: orgID,
-                      userID: oauthClaims.user_id,
-                    });
+              </Grid>
+            </Grid>
+          ) : (
+            <>
+              <SearchDropdown
+                index={process.env.REACT_APP_ALGOLIA_PEOPLE_INDEX}
+                defaultPerson={person ? person.name : ""}
+                onChange={(ID, name) => {
+                  event(firebase, "link_interview_to_person", {
+                    orgID: orgID,
+                    userID: oauthClaims.user_id,
+                  });
 
+                  // If ID is undefined, we have to create a new person with that name.
+                  let personCreatePromise = Promise.resolve(ID);
+                  if (!ID && name) {
+                    personCreatePromise = peopleRef
+                      .add({
+                        name: name,
+                        createdBy: oauthClaims.email,
+                        creationTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                        deletionTimestamp: "",
+                      })
+                      .then((doc) => {
+                        return doc.id;
+                      });
+                  }
+
+                  personCreatePromise.then((personID) =>
                     documentRef
                       .update({
-                        personID: ID,
+                        personID: personID || "",
                       })
                       .then(() => {
-                        setEditPerson(false);
-                      });
-                  }}
-                />
-              </>
-            )}
-          </CardContent>
-        </CardActionArea>
+                        // If neither ID or name is present, clear person.
+                        if (!ID && !name) {
+                          setPerson();
+                        }
+                      })
+                  );
+                }}
+              />
+            </>
+          )}
+        </CardContent>
 
         <CardActions>
           {person && !editPerson && (
@@ -218,7 +220,7 @@ export default function DocumentSidebar(props) {
                 setEditPerson(false);
               }}
             >
-              Cancel
+              Save
             </Button>
           )}
         </CardActions>
@@ -269,7 +271,7 @@ export default function DocumentSidebar(props) {
                 setEditTagGroup(false);
               }}
             >
-              Cancel
+              Save
             </Button>
           )}
         </CardActions>

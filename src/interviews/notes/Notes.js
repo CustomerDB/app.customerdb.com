@@ -7,7 +7,14 @@ import React from "react";
 import useFirestore from "../../db/Firestore.js";
 
 // Notes augments a collaborative editor with tags and text highlights.
-export default function Notes({ reactQuillRef, tags, document }) {
+export default function Notes({
+  reactQuillRef,
+  tags,
+  document,
+  suggestionsOpen,
+  setSuggestionsOpen,
+  setHasSuggestions,
+}) {
   const { documentRef, highlightsRef } = useFirestore();
 
   if (!documentRef || !highlightsRef) {
@@ -22,6 +29,7 @@ export default function Notes({ reactQuillRef, tags, document }) {
         revisionsRef={documentRef.collection("revisions")}
         deltasRef={documentRef.collection("deltas")}
         highlightsRef={highlightsRef}
+        suggestionsRef={documentRef.collection("suggestions")}
         tags={tags}
         id="quill-notes-editor"
         theme="snow"
@@ -45,6 +53,9 @@ export default function Notes({ reactQuillRef, tags, document }) {
             userOnly: true,
           },
         }}
+        suggestionsOpen={suggestionsOpen}
+        setSuggestionsOpen={setSuggestionsOpen}
+        setHasSuggestions={setHasSuggestions}
       />
     </Grid>
   );
