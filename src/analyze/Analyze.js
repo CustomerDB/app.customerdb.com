@@ -1,16 +1,13 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import AddIcon from "@material-ui/icons/Add";
 import Analysis from "./Analysis.js";
 import AnalysisHelp from "./AnalysisHelp.js";
-import AnalysisRenameModal from "./AnalysisRenameModal.js";
 import AnalyzeHelp from "./AnalyzeHelp.js";
 import Avatar from "@material-ui/core/Avatar";
 import BarChartIcon from "@material-ui/icons/BarChart";
 import BubbleChartIcon from "@material-ui/icons/BubbleChart";
 import DescriptionIcon from "@material-ui/icons/Description";
-import Fab from "@material-ui/core/Fab";
 import FirebaseContext from "../util/FirebaseContext.js";
 import Grid from "@material-ui/core/Grid";
 import Hidden from "@material-ui/core/Hidden";
@@ -26,7 +23,7 @@ import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
 import useFirestore from "../db/Firestore.js";
 
-export default function Analyze(props) {
+export default function Analyze({ create }) {
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
 
@@ -38,8 +35,6 @@ export default function Analyze(props) {
 
   const [analysisList, setAnalysisList] = useState(undefined);
   const [analysisMap, setAnalysisMap] = useState(undefined);
-  const [addModalShow, setAddModalShow] = useState();
-  const [newAnalysisRef, setNewAnalysisRef] = useState();
   const [listTotal, setListTotal] = useState();
 
   useEffect(() => {
@@ -68,6 +63,29 @@ export default function Analyze(props) {
     return unsubscribe;
   }, [analysesRef]);
 
+  useEffect(() => {
+    if (!create || !analysesRef || !oauthClaims.user_id || !oauthClaims.email) {
+      return;
+    }
+
+    event(firebase, "create_analysis", {
+      orgID: orgID,
+      userID: oauthClaims.user_id,
+    });
+
+    analysesRef
+      .add({
+        name: "Unnamed analysis",
+        documentIDs: [],
+        createdBy: oauthClaims.email,
+        creationTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        deletionTimestamp: "",
+      })
+      .then((doc) => {
+        navigate(`/orgs/${orgID}/analyze/${doc.id}`);
+      });
+  }, [create, analysesRef, firebase, navigate, oauthClaims, orgID]);
+
   if (analysisList === undefined) {
     return <></>;
   }
@@ -90,36 +108,6 @@ export default function Analyze(props) {
       />
     );
   }
-
-  let addModal = (
-    <AnalysisRenameModal
-      show={addModalShow}
-      onHide={() => {
-        setAddModalShow(false);
-      }}
-      analysisRef={newAnalysisRef}
-    />
-  );
-
-  const onAdd = () => {
-    event(firebase, "create_analysis", {
-      orgID: orgID,
-      userID: oauthClaims.user_id,
-    });
-
-    analysesRef
-      .add({
-        name: "Unnamed analysis",
-        documentIDs: [],
-        createdBy: oauthClaims.email,
-        creationTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
-        deletionTimestamp: "",
-      })
-      .then((doc) => {
-        setNewAnalysisRef(doc);
-        setAddModalShow(true);
-      });
-  };
 
   let list = (
     <ListContainer sm={3}>
@@ -192,14 +180,6 @@ export default function Analyze(props) {
           ))}
         </List>
       </Scrollable>
-      <Fab
-        style={{ position: "absolute", bottom: "15px", right: "15px" }}
-        color="secondary"
-        aria-label="add"
-        onClick={onAdd}
-      >
-        <AddIcon />
-      </Fab>
     </ListContainer>
   );
 
@@ -213,7 +193,6 @@ export default function Analyze(props) {
       <Grid container className="fullHeight">
         {list}
         {content}
-        {addModal}
       </Grid>
     </Shell>
   );

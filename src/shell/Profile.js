@@ -14,7 +14,7 @@ import Divider from "@material-ui/core/Divider";
 import SettingsIcon from "@material-ui/icons/Settings";
 import ExitToAppIcon from "@material-ui/icons/ExitToApp";
 
-export default function ProfileDropdown({ noOrgSelector }) {
+export default function Profile({ noOrgSelector }) {
   const { oauthUser } = useContext(UserAuthContext);
   const [anchorEl, setAnchorEl] = useState(null);
   const navigate = useNavigate();

@@ -3,7 +3,6 @@ import "react-quill/dist/quill.snow.css";
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import AddIcon from "@material-ui/icons/Add";
 import Archive from "@material-ui/icons/Archive";
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
@@ -16,7 +15,6 @@ import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
-import Fab from "@material-ui/core/Fab";
 import FirebaseContext from "../util/FirebaseContext.js";
 import Grid from "@material-ui/core/Grid";
 import GuideHelp from "./GuideHelp.js";
@@ -61,7 +59,7 @@ const useStyles = makeStyles({
   },
 });
 
-export default function Guides(props) {
+export default function Guides({ create }) {
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
   const [templates, setTemplates] = useState();
@@ -89,11 +87,16 @@ export default function Guides(props) {
       });
   }, [templatesRef]);
 
-  if (!templates) {
-    return <Loading />;
-  }
+  useEffect(() => {
+    if (
+      !create ||
+      !templatesRef ||
+      !oauthClaims.user_id ||
+      !oauthClaims.email
+    ) {
+      return;
+    }
 
-  const onAdd = () => {
     event(firebase, "create_guide", {
       orgID: orgID,
       userID: oauthClaims.user_id,
@@ -120,10 +123,14 @@ export default function Guides(props) {
             timestamp: firebase.firestore.FieldValue.serverTimestamp(),
           });
       })
-      .then((newTemplateRef) => {
+      .then(() => {
         navigate(`/orgs/${orgID}/guides/${newGuideID}`);
       });
-  };
+  }, [create, templatesRef, firebase, navigate, oauthClaims, orgID]);
+
+  if (!templates) {
+    return <Loading />;
+  }
 
   let listItems =
     templates &&
@@ -152,14 +159,6 @@ export default function Guides(props) {
       <Scrollable>
         <List>{listItems}</List>
       </Scrollable>
-      <Fab
-        style={{ position: "absolute", bottom: "15px", right: "15px" }}
-        color="secondary"
-        aria-label="add"
-        onClick={onAdd}
-      >
-        <AddIcon />
-      </Fab>
     </ListContainer>
   );
 
