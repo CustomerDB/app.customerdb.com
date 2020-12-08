@@ -1,9 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import AddIcon from "@material-ui/icons/Add";
 import Avatar from "react-avatar";
-import Fab from "@material-ui/core/Fab";
 import FirebaseContext from "../util/FirebaseContext.js";
 import Grid from "@material-ui/core/Grid";
 import Hidden from "@material-ui/core/Hidden";
@@ -26,7 +24,7 @@ import useFirestore from "../db/Firestore.js";
 
 const batchSize = 25;
 
-export default function People(props) {
+export default function People({ create }) {
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
 
@@ -65,6 +63,30 @@ export default function People(props) {
       });
     return unsubscribe;
   }, [peopleRef]);
+
+  useEffect(() => {
+    if (!create || !peopleRef || !oauthClaims.email || !oauthClaims.user_id) {
+      return;
+    }
+
+    event(firebase, "create_person", {
+      orgID: orgID,
+      userID: oauthClaims.user_id,
+    });
+
+    peopleRef
+      .add({
+        name: "Unnamed person",
+        createdBy: oauthClaims.email,
+        creationTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        deletionTimestamp: "",
+      })
+      .then((doc) => {
+        navigate(`/orgs/${orgID}/people/${doc.id}`);
+        setNewPersonRef(doc);
+        setAddDialogShow(true);
+      });
+  }, [create, peopleRef, firebase, navigate, oauthClaims, orgID]);
 
   let content;
   if (personID) {
@@ -144,31 +166,6 @@ export default function People(props) {
           </List>
         )}
       </Scrollable>
-      <Fab
-        style={{ position: "absolute", bottom: "15px", right: "15px" }}
-        color="secondary"
-        aria-label="add"
-        onClick={() => {
-          event(firebase, "create_person", {
-            orgID: orgID,
-            userID: oauthClaims.user_id,
-          });
-          peopleRef
-            .add({
-              name: "Unnamed person",
-              createdBy: oauthClaims.email,
-              creationTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
-              deletionTimestamp: "",
-            })
-            .then((doc) => {
-              navigate(`/orgs/${orgID}/people/${doc.id}`);
-              setNewPersonRef(doc);
-              setAddDialogShow(true);
-            });
-        }}
-      >
-        <AddIcon />
-      </Fab>
     </ListContainer>
   );
 

@@ -187,7 +187,7 @@ export default function DocumentSidebar(props) {
                         personID: personID || "",
                       })
                       .then(() => {
-                        // If neither ID or name is present, clear person.
+                        // If neither ID or name is present, clear person
                         if (!ID && !name) {
                           setPerson();
                         }

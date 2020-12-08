@@ -1,12 +1,10 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import AddIcon from "@material-ui/icons/Add";
 import Avatar from "@material-ui/core/Avatar";
 import DescriptionIcon from "@material-ui/icons/Description";
 import Document from "./Document.js";
-import DocumentCreateModal from "./DocumentCreateModal.js";
-import Fab from "@material-ui/core/Fab";
+import DocumentFromGuideModal from "./DocumentFromGuideModal.js";
 import FirebaseContext from "../util/FirebaseContext.js";
 import Grid from "@material-ui/core/Grid";
 import Hidden from "@material-ui/core/Hidden";
@@ -30,7 +28,7 @@ import useFirestore from "../db/Firestore.js";
 import { useOrganization } from "../organization/hooks.js";
 import { v4 as uuidv4 } from "uuid";
 
-export default function Interviews(props) {
+export default function Interviews({ create, fromGuide }) {
   const [addModalShow, setAddModalShow] = useState(false);
   const [documents, setDocuments] = useState([]);
   const [showResults, setShowResults] = useState();
@@ -67,7 +65,11 @@ export default function Interviews(props) {
       });
   }, [documentsRef]);
 
-  const onAddDocument = () => {
+  useEffect(() => {
+    if (!create || !callsRef || !oauthClaims.user_id || !oauthClaims.email) {
+      return;
+    }
+
     event(firebase, "create_interview", {
       orgID: orgID,
       userID: oauthClaims.user_id,
@@ -76,7 +78,7 @@ export default function Interviews(props) {
     let documentID = uuidv4();
     let callID = short.generate();
 
-    return callsRef
+    callsRef
       .doc(callID)
       .set({
         ID: callID,
@@ -128,8 +130,23 @@ export default function Interviews(props) {
       })
       .then(() => {
         navigate(`/orgs/${orgID}/interviews/${documentID}`);
+      })
+      .then(() => {
+        if (fromGuide) {
+          setAddModalShow(true);
+        }
       });
-  };
+  }, [
+    create,
+    callsRef,
+    defaultTagGroupID,
+    documentsRef,
+    firebase,
+    fromGuide,
+    navigate,
+    oauthClaims,
+    orgID,
+  ]);
 
   const dataListItem = (ID, name, date, transcript) => (
     <ListItem
@@ -180,18 +197,6 @@ export default function Interviews(props) {
           </List>
         )}
       </Scrollable>
-      <Fab
-        style={{ position: "absolute", bottom: "15px", right: "15px" }}
-        color="secondary"
-        aria-label="add"
-        onClick={() => {
-          onAddDocument().then(() => {
-            setAddModalShow(true);
-          });
-        }}
-      >
-        <AddIcon />
-      </Fab>
     </ListContainer>
   );
 
@@ -212,7 +217,7 @@ export default function Interviews(props) {
   }
 
   let addModal = (
-    <DocumentCreateModal
+    <DocumentFromGuideModal
       show={addModalShow}
       onHide={() => {
         setAddModalShow(false);

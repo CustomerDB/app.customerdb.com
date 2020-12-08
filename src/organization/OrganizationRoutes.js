@@ -17,11 +17,14 @@ export default function OrganizationRoutes(props) {
         <Route path="people/*">
           <Route path="/" element={<People />} />
           <Route path=":personID" element={<People />} />
+          <Route path="create" element={<People create />} />
           <Route path=":personID/:tabID" element={<People />} />
         </Route>
 
         <Route path="interviews/*">
           <Route path="/" element={<Interviews />} />
+          <Route path="create" element={<Interviews create />} />
+          <Route path="guide" element={<Interviews create fromGuide />} />
           <Route path=":documentID" element={<Interviews />} />
           <Route path=":documentID/:tabID" element={<Interviews />} />
         </Route>
@@ -32,11 +35,13 @@ export default function OrganizationRoutes(props) {
 
         <Route path="guides/*">
           <Route path="/" element={<Guides />} />
+          <Route path="create" element={<Guides create />} />
           <Route path=":guideID" element={<Guides />} />
         </Route>
 
         <Route path="analyze/*">
           <Route path="/" element={<Analyze />} />
+          <Route path="create" element={<Analyze create />} />
           <Route path=":analysisID" element={<Analyze />} />
           <Route path=":analysisID/:tabID" element={<Analyze />} />
           <Route path=":analysisID/:tabID/:tagID" element={<Analyze />} />

@@ -11,7 +11,7 @@ import useFirestore from "../db/Firestore.js";
 import { useOrganization } from "../organization/hooks.js";
 import FirebaseContext from "../util/FirebaseContext.js";
 
-export default function DocumentCreateModal({ show, onHide }) {
+export default function DocumentFromGuideModal({ show, onHide }) {
   const { documentRef, templatesRef } = useFirestore();
   const [template, setTemplate] = useState();
   const firebase = useContext(FirebaseContext);
