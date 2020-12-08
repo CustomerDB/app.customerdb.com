@@ -1,12 +1,10 @@
 import "./style.css";
 
-import React, { useContext, useState } from "react";
+import React, { useState } from "react";
 import { Search, SearchInput } from "./Search.js";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-
 import AppBar from "@material-ui/core/AppBar";
-import Avatar from "@material-ui/core/Avatar";
 import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
 import ChevronRightIcon from "@material-ui/icons/ChevronRight";
 import CssBaseline from "@material-ui/core/CssBaseline";
@@ -20,20 +18,17 @@ import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
 import ListItemText from "@material-ui/core/ListItemText";
-import Menu from "@material-ui/core/Menu";
-import MenuIcon from "@material-ui/icons/Menu";
-import MenuItem from "@material-ui/core/MenuItem";
 import MultilineChartIcon from "@material-ui/icons/MultilineChart";
-import OrgSelector from "../orgs/OrgSelector.js";
 import RecordVoiceOverIcon from "@material-ui/icons/RecordVoiceOver";
+import MenuIcon from "@material-ui/icons/Menu";
 import SettingsIcon from "@material-ui/icons/Settings";
 import Toolbar from "@material-ui/core/Toolbar";
-import UserAuthContext from "../auth/UserAuthContext.js";
 import clsx from "clsx";
 import logo from "../assets/images/logo.svg";
 import logoDarkBG from "../assets/images/logo-dark-bg.svg";
 import useMediaQuery from "@material-ui/core/useMediaQuery";
 import { white } from "material-ui/styles/colors";
+import ProfileDropdown from "../profile/ProfileDropdown";
 
 const drawerWidth = 240;
 
@@ -137,16 +132,12 @@ export default function Shell({
   noOrgSelector,
   ...otherProps
 }) {
-  const { oauthUser } = useContext(UserAuthContext);
-
   const { orgID } = useParams();
 
   const [open, setOpen] = useState(false);
-  const [anchorEl, setAnchorEl] = useState(null);
 
   const classes = useStyles();
   const theme = useTheme();
-  const navigate = useNavigate();
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -157,14 +148,6 @@ export default function Shell({
   };
 
   const lgBreakpoint = useMediaQuery(theme.breakpoints.up("lg"));
-
-  const handleClick = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
 
   let app = (
     <Search search={search}>
@@ -198,51 +181,8 @@ export default function Shell({
             {search && <SearchInput />}
 
             <div className={classes.grow} />
-            {!noOrgSelector && <OrgSelector />}
-            {oauthUser && (
-              <>
-                <IconButton
-                  edge="end"
-                  aria-label="account of current user"
-                  aria-haspopup="true"
-                  aria-controls="profile-menu"
-                  onClick={handleClick}
-                  color="inherit"
-                >
-                  <Avatar
-                    key={oauthUser.email}
-                    alt={oauthUser.displayName}
-                    src={oauthUser.photoURL}
-                  />
-                </IconButton>
-                <Menu
-                  id="profile-menu"
-                  anchorEl={anchorEl}
-                  keepMounted
-                  open={Boolean(anchorEl)}
-                  onClose={handleClose}
-                >
-                  {orgID && (
-                    <MenuItem
-                      onClick={() => {
-                        setAnchorEl(null);
-                        navigate(`/orgs/${orgID}/settings/profile`);
-                      }}
-                    >
-                      Profile
-                    </MenuItem>
-                  )}
-                  <MenuItem
-                    onClick={() => {
-                      setAnchorEl(null);
-                      navigate(`/logout`);
-                    }}
-                  >
-                    Logout
-                  </MenuItem>
-                </Menu>
-              </>
-            )}
+
+            <ProfileDropdown noOrgSelector={noOrgSelector} />
           </Toolbar>
         </AppBar>
         {!noSidebar && (

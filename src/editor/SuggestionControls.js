@@ -68,7 +68,7 @@ export default function SuggestionControls({
       setHasSuggestions(newSuggestions.length > 0);
       setSuggestions(newSuggestions);
     });
-  }, [suggestionsRef, getEditor, editorReady]);
+  }, [suggestionsRef, getEditor, editorReady, setHasSuggestions]);
 
   // Fetch revision delta to compute the transform delta for the suggestion indexes.
   useEffect(() => {
@@ -84,7 +84,7 @@ export default function SuggestionControls({
 
       setRevisionDelta(new Delta(revision.delta.ops));
     });
-  }, [revisionID]);
+  }, [revisionID, revisionsRef]);
 
   useEffect(() => {
     if (!editorReady || !quillRef.current) return;
@@ -125,34 +125,29 @@ export default function SuggestionControls({
     setTopSuggestions(newTopSuggestions);
   }, [suggestions, editorReady, getEditor]);
 
-  useEffect(() => {
-    if (!suggestionsOpen) {
-      return;
-    }
+  const transformIndex = useCallback(
+    (index, length) => {
+      const editor = getEditor();
+      if (!editor) return;
 
-    onNext();
-  }, [suggestionsOpen]);
+      // Get current editor delta
+      let editorContent = editor.getContents();
 
-  const transformIndex = (index, length) => {
-    const editor = getEditor();
-    if (!editor) return;
+      // Compute difference between that and revision
+      let diff = revisionDelta.diff(editorContent);
 
-    // Get current editor delta
-    let editorContent = editor.getContents();
+      console.log("diff", diff);
 
-    // Compute difference between that and revision
-    let diff = revisionDelta.diff(editorContent);
-
-    console.log("diff", diff);
-
-    // Transform index
-    let begin = diff.transformPosition(index);
-    let end = diff.transformPosition(index + length);
-    return {
-      transformedIndex: begin,
-      transformedLength: end - begin,
-    };
-  };
+      // Transform index
+      let begin = diff.transformPosition(index);
+      let end = diff.transformPosition(index + length);
+      return {
+        transformedIndex: begin,
+        transformedLength: end - begin,
+      };
+    },
+    [getEditor, revisionDelta]
+  );
 
   const prevSuggestion = () => {
     const editor = getEditor();
@@ -197,13 +192,13 @@ export default function SuggestionControls({
     setSuffix(computedSuffix);
   };
 
-  const nextSuggestion = () => {
+  const nextSuggestion = useCallback(() => {
     const editor = getEditor();
     if (!editor) return;
     const selection = editor.getSelection() || { index: 0, length: 0 };
     const selectionIndex = selection.index + selection.length;
     return topSuggestions.find((s) => s.selection.index > selectionIndex);
-  };
+  }, [getEditor, topSuggestions]);
 
   const onPrev = () => {
     const editor = getEditor();
@@ -221,7 +216,7 @@ export default function SuggestionControls({
     }
   };
 
-  const onNext = () => {
+  const onNext = useCallback(() => {
     const editor = getEditor();
     if (!editor) return;
     const next = nextSuggestion();
@@ -236,7 +231,15 @@ export default function SuggestionControls({
 
       setContext(editor, transformedIndex, transformedLength);
     }
-  };
+  }, [getEditor, nextSuggestion, transformIndex]);
+
+  useEffect(() => {
+    if (!suggestionsOpen) {
+      return;
+    }
+
+    onNext();
+  }, [suggestionsOpen, onNext]);
 
   if (!anchor) return <></>;
 
