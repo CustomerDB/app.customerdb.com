@@ -1,10 +1,9 @@
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import React, { useContext, useEffect, useState } from "react";
 
 import Avatar from "react-avatar";
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
-import CardActionArea from "@material-ui/core/CardActionArea";
 import CardActions from "@material-ui/core/CardActions";
 import CardContent from "@material-ui/core/CardContent";
 import FirebaseContext from "../util/FirebaseContext.js";
@@ -33,8 +32,6 @@ export default function DocumentSidebar(props) {
   const firebase = useContext(FirebaseContext);
   const { orgID } = useParams();
   const { documentRef, peopleRef, transcriptionsRef } = useFirestore();
-
-  const navigate = useNavigate();
 
   const [person, setPerson] = useState();
   const [editPerson, setEditPerson] = useState(false);
@@ -162,7 +159,7 @@ export default function DocumentSidebar(props) {
             <>
               <SearchDropdown
                 index={process.env.REACT_APP_ALGOLIA_PEOPLE_INDEX}
-                default={person ? person.name : ""}
+                defaultPerson={person ? person.name : ""}
                 onChange={(ID, name) => {
                   event(firebase, "link_interview_to_person", {
                     orgID: orgID,
@@ -171,7 +168,7 @@ export default function DocumentSidebar(props) {
 
                   // If ID is undefined, we have to create a new person with that name.
                   let personCreatePromise = Promise.resolve(ID);
-                  if (!ID) {
+                  if (!ID && name) {
                     personCreatePromise = peopleRef
                       .add({
                         name: name,
@@ -187,10 +184,13 @@ export default function DocumentSidebar(props) {
                   personCreatePromise.then((personID) =>
                     documentRef
                       .update({
-                        personID: personID,
+                        personID: personID || "",
                       })
                       .then(() => {
-                        setEditPerson(false);
+                        // If neither ID or name is present, clear person.
+                        if (!ID && !name) {
+                          setPerson();
+                        }
                       })
                   );
                 }}
@@ -220,7 +220,7 @@ export default function DocumentSidebar(props) {
                 setEditPerson(false);
               }}
             >
-              Cancel
+              Save
             </Button>
           )}
         </CardActions>
@@ -271,7 +271,7 @@ export default function DocumentSidebar(props) {
                 setEditTagGroup(false);
               }}
             >
-              Cancel
+              Save
             </Button>
           )}
         </CardActions>

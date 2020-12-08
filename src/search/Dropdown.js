@@ -18,20 +18,25 @@ const PeopleAutocomplete = ({
   currentRefinement,
   refine,
   onPersonChange,
+  defaultRefinement,
 }) => {
-  const [value, setValue] = useState();
+  const [value, setValue] = useState({ name: defaultRefinement });
 
   return (
     <Autocomplete
       value={value}
       onChange={(event, newValue) => {
-        setValue(newValue.name);
-
         if (newValue && newValue.inputValue) {
           // Create a new value from the user input
+          setValue(newValue.inputValue);
           onPersonChange(newValue.objectID, newValue.inputValue);
         } else if (newValue) {
+          setValue(newValue.name);
           onPersonChange(newValue.objectID, newValue.name);
+        } else {
+          // Clear
+          setValue({ name: "" });
+          onPersonChange(undefined, undefined);
         }
       }}
       inputValue={currentRefinement}
@@ -79,7 +84,10 @@ export default function SearchDropdown(props) {
 
   return (
     <InstantSearch indexName={props.index} searchClient={searchClient}>
-      <CustomAutocomplete onPersonChange={props.onChange} />
+      <CustomAutocomplete
+        onPersonChange={props.onChange}
+        defaultRefinement={props.defaultPerson}
+      />
     </InstantSearch>
   );
 }
