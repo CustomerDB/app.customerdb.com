@@ -37,15 +37,12 @@ const PeopleAutocomplete = ({
       inputValue={currentRefinement}
       onInputChange={(event, newInputValue) => {
         refine(newInputValue);
-        console.log("newInputValue", newInputValue);
       }}
       selectOnFocus
       clearOnBlur
       handleHomeEndKeys
       filterOptions={(options, params) => {
         const filtered = filter(options, params);
-
-        console.log("filtered", filtered);
 
         // Suggest the creation of a new value
         if (params.inputValue !== "") {

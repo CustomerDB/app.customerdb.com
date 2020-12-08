@@ -172,7 +172,6 @@ export default function DocumentSidebar(props) {
                   // If ID is undefined, we have to create a new person with that name.
                   let personCreatePromise = Promise.resolve(ID);
                   if (!ID) {
-                    console.log("Creating person");
                     personCreatePromise = peopleRef
                       .add({
                         name: name,
@@ -181,7 +180,6 @@ export default function DocumentSidebar(props) {
                         deletionTimestamp: "",
                       })
                       .then((doc) => {
-                        console.log("Added person: ", doc.id);
                         return doc.id;
                       });
                   }
