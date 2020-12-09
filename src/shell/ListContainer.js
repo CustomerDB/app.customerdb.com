@@ -10,20 +10,11 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function ListContainer({ sm, children, ...otherProps }) {
+export default function ListContainer({ children, ...otherProps }) {
   const classes = useStyles();
 
-  let containerSm = sm || 12;
-
   return (
-    <Grid
-      container
-      item
-      sm={containerSm}
-      md={3}
-      xl={2}
-      className={classes.list}
-    >
+    <Grid container item xs={12} className={classes.list}>
       {children}
     </Grid>
   );

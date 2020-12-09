@@ -120,7 +120,7 @@ export default function AnalysisDataTab(props) {
       <Container className="p-3">
         <Row>
           <Col>
-            <p>Customer data in this exploration</p>
+            <p>Interviews in this analysis</p>
           </Col>
         </Row>
         <Row>

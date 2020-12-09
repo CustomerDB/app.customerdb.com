@@ -1,7 +1,6 @@
 import { Link, useParams } from "react-router-dom";
 
 import React from "react";
-import arrowDown from "../assets/images/handdrawn-arrow-down.svg";
 import interviewGraphic from "../assets/images/interview.svg";
 
 export default function InterviewsHelp(props) {
@@ -11,7 +10,7 @@ export default function InterviewsHelp(props) {
     <div style={{ padding: "0.5rem" }}>
       <div>
         <img
-          style={{ width: "100%" }}
+          style={{ width: "100%", maxHeight: "20rem" }}
           src={interviewGraphic}
           alt="Interviews illustration"
         />
@@ -32,13 +31,6 @@ export default function InterviewsHelp(props) {
           groups for your organization in{" "}
           <Link to={`/orgs/${orgID}/settings/tags`}>settings</Link>.
         </p>
-      </div>
-      <div style={{ textAlign: "right" }}>
-        <img
-          src={arrowDown}
-          style={{ width: "5rem", marginRight: "2rem", marginTop: "4rem" }}
-          alt="Arrow pointing to add button"
-        />
       </div>
     </div>
   );

@@ -1,5 +1,4 @@
 import React from "react";
-import arrowDown from "../assets/images/handdrawn-arrow-down.svg";
 import personGraphic from "../assets/images/person.svg";
 
 export default function PeopleHelp(props) {
@@ -7,7 +6,7 @@ export default function PeopleHelp(props) {
     <div style={{ padding: "0.5rem" }}>
       <div>
         <img
-          style={{ width: "100%" }}
+          style={{ width: "100%", maxHeight: "20rem" }}
           src={personGraphic}
           alt="Person illustration"
         />
@@ -30,13 +29,6 @@ export default function PeopleHelp(props) {
           The more information you add here, the more insights you can get
           during your analysis.
         </p>
-      </div>
-      <div style={{ textAlign: "right" }}>
-        <img
-          src={arrowDown}
-          style={{ width: "4rem", marginRight: "2rem" }}
-          alt="Arrow pointing to add button"
-        />
       </div>
     </div>
   );

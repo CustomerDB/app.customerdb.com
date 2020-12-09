@@ -8,7 +8,6 @@ import DocumentFromGuideModal from "./DocumentFromGuideModal.js";
 import FirebaseContext from "../util/FirebaseContext.js";
 import Grid from "@material-ui/core/Grid";
 import Hidden from "@material-ui/core/Hidden";
-import InterviewHelp from "./InterviewHelp.js";
 import InterviewsHelp from "./InterviewsHelp.js";
 import List from "@material-ui/core/List";
 import ListContainer from "../shell/ListContainer";
@@ -208,15 +207,9 @@ export default function Interviews({ create, fromGuide }) {
   let content = undefined;
   if (documentID) {
     content = <Document key={documentID} />;
-  } else if (documentItems.length > 0) {
-    content = (
-      <Hidden smDown>
-        <InterviewHelp />
-      </Hidden>
-    );
   }
 
-  let addModal = (
+  let guideModal = (
     <DocumentFromGuideModal
       show={addModalShow}
       onHide={() => {
@@ -237,10 +230,10 @@ export default function Interviews({ create, fromGuide }) {
 
   return (
     <Shell search={searchConfig}>
-      <Grid container className="fullHeight">
+      <Grid container className="fullHeight" style={{ position: "relative" }}>
         {list}
         {content}
-        {addModal}
+        {guideModal}
       </Grid>
     </Shell>
   );

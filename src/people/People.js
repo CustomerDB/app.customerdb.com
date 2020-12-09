@@ -14,7 +14,6 @@ import ListItemText from "@material-ui/core/ListItemText";
 import PeopleHelp from "./PeopleHelp.js";
 import Person from "./Person.js";
 import PersonEditDialog from "./PersonEditDialog.js";
-import PersonHelp from "./PersonHelp.js";
 import Scrollable from "../shell/Scrollable.js";
 import Shell from "../shell/Shell.js";
 import UserAuthContext from "../auth/UserAuthContext.js";
@@ -91,12 +90,6 @@ export default function People({ create }) {
   let content;
   if (personID) {
     content = <Person key={personID} />;
-  } else if (listTotal > 0) {
-    content = (
-      <Hidden mdDown>
-        <PersonHelp />
-      </Hidden>
-    );
   }
 
   let addModal = (
@@ -186,7 +179,7 @@ export default function People({ create }) {
 
   return (
     <Shell search={searchConfig}>
-      <Grid container className="fullHeight">
+      <Grid container className="fullHeight" style={{ position: "relative" }}>
         {list}
         {content}
         {addModal}
