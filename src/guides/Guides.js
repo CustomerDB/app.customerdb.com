@@ -38,17 +38,19 @@ import { initialDelta } from "../editor/delta.js";
 import { makeStyles } from "@material-ui/core/styles";
 import useFirestore from "../db/Firestore.js";
 import { v4 as uuidv4 } from "uuid";
+import CloseIcon from "@material-ui/icons/Close";
 
 // Synchronize every second (1000ms).
 const syncPeriod = 1000;
 
 const useStyles = makeStyles({
   documentPaper: {
-    margin: "1rem 1rem 1rem 2rem",
+    margin: "0 1rem 0 2rem",
     padding: "1rem 2rem 4rem 2rem",
     minHeight: "48rem",
     width: "100%",
     maxWidth: "80rem",
+    borderRight: "1px solid rgba(0, 0, 0, 0.12)",
   },
   detailsParagraph: {
     marginBottom: "0.35rem",
@@ -154,34 +156,31 @@ export default function Guides({ create }) {
       </ListItem>
     ));
 
-  let list = (
-    <ListContainer>
-      <Scrollable>
-        <List>{listItems}</List>
-      </Scrollable>
-    </ListContainer>
-  );
+  let list =
+    listItems.length > 0 ? (
+      <ListContainer>
+        <Scrollable>
+          <List>{listItems}</List>
+        </Scrollable>
+      </ListContainer>
+    ) : (
+      <GuideHelp />
+    );
 
   if (guideID) {
     list = <Hidden mdDown>{list}</Hidden>;
   }
 
-  let content = (
-    <Hidden smDown>
-      <GuideHelp />
-    </Hidden>
-  );
+  let content;
   if (templatesRef && guideID) {
     content = <Guide templateRef={templatesRef.doc(guideID)} key={guideID} />;
   }
 
   return (
     <Shell>
-      <Grid container className="fullHeight">
-        <Grid container item xs style={{ width: "100%" }}>
-          {list}
-          {content}
-        </Grid>
+      <Grid container className="fullHeight" style={{ position: "relative" }}>
+        {list}
+        {content}
       </Grid>
     </Shell>
   );
@@ -205,6 +204,8 @@ function Guide({ templateRef }) {
   const reactQuillRef = useRef(null);
 
   const classes = useStyles();
+
+  const navigate = useNavigate();
 
   // Subscribe to template document
   useEffect(() => {
@@ -320,7 +321,13 @@ function Guide({ templateRef }) {
   }
 
   return (
-    <Grid container item md={12} lg={9} xl={10} spacing={0}>
+    <Grid
+      container
+      item
+      xs={12}
+      spacing={0}
+      style={{ backgroundColor: "white", position: "absolute", height: "100%" }}
+    >
       <Grid
         style={{ position: "relative", height: "100%" }}
         container
@@ -330,12 +337,12 @@ function Guide({ templateRef }) {
         xl={9}
       >
         <Scrollable>
-          <Grid container item spacing={0} xs={12}>
+          <Grid container item spacing={0} xs={12} style={{ height: "100%" }}>
             <Grid container item justify="center">
               <Paper className={classes.documentPaper}>
                 <Grid container>
                   <Grid container item xs={12} alignItems="flex-start">
-                    <Grid item xs={11}>
+                    <Grid item xs={10}>
                       <Typography gutterBottom variant="h4" component="h2">
                         <ContentEditable
                           html={template.name}
@@ -373,7 +380,7 @@ function Guide({ templateRef }) {
                       </Typography>
                     </Grid>
 
-                    <Grid item xs={1}>
+                    <Grid item xs={2}>
                       <IconButton
                         color="primary"
                         aria-label="Archive template"
@@ -383,6 +390,15 @@ function Guide({ templateRef }) {
                         }}
                       >
                         <Archive />
+                      </IconButton>
+                      <IconButton
+                        onClick={() => {
+                          // TODO: Communicate with parent component instead of using navigate.
+                          navigate(`/orgs/${orgID}/guides`);
+                        }}
+                        color="inherit"
+                      >
+                        <CloseIcon />
                       </IconButton>
                     </Grid>
                   </Grid>

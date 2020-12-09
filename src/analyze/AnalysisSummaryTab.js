@@ -1,20 +1,15 @@
 import React, { useContext, useEffect, useState } from "react";
 
-import AnalysisDeleteModal from "./AnalysisDeleteModal.js";
-import ArchiveIcon from "@material-ui/icons/Archive";
-import Button from "@material-ui/core/Button";
-import ContentEditable from "react-contenteditable";
 import FirebaseContext from "../util/FirebaseContext.js";
 import GetAppIcon from "@material-ui/icons/GetApp";
 import Grid from "@material-ui/core/Grid";
-import IconButton from "@material-ui/core/IconButton";
-import { Link } from "react-router-dom";
 import { Loading } from "../util/Utils.js";
 import { ResponsiveBar } from "@nivo/bar";
 import Scrollable from "../shell/Scrollable.js";
-import Typography from "@material-ui/core/Typography";
 import domToImage from "dom-to-image";
 import useFirestore from "../db/Firestore.js";
+import { Link } from "react-router-dom";
+import Button from "@material-ui/core/Button";
 
 export default function AnalysisSummaryTab(props) {
   const {
@@ -32,7 +27,6 @@ export default function AnalysisSummaryTab(props) {
   const [documents, setDocuments] = useState();
   const [tags, setTags] = useState();
   const [people, setPeople] = useState();
-  const [showDeleteModal, setShowDeleteModal] = useState();
 
   // Group subscription
   useEffect(() => {
@@ -143,56 +137,6 @@ export default function AnalysisSummaryTab(props) {
     return <Loading />;
   }
 
-  let title = (
-    <>
-      <Grid container>
-        <Grid container item xs={12} alignItems="flex-start">
-          <Grid item xs={11}>
-            <Typography gutterBottom variant="h4" component="h2">
-              <ContentEditable
-                html={props.analysis.name}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.target.blur();
-                  }
-                }}
-                onBlur={(e) => {
-                  console.log("e", e, "props.analysisRef", props.analysisRef);
-                  if (props.analysisRef) {
-                    let newName = e.target.innerText
-                      .replace(/(\r\n|\n|\r)/gm, " ")
-                      .replace(/\s+/g, " ")
-                      .trim();
-
-                    props.analysisRef.update({ name: newName });
-                  }
-                }}
-              />
-            </Typography>
-          </Grid>
-          <Grid>
-            <IconButton
-              color="primary"
-              aria-label="Archive document"
-              onClick={() => {
-                setShowDeleteModal(true);
-              }}
-            >
-              <ArchiveIcon />
-            </IconButton>
-          </Grid>
-        </Grid>
-      </Grid>
-      <AnalysisDeleteModal
-        show={showDeleteModal}
-        onHide={() => {
-          setShowDeleteModal(false);
-        }}
-        analysisRef={props.analysisRef}
-      />
-    </>
-  );
-
   // Builds a tree of tags -> groups -> documents -> people
   // TODO: Replace with AlaSQL
   let analysis = {};
@@ -232,7 +176,6 @@ export default function AnalysisSummaryTab(props) {
   if (props.analysis.documentIDs.length === 0) {
     return (
       <>
-        {title}
         <p>
           Start analysis by selecting documents in the{" "}
           <Link to={`/orgs/${props.orgID}/analyze/${props.analysis.ID}/data`}>
@@ -245,19 +188,15 @@ export default function AnalysisSummaryTab(props) {
 
   if (Object.values(analysis).length === 0) {
     return (
-      <>
-        {title}
-        <p>
-          See a summary of your data by creating clusters per tag, using the
-          tags drop down.
-        </p>
-      </>
+      <p>
+        See a summary of your data by creating clusters per tag, using the tags
+        drop down.
+      </p>
     );
   }
 
   return (
     <>
-      {title}
       <Grid container style={{ position: "relative", flexGrow: 1 }}>
         <Scrollable>
           <Grid container>
@@ -344,7 +283,7 @@ export default function AnalysisSummaryTab(props) {
                     </Grid>
                     <Grid container item>
                       {groupNames.length > 0 && (
-                        <Grid item md={6} sm={12}>
+                        <Grid item md={6} xs={12}>
                           <b>Total</b>
                           <div style={{ height: "25rem" }}>
                             <ResponsiveBar
@@ -395,7 +334,7 @@ export default function AnalysisSummaryTab(props) {
                         </Grid>
                       )}
                       {labelNames.length > 0 && (
-                        <Grid item md={6} sm={12}>
+                        <Grid item md={6} xs={12}>
                           <b>Label distribution</b>
                           <div style={{ height: "25rem" }}>
                             <ResponsiveBar

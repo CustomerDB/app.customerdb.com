@@ -1,13 +1,12 @@
 import React from "react";
 import analyzeGraphic from "../assets/images/analyze.svg";
-import arrowDown from "../assets/images/handdrawn-arrow-down.svg";
 
 export default function AnalyzeHelp(props) {
   return (
     <div style={{ padding: "0.5rem" }}>
       <div>
         <img
-          style={{ width: "100%" }}
+          style={{ width: "100%", maxHeight: "20rem" }}
           src={analyzeGraphic}
           alt="Analysis illustration"
         />
@@ -30,13 +29,6 @@ export default function AnalyzeHelp(props) {
           CustomerDB automatically builds a report to put those insights in
           context.
         </p>
-      </div>
-      <div style={{ textAlign: "right" }}>
-        <img
-          src={arrowDown}
-          style={{ width: "5rem", marginRight: "2rem" }}
-          alt="Arrow pointing to add button"
-        />
       </div>
     </div>
   );

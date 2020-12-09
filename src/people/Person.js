@@ -14,6 +14,7 @@ import Linkify from "react-linkify";
 import { Loading } from "../util/Utils.js";
 import PersonData from "./PersonData.js";
 import PersonDeleteDialog from "./PersonDeleteDialog.js";
+import CloseIcon from "@material-ui/icons/Close";
 import PersonEditDialog from "./PersonEditDialog.js";
 import PersonHighlightsPane from "./PersonHighlightsPane.js";
 import Row from "react-bootstrap/Row";
@@ -21,7 +22,7 @@ import Scrollable from "../shell/Scrollable.js";
 import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
 import useFirestore from "../db/Firestore.js";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 const useStyles = makeStyles({
   nameCard: {
@@ -45,6 +46,7 @@ export default function Person(props) {
   const { personRef } = useFirestore();
   const [person, setPerson] = useState();
   const navigate = useNavigate();
+  const { orgID } = useParams();
 
   const [showLabels, setShowLabels] = useState(false);
   const [showContact, setShowContact] = useState(false);
@@ -109,7 +111,28 @@ export default function Person(props) {
 
   return (
     <>
-      <Grid container item md={12} lg={9} xl={10} spacing={0}>
+      <Grid
+        container
+        item
+        xs={12}
+        spacing={0}
+        style={{
+          backgroundColor: "#f9f9f9",
+          position: "absolute",
+          height: "100%",
+        }}
+      >
+        <Grid container item xs={12} justify="flex-end">
+          <IconButton
+            onClick={() => {
+              // TODO: Communicate with parent component instead of using navigate.
+              navigate(`/orgs/${orgID}/people`);
+            }}
+            color="inherit"
+          >
+            <CloseIcon />
+          </IconButton>
+        </Grid>
         <Grid
           container
           item
