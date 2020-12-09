@@ -2,15 +2,11 @@ import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import Analysis from "./Analysis.js";
-import AnalysisHelp from "./AnalysisHelp.js";
 import AnalyzeHelp from "./AnalyzeHelp.js";
 import Avatar from "@material-ui/core/Avatar";
 import BarChartIcon from "@material-ui/icons/BarChart";
-import BubbleChartIcon from "@material-ui/icons/BubbleChart";
-import DescriptionIcon from "@material-ui/icons/Description";
 import FirebaseContext from "../util/FirebaseContext.js";
 import Grid from "@material-ui/core/Grid";
-import Hidden from "@material-ui/core/Hidden";
 import List from "@material-ui/core/List";
 import ListContainer from "../shell/ListContainer";
 import ListItem from "@material-ui/core/ListItem";
@@ -29,7 +25,7 @@ export default function Analyze({ create }) {
 
   let { analysesRef } = useFirestore();
 
-  let { orgID, analysisID, tabID } = useParams();
+  let { orgID, analysisID } = useParams();
 
   const navigate = useNavigate();
 
@@ -90,12 +86,7 @@ export default function Analyze({ create }) {
     return <></>;
   }
 
-  let content = listTotal > 0 && (
-    <Hidden smDown>
-      <AnalysisHelp />
-    </Hidden>
-  );
-
+  let content;
   if (analysisID && analysisMap) {
     let analysis = analysisMap[analysisID];
     let analysisRef = analysesRef.doc(analysisID);
@@ -142,40 +133,6 @@ export default function Analyze({ create }) {
                   }
                 />
               </ListItem>
-              {analysis.ID === analysisID && (
-                <List>
-                  <ListItem
-                    button
-                    style={{ paddingLeft: "4rem" }}
-                    selected={tabID === "data"}
-                    onClick={() => {
-                      navigate(`/orgs/${orgID}/analyze/${analysis.ID}/data`);
-                    }}
-                  >
-                    <ListItemAvatar>
-                      <Avatar>
-                        <DescriptionIcon />
-                      </Avatar>
-                    </ListItemAvatar>
-                    <ListItemText primary="Data" />
-                  </ListItem>
-                  <ListItem
-                    button
-                    style={{ paddingLeft: "4rem" }}
-                    selected={tabID === "cluster"}
-                    onClick={() => {
-                      navigate(`/orgs/${orgID}/analyze/${analysis.ID}/cluster`);
-                    }}
-                  >
-                    <ListItemAvatar>
-                      <Avatar>
-                        <BubbleChartIcon />
-                      </Avatar>
-                    </ListItemAvatar>
-                    <ListItemText primary="Clusters" />
-                  </ListItem>
-                </List>
-              )}
             </>
           ))}
         </List>
@@ -190,7 +147,7 @@ export default function Analyze({ create }) {
 
   return (
     <Shell>
-      <Grid container className="fullHeight">
+      <Grid container className="fullHeight" style={{ position: "relative" }}>
         {list}
         {content}
       </Grid>

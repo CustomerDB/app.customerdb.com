@@ -21,6 +21,7 @@ import DeleteSweepIcon from "@material-ui/icons/DeleteSweep";
 import ArchiveIcon from "@material-ui/icons/Archive";
 import Moment from "react-moment";
 import MoreVertIcon from "@material-ui/icons/MoreVert";
+import CloseIcon from "@material-ui/icons/Close";
 import Notes from "./notes/Notes.js";
 import Paper from "@material-ui/core/Paper";
 import Scrollable from "../shell/Scrollable.js";
@@ -218,11 +219,9 @@ export default function Document(props) {
     <Grid
       container
       item
-      md={12}
-      lg={9}
-      xl={10}
+      xs={12}
       spacing={0}
-      style={{ backgroundColor: "white" }}
+      style={{ backgroundColor: "white", position: "absolute", height: "100%" }}
     >
       <Grid
         style={{ position: "relative", height: "100%" }}
@@ -238,7 +237,7 @@ export default function Document(props) {
               <Paper className={classes.documentPaper}>
                 <Grid container>
                   <Grid container item xs={12} alignItems="flex-start">
-                    <Grid item xs={11}>
+                    <Grid item xs={10}>
                       <Typography
                         gutterBottom
                         variant="h4"
@@ -269,7 +268,7 @@ export default function Document(props) {
                       {createdAt}
                     </Grid>
 
-                    <Grid item xs={1}>
+                    <Grid item xs={2}>
                       <>
                         <IconButton
                           id="document-options"
@@ -326,6 +325,15 @@ export default function Document(props) {
                             Suggest highlights
                           </MenuItem>
                         </Menu>
+                        <IconButton
+                          onClick={() => {
+                            // TODO: Communicate with parent component instead of using navigate.
+                            navigate(`/orgs/${orgID}/interviews`);
+                          }}
+                          color="inherit"
+                        >
+                          <CloseIcon />
+                        </IconButton>
                       </>
                       <Collaborators dbRef={documentRef} />
                     </Grid>

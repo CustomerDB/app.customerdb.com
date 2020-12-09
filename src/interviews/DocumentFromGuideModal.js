@@ -21,6 +21,10 @@ export default function DocumentFromGuideModal({ show, onHide }) {
     if (!documentRef) return;
 
     documentRef.get().then((snapshot) => {
+      if (snapshot.size === 0) {
+        return;
+      }
+
       let data = snapshot.data();
       data.ID = snapshot.id;
     });
