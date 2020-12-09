@@ -28,7 +28,8 @@ import logo from "../assets/images/logo.svg";
 import logoDarkBG from "../assets/images/logo-dark-bg.svg";
 import useMediaQuery from "@material-ui/core/useMediaQuery";
 import { white } from "material-ui/styles/colors";
-import ProfileDropdown from "../profile/ProfileDropdown";
+import Profile from "./Profile";
+import Create from "./Create";
 
 const drawerWidth = 240;
 
@@ -182,7 +183,9 @@ export default function Shell({
 
             <div className={classes.grow} />
 
-            <ProfileDropdown noOrgSelector={noOrgSelector} />
+            {!noSidebar && <Create />}
+
+            <Profile noOrgSelector={noOrgSelector} />
           </Toolbar>
         </AppBar>
         {!noSidebar && (
