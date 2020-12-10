@@ -19,7 +19,6 @@ import ListItemIcon from "@material-ui/core/ListItemIcon";
 import FlashOnRoundedIcon from "@material-ui/icons/FlashOnRounded";
 import DeleteSweepIcon from "@material-ui/icons/DeleteSweep";
 import ArchiveIcon from "@material-ui/icons/Archive";
-import Moment from "react-moment";
 import MoreVertIcon from "@material-ui/icons/MoreVert";
 import CloseIcon from "@material-ui/icons/Close";
 import Notes from "./notes/Notes.js";
@@ -200,21 +199,6 @@ export default function Document(props) {
     );
   }
 
-  let createdAt;
-  if (document.creationTimestamp && document.createdBy) {
-    createdAt = (
-      <Typography
-        variant="body2"
-        color="textSecondary"
-        component="p"
-        className={classes.detailsParagraph}
-      >
-        Created <Moment fromNow date={document.creationTimestamp.toDate()} /> by{" "}
-        {document.createdBy}
-      </Typography>
-    );
-  }
-
   return (
     <Grid
       container
@@ -265,7 +249,6 @@ export default function Document(props) {
                           }}
                         />
                       </Typography>
-                      {createdAt}
                     </Grid>
 
                     <Grid item xs={2}>

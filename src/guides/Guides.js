@@ -5,9 +5,10 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import Archive from "@material-ui/icons/Archive";
 import Button from "@material-ui/core/Button";
-import Card from "@material-ui/core/Card";
-import CardActions from "@material-ui/core/CardActions";
-import CardContent from "@material-ui/core/CardContent";
+import Table from "@material-ui/core/Table";
+import TableRow from "@material-ui/core/TableRow";
+import TableCell from "@material-ui/core/TableCell";
+import TableBody from "@material-ui/core/TableBody";
 import ContentEditable from "react-contenteditable";
 import Delta from "quill-delta";
 import Dialog from "@material-ui/core/Dialog";
@@ -190,14 +191,11 @@ function Guide({ templateRef }) {
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
   const { orgID, guideID } = useParams();
-  const { templatesRef, tagGroupsRef } = useFirestore();
+  const { templatesRef } = useFirestore();
 
   const [template, setTemplate] = useState();
   const [templateRevision, setTemplateRevision] = useState();
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
-
-  const [editTagGroup, setEditTagGroup] = useState(false);
-  const [tagGroupName, setTagGroupName] = useState();
 
   const dirty = useRef(false);
 
@@ -235,19 +233,6 @@ function Guide({ templateRef }) {
         });
       });
   }, [templatesRef, guideID]);
-
-  // Subscribe to the name of the tag group
-  useEffect(() => {
-    if (!template || !tagGroupsRef) return;
-    if (!template.tagGroupID) {
-      setTagGroupName();
-      return;
-    }
-    return tagGroupsRef.doc(template.tagGroupID).onSnapshot((doc) => {
-      let data = doc.data();
-      setTagGroupName(data.name);
-    });
-  }, [template, tagGroupsRef]);
 
   // Periodically save local template changes
   useEffect(() => {
@@ -458,56 +443,19 @@ function Guide({ templateRef }) {
             paddingTop: "1rem",
           }}
         >
-          <Card className={classes.documentSidebarCard}>
-            <CardContent>
-              {tagGroupName && !editTagGroup ? (
-                <>
-                  <Typography gutterBottom color="textSecondary">
-                    Tags
-                  </Typography>
-                  <Typography gutterBottom variant="h5" component="h2">
-                    {tagGroupName}
-                  </Typography>
-                </>
-              ) : (
-                <>
-                  <Typography gutterBottom color="textSecondary">
-                    Tags
-                  </Typography>
-                  <TagGroupSelector
-                    onChange={() => {
-                      setEditTagGroup(false);
-                    }}
-                  />
-                </>
-              )}
-            </CardContent>
-            <CardActions>
-              {!editTagGroup && (
-                <Button
-                  size="small"
-                  color="primary"
-                  onClick={() => {
-                    setEditTagGroup(true);
-                  }}
-                >
-                  Change
-                </Button>
-              )}
-
-              {editTagGroup && (
-                <Button
-                  size="small"
-                  color="primary"
-                  onClick={() => {
-                    setEditTagGroup(false);
-                  }}
-                >
-                  Cancel
-                </Button>
-              )}
-            </CardActions>
-          </Card>
+          <Table>
+            <TableBody>
+              <TableRow>
+                <TableCell component="th" scope="row">
+                  <b>Tags</b>
+                </TableCell>
+                <TableCell></TableCell>
+                <TableCell>
+                  <TagGroupSelector onChange={() => {}} />
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
         </Grid>
       </Hidden>
 

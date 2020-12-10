@@ -1,4 +1,4 @@
-import "./style.css";
+// import "./style.css";
 
 import { InstantSearch } from "react-instantsearch-dom";
 import Autocomplete, {
@@ -6,8 +6,9 @@ import Autocomplete, {
 } from "@material-ui/lab/Autocomplete";
 import TextField from "@material-ui/core/TextField";
 import React, { useState } from "react";
+import Avatar from "react-avatar";
 
-import { useSearchClient } from "./client.js";
+import { useSearchClient } from "../search/client.js";
 
 import { connectAutoComplete } from "react-instantsearch-dom";
 
@@ -59,14 +60,24 @@ const PeopleAutocomplete = ({
 
         return filtered;
       }}
-      getOptionLabel={(option) => option.name}
+      getOptionLabel={(option) => (option.name ? option.name : option)}
       getOptionSelected={(option, value) => option.name === value.name}
       options={hits}
-      renderInput={(params) => (
-        <TextField {...params} label="Customer" variant="outlined" />
-      )}
+      renderInput={(params) => <TextField {...params} />}
       renderOption={(option) => {
-        return option.name;
+        return (
+          <p>
+            {!option.inputValue && (
+              <Avatar
+                size={30}
+                name={option.name}
+                round={true}
+                src={option.imageURL}
+              />
+            )}{" "}
+            {option.name}
+          </p>
+        );
       }}
     />
   );
