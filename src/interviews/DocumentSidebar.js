@@ -2,15 +2,16 @@ import { Link, useParams } from "react-router-dom";
 import React, { useContext, useEffect, useState } from "react";
 
 import Avatar from "react-avatar";
-import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
-import CardActions from "@material-ui/core/CardActions";
-import CardContent from "@material-ui/core/CardContent";
+import Moment from "react-moment";
+import Table from "@material-ui/core/Table";
+import TableRow from "@material-ui/core/TableRow";
+import TableCell from "@material-ui/core/TableCell";
+import TableBody from "@material-ui/core/TableBody";
 import FirebaseContext from "../util/FirebaseContext.js";
 import Grid from "@material-ui/core/Grid";
-import SearchDropdown from "../search/Dropdown.js";
+import SearchDropdown from "./PeopleDropdown.js";
 import TagGroupSelector from "./TagGroupSelector.js";
-import Typography from "@material-ui/core/Typography";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import VideoPlayer from "./VideoPlayer.js";
 import event from "../analytics/event.js";
@@ -31,11 +32,16 @@ export default function DocumentSidebar(props) {
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
   const { orgID } = useParams();
-  const { documentRef, peopleRef, transcriptionsRef } = useFirestore();
+  const {
+    documentRef,
+    peopleRef,
+    transcriptionsRef,
+    membersRef,
+  } = useFirestore();
 
   const [person, setPerson] = useState();
-  const [editPerson, setEditPerson] = useState(false);
-  const [editTagGroup, setEditTagGroup] = useState(false);
+
+  const [createdBy, setCreatedBy] = useState();
 
   const [transcriptionVideo, setTranscriptionVideo] = useState();
 
@@ -87,6 +93,17 @@ export default function DocumentSidebar(props) {
     firebase,
   ]);
 
+  useEffect(() => {
+    if (!props.document.createdBy || !membersRef) {
+      return;
+    }
+
+    return membersRef.doc(props.document.createdBy).onSnapshot((doc) => {
+      let member = doc.data();
+      setCreatedBy(member);
+    });
+  }, [props.document.createdBy, membersRef]);
+
   return (
     <Grid
       container
@@ -115,48 +132,25 @@ export default function DocumentSidebar(props) {
         <></>
       )}
 
-      <Card className={classes.documentSidebarCard}>
-        <CardContent>
-          {person && !editPerson ? (
-            <Grid container spacing={0}>
-              <Grid
-                container
-                item
-                xs={12}
-                direction="row"
-                style={{ marginTop: "1rem" }}
-              >
-                <Grid
-                  item
-                  xl={3}
-                  md={12}
-                  style={{ marginBottom: "1rem", paddingRight: "1rem" }}
-                >
+      <Table>
+        <TableBody>
+          <TableRow>
+            <TableCell component="th" scope="row">
+              <b>Customer</b>
+            </TableCell>
+            <TableCell>
+              {person && (
+                <Link to={`/orgs/${orgID}/people/${person.ID}`}>
                   <Avatar
-                    size={70}
+                    size={30}
                     name={person.name}
                     round={true}
                     src={person.imageURL}
                   />
-                </Grid>
-                <Grid item xl={9} md={12} style={{ marginBottom: "1rem" }}>
-                  <Typography gutterBottom variant="h5" component="h2">
-                    <Link to={`/orgs/${orgID}/people/${person.ID}`}>
-                      {person.name}
-                    </Link>
-                  </Typography>
-                </Grid>
-              </Grid>
-              <Grid item xs={12}>
-                <Typography variant="body2" color="textSecondary" component="p">
-                  {person.job}
-                  <br />
-                  {person.company}
-                </Typography>
-              </Grid>
-            </Grid>
-          ) : (
-            <>
+                </Link>
+              )}
+            </TableCell>
+            <TableCell>
               <SearchDropdown
                 index={process.env.REACT_APP_ALGOLIA_PEOPLE_INDEX}
                 defaultPerson={person ? person.name : ""}
@@ -195,87 +189,47 @@ export default function DocumentSidebar(props) {
                   );
                 }}
               />
-            </>
-          )}
-        </CardContent>
-
-        <CardActions>
-          {person && !editPerson && (
-            <Button
-              size="small"
-              color="primary"
-              onClick={() => {
-                setEditPerson(true);
-              }}
-            >
-              Change
-            </Button>
-          )}
-
-          {editPerson && (
-            <Button
-              size="small"
-              color="primary"
-              onClick={() => {
-                setEditPerson(false);
-              }}
-            >
-              Save
-            </Button>
-          )}
-        </CardActions>
-      </Card>
-
-      <Card className={classes.documentSidebarCard}>
-        <CardContent>
-          {props.tagGroupName && !editTagGroup ? (
-            <>
-              <Typography gutterBottom color="textSecondary">
-                Tags
-              </Typography>
-              <Typography gutterBottom variant="h5" component="h2">
-                {props.tagGroupName}
-              </Typography>
-            </>
-          ) : (
-            <>
-              <Typography gutterBottom color="textSecondary">
-                Tags
-              </Typography>
-              <TagGroupSelector
-                onChange={() => {
-                  setEditTagGroup(false);
-                }}
+            </TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell component="th" scope="row">
+              <b>Author</b>
+            </TableCell>
+            <TableCell>
+              {createdBy && (
+                <Avatar
+                  size={30}
+                  name={createdBy.displayName}
+                  round={true}
+                  src={createdBy.photoURL}
+                />
+              )}
+            </TableCell>
+            <TableCell>{createdBy && createdBy.displayName}</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell component="th" scope="row">
+              <b>Created</b>
+            </TableCell>
+            <TableCell></TableCell>
+            <TableCell>
+              <Moment
+                fromNow
+                date={props.document.creationTimestamp.toDate()}
               />
-            </>
-          )}
-        </CardContent>
-        <CardActions>
-          {!editTagGroup && (
-            <Button
-              size="small"
-              color="primary"
-              onClick={() => {
-                setEditTagGroup(true);
-              }}
-            >
-              Change
-            </Button>
-          )}
-
-          {editTagGroup && (
-            <Button
-              size="small"
-              color="primary"
-              onClick={() => {
-                setEditTagGroup(false);
-              }}
-            >
-              Save
-            </Button>
-          )}
-        </CardActions>
-      </Card>
+            </TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell component="th" scope="row">
+              <b>Tags</b>
+            </TableCell>
+            <TableCell></TableCell>
+            <TableCell>
+              <TagGroupSelector onChange={() => {}} />
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
     </Grid>
   );
 }

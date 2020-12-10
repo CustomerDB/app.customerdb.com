@@ -2,7 +2,6 @@ import React, { useContext, useEffect, useState } from "react";
 
 import FirebaseContext from "../util/FirebaseContext.js";
 import FormControl from "@material-ui/core/FormControl";
-import InputLabel from "@material-ui/core/InputLabel";
 import MenuItem from "@material-ui/core/MenuItem";
 import Select from "@material-ui/core/Select";
 import UserAuthContext from "../auth/UserAuthContext.js";
@@ -166,8 +165,7 @@ export default function TagGroupSelector(props) {
   }
 
   return (
-    <FormControl fullWidth variant="outlined">
-      <InputLabel id="tag-group-select-label">Tag group</InputLabel>
+    <FormControl fullWidth>
       <Select
         labelId="tag-group-select-label"
         id="tag-group-select"
