@@ -110,6 +110,11 @@ export default function People({ create }) {
       onClick={() => {
         navigate(`/orgs/${orgID}/people/${ID}`);
       }}
+      style={{
+        backgroundColor: "white",
+        borderRadius: "0.5rem",
+        marginBottom: "1rem",
+      }}
     >
       <ListItemAvatar>
         <Avatar size={50} name={name} round={true} src={imageURL} />
@@ -130,7 +135,7 @@ export default function People({ create }) {
         {showResults ? (
           <SearchResults />
         ) : (
-          <List>
+          <List style={{ paddingLeft: "1rem", paddingRight: "1rem" }}>
             {listTotal > 0 ? (
               <Infinite
                 hasMore={() => {
