@@ -142,6 +142,11 @@ export default function Guides({ create }) {
         button
         key={t.ID}
         selected={t.ID === guideID}
+        style={{
+          backgroundColor: "white",
+          borderRadius: "0.5rem",
+          marginBottom: "1rem",
+        }}
         onClick={() => {
           navigate(`/orgs/${orgID}/guides/${t.ID}`);
         }}
@@ -161,7 +166,9 @@ export default function Guides({ create }) {
     listItems.length > 0 ? (
       <ListContainer>
         <Scrollable>
-          <List>{listItems}</List>
+          <List style={{ paddingLeft: "1rem", paddingRight: "1rem" }}>
+            {listItems}
+          </List>
         </Scrollable>
       </ListContainer>
     ) : (
