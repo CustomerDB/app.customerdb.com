@@ -19,6 +19,9 @@ import StepLabel from "@material-ui/core/StepLabel";
 import Stepper from "@material-ui/core/Stepper";
 import TranscriptDropzone from "./TranscriptDropzone.js";
 import useFirestore from "../../db/Firestore.js";
+import Divider from "@material-ui/core/Divider";
+
+import CallDetails from "../CallDetails.js";
 
 Quill.register("formats/playhead", PlayheadBlot);
 Quill.register("formats/speaker", SpeakerBlot);
@@ -168,6 +171,15 @@ export default function Transcript({
   if (callNotStarted && transcriptionNotStarted && !uploading) {
     return (
       <PageContainer>
+        <CallDetails
+          document={document}
+          isDisabled={(call) => {
+            return !!(document.transcription || call.callEndedTimestamp);
+          }}
+        />
+
+        <Divider />
+
         <TranscriptDropzone
           setProgress={setUploadProgress}
           setUploading={setUploading}
