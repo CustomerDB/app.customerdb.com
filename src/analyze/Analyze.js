@@ -104,7 +104,7 @@ export default function Analyze({ create }) {
     <ListContainer sm={3}>
       <Scrollable>
         {listTotal === 0 && <AnalyzeHelp />}
-        <List>
+        <List style={{ paddingLeft: "1rem", paddingRight: "1rem" }}>
           {analysisList.map((analysis) => (
             <>
               <ListItem
@@ -113,6 +113,11 @@ export default function Analyze({ create }) {
                 selected={analysis.ID === analysisID}
                 onClick={() => {
                   navigate(`/orgs/${orgID}/analyze/${analysis.ID}`);
+                }}
+                style={{
+                  backgroundColor: "white",
+                  borderRadius: "0.5rem",
+                  marginBottom: "1rem",
                 }}
               >
                 <ListItemAvatar>

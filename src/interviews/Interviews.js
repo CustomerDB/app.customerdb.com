@@ -149,6 +149,11 @@ export default function Interviews({ create, fromGuide }) {
 
   const dataListItem = (ID, name, date, transcript) => (
     <ListItem
+      style={{
+        backgroundColor: "white",
+        borderRadius: "0.5rem",
+        marginBottom: "1rem",
+      }}
       button
       key={ID}
       selected={ID === documentID}
@@ -191,7 +196,7 @@ export default function Interviews({ create, fromGuide }) {
         {showResults ? (
           <SearchResults />
         ) : (
-          <List>
+          <List style={{ paddingLeft: "1rem", paddingRight: "1rem" }}>
             {documentItems.length > 0 ? documentItems : <InterviewsHelp />}
           </List>
         )}
