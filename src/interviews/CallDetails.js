@@ -89,7 +89,7 @@ export default function CallDetails({ document, isDisabled }) {
 
   return (
     <>
-      <Grid item xs>
+      <Grid container item xs={12} style={{ padding: "2rem" }} justify="center">
         {joinButton}
         <Button
           disabled={isDisabled(call)}

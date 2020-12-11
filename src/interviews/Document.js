@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from "react";
 import { addTagStyles, removeTagStyles } from "../editor/Tags.js";
 import { useNavigate, useParams } from "react-router-dom";
 
-import CallDetails from "./CallDetails.js";
 import Collaborators from "../util/Collaborators.js";
 import ContentEditable from "react-contenteditable";
 import DocumentDeleteDialog from "./DocumentDeleteDialog.js";
@@ -322,16 +321,7 @@ export default function Document(props) {
                     </Grid>
                   </Grid>
 
-                  <Grid item xs={12}>
-                    <CallDetails
-                      document={document}
-                      isDisabled={(call) => {
-                        return !!(
-                          document.transcription || call.callEndedTimestamp
-                        );
-                      }}
-                    />
-                  </Grid>
+                  <Grid item xs={12}></Grid>
 
                   <Grid item xs={12} className={classes.tabsContainer}>
                     <Tabs
