@@ -213,10 +213,12 @@ export default function DocumentSidebar(props) {
             </TableCell>
             <TableCell></TableCell>
             <TableCell>
-              <Moment
-                fromNow
-                date={props.document.creationTimestamp.toDate()}
-              />
+              {props.document.creationTimestamp && (
+                <Moment
+                  fromNow
+                  date={props.document.creationTimestamp.toDate()}
+                />
+              )}
             </TableCell>
           </TableRow>
           <TableRow>
