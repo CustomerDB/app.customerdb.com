@@ -148,14 +148,15 @@ export function onDeltaSnapshot(
     let selection = editor.getSelection();
     let selectionIndex = selection ? selection.index : 0;
 
+    let editorUpdateDiff = inverseLocalDelta;
+
     selectionIndex = inverseLocalDelta.transformPosition(selectionIndex);
     console.debug("unapplying local delta", inverseLocalDelta);
-    editor.updateContents(inverseLocalDelta);
 
     // Apply the update patch to the editor
     console.debug("applying remote update patch", diff);
     selectionIndex = diff.transformPosition(selectionIndex);
-    editor.updateContents(diff);
+    editorUpdateDiff = editorUpdateDiff.compose(diff);
 
     // Re-apply the transformed local delta to the editor
 
@@ -169,7 +170,9 @@ export function onDeltaSnapshot(
     console.debug("transformed local delta", localDelta.current);
     selectionIndex = localDelta.current.transformPosition(selectionIndex);
     console.debug("re-applying transformed local delta");
-    editor.updateContents(localDelta.current);
+    editorUpdateDiff = editorUpdateDiff.compose(localDelta.current);
+
+    editor.updateContents(editorUpdateDiff);
 
     if (selection) {
       console.debug("updating selection index");
