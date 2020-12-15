@@ -81,6 +81,10 @@ const SearchBox = ({
       alignItems: "center",
       justifyContent: "center",
     },
+    paper: {
+      background: "green",
+      border: "3px solid red",
+    },
   }));
   const classes = useStyles();
 
@@ -94,6 +98,7 @@ const SearchBox = ({
         classes={{
           root: classes.inputRoot,
           input: classes.inputInput,
+          paper: classes.paper,
         }}
         inputProps={{ "aria-label": "search" }}
         value={currentRefinement}
@@ -110,3 +115,5 @@ const CustomSearchBox = connectSearchBox(SearchBox);
 export function SearchInput(props) {
   return <CustomSearchBox />;
 }
+
+// Autocomplete search

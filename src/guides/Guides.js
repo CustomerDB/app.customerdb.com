@@ -331,7 +331,7 @@ function Guide({ templateRef }) {
         <Scrollable>
           <Grid container item spacing={0} xs={12} style={{ height: "100%" }}>
             <Grid container item justify="center">
-              <Paper className={classes.documentPaper}>
+              <Paper className={classes.documentPaper} elevation={0}>
                 <Grid container>
                   <Grid container item xs={12} alignItems="flex-start">
                     <Grid item xs={10}>

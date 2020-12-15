@@ -141,7 +141,7 @@ export default function Speaker({
           horizontal: "left",
         }}
       >
-        <Paper elevation={9}>
+        <Paper elevation={3}>
           <Grid
             container
             style={{ width: "20rem", padding: "1rem" }}
