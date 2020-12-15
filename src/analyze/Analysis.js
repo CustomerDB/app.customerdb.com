@@ -103,7 +103,7 @@ export default function Analysis(props) {
 
     return (
       <Grid container item sm={9} xl={10} spacing={0}>
-        <Paper className={classes.paper}>
+        <Paper className={classes.paper} elevation={0}>
           <Grid container>
             <Grid container item xs={12} alignItems="flex-start">
               <Grid item xs={11}>
@@ -234,7 +234,7 @@ export default function Analysis(props) {
           height: "100%",
         }}
       >
-        <Paper className={classes.paper}>
+        <Paper className={classes.paper} elevation={0}>
           {title}
           <Grid item xs={12} style={{ maxHeight: "3rem" }}>
             <Tabs

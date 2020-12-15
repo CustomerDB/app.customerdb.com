@@ -74,7 +74,7 @@ export default function Settings(props) {
         style={{ height: "100%" }}
       >
         <Grid container item style={{ height: "3rem" }} alignItems="flex-start">
-          <Paper style={{ width: "100%", height: "3rem" }}>
+          <Paper style={{ width: "100%", height: "3rem" }} elevation={0}>
             <Tabs value={currentTab} centered onChange={onTabChange}>
               {tabs}
             </Tabs>

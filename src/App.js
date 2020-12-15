@@ -24,9 +24,6 @@ export default function App() {
   const appTheme = createMuiTheme({
     // change the default elevation for paper and cards to 0
     props: {
-      MuiPaper: {
-        elevation: 0,
-      },
       MuiCard: {
         elevation: 0,
       },
