@@ -7,12 +7,14 @@ import Select from "@material-ui/core/Select";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
 import useFirestore from "../db/Firestore.js";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import Divider from "@material-ui/core/Divider";
 
 export default function TagGroupSelector(props) {
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
   const { orgID } = useParams();
+  const navigate = useNavigate();
 
   const {
     documentRef,
@@ -70,6 +72,10 @@ export default function TagGroupSelector(props) {
     e.persist();
 
     let newTagGroupID = e.target.value;
+
+    if (newTagGroupID === "ignore") {
+      return;
+    }
 
     const highlightsCount = (highlightsRefs) => {
       return Promise.all(
@@ -179,6 +185,15 @@ export default function TagGroupSelector(props) {
               {group.name}
             </MenuItem>
           ))}
+        <Divider />
+        <MenuItem
+          value="ignore"
+          onClick={() => {
+            navigate(`/orgs/${orgID}/tags`);
+          }}
+        >
+          Manage tag groups
+        </MenuItem>
       </Select>
     </FormControl>
   );

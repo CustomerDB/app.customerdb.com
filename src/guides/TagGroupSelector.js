@@ -7,7 +7,8 @@ import Select from "@material-ui/core/Select";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
 import useFirestore from "../db/Firestore.js";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import Divider from "@material-ui/core/Divider";
 
 export default function TagGroupSelector(props) {
   const { oauthClaims } = useContext(UserAuthContext);
@@ -19,6 +20,8 @@ export default function TagGroupSelector(props) {
   const [templateRef, setTemplateRef] = useState();
   const [template, setTemplate] = useState();
   const [tagGroups, setTagGroups] = useState();
+
+  const navigate = useNavigate();
 
   const doNothing = () => {};
   const onChange = props.onChange || doNothing;
@@ -101,6 +104,15 @@ export default function TagGroupSelector(props) {
           tagGroups.map((group) => (
             <MenuItem value={group.ID}>{group.name}</MenuItem>
           ))}
+        <Divider />
+        <MenuItem
+          value="ignore"
+          onClick={() => {
+            navigate(`/orgs/${orgID}/tags`);
+          }}
+        >
+          Manage tag groups
+        </MenuItem>
       </Select>
     </FormControl>
   );
