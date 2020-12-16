@@ -29,6 +29,7 @@ import Transcript from "./transcript/Transcript.js";
 import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
 import useFirestore from "../db/Firestore.js";
+import { Tooltip } from "@material-ui/core";
 
 const useStyles = makeStyles({
   documentPaper: {
@@ -252,6 +253,23 @@ export default function Document(props) {
 
                     <Grid item xs={2}>
                       <>
+                        <Tooltip title="Suggest highlights">
+                          <IconButton
+                            disabled={!hasSuggestions}
+                            onClick={() => {
+                              setAnchorEl(null);
+                              setSuggestionsOpen(true);
+                            }}
+                          >
+                            <FlashOnRoundedIcon
+                              style={
+                                hasSuggestions
+                                  ? { color: "#fcba03" }
+                                  : { color: "grey" }
+                              }
+                            />
+                          </IconButton>
+                        </Tooltip>
                         <IconButton
                           id="document-options"
                           edge="end"
@@ -293,18 +311,6 @@ export default function Document(props) {
                               <DeleteSweepIcon />
                             </ListItemIcon>
                             Delete transcript
-                          </MenuItem>
-                          <MenuItem
-                            disabled={!hasSuggestions}
-                            onClick={() => {
-                              setAnchorEl(null);
-                              setSuggestionsOpen(true);
-                            }}
-                          >
-                            <ListItemIcon>
-                              <FlashOnRoundedIcon />
-                            </ListItemIcon>
-                            Suggest highlights
                           </MenuItem>
                         </Menu>
                         <IconButton

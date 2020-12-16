@@ -234,12 +234,12 @@ export default function SuggestionControls({
   }, [getEditor, nextSuggestion, transformIndex]);
 
   useEffect(() => {
-    if (!suggestionsOpen) {
+    if (!suggestionsOpen || suggestionText) {
       return;
     }
 
     onNext();
-  }, [suggestionsOpen, onNext]);
+  }, [suggestionsOpen, onNext, suggestionText]);
 
   if (!anchor) return <></>;
 
