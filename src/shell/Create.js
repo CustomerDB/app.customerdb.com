@@ -29,7 +29,11 @@ export default function Create() {
           setOpen(true);
         }}
         startIcon={<AddIcon />}
-        style={{ borderRadius: "2rem", textTransform: "none" }}
+        style={{
+          borderRadius: "2rem",
+          textTransform: "none",
+          minWidth: "6rem",
+        }}
         variant="contained"
         color="secondary"
       >
