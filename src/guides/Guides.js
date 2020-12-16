@@ -334,7 +334,7 @@ function Guide({ templateRef }) {
               <Paper className={classes.documentPaper}>
                 <Grid container>
                   <Grid container item xs={12} alignItems="flex-start">
-                    <Grid item xs={10}>
+                    <Grid item xs={8}>
                       <Typography gutterBottom variant="h4" component="h2">
                         <ContentEditable
                           html={template.name}
@@ -372,7 +372,7 @@ function Guide({ templateRef }) {
                       </Typography>
                     </Grid>
 
-                    <Grid item xs={2}>
+                    <Grid container item xs={4} justify="flex-end">
                       <IconButton
                         color="primary"
                         aria-label="Archive template"

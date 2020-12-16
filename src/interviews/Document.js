@@ -221,7 +221,7 @@ export default function Document(props) {
               <Paper className={classes.documentPaper}>
                 <Grid container>
                   <Grid container item xs={12} alignItems="flex-start">
-                    <Grid item xs={10}>
+                    <Grid item xs={7}>
                       <Typography
                         gutterBottom
                         variant="h4"
@@ -251,7 +251,7 @@ export default function Document(props) {
                       </Typography>
                     </Grid>
 
-                    <Grid item xs={2}>
+                    <Grid container item xs={5} justify="flex-end">
                       <>
                         <Tooltip title="Suggest highlights">
                           <IconButton
@@ -323,11 +323,11 @@ export default function Document(props) {
                           <CloseIcon />
                         </IconButton>
                       </>
-                      <Collaborators dbRef={documentRef} />
+                      <Grid container item xs={12} justify="flex-end">
+                        <Collaborators dbRef={documentRef} />
+                      </Grid>
                     </Grid>
                   </Grid>
-
-                  <Grid item xs={12}></Grid>
 
                   <Grid item xs={12} className={classes.tabsContainer}>
                     <Tabs
