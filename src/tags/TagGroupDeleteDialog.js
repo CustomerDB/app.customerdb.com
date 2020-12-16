@@ -6,7 +6,7 @@ import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import FirebaseContext from "../util/FirebaseContext.js";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import event from "../analytics/event.js";
 import Button from "@material-ui/core/Button";
 
@@ -19,7 +19,6 @@ export default function TagGroupDeleteDialog({
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
   const { orgID } = useParams();
-  const navigate = useNavigate();
 
   const cancel = () => {
     console.debug("user canceled tag group archive");

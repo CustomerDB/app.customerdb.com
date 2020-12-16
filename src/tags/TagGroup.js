@@ -3,7 +3,6 @@ import UserAuthContext from "../auth/UserAuthContext.js";
 import FirebaseContext from "../util/FirebaseContext.js";
 import { useParams } from "react-router-dom";
 import useFirestore from "../db/Firestore.js";
-import { makeStyles } from "@material-ui/core/styles";
 import event from "../analytics/event.js";
 import colorPair from "../util/color.js";
 import { v4 as uuidv4 } from "uuid";
@@ -28,12 +27,6 @@ import Menu from "@material-ui/core/Menu";
 import ArchiveIcon from "@material-ui/icons/Archive";
 import Divider from "@material-ui/core/Divider";
 
-const useStyles = makeStyles({
-  detailsParagraph: {
-    marginBottom: "0.35rem",
-  },
-});
-
 export default function TagGroup({ tagGroupID }) {
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
@@ -50,8 +43,6 @@ export default function TagGroup({ tagGroupID }) {
   const [chipAnchorEl, setChipAnchorEl] = useState(null);
 
   const [openTagName, setOpenTagName] = useState();
-
-  const classes = useStyles();
 
   useEffect(() => {
     if (!tagGroupsRef || !tagGroupID) {
@@ -79,7 +70,6 @@ export default function TagGroup({ tagGroupID }) {
       .where("deletionTimestamp", "==", "")
       .onSnapshot((snapshot) => {
         let newTags = [];
-        let newTagNames = {};
 
         snapshot.forEach((doc) => {
           let data = doc.data();

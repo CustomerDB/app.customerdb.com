@@ -45,7 +45,7 @@ export default function Tags({ create }) {
   }, [tagGroupsRef]);
 
   useEffect(() => {
-    if (!create || !tagGroupsRef) {
+    if (!create || !tagGroupsRef || !oauthClaims) {
       return;
     }
 
@@ -67,7 +67,7 @@ export default function Tags({ create }) {
     });
 
     navigate(`/orgs/${orgID}/tags`);
-  }, [create, tagGroupsRef]);
+  }, [create, tagGroupsRef, firebase, navigate, oauthClaims, orgID]);
 
   if (!tagGroupsRef || !defaultTagGroupID) {
     return <Loading />;

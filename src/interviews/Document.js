@@ -42,7 +42,6 @@ const useStyles = makeStyles({
   },
   tabs: {
     width: "100%",
-    height: "4px solid red",
     height: "2rem",
   },
   tabsContainer: {

@@ -11,7 +11,7 @@ import PrivacySettings from "./PrivacySettings.js";
 
 export default function Settings(props) {
   const auth = useContext(UserAuthContext);
-  const { orgID, tabID } = useParams();
+  const { orgID } = useParams();
 
   return (
     <Shell>
