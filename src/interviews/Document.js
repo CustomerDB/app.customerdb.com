@@ -29,6 +29,7 @@ import Transcript from "./transcript/Transcript.js";
 import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
 import useFirestore from "../db/Firestore.js";
+import { Tooltip } from "@material-ui/core";
 
 const useStyles = makeStyles({
   documentPaper: {
@@ -220,7 +221,7 @@ export default function Document(props) {
               <Paper className={classes.documentPaper} elevation={0}>
                 <Grid container>
                   <Grid container item xs={12} alignItems="flex-start">
-                    <Grid item xs={10}>
+                    <Grid item xs={7}>
                       <Typography
                         gutterBottom
                         variant="h4"
@@ -250,8 +251,25 @@ export default function Document(props) {
                       </Typography>
                     </Grid>
 
-                    <Grid item xs={2}>
+                    <Grid container item xs={5} justify="flex-end">
                       <>
+                        <Tooltip title="Suggest highlights">
+                          <IconButton
+                            disabled={!hasSuggestions}
+                            onClick={() => {
+                              setAnchorEl(null);
+                              setSuggestionsOpen(true);
+                            }}
+                          >
+                            <FlashOnRoundedIcon
+                              style={
+                                hasSuggestions
+                                  ? { color: "#fcba03" }
+                                  : { color: "grey" }
+                              }
+                            />
+                          </IconButton>
+                        </Tooltip>
                         <IconButton
                           id="document-options"
                           edge="end"
@@ -294,18 +312,6 @@ export default function Document(props) {
                             </ListItemIcon>
                             Delete transcript
                           </MenuItem>
-                          <MenuItem
-                            disabled={!hasSuggestions}
-                            onClick={() => {
-                              setAnchorEl(null);
-                              setSuggestionsOpen(true);
-                            }}
-                          >
-                            <ListItemIcon>
-                              <FlashOnRoundedIcon />
-                            </ListItemIcon>
-                            Suggest highlights
-                          </MenuItem>
                         </Menu>
                         <IconButton
                           onClick={() => {
@@ -317,11 +323,11 @@ export default function Document(props) {
                           <CloseIcon />
                         </IconButton>
                       </>
-                      <Collaborators dbRef={documentRef} />
+                      <Grid container item xs={12} justify="flex-end">
+                        <Collaborators dbRef={documentRef} />
+                      </Grid>
                     </Grid>
                   </Grid>
-
-                  <Grid item xs={12}></Grid>
 
                   <Grid item xs={12} className={classes.tabsContainer}>
                     <Tabs

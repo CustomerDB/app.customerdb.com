@@ -192,7 +192,7 @@ export default function Analysis(props) {
             />
           </Typography>
         </Grid>
-        <Grid>
+        <Grid container item xs={3} justify="flex-end">
           <IconButton
             color="primary"
             aria-label="Archive document"
