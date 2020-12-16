@@ -34,7 +34,7 @@ import { Tooltip } from "@material-ui/core";
 const useStyles = makeStyles({
   documentPaper: {
     margin: "0 1rem 0 2rem",
-    padding: "1rem 2rem 4rem 2rem",
+    padding: "0 2rem 4rem 2rem",
     minHeight: "48rem",
     width: "100%",
     maxWidth: "80rem",
@@ -42,14 +42,17 @@ const useStyles = makeStyles({
   },
   tabs: {
     width: "100%",
+    height: "4px solid red",
+    height: "2rem",
   },
   tabsContainer: {
     position: "sticky",
     top: 0,
     background: "#fff",
     zIndex: 1,
-    height: "3rem",
+    height: "10rem",
     width: "100%",
+    overflow: "hidden",
   },
   detailsParagraph: {
     marginBottom: "0.35rem",
@@ -219,7 +222,13 @@ export default function Document(props) {
           <Grid container item spacing={0} xs={12} style={{ height: "100%" }}>
             <Grid container item justify="center">
               <Paper className={classes.documentPaper} elevation={0}>
-                <Grid container item xs={12} alignItems="center">
+                <Grid
+                  container
+                  item
+                  xs={12}
+                  alignItems="center"
+                  className={classes.tabsContainer}
+                >
                   <Grid item xs={7} sm={5}>
                     <Typography
                       gutterBottom
@@ -330,51 +339,49 @@ export default function Document(props) {
                     </>
                   </Grid>
 
-                  <Grid item xs={12} className={classes.tabsContainer}>
-                    <Tabs
-                      value={selectedTab}
-                      onChange={handleTabChange}
-                      indicatorColor="secondary"
-                      textColor="primary"
-                      variant="fullWidth"
-                      aria-label="full width"
-                      className={classes.tabs}
-                    >
-                      <Tab
-                        label="transcript"
-                        id="transcript"
-                        aria-controls="tabpanel-transcript"
-                      />
-                      <Tab
-                        label="notes"
-                        id="notes"
-                        aria-controls="tabpanel-notes"
-                      />
-                    </Tabs>
-                  </Grid>
-                  {selectedTab === 0 && (
-                    <Transcript
-                      document={document}
-                      tags={tags}
-                      reactQuillRef={reactQuillTranscriptRef}
-                      selectionChannelPort={transcriptSelectionSend}
-                      suggestionsOpen={suggestionsOpen}
-                      setSuggestionsOpen={setSuggestionsOpen}
-                      setHasSuggestions={setHasSuggestions}
+                  <Tabs
+                    value={selectedTab}
+                    onChange={handleTabChange}
+                    indicatorColor="secondary"
+                    textColor="primary"
+                    variant="fullWidth"
+                    aria-label="full width"
+                    className={classes.tabs}
+                  >
+                    <Tab
+                      label="transcript"
+                      id="transcript"
+                      aria-controls="tabpanel-transcript"
                     />
-                  )}
-
-                  {selectedTab === 1 && (
-                    <Notes
-                      document={document}
-                      tags={tags}
-                      reactQuillRef={reactQuillNotesRef}
-                      suggestionsOpen={suggestionsOpen}
-                      setSuggestionsOpen={setSuggestionsOpen}
-                      setHasSuggestions={setHasSuggestions}
+                    <Tab
+                      label="notes"
+                      id="notes"
+                      aria-controls="tabpanel-notes"
                     />
-                  )}
+                  </Tabs>
                 </Grid>
+                {selectedTab === 0 && (
+                  <Transcript
+                    document={document}
+                    tags={tags}
+                    reactQuillRef={reactQuillTranscriptRef}
+                    selectionChannelPort={transcriptSelectionSend}
+                    suggestionsOpen={suggestionsOpen}
+                    setSuggestionsOpen={setSuggestionsOpen}
+                    setHasSuggestions={setHasSuggestions}
+                  />
+                )}
+
+                {selectedTab === 1 && (
+                  <Notes
+                    document={document}
+                    tags={tags}
+                    reactQuillRef={reactQuillNotesRef}
+                    suggestionsOpen={suggestionsOpen}
+                    setSuggestionsOpen={setSuggestionsOpen}
+                    setHasSuggestions={setHasSuggestions}
+                  />
+                )}
               </Paper>
             </Grid>
           </Grid>
