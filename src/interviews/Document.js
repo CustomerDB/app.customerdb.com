@@ -219,114 +219,115 @@ export default function Document(props) {
           <Grid container item spacing={0} xs={12} style={{ height: "100%" }}>
             <Grid container item justify="center">
               <Paper className={classes.documentPaper} elevation={0}>
-                <Grid container>
-                  <Grid container item xs={12} alignItems="flex-start">
-                    <Grid item xs={7}>
-                      <Typography
-                        gutterBottom
-                        variant="h4"
-                        component="h2"
-                        id="documentTitle"
-                      >
-                        <ContentEditable
-                          html={document.name}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.target.blur();
-                            }
-                          }}
-                          onBlur={(e) => {
-                            if (documentRef) {
-                              let newName = e.target.innerText
-                                .replace(/(\r\n|\n|\r)/gm, " ")
-                                .replace(/\s+/g, " ")
-                                .trim();
+                <Grid container item xs={12} alignItems="center">
+                  <Grid item xs={7} sm={5}>
+                    <Typography
+                      gutterBottom
+                      variant="h6"
+                      style={{ fontWeight: "bold" }}
+                      id="documentTitle"
+                    >
+                      <ContentEditable
+                        html={document.name}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.target.blur();
+                          }
+                        }}
+                        onBlur={(e) => {
+                          if (documentRef) {
+                            let newName = e.target.innerText
+                              .replace(/(\r\n|\n|\r)/gm, " ")
+                              .replace(/\s+/g, " ")
+                              .trim();
 
-                              console.debug("setting document name", newName);
+                            console.debug("setting document name", newName);
 
-                              documentRef.update({ name: newName });
-                            }
-                          }}
-                        />
-                      </Typography>
+                            documentRef.update({ name: newName });
+                          }
+                        }}
+                      />
+                    </Typography>
+                  </Grid>
+
+                  <Hidden xsDown>
+                    <Grid container item xs={2}>
+                      <Collaborators dbRef={documentRef} />
                     </Grid>
+                  </Hidden>
 
-                    <Grid container item xs={5} justify="flex-end">
-                      <>
-                        <Tooltip title="Suggest highlights">
-                          <IconButton
-                            disabled={!hasSuggestions}
-                            onClick={() => {
-                              setAnchorEl(null);
-                              setSuggestionsOpen(true);
-                            }}
-                          >
-                            <FlashOnRoundedIcon
-                              style={
-                                hasSuggestions
-                                  ? { color: "#fcba03" }
-                                  : { color: "grey" }
-                              }
-                            />
-                          </IconButton>
-                        </Tooltip>
+                  <Grid container item xs={5} justify="flex-end">
+                    <>
+                      <Tooltip title="Suggest highlights">
                         <IconButton
-                          id="document-options"
-                          edge="end"
-                          aria-label="document options"
-                          aria-haspopup="true"
-                          aria-controls="document-menu"
-                          onClick={handleOptionsClick}
-                          color="inherit"
-                        >
-                          <MoreVertIcon />
-                        </IconButton>
-                        <Menu
-                          id="profile-menu"
-                          anchorEl={anchorEl}
-                          keepMounted
-                          open={Boolean(anchorEl)}
-                          onClose={handleOptionsClose}
-                        >
-                          <MenuItem
-                            id="archive-document-button"
-                            onClick={() => {
-                              setAnchorEl(null);
-                              setOpenDeleteDialog(true);
-                            }}
-                          >
-                            <ListItemIcon>
-                              <ArchiveIcon />
-                            </ListItemIcon>
-                            Archive
-                          </MenuItem>
-                          <MenuItem
-                            disabled={!document.transcription}
-                            onClick={() => {
-                              setAnchorEl(null);
-                              setOpenTranscriptDeleteDialog(true);
-                            }}
-                          >
-                            <ListItemIcon>
-                              <DeleteSweepIcon />
-                            </ListItemIcon>
-                            Delete transcript
-                          </MenuItem>
-                        </Menu>
-                        <IconButton
+                          disabled={!hasSuggestions}
                           onClick={() => {
-                            // TODO: Communicate with parent component instead of using navigate.
-                            navigate(`/orgs/${orgID}/interviews`);
+                            setAnchorEl(null);
+                            setSuggestionsOpen(true);
                           }}
-                          color="inherit"
                         >
-                          <CloseIcon />
+                          <FlashOnRoundedIcon
+                            style={
+                              hasSuggestions
+                                ? { color: "#fcba03" }
+                                : { color: "grey" }
+                            }
+                          />
                         </IconButton>
-                      </>
-                      <Grid container item xs={12} justify="flex-end">
-                        <Collaborators dbRef={documentRef} />
-                      </Grid>
-                    </Grid>
+                      </Tooltip>
+                      <IconButton
+                        id="document-options"
+                        edge="end"
+                        aria-label="document options"
+                        aria-haspopup="true"
+                        aria-controls="document-menu"
+                        onClick={handleOptionsClick}
+                        color="inherit"
+                      >
+                        <MoreVertIcon />
+                      </IconButton>
+                      <Menu
+                        id="profile-menu"
+                        anchorEl={anchorEl}
+                        keepMounted
+                        open={Boolean(anchorEl)}
+                        onClose={handleOptionsClose}
+                      >
+                        <MenuItem
+                          id="archive-document-button"
+                          onClick={() => {
+                            setAnchorEl(null);
+                            setOpenDeleteDialog(true);
+                          }}
+                        >
+                          <ListItemIcon>
+                            <ArchiveIcon />
+                          </ListItemIcon>
+                          Archive
+                        </MenuItem>
+                        <MenuItem
+                          disabled={!document.transcription}
+                          onClick={() => {
+                            setAnchorEl(null);
+                            setOpenTranscriptDeleteDialog(true);
+                          }}
+                        >
+                          <ListItemIcon>
+                            <DeleteSweepIcon />
+                          </ListItemIcon>
+                          Delete transcript
+                        </MenuItem>
+                      </Menu>
+                      <IconButton
+                        onClick={() => {
+                          // TODO: Communicate with parent component instead of using navigate.
+                          navigate(`/orgs/${orgID}/interviews`);
+                        }}
+                        color="inherit"
+                      >
+                        <CloseIcon />
+                      </IconButton>
+                    </>
                   </Grid>
 
                   <Grid item xs={12} className={classes.tabsContainer}>
