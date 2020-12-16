@@ -28,6 +28,7 @@ import logo from "../assets/images/logo.svg";
 import logoDarkBG from "../assets/images/logo-dark-bg.svg";
 import useMediaQuery from "@material-ui/core/useMediaQuery";
 import { white } from "material-ui/styles/colors";
+import LocalOfferIcon from "@material-ui/icons/LocalOffer";
 import Profile from "./Profile";
 import Create from "./Create";
 
@@ -245,6 +246,12 @@ export default function Shell({
                 to={`/orgs/${orgID}/analyze`}
                 icon={MultilineChartIcon}
                 label="Analysis"
+              />
+              <NavListItem
+                key="Tags"
+                to={`/orgs/${orgID}/tags`}
+                icon={LocalOfferIcon}
+                label="Tags"
               />
             </List>
 
