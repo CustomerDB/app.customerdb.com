@@ -331,10 +331,10 @@ function Guide({ templateRef }) {
         <Scrollable>
           <Grid container item spacing={0} xs={12} style={{ height: "100%" }}>
             <Grid container item justify="center">
-              <Paper className={classes.documentPaper}>
+              <Paper className={classes.documentPaper} elevation={0}>
                 <Grid container>
                   <Grid container item xs={12} alignItems="flex-start">
-                    <Grid item xs={10}>
+                    <Grid item xs={8}>
                       <Typography gutterBottom variant="h4" component="h2">
                         <ContentEditable
                           html={template.name}
@@ -372,7 +372,7 @@ function Guide({ templateRef }) {
                       </Typography>
                     </Grid>
 
-                    <Grid item xs={2}>
+                    <Grid container item xs={4} justify="flex-end">
                       <IconButton
                         color="primary"
                         aria-label="Archive template"
