@@ -185,15 +185,6 @@ export default function Members(props) {
       style={{ width: "100%", overflowX: "hidden" }}
       aria-label="organization members"
     >
-      <TableHead>
-        <TableRow>
-          <TableCell></TableCell>
-          <TableCell align="left">Name</TableCell>
-          <TableCell align="left">Email</TableCell>
-          <TableCell align="left">Status</TableCell>
-          <TableCell align="left">Actions</TableCell>
-        </TableRow>
-      </TableHead>
       <TableBody>
         {rows.map((row) => (
           <TableRow key={row.ID}>
@@ -219,39 +210,39 @@ export default function Members(props) {
       justify="center"
       style={{ position: "relative" }}
     >
-      <Scrollable>
-        <Card className={classes.fullWidthCard}>
-          <CardContent>
-            <Grid item xs>
-              {memberTable}
-            </Grid>
-          </CardContent>
-          <CardActions>
-            <Button
-              onClick={() => {
-                setInviteModalShow(true);
-              }}
-            >
-              Invite New Member
-            </Button>
-          </CardActions>
-        </Card>
-        <InviteMemberDialog
-          show={inviteModalShow}
-          onInvite={onInvite}
-          onHide={() => {
-            setInviteModalShow(false);
-          }}
-        />
-        <DeleteMemberDialog
-          show={deleteModalShow}
-          member={member}
-          onDelete={onDelete}
-          onHide={() => {
-            setDeleteModalShow(false);
-          }}
-        />
-      </Scrollable>
+      <Card className={classes.fullWidthCard}>
+        <CardContent>
+          <Grid item xs>
+            {memberTable}
+          </Grid>
+        </CardContent>
+        <CardActions>
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={() => {
+              setInviteModalShow(true);
+            }}
+          >
+            Invite member
+          </Button>
+        </CardActions>
+      </Card>
+      <InviteMemberDialog
+        show={inviteModalShow}
+        onInvite={onInvite}
+        onHide={() => {
+          setInviteModalShow(false);
+        }}
+      />
+      <DeleteMemberDialog
+        show={deleteModalShow}
+        member={member}
+        onDelete={onDelete}
+        onHide={() => {
+          setDeleteModalShow(false);
+        }}
+      />
     </Grid>
   );
 }

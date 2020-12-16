@@ -12,6 +12,7 @@ import RecordVoiceOverIcon from "@material-ui/icons/RecordVoiceOver";
 import MultilineChartIcon from "@material-ui/icons/MultilineChart";
 import AddToPhotosIcon from "@material-ui/icons/AddToPhotos";
 import GroupIcon from "@material-ui/icons/Group";
+import LocalOfferIcon from "@material-ui/icons/LocalOffer";
 import { useNavigate, useParams } from "react-router-dom";
 
 export default function Create() {
@@ -103,6 +104,17 @@ export default function Create() {
                 <ExploreIcon fontSize="small" />
               </ListItemIcon>
               <ListItemText primary="Guide" />
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                setOpen(false);
+                navigate(`/orgs/${orgID}/tags/create`);
+              }}
+            >
+              <ListItemIcon>
+                <LocalOfferIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText primary="Tags" />
             </MenuItem>
           </Paper>
         </ClickAwayListener>
