@@ -335,7 +335,12 @@ function Guide({ templateRef }) {
                 <Grid container>
                   <Grid container item xs={12} alignItems="flex-start">
                     <Grid item xs={8}>
-                      <Typography gutterBottom variant="h4" component="h2">
+                      <Typography
+                        gutterBottom
+                        variant="h6"
+                        style={{ fontWeight: "bold" }}
+                        component="h2"
+                      >
                         <ContentEditable
                           html={template.name}
                           onKeyDown={(e) => {

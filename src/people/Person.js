@@ -169,7 +169,12 @@ export default function Person(props) {
                 open={imageDialogOpen}
                 setOpen={setImageDialogOpen}
               />
-              <Typography gutterBottom variant="h5" component="h2">
+              <Typography
+                gutterBottom
+                variant="h6"
+                style={{ fontWeight: "bold" }}
+                component="h2"
+              >
                 {person.name}
               </Typography>
               <Typography variant="body2" color="textSecondary" component="p">
