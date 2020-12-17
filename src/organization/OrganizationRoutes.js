@@ -7,6 +7,7 @@ import People from "../people/People.js";
 import Quotes from "../quotes/Quotes.js";
 import React from "react";
 import Settings from "../settings/Settings.js";
+import Tags from "../tags/Tags.js";
 
 export default function OrganizationRoutes(props) {
   return (
@@ -45,6 +46,11 @@ export default function OrganizationRoutes(props) {
           <Route path=":analysisID" element={<Analyze />} />
           <Route path=":analysisID/:tabID" element={<Analyze />} />
           <Route path=":analysisID/:tabID/:tagID" element={<Analyze />} />
+        </Route>
+
+        <Route path="tags/*">
+          <Route path="/" element={<Tags />} />
+          <Route path="create" element={<Tags create />} />
         </Route>
 
         <Route path="settings/*">

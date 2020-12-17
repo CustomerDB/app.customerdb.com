@@ -107,7 +107,12 @@ export default function Analysis(props) {
           <Grid container>
             <Grid container item xs={12} alignItems="flex-start">
               <Grid item xs={11}>
-                <Typography gutterBottom variant="h4" component="h2">
+                <Typography
+                  gutterBottom
+                  variant="h6"
+                  style={{ fontWeight: "bold" }}
+                  component="h2"
+                >
                   {analysis.name}
                 </Typography>
                 <p>
@@ -170,7 +175,12 @@ export default function Analysis(props) {
         style={{ maxHeight: "3rem" }}
       >
         <Grid item xs={9}>
-          <Typography gutterBottom variant="h4" component="h2">
+          <Typography
+            gutterBottom
+            variant="h6"
+            style={{ fontWeight: "bold" }}
+            component="h2"
+          >
             <ContentEditable
               html={props.analysis.name}
               onKeyDown={(e) => {
@@ -192,7 +202,7 @@ export default function Analysis(props) {
             />
           </Typography>
         </Grid>
-        <Grid>
+        <Grid container item xs={3} justify="flex-end">
           <IconButton
             color="primary"
             aria-label="Archive document"

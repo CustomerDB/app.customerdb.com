@@ -29,11 +29,12 @@ import Transcript from "./transcript/Transcript.js";
 import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
 import useFirestore from "../db/Firestore.js";
+import { Tooltip } from "@material-ui/core";
 
 const useStyles = makeStyles({
   documentPaper: {
     margin: "0 1rem 0 2rem",
-    padding: "1rem 2rem 4rem 2rem",
+    padding: "0 2rem 4rem 2rem",
     minHeight: "48rem",
     width: "100%",
     maxWidth: "80rem",
@@ -41,14 +42,16 @@ const useStyles = makeStyles({
   },
   tabs: {
     width: "100%",
+    height: "2rem",
   },
   tabsContainer: {
     position: "sticky",
     top: 0,
     background: "#fff",
     zIndex: 1,
-    height: "3rem",
+    height: "10rem",
     width: "100%",
+    overflow: "hidden",
   },
   detailsParagraph: {
     marginBottom: "0.35rem",
@@ -218,156 +221,166 @@ export default function Document(props) {
           <Grid container item spacing={0} xs={12} style={{ height: "100%" }}>
             <Grid container item justify="center">
               <Paper className={classes.documentPaper} elevation={0}>
-                <Grid container>
-                  <Grid container item xs={12} alignItems="flex-start">
-                    <Grid item xs={10}>
-                      <Typography
-                        gutterBottom
-                        variant="h4"
-                        component="h2"
-                        id="documentTitle"
-                      >
-                        <ContentEditable
-                          html={document.name}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.target.blur();
-                            }
-                          }}
-                          onBlur={(e) => {
-                            if (documentRef) {
-                              let newName = e.target.innerText
-                                .replace(/(\r\n|\n|\r)/gm, " ")
-                                .replace(/\s+/g, " ")
-                                .trim();
+                <Grid
+                  container
+                  item
+                  xs={12}
+                  alignItems="center"
+                  className={classes.tabsContainer}
+                >
+                  <Grid item xs={7} sm={5}>
+                    <Typography
+                      gutterBottom
+                      variant="h6"
+                      style={{ fontWeight: "bold" }}
+                      id="documentTitle"
+                    >
+                      <ContentEditable
+                        html={document.name}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.target.blur();
+                          }
+                        }}
+                        onBlur={(e) => {
+                          if (documentRef) {
+                            let newName = e.target.innerText
+                              .replace(/(\r\n|\n|\r)/gm, " ")
+                              .replace(/\s+/g, " ")
+                              .trim();
 
-                              console.debug("setting document name", newName);
+                            console.debug("setting document name", newName);
 
-                              documentRef.update({ name: newName });
-                            }
-                          }}
-                        />
-                      </Typography>
-                    </Grid>
+                            documentRef.update({ name: newName });
+                          }
+                        }}
+                      />
+                    </Typography>
+                  </Grid>
 
-                    <Grid item xs={2}>
-                      <>
-                        <IconButton
-                          id="document-options"
-                          edge="end"
-                          aria-label="document options"
-                          aria-haspopup="true"
-                          aria-controls="document-menu"
-                          onClick={handleOptionsClick}
-                          color="inherit"
-                        >
-                          <MoreVertIcon />
-                        </IconButton>
-                        <Menu
-                          id="profile-menu"
-                          anchorEl={anchorEl}
-                          keepMounted
-                          open={Boolean(anchorEl)}
-                          onClose={handleOptionsClose}
-                        >
-                          <MenuItem
-                            id="archive-document-button"
-                            onClick={() => {
-                              setAnchorEl(null);
-                              setOpenDeleteDialog(true);
-                            }}
-                          >
-                            <ListItemIcon>
-                              <ArchiveIcon />
-                            </ListItemIcon>
-                            Archive
-                          </MenuItem>
-                          <MenuItem
-                            disabled={!document.transcription}
-                            onClick={() => {
-                              setAnchorEl(null);
-                              setOpenTranscriptDeleteDialog(true);
-                            }}
-                          >
-                            <ListItemIcon>
-                              <DeleteSweepIcon />
-                            </ListItemIcon>
-                            Delete transcript
-                          </MenuItem>
-                          <MenuItem
-                            disabled={!hasSuggestions}
-                            onClick={() => {
-                              setAnchorEl(null);
-                              setSuggestionsOpen(true);
-                            }}
-                          >
-                            <ListItemIcon>
-                              <FlashOnRoundedIcon />
-                            </ListItemIcon>
-                            Suggest highlights
-                          </MenuItem>
-                        </Menu>
-                        <IconButton
-                          onClick={() => {
-                            // TODO: Communicate with parent component instead of using navigate.
-                            navigate(`/orgs/${orgID}/interviews`);
-                          }}
-                          color="inherit"
-                        >
-                          <CloseIcon />
-                        </IconButton>
-                      </>
+                  <Hidden xsDown>
+                    <Grid container item xs={2}>
                       <Collaborators dbRef={documentRef} />
                     </Grid>
+                  </Hidden>
+
+                  <Grid container item xs={5} justify="flex-end">
+                    <>
+                      <Tooltip title="Suggest highlights">
+                        <IconButton
+                          disabled={!hasSuggestions}
+                          onClick={() => {
+                            setAnchorEl(null);
+                            setSuggestionsOpen(true);
+                          }}
+                        >
+                          <FlashOnRoundedIcon
+                            style={
+                              hasSuggestions
+                                ? { color: "#fcba03" }
+                                : { color: "grey" }
+                            }
+                          />
+                        </IconButton>
+                      </Tooltip>
+                      <IconButton
+                        id="document-options"
+                        edge="end"
+                        aria-label="document options"
+                        aria-haspopup="true"
+                        aria-controls="document-menu"
+                        onClick={handleOptionsClick}
+                        color="inherit"
+                      >
+                        <MoreVertIcon />
+                      </IconButton>
+                      <Menu
+                        id="profile-menu"
+                        anchorEl={anchorEl}
+                        keepMounted
+                        open={Boolean(anchorEl)}
+                        onClose={handleOptionsClose}
+                      >
+                        <MenuItem
+                          id="archive-document-button"
+                          onClick={() => {
+                            setAnchorEl(null);
+                            setOpenDeleteDialog(true);
+                          }}
+                        >
+                          <ListItemIcon>
+                            <ArchiveIcon />
+                          </ListItemIcon>
+                          Archive
+                        </MenuItem>
+                        <MenuItem
+                          disabled={!document.transcription}
+                          onClick={() => {
+                            setAnchorEl(null);
+                            setOpenTranscriptDeleteDialog(true);
+                          }}
+                        >
+                          <ListItemIcon>
+                            <DeleteSweepIcon />
+                          </ListItemIcon>
+                          Delete transcript
+                        </MenuItem>
+                      </Menu>
+                      <IconButton
+                        onClick={() => {
+                          // TODO: Communicate with parent component instead of using navigate.
+                          navigate(`/orgs/${orgID}/interviews`);
+                        }}
+                        color="inherit"
+                      >
+                        <CloseIcon />
+                      </IconButton>
+                    </>
                   </Grid>
 
-                  <Grid item xs={12}></Grid>
-
-                  <Grid item xs={12} className={classes.tabsContainer}>
-                    <Tabs
-                      value={selectedTab}
-                      onChange={handleTabChange}
-                      indicatorColor="secondary"
-                      textColor="primary"
-                      variant="fullWidth"
-                      aria-label="full width"
-                      className={classes.tabs}
-                    >
-                      <Tab
-                        label="transcript"
-                        id="transcript"
-                        aria-controls="tabpanel-transcript"
-                      />
-                      <Tab
-                        label="notes"
-                        id="notes"
-                        aria-controls="tabpanel-notes"
-                      />
-                    </Tabs>
-                  </Grid>
-                  {selectedTab === 0 && (
-                    <Transcript
-                      document={document}
-                      tags={tags}
-                      reactQuillRef={reactQuillTranscriptRef}
-                      selectionChannelPort={transcriptSelectionSend}
-                      suggestionsOpen={suggestionsOpen}
-                      setSuggestionsOpen={setSuggestionsOpen}
-                      setHasSuggestions={setHasSuggestions}
+                  <Tabs
+                    value={selectedTab}
+                    onChange={handleTabChange}
+                    indicatorColor="secondary"
+                    textColor="primary"
+                    variant="fullWidth"
+                    aria-label="full width"
+                    className={classes.tabs}
+                  >
+                    <Tab
+                      label="transcript"
+                      id="transcript"
+                      aria-controls="tabpanel-transcript"
                     />
-                  )}
-
-                  {selectedTab === 1 && (
-                    <Notes
-                      document={document}
-                      tags={tags}
-                      reactQuillRef={reactQuillNotesRef}
-                      suggestionsOpen={suggestionsOpen}
-                      setSuggestionsOpen={setSuggestionsOpen}
-                      setHasSuggestions={setHasSuggestions}
+                    <Tab
+                      label="notes"
+                      id="notes"
+                      aria-controls="tabpanel-notes"
                     />
-                  )}
+                  </Tabs>
                 </Grid>
+                {selectedTab === 0 && (
+                  <Transcript
+                    document={document}
+                    tags={tags}
+                    reactQuillRef={reactQuillTranscriptRef}
+                    selectionChannelPort={transcriptSelectionSend}
+                    suggestionsOpen={suggestionsOpen}
+                    setSuggestionsOpen={setSuggestionsOpen}
+                    setHasSuggestions={setHasSuggestions}
+                  />
+                )}
+
+                {selectedTab === 1 && (
+                  <Notes
+                    document={document}
+                    tags={tags}
+                    reactQuillRef={reactQuillNotesRef}
+                    suggestionsOpen={suggestionsOpen}
+                    setSuggestionsOpen={setSuggestionsOpen}
+                    setHasSuggestions={setHasSuggestions}
+                  />
+                )}
               </Paper>
             </Grid>
           </Grid>

@@ -76,10 +76,11 @@ export default function Collaborators(props) {
   }, [props.dbRef, oauthUser]);
 
   return (
-    <AvatarGroup max={4} style={{ minHeight: "2.5rem" }}>
+    <AvatarGroup max={4}>
       {collaborators.map((collaborator) => (
         <Tooltip key={collaborator.email} title={collaborator.name}>
           <Avatar
+            style={{ width: "34px", height: "34px" }}
             key={collaborator.email}
             alt={collaborator.name}
             src={collaborator.photoURL}
