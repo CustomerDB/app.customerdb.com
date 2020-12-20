@@ -10,6 +10,7 @@ import Shell from "../shell/Shell.js";
 import useMediaQuery from "@material-ui/core/useMediaQuery";
 import { useSearchClient } from "../search/client.js";
 import QuotesHelp from "./QuotesHelp.js";
+import { Loading } from "../util/Utils.js";
 
 function InfiniteHits({ hasMore, refine, hits }) {
   const theme = useTheme();
@@ -55,10 +56,7 @@ function InfiniteHits({ hasMore, refine, hits }) {
     };
   }, [sentinel, hasMore, refine]);
 
-  console.log(colCount);
-
   let cols = Array.from(Array(colCount), () => []);
-  console.log("colCount", colCount, "cols", cols);
   for (let i = 0; i < hits.length; i++) {
     cols[i % colCount].push(hits[i]);
   }
@@ -94,7 +92,7 @@ export default function Quotes(props) {
 
   if (!searchClient) {
     console.error("search client not available");
-    return <></>;
+    return <Loading />;
   }
   if (!process.env.REACT_APP_ALGOLIA_HIGHLIGHTS_INDEX) {
     console.error("highlights index not set");
