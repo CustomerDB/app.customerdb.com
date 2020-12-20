@@ -5,6 +5,7 @@ import { fade, makeStyles } from "@material-ui/core/styles";
 import InputBase from "@material-ui/core/InputBase";
 import SearchIcon from "@material-ui/icons/Search";
 import { useSearchClient } from "../search/client.js";
+import { Loading } from "../util/Utils.js";
 
 export function Search(props) {
   const [searchState, setSearchState] = useState({});
@@ -22,7 +23,7 @@ export function Search(props) {
   }
 
   if (!searchClient) {
-    return <></>;
+    return <Loading />;
   }
 
   return (
