@@ -1,7 +1,7 @@
 import "./style.css";
 
 import React, { useState } from "react";
-import { Search, SearchInput, OmniSearch } from "./Search.js";
+import { Search, OmniSearch } from "./Search.js";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import AppBar from "@material-ui/core/AppBar";
@@ -179,8 +179,6 @@ export default function Shell({
             {noSidebar && (
               <img style={{ height: "2rem" }} src={logo} alt="CustomerDB" />
             )}
-
-            {/* {search && <SearchInput />} */}
 
             <OmniSearch />
 

@@ -4,21 +4,22 @@ import {
   InstantSearch,
   connectSearchBox,
   Index,
-  Configure,
 } from "react-instantsearch-dom";
 import { useSearchClient } from "../search/client.js";
-import Autocomplete from "@material-ui/lab/Autocomplete";
+import UserAuthContext from "../auth/UserAuthContext";
+import useFirestore from "../db/Firestore.js";
 import InputBase from "@material-ui/core/InputBase";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import SearchIcon from "@material-ui/icons/Search";
 import TextField from "@material-ui/core/TextField";
 import InputAdornment from "@material-ui/core/InputAdornment";
+import ClickAwayListener from "@material-ui/core/ClickAwayListener";
 import DescriptionIcon from "@material-ui/icons/Description";
 import TheatersIcon from "@material-ui/icons/Theaters";
 import Avatar from "@material-ui/core/Avatar";
 import Grid from "@material-ui/core/Grid";
+import Box from "@material-ui/core/Box";
 import Moment from "react-moment";
-import FormatQuoteIcon from "@material-ui/icons/FormatQuote";
 import { useNavigate, useParams } from "react-router-dom";
 
 const useStyles = makeStyles((theme) => ({
@@ -138,154 +139,350 @@ const OmniAutocomplete = ({
   currentRefinement,
   refine,
   defaultRefinement,
+  searchState,
 }) => {
   const classes = useStyles();
   const navigate = useNavigate();
   const { orgID } = useParams();
 
+  const auth = useContext(UserAuthContext);
+  const { membersRef } = useFirestore();
+  const [member, setMember] = useState();
+
   const [value, setValue] = useState({ name: defaultRefinement });
+  const [open, setOpen] = useState(false);
 
   const documentIndex = process.env.REACT_APP_ALGOLIA_DOCUMENTS_INDEX;
   const peopleIndex = process.env.REACT_APP_ALGOLIA_PEOPLE_INDEX;
   const highlightsIndex = process.env.REACT_APP_ALGOLIA_HIGHLIGHTS_INDEX;
 
-  let combinedHits = hits.flatMap((section) =>
-    section.hits.map((hit) => {
-      hit.kind = section.index;
-      return hit;
-    })
-  );
+  useEffect(() => {}, []);
 
-  // sort based on time.
-  combinedHits.sort((a, b) => b.creationTimestamp - a.creationTimestamp);
+  let documents = [];
+  let people = [];
+  let highlights = [];
+  hits.forEach((section) => {
+    if (section.index == documentIndex) {
+      documents = section.hits;
+    }
+
+    if (section.index == peopleIndex) {
+      people = section.hits;
+    }
+
+    if (section.index == highlightsIndex) {
+      highlights = section.hits;
+    }
+  });
+
+  people = people.slice(0, 8);
+
+  documents.sort((a, b) => b.creationTimestamp - a.creationTimestamp);
+  documents = documents.slice(0, 5);
+
+  // // sort category based on time.
+  // let topHits = combinedHits.slice(0, 5);
+
+  let showResults = !!searchState.query;
+
+  let recentSearches = [];
+
+  const saveSearch = () => {};
+
+  const removeSavedSearch = (index) => {};
 
   return (
-    <Autocomplete
-      fullWidth
-      classes={classes}
-      value={value}
-      style={{
-        paddingRight: "1rem",
-      }}
-      onChange={(event, option) => {
-        if (option) {
-          setValue(option.name);
-
-          // Navigate to the right type.
-          let prefix = `/orgs/${orgID}`;
-          if (option.kind == documentIndex) {
-            navigate(`${prefix}/interviews/${option.objectID}`);
-          } else if (option.kind == peopleIndex) {
-            navigate(`${prefix}/people/${option.objectID}`);
-          }
-        } else {
-          // Clear
-          setValue({ name: "" });
-        }
-      }}
-      inputValue={currentRefinement}
-      onInputChange={(event, newInputValue) => {
-        refine(newInputValue);
-      }}
-      forcePopupIcon={false}
-      selectOnFocus
-      clearOnBlur
-      handleHomeEndKeys
-      getOptionLabel={(option) => {
-        if (option.name) {
-          return option.name;
-        }
-
-        if (option.text) {
-          return option.text;
-        }
-
-        return option;
-      }}
-      getOptionSelected={(option, value) => option.objectID === value.objectID}
-      options={combinedHits}
-      renderInput={(params) => (
-        <TextField
-          placeholder="Search..."
-          {...params}
-          InputProps={{
-            ...params.InputProps,
-            disableUnderline: true,
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
+    <div style={{ position: "relative" }}>
+      <ClickAwayListener
+        onClickAway={() => {
+          setOpen(false);
+        }}
+      >
+        <Box
+          component={Grid}
+          container
+          boxShadow={open ? 3 : 0}
+          style={{
+            position: "fixed",
+            background: "white",
+            paddingLeft: "0.5rem",
+            top: "1rem",
+            height: open ? "" : "2rem",
+            borderRadius: "0.5rem",
+            zIndex: open ? "100" : "",
+            maxWidth: "50rem",
+            width: "60%",
+            minWidth: "20rem",
+            transition: "height 0.25s, box-shadow 0.25s",
+            overflow: open ? "auto" : "hidden",
+            color: "black",
           }}
-        />
-      )}
-      renderOption={(option) => {
-        console.log("Option: ", option);
-
-        let avatar;
-        if (option.kind === peopleIndex) {
-          avatar = (
-            <Avatar
-              className={classes.avatar}
-              alt={option.name}
-              src={option.imageURL}
-            />
-          );
-        }
-
-        if (option.kind === documentIndex) {
-          if (option.transcriptText !== "") {
-            avatar = (
-              <Avatar className={classes.avatar}>
-                <TheatersIcon />
-              </Avatar>
-            );
-          } else {
-            avatar = (
-              <Avatar className={classes.avatar}>
-                <DescriptionIcon />
-              </Avatar>
-            );
-          }
-        }
-
-        if (option.kind === highlightsIndex) {
-          avatar = (
-            <Avatar
-              className={classes.avatar}
-              alt={option.personName}
-              src={option.personImageURL}
-            />
-          );
-        }
-
-        let creationDate;
-        if (option.creationTimestamp) {
-          creationDate = new Date(option.creationTimestamp * 1000);
-        }
-
-        return (
-          <Grid container alignItems="center">
-            <Grid container item xs={1} justify="flex-end">
-              {avatar}
+        >
+          <Grid container>
+            <Grid container item xs={12}>
+              <TextField
+                placeholder="Search..."
+                value={currentRefinement}
+                onClick={() => {
+                  setOpen(true);
+                }}
+                onChange={(event) => {
+                  refine(event.currentTarget.value);
+                }}
+                InputProps={{
+                  disableUnderline: true,
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon />
+                    </InputAdornment>
+                  ),
+                }}
+              />
             </Grid>
-            <Grid container item xs={9} justify="flex-start">
-              {option.name || <i>"...{option.text}..."</i>}
-            </Grid>
-            <Grid container item xs={2} justify="flex-start">
-              <Moment fromNow date={creationDate} />
-            </Grid>
+            {!showResults && recentSearches.legnth > 0 && (
+              <Grid container item xs={12}>
+                <Grid container item xs={12}>
+                  <p>
+                    <b>Recent</b>
+                  </p>
+                </Grid>
+                <Grid container item xs={12}>
+                  {/* Replace with member specific search results */}
+                  <p>foo</p>
+                </Grid>
+              </Grid>
+            )}
+
+            {showResults && (
+              <Grid container item xs={12} style={{ paddingTop: "1rem" }}>
+                {people.length > 0 && (
+                  <>
+                    <Grid container item xs={12}>
+                      <b>Customers</b>
+                    </Grid>
+                    <Grid
+                      container
+                      item
+                      xs={12}
+                      style={{ paddingTop: "0.5rem" }}
+                    >
+                      {people.map((hit) => (
+                        <Grid item xs="auto" style={{ width: "8rem" }}>
+                          <Grid container item justify="center">
+                            <Avatar alt={hit.name} src={hit.imageURL} />
+                          </Grid>
+                          <Grid container item justify="center">
+                            <p style={{ textAlign: "center" }}>{hit.name}</p>
+                          </Grid>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  </>
+                )}
+                {documents.length > 0 && (
+                  <>
+                    <Grid container item xs={12}>
+                      <b>Interviews</b>
+                    </Grid>
+                    <Grid
+                      container
+                      item
+                      xs={12}
+                      style={{ paddingTop: "0.5rem" }}
+                    >
+                      {documents.map((hit) => {
+                        let creationDate;
+                        if (hit.creationTimestamp) {
+                          creationDate = new Date(hit.creationTimestamp * 1000);
+                        }
+
+                        return (
+                          <Grid
+                            container
+                            item
+                            xs={12}
+                            style={{ paddingBottom: "0.5rem" }}
+                          >
+                            <Grid
+                              container
+                              item
+                              xs={1}
+                              justify="flex-end"
+                              alignItems="center"
+                            >
+                              {hit.transcriptText !== "" ? (
+                                <Avatar className={classes.avatar}>
+                                  <TheatersIcon />
+                                </Avatar>
+                              ) : (
+                                <Avatar className={classes.avatar}>
+                                  <DescriptionIcon />
+                                </Avatar>
+                              )}
+                            </Grid>
+                            <Grid
+                              container
+                              item
+                              xs={9}
+                              justify="flex-start"
+                              alignItems="center"
+                            >
+                              {hit.name}
+                            </Grid>
+                            <Grid
+                              container
+                              item
+                              xs={2}
+                              justify="flex-start"
+                              alignItems="center"
+                            >
+                              <small>
+                                <Moment fromNow date={creationDate} />
+                              </small>
+                            </Grid>
+                          </Grid>
+                        );
+                      })}
+                    </Grid>
+                  </>
+                )}
+              </Grid>
+            )}
           </Grid>
-        );
-      }}
-    />
+        </Box>
+      </ClickAwayListener>
+    </div>
   );
+
+  // return (
+  //   <Autocomplete
+  //     fullWidth
+  //     classes={classes}
+  //     value={value}
+  //     style={{
+  //       paddingRight: "1rem",
+  //     }}
+  //     onChange={(event, option) => {
+  //       if (option) {
+  //         setValue(option.name);
+
+  //         // Navigate to the right type.
+  //         let prefix = `/orgs/${orgID}`;
+  //         if (option.kind == documentIndex) {
+  //           navigate(`${prefix}/interviews/${option.objectID}`);
+  //         } else if (option.kind == peopleIndex) {
+  //           navigate(`${prefix}/people/${option.objectID}`);
+  //         }
+  //       } else {
+  //         // Clear
+  //         setValue({ name: "" });
+  //       }
+  //     }}
+  //     inputValue={currentRefinement}
+  //     onInputChange={(event, newInputValue) => {
+  //       refine(newInputValue);
+  //     }}
+  //     forcePopupIcon={false}
+  //     selectOnFocus
+  //     clearOnBlur
+  //     handleHomeEndKeys
+  //     getOptionLabel={(option) => {
+  //       if (option.name) {
+  //         return option.name;
+  //       }
+
+  //       if (option.text) {
+  //         return option.text;
+  //       }
+
+  //       return option;
+  //     }}
+  //     getOptionSelected={(option, value) => option.objectID === value.objectID}
+  //     options={combinedHits}
+  //     renderInput={(params) => (
+  //       <TextField
+  //         placeholder="Search..."
+  //         {...params}
+  //         InputProps={{
+  //           ...params.InputProps,
+  //           disableUnderline: true,
+  //           startAdornment: (
+  //             <InputAdornment position="start">
+  //               <SearchIcon />
+  //             </InputAdornment>
+  //           ),
+  //         }}
+  //       />
+  //     )}
+  //     renderOption={(option) => {
+  //       console.log("Option: ", option);
+
+  //       let avatar;
+  //       if (option.kind === peopleIndex) {
+  //         avatar = (
+  //           <Avatar
+  //             className={classes.avatar}
+  //             alt={option.name}
+  //             src={option.imageURL}
+  //           />
+  //         );
+  //       }
+
+  //       if (option.kind === documentIndex) {
+  //         if (option.transcriptText !== "") {
+  //           avatar = (
+  //             <Avatar className={classes.avatar}>
+  //               <TheatersIcon />
+  //             </Avatar>
+  //           );
+  //         } else {
+  //           avatar = (
+  //             <Avatar className={classes.avatar}>
+  //               <DescriptionIcon />
+  //             </Avatar>
+  //           );
+  //         }
+  //       }
+
+  //       if (option.kind === highlightsIndex) {
+  //         avatar = (
+  //           <Avatar
+  //             className={classes.avatar}
+  //             alt={option.personName}
+  //             src={option.personImageURL}
+  //           />
+  //         );
+  //       }
+
+  //       let creationDate;
+  //       if (option.creationTimestamp) {
+  //         creationDate = new Date(option.creationTimestamp * 1000);
+  //       }
+
+  //       return (
+  //         <Grid container alignItems="center">
+  //           <Grid container item xs={1} justify="flex-end">
+  //             {avatar}
+  //           </Grid>
+  //           <Grid container item xs={9} justify="flex-start">
+  //             {option.name || <i>"...{option.text}..."</i>}
+  //           </Grid>
+  //           <Grid container item xs={2} justify="flex-start">
+  //             <Moment fromNow date={creationDate} />
+  //           </Grid>
+  //         </Grid>
+  //       );
+  //     }}
+  //   />
+  // );
 };
 
 const ConnectedAutocomplete = connectAutoComplete(OmniAutocomplete);
 
 export function OmniSearch(props) {
+  const [searchState, setSearchState] = useState({});
   const searchClient = useSearchClient();
+
   if (!searchClient) {
     return <></>;
   }
@@ -294,9 +491,10 @@ export function OmniSearch(props) {
     <InstantSearch
       searchClient={searchClient}
       indexName={process.env.REACT_APP_ALGOLIA_DOCUMENTS_INDEX}
+      searchState={searchState}
+      onSearchStateChange={(st) => setSearchState(st)}
     >
-      <Configure hitsPerPage={3} />
-      <ConnectedAutocomplete />
+      <ConnectedAutocomplete searchState={searchState} />
       <Index indexName={process.env.REACT_APP_ALGOLIA_HIGHLIGHTS_INDEX} />
       <Index indexName={process.env.REACT_APP_ALGOLIA_DOCUMENTS_INDEX} />
       <Index indexName={process.env.REACT_APP_ALGOLIA_PEOPLE_INDEX} />
