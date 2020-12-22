@@ -236,7 +236,11 @@ exports.cachePersonImageURL = functions.firestore
     const orgRef = docRef.parent.parent;
     const peopleRef = orgRef.collection("people");
 
-    if (after.personID !== before.personID) {
+    const personChanged = after.personID !== before.personID;
+    const personDetailsMising =
+      !("personName" in after) || !("personImageURL" in after);
+
+    if (personChanged || personDetailsMissing) {
       if (!after.personID) {
         return docRef.update({
           personImageURL: "",
