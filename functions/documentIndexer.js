@@ -136,6 +136,9 @@ const indexUpdated = (index) => {
                 name: data.name,
                 createdBy: data.createdBy,
                 creationTimestamp: data.creationTimestamp.seconds,
+                personID: data.personID,
+                personName: data.personName,
+                personImageURL: data.personImageURL,
                 latestSnapshotTimestamp: maxTimestamp(
                   newNotes.timestamp,
                   newTranscript.timestamp
@@ -200,6 +203,9 @@ const indexUpdated = (index) => {
           name: data.name,
           createdBy: data.createdBy,
           creationTimestamp: data.creationTimestamp.seconds,
+          personID: data.personID,
+          personName: data.personName,
+          personImageURL: data.personImageURL,
           latestSnapshotTimestamp: maxTimestamp(
             oldNotes.timestamp,
             oldTranscript.timestamp
@@ -219,6 +225,37 @@ if (client) {
     .document("organizations/{orgID}/documents/{documentID}")
     .onWrite(indexUpdated(client.initIndex(ALGOLIA_DOCUMENTS_INDEX_NAME)));
 }
+
+// Cache the person name and image URL in document metadata on update
+exports.cachePersonImageURL = functions.firestore
+  .document("organizations/{orgID}/documents/{documentID}")
+  .onUpdate((change, context) => {
+    const before = change.before.data();
+    const after = change.after.data();
+
+    if (after.personID !== before.personID) {
+      const docRef = change.after.ref;
+      const orgRef = docRef.parent.parent;
+      const peopleRef = orgRef.collection("people");
+
+      return peopleRef
+        .doc(after.personID)
+        .get()
+        .then((doc) => {
+          let personImageURL = "";
+          let personName = "";
+          if (doc.exists) {
+            const person = doc.data();
+            personImageURL = person.imageURL;
+            personName = person.name;
+          }
+          return docRef.update({
+            personImageURL: personImageURL,
+            personName: personName,
+          });
+        });
+    }
+  });
 
 // Mark documents with edits more recent than the last indexing operation
 // for re-indexing.
