@@ -232,11 +232,17 @@ exports.cachePersonImageURL = functions.firestore
   .onUpdate((change, context) => {
     const before = change.before.data();
     const after = change.after.data();
+    const docRef = change.after.ref;
+    const orgRef = docRef.parent.parent;
+    const peopleRef = orgRef.collection("people");
 
     if (after.personID !== before.personID) {
-      const docRef = change.after.ref;
-      const orgRef = docRef.parent.parent;
-      const peopleRef = orgRef.collection("people");
+      if (!after.personID) {
+        return docRef.update({
+          personImageURL: "",
+          personName: "",
+        });
+      }
 
       return peopleRef
         .doc(after.personID)
