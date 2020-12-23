@@ -14,6 +14,7 @@ import ListContainer from "../shell/ListContainer";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemAvatar from "@material-ui/core/ListItemAvatar";
 import ListItemText from "@material-ui/core/ListItemText";
+import Tooltip from "@material-ui/core/Tooltip";
 import Moment from "react-moment";
 import Scrollable from "../shell/Scrollable.js";
 import Shell from "../shell/Shell.js";
@@ -147,36 +148,59 @@ export default function Interviews({ create, fromGuide }) {
     orgID,
   ]);
 
-  const dataListItem = (ID, name, date, transcript) => (
-    <ListItem
-      style={{
-        backgroundColor: "white",
-        borderRadius: "0.5rem",
-        marginBottom: "1rem",
-      }}
-      button
-      key={ID}
-      selected={ID === documentID}
-      onClick={() => {
-        navigate(`/orgs/${orgID}/interviews/${ID}`);
-      }}
-    >
-      <ListItemAvatar>
-        <Avatar>{transcript ? <TheatersIcon /> : <DescriptionIcon />}</Avatar>
-      </ListItemAvatar>
-      <ListItemText
-        primary={name}
-        secondary={date && <Moment fromNow date={date} />}
-      />
-    </ListItem>
-  );
+  const dataListItem = (
+    ID,
+    name,
+    date,
+    transcript,
+    personName,
+    personImageURL
+  ) => {
+    let avatar = (
+      <Avatar alt={personName}>
+        {transcript ? <TheatersIcon /> : <DescriptionIcon />}
+      </Avatar>
+    );
+
+    if (personImageURL) {
+      avatar = <Avatar alt={personName} src={personImageURL} />;
+    }
+
+    if (personName) {
+      avatar = <Tooltip title={personName}>{avatar}</Tooltip>;
+    }
+
+    return (
+      <ListItem
+        style={{
+          backgroundColor: "white",
+          borderRadius: "0.5rem",
+          marginBottom: "1rem",
+        }}
+        button
+        key={ID}
+        selected={ID === documentID}
+        onClick={() => {
+          navigate(`/orgs/${orgID}/interviews/${ID}`);
+        }}
+      >
+        <ListItemAvatar>{avatar}</ListItemAvatar>
+        <ListItemText
+          primary={name}
+          secondary={date && <Moment fromNow date={date} />}
+        />
+      </ListItem>
+    );
+  };
 
   let documentItems = documents.map((doc) =>
     dataListItem(
       doc.ID,
       doc.name,
       doc.creationTimestamp && doc.creationTimestamp.toDate(),
-      doc.transcription
+      doc.transcription,
+      doc.personName,
+      doc.personImageURL
     )
   );
 
@@ -186,7 +210,14 @@ export default function Interviews({ create, fromGuide }) {
       let creationDate = new Date(hit.creationTimestamp * 1000);
 
       // TODO: Get content type from index object.
-      return dataListItem(hit.objectID, hit.name, creationDate, false);
+      return dataListItem(
+        hit.objectID,
+        hit.name,
+        creationDate,
+        false,
+        hit.personName,
+        hit.personImageURL
+      );
     });
   });
 
