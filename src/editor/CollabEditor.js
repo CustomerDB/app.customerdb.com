@@ -93,6 +93,7 @@ export default function CollabEditor({ modules, onReady, ...otherProps }) {
 
 function CollabEditorWithCache({
   quillRef,
+  authorName,
   readyPort,
   revisionCache,
   deltasRef,
@@ -249,14 +250,13 @@ function CollabEditorWithCache({
     }
   };
 
-  const updateCursor = (range, editorID) => {
-    console.debug("updateCursor", range, editorID);
-
+  const updateCursor = (editorID, authorName, range) => {
     if (!cursorsRef || !range || !editorID) {
       return;
     }
     cursorsRef.doc(editorID).set({
       ID: editorID,
+      name: authorName,
       selection: {
         index: range.index,
         length: range.length,
@@ -266,7 +266,7 @@ function CollabEditorWithCache({
   };
 
   const onSelect = (range, source, editor) => {
-    updateCursor(range, editorID);
+    updateCursor(editorID, authorName, range);
 
     if (onChangeSelection) {
       onChangeSelection(range, source, editor);
@@ -279,38 +279,41 @@ function CollabEditorWithCache({
       return;
     }
 
-    // TODO(CD): exclude cursor entries that are too old
     // TODO(CD): periodically delete expired cursor entries
-    cursorsRef.where("ID", "!=", editorID).onSnapshot((snapshot) => {
-      if (!quillRef.current) return;
-      const editor = quillRef.current.getEditor();
-      const cursors = editor.getModule("cursors");
+    cursorsRef
+      .where("lastUpdateTimestamp", ">", new Date(Date.now() - 1000 * 30))
+      .onSnapshot((snapshot) => {
+        if (!quillRef.current) return;
+        const editor = quillRef.current.getEditor();
+        const cursors = editor.getModule("cursors");
 
-      const cursorData = {};
-      snapshot.docs.forEach((doc) => {
-        cursorData[doc.id] = doc.data();
+        const cursorData = {};
+        snapshot.docs.forEach((doc) => {
+          // Skip the cursor record for this editor
+          if (doc.id === editorID) return;
+          cursorData[doc.id] = doc.data();
+        });
+
+        // Add and update cursor positions
+        Object.values(cursorData).forEach((cursor) => {
+          console.debug("adding cursor", cursor);
+          const color = "blue";
+          cursors.createCursor(cursor.ID, cursor.name, color);
+          cursors.toggleFlag(cursor.ID, true);
+          cursors.moveCursor(cursor.ID, cursor.selection);
+        });
+
+        // Delete expired cursors
+        const domCursors = cursors.cursors();
+        domCursors.forEach((domCursor) => {
+          if (!cursorData[domCursor.id]) {
+            cursors.removeCursor(domCursor.id);
+          }
+        });
+
+        // Redraw all cursors in the DOM
+        cursors.update();
       });
-
-      // Add and update cursor positions
-      Object.values(cursorData).forEach((cursor) => {
-        console.debug("adding cursor", cursor);
-        const color = "blue";
-        cursors.createCursor(cursor.ID, cursor.ID, color);
-        cursors.toggleFlag(cursor.ID, true);
-        cursors.moveCursor(cursor.selection);
-      });
-
-      // Delete expired cursors
-      const domCursors = cursors.cursors();
-      domCursors.forEach((domCursor) => {
-        if (!cursorData[domCursor.id]) {
-          cursors.removeCursor(domCursor.id);
-        }
-      });
-
-      // Redraw all cursors in the DOM
-      cursors.update();
-    });
   }, [cursorsRef, editorID, quillRef]);
 
   if (!revision) return <></>;
