@@ -9,10 +9,14 @@ import {
   timestampsAreOrdered,
 } from "./delta.js";
 
-import Delta from "quill-delta";
-import ReactQuill from "react-quill";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import { v4 as uuidv4 } from "uuid";
+import Quill from "quill";
+import Delta from "quill-delta";
+import ReactQuill from "react-quill";
+import QuillCursors from "quill-cursors";
+
+Quill.register("modules/cursors", QuillCursors);
 
 // Synchronize every second by default (1000ms).
 const defaultSyncPeriod = 1000;
@@ -49,7 +53,7 @@ const defaultSyncPeriod = 1000;
 // 5) Apply the diff to the editor.
 // 6) Re-apply the transformed local delta buffer to editor
 //
-export default function CollabEditor(props) {
+export default function CollabEditor({ modules, onReady, ...otherProps }) {
   // revisionCache.current value is an object with fields:
   // - delta: full document delta
   // - timestamp: ts of the last edit
@@ -62,16 +66,27 @@ export default function CollabEditor(props) {
   const readyChannelReceive = readyChannel.port2;
 
   readyChannelReceive.onmessage = () => {
-    if (!editorReady.current && props.onReady) {
-      props.onReady();
+    if (!editorReady.current && onReady) {
+      onReady();
     }
   };
+
+  const newModules = Object.assign(
+    {
+      cursors: {
+        selectionChangeSource: "cursors",
+      },
+    },
+    modules
+  );
 
   return (
     <CollabEditorWithCache
       readyPort={readyChannelSend}
       revisionCache={revisionCache}
-      {...props}
+      modules={newModules}
+      onReady={onReady}
+      {...otherProps}
     />
   );
 }
@@ -82,8 +97,10 @@ function CollabEditorWithCache({
   revisionCache,
   deltasRef,
   revisionsRef,
+  cursorsRef,
   onLoad,
   onChange,
+  onChangeSelection,
   syncPeriod,
   ...otherProps
 }) {
@@ -232,12 +249,77 @@ function CollabEditorWithCache({
     }
   };
 
+  const updateCursor = (range, editorID) => {
+    console.debug("updateCursor", range, editorID);
+
+    if (!cursorsRef || !range || !editorID) {
+      return;
+    }
+    cursorsRef.doc(editorID).set({
+      ID: editorID,
+      selection: {
+        index: range.index,
+        length: range.length,
+      },
+      lastUpdateTimestamp: firebaseClient.firestore.FieldValue.serverTimestamp(),
+    });
+  };
+
+  const onSelect = (range, source, editor) => {
+    updateCursor(range, editorID);
+
+    if (onChangeSelection) {
+      onChangeSelection(range, source, editor);
+    }
+  };
+
+  // Subscribe to peer editor's cursors
+  useEffect(() => {
+    if (!cursorsRef || !editorID || !quillRef) {
+      return;
+    }
+
+    // TODO(CD): exclude cursor entries that are too old
+    // TODO(CD): periodically delete expired cursor entries
+    cursorsRef.where("ID", "!=", editorID).onSnapshot((snapshot) => {
+      if (!quillRef.current) return;
+      const editor = quillRef.current.getEditor();
+      const cursors = editor.getModule("cursors");
+
+      const cursorData = {};
+      snapshot.docs.forEach((doc) => {
+        cursorData[doc.id] = doc.data();
+      });
+
+      // Add and update cursor positions
+      Object.values(cursorData).forEach((cursor) => {
+        console.debug("adding cursor", cursor);
+        const color = "blue";
+        cursors.createCursor(cursor.ID, cursor.ID, color);
+        cursors.toggleFlag(cursor.ID, true);
+        cursors.moveCursor(cursor.selection);
+      });
+
+      // Delete expired cursors
+      const domCursors = cursors.cursors();
+      domCursors.forEach((domCursor) => {
+        if (!cursorData[domCursor.id]) {
+          cursors.removeCursor(domCursor.id);
+        }
+      });
+
+      // Redraw all cursors in the DOM
+      cursors.update();
+    });
+  }, [cursorsRef, editorID, quillRef]);
+
   if (!revision) return <></>;
 
   return (
     <ReactQuill
       ref={quillRef}
       onChange={onEdit}
+      onChangeSelection={onSelect}
       defaultValue={revisionCache.delta}
       scrollingContainer="#editorScrollContainer"
       {...otherProps}

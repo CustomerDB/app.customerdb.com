@@ -10656,6 +10656,11 @@ quickselect@^2.0.0:
   resolved "https://registry.yarnpkg.com/quickselect/-/quickselect-2.0.0.tgz#f19680a486a5eefb581303e023e98faaf25dd018"
   integrity sha512-RKJ22hX8mHe3Y6wH/N3wCM6BWtjaxIyyUIkpHOvfFnxdI4yD4tBXEBKSbriGujF6jnSVkJrffuo6vxACiSSxIw==
 
+quill-cursors@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/quill-cursors/-/quill-cursors-3.0.1.tgz#7a61b824c35f98d46068ed06425fbd48d418256d"
+  integrity sha512-tb9o9NTV6hzLEjwD5E3hCNSXmH06+/xq2oq31hnUY6ChgII0Pe8kdEpsqoCBd4t35bHZjGF0EHmg/dPOllzLag==
+
 quill-delta@^3.6.2:
   version "3.6.3"
   resolved "https://registry.yarnpkg.com/quill-delta/-/quill-delta-3.6.3.tgz#b19fd2b89412301c60e1ff213d8d860eac0f1032"

@@ -181,34 +181,16 @@ service cloud.firestore {
                          && activeOrgMember(orgID);
     }
 
+    // Active non-admin users can read and write **DOCUMENT CURSORS** in the org.
+    match /organizations/{orgID}/documents/{document}/cursors/{cursor} {
+      allow read, write: if signedInAndVerified()
+                         && activeOrgMember(orgID);
+    }
+
     // Active non-admin users can write **CALLS** in the org.
     match /organizations/{orgID}/calls/{document} {
       allow write: if signedInAndVerified()
                    && activeOrgMember(orgID);
-    }
-
-    // Active non-admin users can write **SNAPSHOTS** in the org.
-    match /organizations/{orgID}/snapshots/{document} {
-      allow write: if signedInAndVerified()
-                   && activeOrgMember(orgID);
-    }
-
-    // Active non-admin users can write **SNAPSHOT REVISIONS** in the org.
-    match /organizations/{orgID}/snapshots/{document}/revisions/{revision} {
-      allow write: if signedInAndVerified()
-                   && activeOrgMember(orgID);
-    }
-
-    // Active non-admin users can write **SNAPSHOT DELTAS** in the org.
-    match /organizations/{orgID}/snapshots/{document}/deltas/{delta} {
-      allow write: if signedInAndVerified()
-                   && activeOrgMember(orgID);
-    }
-
-    // Active non-admin users can read and write **SNAPSHOT COLLABORATORS** in the org.
-    match /organizations/{orgID}/snapshots/{document}/collaborators/{collaborator} {
-      allow read, write: if signedInAndVerified()
-                         && activeOrgMember(orgID);
     }
 
     // Active non-admin users can write **PEOPLE** in the org.
@@ -222,6 +204,7 @@ service cloud.firestore {
       allow write: if signedInAndVerified()
                    && activeOrgMember(orgID)
                    && !('status' in request.resource.data)
+
                    && request.resource.data.orgID == orgID;
     }
 

@@ -30,6 +30,7 @@ export default function Notes({
         deltasRef={documentRef.collection("deltas")}
         highlightsRef={highlightsRef}
         suggestionsRef={documentRef.collection("suggestions")}
+        cursorsRef={documentRef.collection("cursors")}
         tags={tags}
         id="quill-notes-editor"
         theme="snow"
