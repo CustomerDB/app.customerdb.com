@@ -1,8 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { addTagStyles, removeTagStyles } from "../editor/Tags.js";
 import { useOrgTags } from "../organization/hooks.js";
 import { useNavigate, useParams } from "react-router-dom";
 
+import UserAuthContext from "../auth/UserAuthContext";
 import Collaborators from "../util/Collaborators.js";
 import ContentEditable from "react-contenteditable";
 import DocumentDeleteDialog from "./DocumentDeleteDialog.js";
@@ -60,8 +61,9 @@ const useStyles = makeStyles({
 });
 
 export default function Document(props) {
+  const { oauthClaims } = useContext(UserAuthContext);
+  const { name: authorName } = oauthClaims;
   const { documentRef } = useFirestore();
-
   const { orgID, documentID, tabID } = useParams();
 
   const navigate = useNavigate();
@@ -348,9 +350,11 @@ export default function Document(props) {
                 </Grid>
                 {selectedTab === 0 && (
                   <Transcript
+                    authorName={authorName}
                     document={document}
                     tags={tags}
                     reactQuillRef={reactQuillTranscriptRef}
+                    cursorsRef={documentRef.collection("transcriptCursors")}
                     selectionChannelPort={transcriptSelectionSend}
                     suggestionsOpen={suggestionsOpen}
                     setSuggestionsOpen={setSuggestionsOpen}
@@ -360,6 +364,7 @@ export default function Document(props) {
 
                 {selectedTab === 1 && (
                   <Notes
+                    authorName={authorName}
                     document={document}
                     tags={tags}
                     reactQuillRef={reactQuillNotesRef}

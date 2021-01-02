@@ -3,12 +3,12 @@ import "firebase/firestore";
 
 import Grid from "@material-ui/core/Grid";
 import HighlightCollabEditor from "../../editor/HighlightCollabEditor.js";
-import React, { useContext } from "react";
-import UserAuthContext from "../../auth/UserAuthContext";
+import React from "react";
 import useFirestore from "../../db/Firestore.js";
 
 // Notes augments a collaborative editor with tags and text highlights.
 export default function Notes({
+  authorName,
   reactQuillRef,
   tags,
   document,
@@ -17,7 +17,6 @@ export default function Notes({
   setHasSuggestions,
 }) {
   const { documentRef, highlightsRef } = useFirestore();
-  const { oauthClaims } = useContext(UserAuthContext);
 
   if (!documentRef || !highlightsRef) {
     return <></>;
@@ -26,7 +25,7 @@ export default function Notes({
   return (
     <Grid container item xs={12} style={{ position: "relative" }} spacing={0}>
       <HighlightCollabEditor
-        authorName={oauthClaims.name}
+        authorName={authorName}
         quillRef={reactQuillRef}
         document={document}
         revisionsRef={documentRef.collection("revisions")}
