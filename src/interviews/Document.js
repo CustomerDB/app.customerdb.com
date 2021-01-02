@@ -62,8 +62,9 @@ const useStyles = makeStyles({
 
 export default function Document(props) {
   const { oauthClaims } = useContext(UserAuthContext);
-  const { name: authorName } = oauthClaims;
   const { documentRef } = useFirestore();
+  const authorName = oauthClaims.name;
+  const authorID = oauthClaims.user_id;
   const { orgID, documentID, tabID } = useParams();
 
   const navigate = useNavigate();
@@ -350,6 +351,7 @@ export default function Document(props) {
                 </Grid>
                 {selectedTab === 0 && (
                   <Transcript
+                    authorID={authorID}
                     authorName={authorName}
                     document={document}
                     tags={tags}
@@ -364,6 +366,7 @@ export default function Document(props) {
 
                 {selectedTab === 1 && (
                   <Notes
+                    authorID={authorID}
                     authorName={authorName}
                     document={document}
                     tags={tags}

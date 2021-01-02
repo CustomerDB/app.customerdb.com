@@ -2,7 +2,13 @@ import "firebase/firestore";
 
 import * as firebaseClient from "firebase/app";
 
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   initialDelta,
   onDeltaSnapshot,
@@ -15,11 +21,10 @@ import Quill from "quill";
 import Delta from "quill-delta";
 import ReactQuill from "react-quill";
 import QuillCursors from "quill-cursors";
+import { debounce } from "debounce";
+import { colorForString } from "../util/color.js";
 
 Quill.register("modules/cursors", QuillCursors);
-
-// Synchronize every second by default (1000ms).
-const defaultSyncPeriod = 1000;
 
 // CollabEditor is a React component that allows multiple users to edit
 // and highlight a text document simultaneously.
@@ -75,6 +80,7 @@ export default function CollabEditor({ modules, onReady, ...otherProps }) {
     {
       cursors: {
         selectionChangeSource: "cursors",
+        transformOnTextChange: false,
       },
     },
     modules
@@ -93,6 +99,7 @@ export default function CollabEditor({ modules, onReady, ...otherProps }) {
 
 function CollabEditorWithCache({
   quillRef,
+  authorID,
   authorName,
   readyPort,
   revisionCache,
@@ -102,10 +109,12 @@ function CollabEditorWithCache({
   onLoad,
   onChange,
   onChangeSelection,
-  syncPeriod,
   ...otherProps
 }) {
   const [editorID] = useState(uuidv4());
+
+  console.debug("authorID", authorID);
+  console.debug("authorName", authorName);
 
   // revision.current value is an object with fields:
   // - delta: full document delta
@@ -121,8 +130,6 @@ function CollabEditorWithCache({
   const localDelta = useRef(new Delta([]));
 
   const { oauthClaims } = useContext(UserAuthContext);
-
-  const deltaSyncPeriod = syncPeriod || defaultSyncPeriod;
 
   // Subscribe to the latest revision
   useEffect(() => {
@@ -193,15 +200,10 @@ function CollabEditorWithCache({
       );
   }, [editorID, revision, revisionCache, deltasRef, quillRef, readyPort]);
 
-  // Register timers to periodically sync local changes with firestore.
-  useEffect(() => {
-    if (!deltasRef) {
-      return;
-    }
-
-    // This function sends the contents of `localDelta` to the database
-    // and resets the local cache.
-    const syncDeltas = () => {
+  // This function sends the contents of `localDelta` to the database
+  // and resets the local cache.
+  const syncDeltas = useCallback(
+    debounce(() => {
       let opsIndex = localDelta.current.ops.length;
       if (opsIndex === 0) {
         return;
@@ -222,51 +224,63 @@ function CollabEditorWithCache({
 
       console.debug("uploading delta", deltaDoc);
       uncommittedDeltas.current.push(deltaDoc);
-      deltasRef.doc(deltaID).set(deltaDoc);
-    };
+      return deltasRef.doc(deltaID).set(deltaDoc);
+    }, 250),
+    [deltasRef, editorID, oauthClaims]
+  );
 
-    console.debug(`starting periodic syncDeltas every ${deltaSyncPeriod}ms`);
-    let syncDeltaInterval = setInterval(syncDeltas, deltaSyncPeriod);
-
-    return () => {
-      console.debug("stopping delta sync");
-      clearInterval(syncDeltaInterval);
-    };
-  }, [deltasRef, editorID, oauthClaims.email, deltaSyncPeriod]);
-
-  // onEdit builds a batch of local edits in `localDelta`
-  // which are sent to the server and reset to [] periodically
-  // in `syncDeltas()`.
-  const onEdit = (content, delta, source, editor) => {
-    if (source !== "user") {
-      console.debug("onChange: skipping non-user change", delta, source);
+  const updateCursor = debounce((editor, editorID, authorID, authorName) => {
+    if (!editor || !cursorsRef || !editorID) {
       return;
     }
-
-    localDelta.current = localDelta.current.compose(delta);
-
-    if (onChange) {
-      onChange(content, delta, source, editor);
+    const range = editor.getSelection();
+    if (!range) {
+      return cursorsRef.doc(authorID).delete();
     }
-  };
 
-  const updateCursor = (editorID, authorName, range) => {
-    if (!cursorsRef || !range || !editorID) {
-      return;
-    }
-    cursorsRef.doc(editorID).set({
-      ID: editorID,
+    const cursorRecord = {
+      ID: authorID,
+      editorID: editorID,
       name: authorName,
       selection: {
         index: range.index,
         length: range.length,
       },
       lastUpdateTimestamp: firebaseClient.firestore.FieldValue.serverTimestamp(),
-    });
-  };
+    };
+
+    return cursorsRef.doc(authorID).set(cursorRecord);
+  }, 250);
+
+  // onEdit builds a batch of local edits in `localDelta`
+  // which are sent to the server and reset in `syncDeltas()`.
+  const onEdit = useCallback(
+    (content, delta, source, editor) => {
+      if (source !== "user") {
+        console.debug("onChange: skipping non-user change", delta, source);
+        return;
+      }
+
+      localDelta.current = localDelta.current.compose(delta);
+
+      syncDeltas();
+
+      if (onChange) {
+        onChange(content, delta, source, editor);
+      }
+    },
+    [onChange, syncDeltas]
+  );
 
   const onSelect = (range, source, editor) => {
-    updateCursor(editorID, authorName, range);
+    if (source === "cursors") {
+      updateCursor(editor, editorID, authorID, authorName);
+      return;
+    }
+
+    if (source !== "api") {
+      updateCursor(editor, editorID, authorID, authorName);
+    }
 
     if (onChangeSelection) {
       onChangeSelection(range, source, editor);
@@ -290,14 +304,15 @@ function CollabEditorWithCache({
         const cursorData = {};
         snapshot.docs.forEach((doc) => {
           // Skip the cursor record for this editor
-          if (doc.id === editorID) return;
-          cursorData[doc.id] = doc.data();
+          const cursor = doc.data();
+          if (cursor.editorID === editorID) return;
+          cursorData[doc.id] = cursor;
         });
 
         // Add and update cursor positions
         Object.values(cursorData).forEach((cursor) => {
           console.debug("adding cursor", cursor);
-          const color = "blue";
+          const color = colorForString(cursor.ID);
           cursors.createCursor(cursor.ID, cursor.name, color);
           cursors.toggleFlag(cursor.ID, true);
           cursors.moveCursor(cursor.ID, cursor.selection);

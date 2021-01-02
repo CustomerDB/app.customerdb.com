@@ -8,6 +8,7 @@ import useFirestore from "../../db/Firestore.js";
 
 // Notes augments a collaborative editor with tags and text highlights.
 export default function Notes({
+  authorID,
   authorName,
   reactQuillRef,
   tags,
@@ -25,6 +26,7 @@ export default function Notes({
   return (
     <Grid container item xs={12} style={{ position: "relative" }} spacing={0}>
       <HighlightCollabEditor
+        authorID={authorID}
         authorName={authorName}
         quillRef={reactQuillRef}
         document={document}

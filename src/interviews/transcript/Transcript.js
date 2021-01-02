@@ -36,6 +36,7 @@ function PageContainer({ children }) {
 
 // Transcript augments a collaborative editor with tags, text highlights and video integration.
 export default function Transcript({
+  authorID,
   authorName,
   reactQuillRef,
   tags,
@@ -304,6 +305,7 @@ export default function Transcript({
         spacing={0}
       >
         <HighlightCollabEditor
+          authorID={authorID}
           authorName={authorName}
           quillRef={reactQuillRef}
           document={document}
