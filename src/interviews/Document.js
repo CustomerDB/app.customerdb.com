@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { addTagStyles, removeTagStyles } from "../editor/Tags.js";
+import { useOrgTags } from "../organization/hooks.js";
 import { useNavigate, useParams } from "react-router-dom";
 
 import Collaborators from "../util/Collaborators.js";
@@ -59,7 +60,7 @@ const useStyles = makeStyles({
 });
 
 export default function Document(props) {
-  const { tagGroupsRef, documentRef } = useFirestore();
+  const { documentRef } = useFirestore();
 
   const { orgID, documentID, tabID } = useParams();
 
@@ -142,9 +143,12 @@ export default function Document(props) {
     });
   }, [navigate, documentRef]);
 
-  // Subscribe to tags for the document's tag group.
+  // All organization tags
+  const orgTags = useOrgTags();
+
+  // React to changes in the document's tag group.
   useEffect(() => {
-    if (!tagGroupsRef || !document) {
+    if (!orgTags || !document) {
       return;
     }
 
@@ -155,33 +159,16 @@ export default function Document(props) {
       return;
     }
 
-    let tagGroupRef = tagGroupsRef.doc(document.tagGroupID);
+    const docTagGroup = orgTags[document.tagGroupID];
 
-    let unsubscribeTagGroup = tagGroupRef.onSnapshot((doc) => {
-      let tagGroupData = doc.data();
-      setTagGroupName(tagGroupData.name);
-    });
+    if (docTagGroup) {
+      setTagGroupName(docTagGroup.name);
+      setTags(docTagGroup.tags);
+      addTagStyles(docTagGroup.tags);
+    }
 
-    let unsubscribeTags = tagGroupsRef
-      .doc(document.tagGroupID)
-      .collection("tags")
-      .where("deletionTimestamp", "==", "")
-      .onSnapshot((snapshot) => {
-        let newTags = {};
-        snapshot.forEach((doc) => {
-          let data = doc.data();
-          data.ID = doc.id;
-          newTags[data.ID] = data;
-        });
-        setTags(newTags);
-        addTagStyles(newTags);
-      });
-    return () => {
-      removeTagStyles();
-      unsubscribeTagGroup();
-      unsubscribeTags();
-    };
-  }, [document, tagGroupsRef]);
+    return removeTagStyles;
+  }, [document, orgTags]);
 
   useEffect(() => {
     if (!documentRef) {

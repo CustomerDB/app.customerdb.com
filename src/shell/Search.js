@@ -11,6 +11,7 @@ import useFirestore from "../db/Firestore.js";
 import InputBase from "@material-ui/core/InputBase";
 import React, { useEffect, useState, useContext } from "react";
 import SearchIcon from "@material-ui/icons/Search";
+import { Loading } from "../util/Utils.js";
 import TextField from "@material-ui/core/TextField";
 import InputAdornment from "@material-ui/core/InputAdornment";
 import ClickAwayListener from "@material-ui/core/ClickAwayListener";
@@ -83,7 +84,7 @@ export function Search(props) {
   }
 
   if (!searchClient) {
-    return <></>;
+    return <Loading />;
   }
 
   return (
