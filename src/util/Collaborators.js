@@ -11,18 +11,18 @@ import UserAuthContext from "../auth/UserAuthContext.js";
 
 const syncPeriod = 5000;
 
-export default function Collaborators(props) {
+export default function Collaborators({ dbRef }) {
   const { oauthUser } = useContext(UserAuthContext);
 
   const [collaborators, setCollaborators] = useState([]);
 
   useEffect(() => {
-    if (!props.dbRef || !oauthUser) {
+    if (!dbRef || !oauthUser) {
       return;
     }
 
     const updateCollaborators = () => {
-      let collaboratorRef = props.dbRef
+      let collaboratorRef = dbRef
         .collection("collaborators")
         .doc(oauthUser.email);
 
@@ -43,7 +43,7 @@ export default function Collaborators(props) {
       }
 
       collaboratorRef.set(collaborator).then(() => {
-        props.dbRef
+        dbRef
           .collection("collaborators")
           .get()
           .then((snapshot) => {
@@ -73,7 +73,7 @@ export default function Collaborators(props) {
     return () => {
       clearInterval(interval);
     };
-  }, [props.dbRef, oauthUser]);
+  }, [dbRef, oauthUser]);
 
   return (
     <AvatarGroup max={4}>
