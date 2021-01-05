@@ -121,7 +121,7 @@ exports.cursors = functions
     console.log(`cursors garbage collection started`);
 
     return db
-      .collectionGroup(cursors)
+      .collectionGroup("cursors")
       .where("lastUpdateTimestamp", "<", expiryDate)
       .get()
       .then((snapshot) => {
