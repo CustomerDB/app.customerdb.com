@@ -132,7 +132,7 @@ exports.cursors = functions
             }
             let path = doc.ref._path.segments.join("/");
             console.log(`deleting cursor at ${path}`);
-            return doc.delete();
+            return doc.ref.delete();
           })
         );
       });
