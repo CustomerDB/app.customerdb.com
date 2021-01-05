@@ -669,6 +669,15 @@
           "queryScope": "COLLECTION_GROUP"
         }
       ]
+    },
+    {
+      "collectionGroup": "cursors",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "lastUpdateTimestamp"
+        }
+      ]
     }
   ]
 }
