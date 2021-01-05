@@ -7,7 +7,6 @@ import {
 } from "react-instantsearch-dom";
 import { useSearchClient } from "../search/client.js";
 import FormatQuoteIcon from "@material-ui/icons/FormatQuote";
-import InputBase from "@material-ui/core/InputBase";
 import React, { useEffect, useState } from "react";
 import SearchIcon from "@material-ui/icons/Search";
 import { Loading } from "../util/Utils.js";
@@ -82,15 +81,6 @@ const URLSearch = ({ currentRefinement, refine }) => {
   useEffect(() => {
     let refinement = query.get("q") || "";
 
-    console.log(
-      "refinement",
-      refinement,
-      "currentRefinement",
-      currentRefinement,
-      "query",
-      query
-    );
-
     if (currentRefinement !== refinement) {
       refine(refinement);
     }
@@ -133,80 +123,62 @@ export function Search(props) {
   );
 }
 
-const SearchBox = ({ currentRefinement, refine }) => {
-  const classes = useStyles();
+function peopleFromHits(hits) {
+  const peopleIndex = process.env.REACT_APP_ALGOLIA_PEOPLE_INDEX;
+  let people = [];
+  hits.forEach((section) => {
+    if (section.index === peopleIndex) {
+      people = section.hits;
+    }
+  });
 
-  return (
-    <div className={classes.search}>
-      <div className={classes.searchIcon}>
-        <SearchIcon />
-      </div>
-      <InputBase
-        placeholder="Search…"
-        classes={{
-          root: classes.inputRoot,
-          input: classes.inputInput,
-        }}
-        inputProps={{ "aria-label": "search" }}
-        value={currentRefinement}
-        onChange={(event) => {
-          refine(event.currentTarget.value);
-        }}
-      />
-    </div>
-  );
-};
+  const maxPeople = 8;
+  people = people.slice(0, maxPeople);
 
-const CustomSearchBox = connectSearchBox(SearchBox);
-
-export function SearchInput() {
-  return <CustomSearchBox default="foobar" />;
+  return people;
 }
 
-// Autocomplete search
-const OmniAutocomplete = ({
-  hits,
-  currentRefinement,
-  defaultRefinement,
-  refine,
-  searchState,
-}) => {
+function documentsFromHits(hits) {
+  const documentIndex = process.env.REACT_APP_ALGOLIA_DOCUMENTS_INDEX;
+  let documents = [];
+  hits.forEach((section) => {
+    if (section.index === documentIndex) {
+      documents = section.hits;
+    }
+  });
+
+  const maxDocuments = 5;
+  documents.sort((a, b) => b.creationTimestamp - a.creationTimestamp);
+  documents = documents.slice(0, maxDocuments);
+
+  return documents;
+}
+
+function RefinementChip() {
+  const query = useQuery();
+  const navigate = useNavigate();
+
+  return query.get("q") ? (
+    <Chip
+      label={query.get("q")}
+      onDelete={() => {
+        navigate(".");
+      }}
+    />
+  ) : (
+    <></>
+  );
+}
+
+const Autocomplete = ({ hits, currentRefinement, refine, searchState }) => {
   const classes = useStyles();
   const navigate = useNavigate();
   const { orgID } = useParams();
 
   const [open, setOpen] = useState(false);
 
-  const query = useQuery();
-
-  const documentIndex = process.env.REACT_APP_ALGOLIA_DOCUMENTS_INDEX;
-  const peopleIndex = process.env.REACT_APP_ALGOLIA_PEOPLE_INDEX;
-  const highlightsIndex = process.env.REACT_APP_ALGOLIA_HIGHLIGHTS_INDEX;
-
-  let documents = [];
-  let people = [];
-  let highlights = [];
-  hits.forEach((section) => {
-    if (section.index === documentIndex) {
-      documents = section.hits;
-    }
-
-    if (section.index === peopleIndex) {
-      people = section.hits;
-    }
-
-    if (section.index === highlightsIndex) {
-      highlights = section.hits;
-    }
-  });
-
-  people = people.slice(0, 8);
-
-  highlights.sort((a, b) => b.creationTimestamp - a.creationTimestamp);
-  highlights = highlights.slice(0, 5);
-
-  documents.sort((a, b) => b.creationTimestamp - a.creationTimestamp);
-  documents = documents.slice(0, 5);
+  let documents = documentsFromHits(hits);
+  let people = peopleFromHits(hits);
 
   let showResults = !!searchState.query;
 
@@ -253,14 +225,7 @@ const OmniAutocomplete = ({
                   startAdornment: (
                     <InputAdornment position="start">
                       <SearchIcon />
-                      {query.get("q") && (
-                        <Chip
-                          label={query.get("q")}
-                          onDelete={() => {
-                            navigate(".");
-                          }}
-                        />
-                      )}
+                      <RefinementChip />
                     </InputAdornment>
                   ),
                 }}
@@ -456,9 +421,9 @@ const OmniAutocomplete = ({
   );
 };
 
-const ConnectedAutocomplete = connectAutoComplete(OmniAutocomplete);
+const ConnectedAutocomplete = connectAutoComplete(Autocomplete);
 
-export function OmniSearch() {
+export function SearchDropdown() {
   const [searchState, setSearchState] = useState({});
   const searchClient = useSearchClient();
 
@@ -474,7 +439,6 @@ export function OmniSearch() {
       onSearchStateChange={(st) => setSearchState(st)}
     >
       <ConnectedAutocomplete searchState={searchState} />
-      <Index indexName={process.env.REACT_APP_ALGOLIA_HIGHLIGHTS_INDEX} />
       <Index indexName={process.env.REACT_APP_ALGOLIA_DOCUMENTS_INDEX} />
       <Index indexName={process.env.REACT_APP_ALGOLIA_PEOPLE_INDEX} />
     </InstantSearch>
