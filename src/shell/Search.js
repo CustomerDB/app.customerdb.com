@@ -6,10 +6,9 @@ import {
   Index,
 } from "react-instantsearch-dom";
 import { useSearchClient } from "../search/client.js";
-import UserAuthContext from "../auth/UserAuthContext";
-import useFirestore from "../db/Firestore.js";
+import FormatQuoteIcon from "@material-ui/icons/FormatQuote";
 import InputBase from "@material-ui/core/InputBase";
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState } from "react";
 import SearchIcon from "@material-ui/icons/Search";
 import { Loading } from "../util/Utils.js";
 import TextField from "@material-ui/core/TextField";
@@ -20,8 +19,13 @@ import TheatersIcon from "@material-ui/icons/Theaters";
 import Avatar from "@material-ui/core/Avatar";
 import Grid from "@material-ui/core/Grid";
 import Box from "@material-ui/core/Box";
+import Chip from "@material-ui/core/Chip";
+import Divider from "@material-ui/core/Divider";
 import Moment from "react-moment";
 import { useNavigate, useParams } from "react-router-dom";
+import GroupIcon from "@material-ui/icons/Group";
+import RecordVoiceOverIcon from "@material-ui/icons/RecordVoiceOver";
+import { useQuery } from "../util/Query.js";
 
 const useStyles = makeStyles((theme) => ({
   inputRoot: {
@@ -66,7 +70,36 @@ const useStyles = makeStyles((theme) => ({
     height: "40px",
     marginRight: "1rem",
   },
+  searchAvatar: {
+    width: "40px",
+    height: "40px",
+  },
 }));
+
+const URLSearch = ({ currentRefinement, refine }) => {
+  const query = useQuery();
+
+  useEffect(() => {
+    let refinement = query.get("q") || "";
+
+    console.log(
+      "refinement",
+      refinement,
+      "currentRefinement",
+      currentRefinement,
+      "query",
+      query
+    );
+
+    if (currentRefinement !== refinement) {
+      refine(refinement);
+    }
+  }, [query, currentRefinement, refine]);
+
+  return <></>;
+};
+
+const ConnectedURLSearch = connectSearchBox(URLSearch);
 
 export function Search(props) {
   const [searchState, setSearchState] = useState({});
@@ -94,17 +127,13 @@ export function Search(props) {
       searchState={searchState}
       onSearchStateChange={(st) => setSearchState(st)}
     >
+      <ConnectedURLSearch />
       {props.children}
     </InstantSearch>
   );
 }
 
-const SearchBox = ({
-  currentRefinement,
-  isSearchStalled,
-  refine,
-  placeholder,
-}) => {
+const SearchBox = ({ currentRefinement, refine }) => {
   const classes = useStyles();
 
   return (
@@ -130,67 +159,56 @@ const SearchBox = ({
 
 const CustomSearchBox = connectSearchBox(SearchBox);
 
-export function SearchInput(props) {
-  return <CustomSearchBox />;
+export function SearchInput() {
+  return <CustomSearchBox default="foobar" />;
 }
 
 // Autocomplete search
 const OmniAutocomplete = ({
   hits,
   currentRefinement,
-  refine,
   defaultRefinement,
+  refine,
   searchState,
 }) => {
   const classes = useStyles();
   const navigate = useNavigate();
   const { orgID } = useParams();
 
-  const auth = useContext(UserAuthContext);
-  const { membersRef } = useFirestore();
-  const [member, setMember] = useState();
-
-  const [value, setValue] = useState({ name: defaultRefinement });
   const [open, setOpen] = useState(false);
+
+  const query = useQuery();
 
   const documentIndex = process.env.REACT_APP_ALGOLIA_DOCUMENTS_INDEX;
   const peopleIndex = process.env.REACT_APP_ALGOLIA_PEOPLE_INDEX;
   const highlightsIndex = process.env.REACT_APP_ALGOLIA_HIGHLIGHTS_INDEX;
 
-  useEffect(() => {}, []);
-
   let documents = [];
   let people = [];
   let highlights = [];
   hits.forEach((section) => {
-    if (section.index == documentIndex) {
+    if (section.index === documentIndex) {
       documents = section.hits;
     }
 
-    if (section.index == peopleIndex) {
+    if (section.index === peopleIndex) {
       people = section.hits;
     }
 
-    if (section.index == highlightsIndex) {
+    if (section.index === highlightsIndex) {
       highlights = section.hits;
     }
   });
 
   people = people.slice(0, 8);
 
+  highlights.sort((a, b) => b.creationTimestamp - a.creationTimestamp);
+  highlights = highlights.slice(0, 5);
+
   documents.sort((a, b) => b.creationTimestamp - a.creationTimestamp);
   documents = documents.slice(0, 5);
 
-  // // sort category based on time.
-  // let topHits = combinedHits.slice(0, 5);
-
   let showResults = !!searchState.query;
-
-  let recentSearches = [];
-
-  const saveSearch = () => {};
-
-  const removeSavedSearch = (index) => {};
 
   return (
     <div style={{ position: "relative" }}>
@@ -235,25 +253,19 @@ const OmniAutocomplete = ({
                   startAdornment: (
                     <InputAdornment position="start">
                       <SearchIcon />
+                      {query.get("q") && (
+                        <Chip
+                          label={query.get("q")}
+                          onDelete={() => {
+                            navigate(".");
+                          }}
+                        />
+                      )}
                     </InputAdornment>
                   ),
                 }}
               />
             </Grid>
-            {!showResults && recentSearches.legnth > 0 && (
-              <Grid container item xs={12}>
-                <Grid container item xs={12}>
-                  <p>
-                    <b>Recent</b>
-                  </p>
-                </Grid>
-                <Grid container item xs={12}>
-                  {/* Replace with member specific search results */}
-                  <p>foo</p>
-                </Grid>
-              </Grid>
-            )}
-
             {showResults && (
               <Grid container item xs={12} style={{ paddingTop: "1rem" }}>
                 {people.length > 0 && (
@@ -268,7 +280,15 @@ const OmniAutocomplete = ({
                       style={{ paddingTop: "0.5rem" }}
                     >
                       {people.map((hit) => (
-                        <Grid item xs="auto" style={{ width: "8rem" }}>
+                        <Grid
+                          item
+                          xs="auto"
+                          style={{ width: "8rem", cursor: "pointer" }}
+                          onClick={() => {
+                            navigate(`/orgs/${orgID}/people/${hit.objectID}`);
+                            setOpen(false);
+                          }}
+                        >
                           <Grid container item justify="center">
                             <Avatar alt={hit.name} src={hit.imageURL} />
                           </Grid>
@@ -302,7 +322,16 @@ const OmniAutocomplete = ({
                             container
                             item
                             xs={12}
-                            style={{ paddingBottom: "0.5rem" }}
+                            style={{
+                              paddingBottom: "0.5rem",
+                              cursor: "pointer",
+                            }}
+                            onClick={() => {
+                              navigate(
+                                `/orgs/${orgID}/interviews/${hit.objectID}`
+                              );
+                              setOpen(false);
+                            }}
                           >
                             <Grid
                               container
@@ -347,6 +376,77 @@ const OmniAutocomplete = ({
                     </Grid>
                   </>
                 )}
+                <Divider />
+                <Grid container item xs={12}>
+                  <b>Search</b>
+                </Grid>
+                <Grid container item xs={12} style={{ paddingTop: "0.5rem" }}>
+                  <Grid
+                    container
+                    item
+                    xs={4}
+                    justify="center"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => {
+                      navigate(`/orgs/${orgID}/quotes?q=${currentRefinement}`);
+                      setOpen(false);
+                      refine("");
+                    }}
+                  >
+                    <Grid container item justify="center">
+                      <Avatar className={classes.searchAvatar}>
+                        <FormatQuoteIcon />
+                      </Avatar>
+                    </Grid>
+                    <Grid container item justify="center">
+                      Quotes
+                    </Grid>
+                  </Grid>
+                  <Grid
+                    container
+                    item
+                    xs={4}
+                    justify="center"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => {
+                      navigate(
+                        `/orgs/${orgID}/interviews?q=${currentRefinement}`
+                      );
+                      setOpen(false);
+                      refine("");
+                    }}
+                  >
+                    <Grid container item justify="center">
+                      <Avatar className={classes.searchAvatar}>
+                        <RecordVoiceOverIcon />
+                      </Avatar>
+                    </Grid>
+                    <Grid container item justify="center">
+                      Interviews
+                    </Grid>
+                  </Grid>
+                  <Grid
+                    container
+                    item
+                    xs={4}
+                    justify="center"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => {
+                      navigate(`/orgs/${orgID}/people?q=${currentRefinement}`);
+                      setOpen(false);
+                      refine("");
+                    }}
+                  >
+                    <Grid container item justify="center">
+                      <Avatar className={classes.searchAvatar}>
+                        <GroupIcon />
+                      </Avatar>
+                    </Grid>
+                    <Grid container item justify="center">
+                      Customers
+                    </Grid>
+                  </Grid>
+                </Grid>
               </Grid>
             )}
           </Grid>
@@ -354,133 +454,11 @@ const OmniAutocomplete = ({
       </ClickAwayListener>
     </div>
   );
-
-  // return (
-  //   <Autocomplete
-  //     fullWidth
-  //     classes={classes}
-  //     value={value}
-  //     style={{
-  //       paddingRight: "1rem",
-  //     }}
-  //     onChange={(event, option) => {
-  //       if (option) {
-  //         setValue(option.name);
-
-  //         // Navigate to the right type.
-  //         let prefix = `/orgs/${orgID}`;
-  //         if (option.kind == documentIndex) {
-  //           navigate(`${prefix}/interviews/${option.objectID}`);
-  //         } else if (option.kind == peopleIndex) {
-  //           navigate(`${prefix}/people/${option.objectID}`);
-  //         }
-  //       } else {
-  //         // Clear
-  //         setValue({ name: "" });
-  //       }
-  //     }}
-  //     inputValue={currentRefinement}
-  //     onInputChange={(event, newInputValue) => {
-  //       refine(newInputValue);
-  //     }}
-  //     forcePopupIcon={false}
-  //     selectOnFocus
-  //     clearOnBlur
-  //     handleHomeEndKeys
-  //     getOptionLabel={(option) => {
-  //       if (option.name) {
-  //         return option.name;
-  //       }
-
-  //       if (option.text) {
-  //         return option.text;
-  //       }
-
-  //       return option;
-  //     }}
-  //     getOptionSelected={(option, value) => option.objectID === value.objectID}
-  //     options={combinedHits}
-  //     renderInput={(params) => (
-  //       <TextField
-  //         placeholder="Search..."
-  //         {...params}
-  //         InputProps={{
-  //           ...params.InputProps,
-  //           disableUnderline: true,
-  //           startAdornment: (
-  //             <InputAdornment position="start">
-  //               <SearchIcon />
-  //             </InputAdornment>
-  //           ),
-  //         }}
-  //       />
-  //     )}
-  //     renderOption={(option) => {
-  //       console.log("Option: ", option);
-
-  //       let avatar;
-  //       if (option.kind === peopleIndex) {
-  //         avatar = (
-  //           <Avatar
-  //             className={classes.avatar}
-  //             alt={option.name}
-  //             src={option.imageURL}
-  //           />
-  //         );
-  //       }
-
-  //       if (option.kind === documentIndex) {
-  //         if (option.transcriptText !== "") {
-  //           avatar = (
-  //             <Avatar className={classes.avatar}>
-  //               <TheatersIcon />
-  //             </Avatar>
-  //           );
-  //         } else {
-  //           avatar = (
-  //             <Avatar className={classes.avatar}>
-  //               <DescriptionIcon />
-  //             </Avatar>
-  //           );
-  //         }
-  //       }
-
-  //       if (option.kind === highlightsIndex) {
-  //         avatar = (
-  //           <Avatar
-  //             className={classes.avatar}
-  //             alt={option.personName}
-  //             src={option.personImageURL}
-  //           />
-  //         );
-  //       }
-
-  //       let creationDate;
-  //       if (option.creationTimestamp) {
-  //         creationDate = new Date(option.creationTimestamp * 1000);
-  //       }
-
-  //       return (
-  //         <Grid container alignItems="center">
-  //           <Grid container item xs={1} justify="flex-end">
-  //             {avatar}
-  //           </Grid>
-  //           <Grid container item xs={9} justify="flex-start">
-  //             {option.name || <i>"...{option.text}..."</i>}
-  //           </Grid>
-  //           <Grid container item xs={2} justify="flex-start">
-  //             <Moment fromNow date={creationDate} />
-  //           </Grid>
-  //         </Grid>
-  //       );
-  //     }}
-  //   />
-  // );
 };
 
 const ConnectedAutocomplete = connectAutoComplete(OmniAutocomplete);
 
-export function OmniSearch(props) {
+export function OmniSearch() {
   const [searchState, setSearchState] = useState({});
   const searchClient = useSearchClient();
 
