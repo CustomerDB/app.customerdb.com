@@ -80,7 +80,7 @@ export default function CollabEditor({ modules, onReady, ...otherProps }) {
     {
       cursors: {
         selectionChangeSource: "cursors",
-        transformOnTextChange: false,
+        transformOnTextChange: true,
       },
     },
     modules
@@ -257,7 +257,6 @@ function CollabEditorWithCache({
   const onEdit = useCallback(
     (content, delta, source, editor) => {
       if (source !== "user") {
-        console.debug("onChange: skipping non-user change", delta, source);
         return;
       }
 
@@ -274,11 +273,10 @@ function CollabEditorWithCache({
 
   const onSelect = (range, source, editor) => {
     if (source === "cursors") {
-      updateCursor(editor, editorID, authorID, authorName);
-      return;
+      return updateCursor(editor, editorID, authorID, authorName);
     }
 
-    if (source !== "api") {
+    if (source === "user") {
       updateCursor(editor, editorID, authorID, authorName);
     }
 
@@ -303,9 +301,19 @@ function CollabEditorWithCache({
 
         const cursorData = {};
         snapshot.docs.forEach((doc) => {
-          // Skip the cursor record for this editor
+          // Skip the cursor record for this editor,
+          // but first update position if not current
           const cursor = doc.data();
-          if (cursor.editorID === editorID) return;
+          if (cursor.editorID === editorID) {
+            const selection = editor.getSelection();
+            if (
+              (selection && cursor.selection.index != selection.index) ||
+              cursor.selection.length != selection.length
+            ) {
+              updateCursor(editor, editorID, authorID, authorName);
+            }
+            return;
+          }
           cursorData[doc.id] = cursor;
         });
 
@@ -329,7 +337,7 @@ function CollabEditorWithCache({
         // Redraw all cursors in the DOM
         cursors.update();
       });
-  }, [cursorsRef, editorID, quillRef]);
+  }, [cursorsRef, editorID, quillRef, authorID, authorName]);
 
   if (!revision) return <></>;
 
