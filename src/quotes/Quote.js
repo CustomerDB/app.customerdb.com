@@ -39,7 +39,7 @@ export default function Quote({ hit }) {
       return;
     }
 
-    console.log(`Starting to fetch media URL for ${hit.mediaPath}`);
+    console.debug(`Starting to fetch media URL for ${hit.mediaPath}`);
 
     firebase
       .storage()
@@ -47,7 +47,7 @@ export default function Quote({ hit }) {
       .child(hit.mediaPath)
       .getDownloadURL()
       .then((url) => {
-        console.log(`Got url: ${url}`);
+        console.debug(`Got url: ${url}`);
         setMediaURL(url);
       });
   }, [hit.mediaPath, firebase]);
