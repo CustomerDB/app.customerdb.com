@@ -307,8 +307,8 @@ function CollabEditorWithCache({
           if (cursor.editorID === editorID) {
             const selection = editor.getSelection();
             if (
-              (selection && cursor.selection.index != selection.index) ||
-              cursor.selection.length != selection.length
+              (selection && cursor.selection.index !== selection.index) ||
+              cursor.selection.length !== selection.length
             ) {
               updateCursor(editor, editorID, authorID, authorName);
             }
@@ -337,7 +337,7 @@ function CollabEditorWithCache({
         // Redraw all cursors in the DOM
         cursors.update();
       });
-  }, [cursorsRef, editorID, quillRef, authorID, authorName]);
+  }, [cursorsRef, editorID, quillRef, authorID, authorName, updateCursor]);
 
   if (!revision) return <></>;
 
