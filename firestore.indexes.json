@@ -672,10 +672,11 @@
     },
     {
       "collectionGroup": "cursors",
-      "queryScope": "COLLECTION_GROUP",
-      "fields": [
+      "fieldPath": "lastUpdateTimestamp",
+      "indexes": [
         {
-          "fieldPath": "lastUpdateTimestamp"
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION_GROUP"
         }
       ]
     }
