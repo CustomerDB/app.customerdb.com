@@ -291,8 +291,7 @@ function CollabEditorWithCache({
       return;
     }
 
-    // TODO(CD): periodically delete expired cursor entries
-    cursorsRef
+    return cursorsRef
       .where("lastUpdateTimestamp", ">", new Date(Date.now() - 1000 * 30))
       .onSnapshot((snapshot) => {
         if (!quillRef.current) return;
