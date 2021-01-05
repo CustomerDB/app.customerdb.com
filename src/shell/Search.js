@@ -14,12 +14,12 @@ import TextField from "@material-ui/core/TextField";
 import InputAdornment from "@material-ui/core/InputAdornment";
 import ClickAwayListener from "@material-ui/core/ClickAwayListener";
 import DescriptionIcon from "@material-ui/icons/Description";
-import TheatersIcon from "@material-ui/icons/Theaters";
 import Avatar from "@material-ui/core/Avatar";
 import Grid from "@material-ui/core/Grid";
 import Box from "@material-ui/core/Box";
 import Chip from "@material-ui/core/Chip";
 import Divider from "@material-ui/core/Divider";
+import Tooltip from "@material-ui/core/Tooltip";
 import Moment from "react-moment";
 import { useNavigate, useParams } from "react-router-dom";
 import GroupIcon from "@material-ui/icons/Group";
@@ -282,6 +282,31 @@ const Autocomplete = ({ hits, currentRefinement, refine, searchState }) => {
                           creationDate = new Date(hit.creationTimestamp * 1000);
                         }
 
+                        let avatar = (
+                          <Avatar
+                            className={classes.avatar}
+                            alt={hit.personName}
+                          >
+                            <DescriptionIcon />
+                          </Avatar>
+                        );
+
+                        if (hit.personImageURL) {
+                          avatar = (
+                            <Avatar
+                              className={classes.avatar}
+                              alt={hit.personName}
+                              src={hit.personImageURL}
+                            />
+                          );
+                        }
+
+                        if (hit.personName) {
+                          avatar = (
+                            <Tooltip title={hit.personName}>{avatar}</Tooltip>
+                          );
+                        }
+
                         return (
                           <Grid
                             container
@@ -305,15 +330,7 @@ const Autocomplete = ({ hits, currentRefinement, refine, searchState }) => {
                               justify="flex-end"
                               alignItems="center"
                             >
-                              {hit.transcriptText !== "" ? (
-                                <Avatar className={classes.avatar}>
-                                  <TheatersIcon />
-                                </Avatar>
-                              ) : (
-                                <Avatar className={classes.avatar}>
-                                  <DescriptionIcon />
-                                </Avatar>
-                              )}
+                              {avatar}
                             </Grid>
                             <Grid
                               container
