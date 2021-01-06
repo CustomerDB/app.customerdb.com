@@ -103,3 +103,37 @@ exports.documents = functions
   .onRun((context) => {
     return garbageCollect("documents");
   });
+
+exports.cursors = functions
+  .runWith({
+    timeoutSeconds: 540,
+    memory: "2GB",
+  })
+  .pubsub.schedule("every 30 minutes")
+  .onRun((context) => {
+    let db = admin.firestore();
+
+    let now = new Date();
+    const retentionSeconds = 120;
+    const expiryTime = now.getTime() - retentionSeconds * 1000;
+    const expiryDate = new Date(expiryTime);
+
+    console.log(`cursors garbage collection started`);
+
+    return db
+      .collectionGroup("cursors")
+      .where("lastUpdateTimestamp", "<", expiryDate)
+      .get()
+      .then((snapshot) => {
+        return Promise.all(
+          snapshot.docs.map((doc) => {
+            if (!doc.exists) {
+              return;
+            }
+            let path = doc.ref._path.segments.join("/");
+            console.log(`deleting cursor at ${path}`);
+            return doc.ref.delete();
+          })
+        );
+      });
+  });

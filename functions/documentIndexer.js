@@ -252,16 +252,16 @@ exports.cachePersonImageURL = functions.firestore
         .doc(after.personID)
         .get()
         .then((doc) => {
-          let personImageURL = "";
-          let personName = "";
+          let personImageURL;
+          let personName;
           if (doc.exists) {
             const person = doc.data();
             personImageURL = person.imageURL;
             personName = person.name;
           }
           return docRef.update({
-            personImageURL: personImageURL,
-            personName: personName,
+            personImageURL: personImageURL || "",
+            personName: personName || "",
           });
         });
     }
