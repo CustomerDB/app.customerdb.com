@@ -118,35 +118,26 @@ exports.signupEmail = functions.https.onCall((data, context) => {
         .collectionGroup("members")
         .where("email", "==", email)
         .where("invited", "==", true);
-      return membersRef.get().then((snapshot) => {
-        if (snapshot.size === 0) {
-          throw new functions.https.HttpsError("internal", "user not invited");
-        }
+      console.debug(`Creating user for email ${email}`);
 
-        console.debug(`Creating user for email ${email}`);
-
-        // Create firebase user.
-        return admin
-          .auth()
-          .createUser({
-            email: email,
-            emailVerified: false,
-            password: password,
-            displayName: name,
-            disabled: false,
-          })
-          .catch((err) => {
-            console.error(`Could not create user ${email}: ${err}`);
-            throw new functions.https.HttpsError(
-              "internal",
-              "user not created"
-            );
-          })
-          .then(() => {
-            // Send the verify email email.
-            return sendVerifyEmail(email);
-          });
-      });
+      // Create firebase user.
+      return admin
+        .auth()
+        .createUser({
+          email: email,
+          emailVerified: false,
+          password: password,
+          displayName: name,
+          disabled: false,
+        })
+        .catch((err) => {
+          console.error(`Could not create user ${email}: ${err}`);
+          throw new functions.https.HttpsError("internal", "user not created");
+        })
+        .then(() => {
+          // Send the verify email email.
+          return sendVerifyEmail(email);
+        });
     });
 });
 
@@ -171,22 +162,7 @@ exports.signupGoogle = functions.https.onCall((data, context) => {
         // User already have access to an org and should be redirected to the orgs page.
         throw new functions.https.HttpsError("internal", "user already exists");
       }
-
-      return db
-        .collectionGroup("members")
-        .where("email", "==", email)
-        .where("invited", "==", true)
-        .get()
-        .then((invitedSnapshot) => {
-          if (invitedSnapshot.size === 0) {
-            throw new functions.https.HttpsError(
-              "internal",
-              "user not invited"
-            );
-          }
-
-          return {};
-        });
+      return {};
     });
 });
 

@@ -118,9 +118,10 @@ export default function Login(props) {
                   Log in by clicking the button below.
                   <br />
                   If you don't have an account yet,{" "}
-                  <a href="https://niklas415573.typeform.com/to/at7S5LVl">
-                    join the wait list
-                  </a>
+                  <Link color="seconadary" href="/signup">
+                    sign up here
+                  </Link>
+                  .
                 </p>
               </Grid>
             </Grid>
