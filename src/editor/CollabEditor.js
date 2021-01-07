@@ -109,6 +109,7 @@ function CollabEditorWithCache({
   onLoad,
   onChange,
   onChangeSelection,
+  formatBlacklist,
   ...otherProps
 }) {
   const [editorID] = useState(uuidv4());
@@ -210,6 +211,15 @@ function CollabEditorWithCache({
       }
 
       let ops = localDelta.current.ops.slice(0, opsIndex);
+
+      if (formatBlacklist) {
+        ops.forEach((op) => {
+          formatBlacklist.forEach((blacklistKey) => {
+            delete op.attributes[blacklistKey];
+          });
+        });
+      }
+
       localDelta.current = new Delta(localDelta.current.ops.slice(opsIndex));
 
       let deltaID = uuidv4();
