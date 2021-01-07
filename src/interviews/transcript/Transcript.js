@@ -309,6 +309,7 @@ export default function Transcript({
           authorName={authorName}
           quillRef={reactQuillRef}
           document={document}
+          formatBlacklist={["playhead"]}
           revisionsRef={documentRef.collection("transcriptRevisions")}
           deltasRef={documentRef.collection("transcriptDeltas")}
           highlightsRef={transcriptHighlightsRef}

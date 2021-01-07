@@ -1,5 +1,8 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
+const Delta = require("quill-delta");
+const util = require("./util.js");
+const { v4: uuidv4 } = require("uuid");
 
 exports.reThumbnailEverything = functions.pubsub
   .topic("reThumbnailEverything")
@@ -318,6 +321,71 @@ exports.highlightRepair = functions.pubsub
                             return doc.ref.update(partialUpdate);
                           })
                         );
+                      });
+                  })
+                );
+              });
+          })
+        );
+      });
+  });
+
+exports.clearPlayheadFormatting = functions
+  .runWith({
+    timeoutSeconds: 300,
+    memory: "2GB",
+  })
+  .pubsub.topic("clear-playhead-formatting")
+  .onPublish((message) => {
+    let db = admin.firestore();
+
+    return db
+      .collection("organizations")
+      .get()
+      .then((snapshot) => {
+        return Promise.all(
+          snapshot.docs.map((orgDoc) => {
+            const orgID = orgDoc.id;
+            console.log(`Removing playheads in org ${orgID}`);
+            return orgDoc.ref
+              .collection("documents")
+              .get()
+              .then((snapshot) => {
+                return Promise.all(
+                  snapshot.docs.map((doc) => {
+                    const documentID = doc.id;
+                    return util
+                      .revisionAtTime(
+                        orgID,
+                        documentID,
+                        "transcript",
+                        undefined
+                      )
+                      .then((revision) => {
+                        if (!revision) {
+                          console.debug(
+                            `Skipping ${documentID} as it doesn't have a transcript`
+                          );
+                          return;
+                        }
+                        let delta = revision;
+                        let length = delta.length();
+
+                        let resetPlayheadDelta = new Delta().retain(length, {
+                          playhead: null,
+                        });
+
+                        let deltaID = uuidv4();
+                        return doc.ref
+                          .collection("transcriptDeltas")
+                          .doc(deltaID)
+                          .set({
+                            ID: deltaID,
+                            editorID: "system",
+                            ops: resetPlayheadDelta.ops,
+                            timestamp: admin.firestore.FieldValue.serverTimestamp(),
+                            userEmail: "",
+                          });
                       });
                   })
                 );
