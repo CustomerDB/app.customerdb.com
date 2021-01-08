@@ -78,10 +78,6 @@ export default function Summary(props) {
     });
   }, [navigate, summaryRef]);
 
-  useEffect(() => {
-    console.debug("summary", summary);
-  }, [summary]);
-
   if (!summary) {
     return <Loading />;
   }
