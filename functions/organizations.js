@@ -133,13 +133,13 @@ exports.create = functions.firestore
     // Create first members.
     let createAdminPromise = admin
       .auth()
-      .getUserByEmail(email)
+      .getUserByEmail(adminEmail)
       .then((userRecord) =>
         orgRef
           .collection("members")
           .doc(adminEmail)
           .set({
-            name: userRecord.displayName || "",
+            displayName: userRecord.displayName || "",
             photoURL: userRecord.photoURL || "",
             email: adminEmail,
             invited: false,

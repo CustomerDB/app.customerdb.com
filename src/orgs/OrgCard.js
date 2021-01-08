@@ -6,7 +6,7 @@ import FirebaseContext from "../util/FirebaseContext.js";
 import { Link } from "react-router-dom";
 import LinearProgress from "@material-ui/core/LinearProgress";
 
-export default function OrgCard({ orgID }) {
+export default function OrgCard({ orgID, claimsReady }) {
   const firebase = useContext(FirebaseContext);
   const db = firebase.firestore();
   const [org, setOrg] = useState();
@@ -51,6 +51,8 @@ export default function OrgCard({ orgID }) {
     return <></>;
   }
 
+  const ready = org.ready && claimsReady;
+
   return (
     <Card
       style={{
@@ -64,11 +66,11 @@ export default function OrgCard({ orgID }) {
         <Typography
           variant="h6"
           gutterBottom
-          style={{ fontWeight: "bold", color: org.ready ? "black" : "grey" }}
+          style={{ fontWeight: "bold", color: ready ? "black" : "grey" }}
         >
-          {org.ready ? linkedTitle : org.name}
+          {ready ? linkedTitle : org.name}
         </Typography>
-        {!org.ready && <LinearProgress />}
+        {!ready && <LinearProgress />}
         {members}
       </CardContent>
     </Card>

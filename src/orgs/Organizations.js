@@ -10,6 +10,7 @@ export default function Organizations() {
   const { oauthClaims } = useContext(UserAuthContext);
   const [orgIDs, setOrgIDs] = useState([]);
   const [invitedOrgIDs, setInvitedOrgIDs] = useState([]);
+  const [claimsInstalledOrgIDs, setClaimsInstalledOrgIDs] = useState([]);
 
   const firebase = useContext(FirebaseContext);
   const db = firebase.firestore();
@@ -42,7 +43,13 @@ export default function Organizations() {
       });
   }, [oauthClaims, firebase, db]);
 
-  console.log("invitedOrgIDs", invitedOrgIDs);
+  useEffect(() => {
+    if (!oauthClaims || !oauthClaims.orgs) {
+      return;
+    }
+
+    setClaimsInstalledOrgIDs(Object.keys(oauthClaims.orgs));
+  }, [oauthClaims]);
 
   return (
     <Shell noOrgSelector noSidebar>
@@ -63,7 +70,11 @@ export default function Organizations() {
             <h5>Organizations</h5>
           </Grid>
           {orgIDs.map((id) => (
-            <OrgCard key={id} orgID={id} />
+            <OrgCard
+              key={id}
+              orgID={id}
+              claimsReady={claimsInstalledOrgIDs.includes(id)}
+            />
           ))}
         </Grid>
       </Grid>

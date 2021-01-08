@@ -84,7 +84,7 @@ export default function InviteCard({ orgID }) {
   };
 
   if (!org) {
-    return <>no org</>;
+    return <></>;
   }
 
   const linkedTitle = orgID && org.name && (
