@@ -27,6 +27,13 @@ service cloud.firestore {
                   && request.auth.uid == uid;
     }
 
+    // Allow verified users to create a new organization
+    match /organizations/{orgID} {
+      allow create: if signedInAndVerified()
+        && resource.data.pending == true
+        && 'name' in resource.data;
+    }
+
     // Only allow verified emails with the 'invited' bit set, to change to 'active' (and remove the invited 'bit' in the same operation).
     match /organizations/{orgID}/members/{email} {
       allow update: if signedInAndVerified()
