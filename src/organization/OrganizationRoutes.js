@@ -1,11 +1,13 @@
 import { Navigate, Outlet, Route, Routes } from "react-router-dom";
 
+import React from "react";
 import Analyze from "../analyze/Analyze.js";
 import Guides from "../guides/Guides.js";
 import Interviews from "../interviews/Interviews.js";
 import People from "../people/People.js";
 import Quotes from "../quotes/Quotes.js";
-import React from "react";
+import Summaries from "../summaries/Summaries.js";
+import Summary from "../summaries/Summary.js";
 import Settings from "../settings/Settings.js";
 import Tags from "../tags/Tags.js";
 import Shell from "../shell/Shell.js";
@@ -47,6 +49,12 @@ export default function OrganizationRoutes(props) {
           <Route path=":analysisID" element={<Analyze />} />
           <Route path=":analysisID/:tabID" element={<Analyze />} />
           <Route path=":analysisID/:tabID/:tagID" element={<Analyze />} />
+        </Route>
+
+        <Route path="summaries/*">
+          <Route path="/" element={<Summaries />} />
+          <Route path="create" element={<Summaries create />} />
+          <Route path=":summaryID" element={<Summary />} />
         </Route>
 
         <Route path="tags/*">
