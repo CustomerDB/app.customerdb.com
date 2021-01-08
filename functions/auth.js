@@ -265,10 +265,11 @@ exports.installMemberOAuthClaim = functions.firestore
         let needsClaims = after.active && missingClaims;
 
         // True if a user is writing their own member uid (join org operation)
-        let memberJoined = !before.uid && before.uid !== after.uid;
+        // If the member record is new, assume newly joined.
+        let memberJoined = !before || (!before.uid && before.uid !== after.uid);
 
         // True if the member admin bit changed
-        let adminChanged = before.admin !== after.admin;
+        let adminChanged = before && before.admin !== after.admin;
 
         if (needsClaims || memberJoined || adminChanged) {
           let newOrg = {};
