@@ -166,47 +166,6 @@ exports.signupGoogle = functions.https.onCall((data, context) => {
     });
 });
 
-// Returns an array of organization objects, each with
-// name, ID, and the timestamp of when the user was invited.
-exports.getInvitedOrgs = functions.https.onCall((data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError(
-      "permission-denied",
-      "Authentication required."
-    );
-  }
-
-  if (!context.auth.token.email_verified) {
-    throw new functions.https.HttpsError(
-      "permission-denied",
-      "Email verification required."
-    );
-  }
-
-  const db = admin.firestore();
-  return db
-    .collectionGroup("members")
-    .where("email", "==", context.auth.token.email)
-    .where("invited", "==", true)
-    .get()
-    .then((snapshot) => {
-      return Promise.all(
-        snapshot.docs.map((memberDoc) => {
-          const member = memberDoc.data();
-          const orgRef = memberDoc.ref.parent.parent;
-          return orgRef.get().then((orgDoc) => {
-            let org = orgDoc.data();
-            return {
-              inviteSentTimestamp: member.inviteSentTimestamp,
-              orgID: orgDoc.id,
-              orgName: org.name,
-            };
-          });
-        })
-      );
-    });
-});
-
 // Authentication trigger adds custom claims to the user's auth token
 // when members are written
 exports.installMemberOAuthClaim = functions.firestore
@@ -310,49 +269,3 @@ exports.installMemberOAuthClaim = functions.firestore
         }
       });
   });
-
-exports.ignoreInvite = functions.https.onCall((data, context) => {
-  // If signed in and email verified, a user can delete an invited member record.
-  if (!context.auth) {
-    throw new functions.https.HttpsError(
-      "permission-denied",
-      "Authentication required."
-    );
-  }
-
-  if (!context.auth.token.email_verified) {
-    throw new functions.https.HttpsError(
-      "permission-denied",
-      "Email verification required."
-    );
-  }
-
-  let email = context.auth.token.email;
-
-  if (!data.orgID) {
-    throw new functions.https.HttpsError("invalid-argument", "orgID required");
-  }
-
-  let db = admin.firestore();
-  return db
-    .collection("organizations")
-    .doc(data.orgID)
-    .collection("members")
-    .doc(email)
-    .get()
-    .then((doc) => {
-      if (!doc.exists) {
-        throw new functions.https.HttpsError("not-found", "member not found");
-      }
-
-      let member = doc.data();
-      if (!member.invited || member.active) {
-        throw new functions.https.HttpsError(
-          "internal",
-          "member already accepted invite"
-        );
-      }
-
-      return doc.ref.delete();
-    });
-});
