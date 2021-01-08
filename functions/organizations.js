@@ -127,16 +127,28 @@ exports.create = functions.firestore
     let orgData = orgDoc.data();
     let orgRef = orgDoc.ref;
 
-    // Create first members.
+    // Get admin details
     let adminEmail = orgData.adminEmail;
-    let createAdminPromise = orgRef.collection("members").doc(adminEmail).set({
-      email: adminEmail,
-      invited: false,
-      active: true,
-      admin: true,
-      inviteSentTimestamp: "",
-      orgID: orgID,
-    });
+
+    // Create first members.
+    let createAdminPromise = admin
+      .auth()
+      .getUserByEmail(email)
+      .then((userRecord) =>
+        orgRef
+          .collection("members")
+          .doc(adminEmail)
+          .set({
+            name: userRecord.displayName || "",
+            photoURL: userRecord.photoURL || "",
+            email: adminEmail,
+            invited: false,
+            active: true,
+            admin: true,
+            inviteSentTimestamp: "",
+            orgID: orgID,
+          })
+      );
 
     let createMembersPromise = Promise.resolve();
     if (orgData.teamEmails) {
