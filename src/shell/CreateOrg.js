@@ -65,10 +65,14 @@ function CreateOrgDialog({ open, setOpen }) {
   let orgsRef = db.collection("organizations");
 
   const createOrg = () => {
+    let teamEmails = [email1, email2, email3, email4, email5].flatMap((item) =>
+      item ? [item] : []
+    );
+
     orgsRef
       .add({
         name: name,
-        teamEmails: [],
+        teamEmails: teamEmails,
         ready: false,
       })
       .then(() => {
