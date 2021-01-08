@@ -8,6 +8,7 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import Button from "@material-ui/core/Button";
 import AddIcon from "@material-ui/icons/Add";
 import FirebaseContext from "../util/FirebaseContext.js";
+import UserAuthContext from "../auth/UserAuthContext";
 
 export default function CreateOrg() {
   const [open, setOpen] = useState(false);
@@ -52,6 +53,8 @@ function MemberEmail({ onChange, value }) {
 }
 
 function CreateOrgDialog({ open, setOpen }) {
+  const { oauthClaims } = useContext(UserAuthContext);
+
   const [name, setName] = useState();
   const [email1, setEmail1] = useState();
   const [email2, setEmail2] = useState();
@@ -72,17 +75,30 @@ function CreateOrgDialog({ open, setOpen }) {
     orgsRef
       .add({
         name: name,
+        adminEmail: oauthClaims.email,
         teamEmails: teamEmails,
         ready: false,
+        creationTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        deletionTimestamp: "",
       })
       .then(() => {
         setName();
+        setEmail1();
+        setEmail2();
+        setEmail3();
+        setEmail4();
+        setEmail5();
         setOpen(false);
       });
   };
 
   const handleClose = () => {
     setName();
+    setEmail1();
+    setEmail2();
+    setEmail3();
+    setEmail4();
+    setEmail5();
     setOpen(false);
   };
 

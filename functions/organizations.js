@@ -119,3 +119,104 @@ exports.createOrganization = functions.https.onCall((data, context) => {
       return "OK";
     });
 });
+
+exports.create = functions.firestore
+  .document("organizations/{orgID}")
+  .onCreate((orgDoc, context) => {
+    let orgID = orgDoc.id;
+    let orgData = orgDoc.data();
+    let orgRef = orgDoc.ref;
+
+    // Create first members.
+    let adminEmail = orgData.adminEmail;
+    let createAdminPromise = orgRef.collection("members").doc(adminEmail).set({
+      email: adminEmail,
+      invited: false,
+      active: true,
+      admin: true,
+      inviteSentTimestamp: "",
+      orgID: orgID,
+    });
+
+    let createMembersPromise = Promise.resolve();
+    if (orgData.teamEmails) {
+      createMembersPromise = Promise.all(
+        orgData.teamEmails.map((memberEmail) => {
+          return orgRef.collection("members").doc(adminEmail).set({
+            email: memberEmail,
+            invited: true,
+            active: false,
+            admin: false,
+            inviteSentTimestamp: "",
+            orgID: orgID,
+          });
+        })
+      );
+    }
+
+    const rawdata = fs.readFileSync("data/default_tags.json");
+    const defaultTags = JSON.parse(rawdata);
+
+    let tagGroupPromise = Promise.all(
+      defaultTags["tagGroups"].map((tagGroup) => {
+        return orgRef
+          .collection("tagGroups")
+          .add({
+            createdBy: adminEmail,
+            creationTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+            deletionTimestamp: "",
+            name: tagGroup["name"],
+          })
+          .then((doc) => {
+            let tagGroupID = doc.id;
+            let tagGroupRef = orgRef.collection("tagGroups").doc(tagGroupID);
+
+            console.debug("Creating tags");
+
+            // 4) Create default tags.
+            let tagPromises = tagGroup["tags"].map((tag) => {
+              let tagDocument = {
+                ID: uuidv4(),
+                color: tag.color,
+                textColor: tag.textColor,
+                name: tag.name,
+                organizationID: orgID,
+                createdBy: adminEmail,
+                tagGroupID: tagGroupID,
+                creationTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+                deletionTimestamp: "",
+              };
+              tagGroupRef
+                .collection("tags")
+                .doc(tagDocument.ID)
+                .set(tagDocument);
+            });
+
+            return Promise.all(tagPromises).then(() => {
+              if (!tagGroup.default) {
+                return;
+              }
+
+              console.debug("Set default tag group");
+
+              // 5) After creating tag group. Set the default tag group.
+              return orgRef.update({
+                defaultTagGroupID: tagGroupID,
+              });
+            });
+          });
+      })
+    );
+
+    // TODO: Add dummy data (guides, etc).
+
+    return Promise.all([
+      createAdminPromise,
+      createMembersPromise,
+      tagGroupPromise,
+    ]).then(() => {
+      orgRef.update({
+        ready: true,
+      });
+    });
+  });

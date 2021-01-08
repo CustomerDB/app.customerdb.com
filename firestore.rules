@@ -31,7 +31,8 @@ service cloud.firestore {
     match /organizations/{orgID} {
       allow create: if signedInAndVerified()
         && request.resource.data.ready == false
-        && 'name' in request.resource.data;
+        && 'name' in request.resource.data
+        && request.resource.data.adminEmail == request.auth.token.email;
     }
 
     // Only allow verified emails with the 'invited' bit set, to change to 'active' (and remove the invited 'bit' in the same operation).
