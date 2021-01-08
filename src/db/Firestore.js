@@ -4,10 +4,11 @@ import FirebaseContext from "../util/FirebaseContext.js";
 import { useParams } from "react-router-dom";
 
 export default function useFirestore() {
-  const { orgID, personID, documentID, analysisID } = useParams();
+  const { orgID, personID, documentID, analysisID, summaryID } = useParams();
   const [orgRefs, setOrgRefs] = useState({});
   const [analysisRefs, setAnalysisRefs] = useState({});
   const [documentRefs, setDocumentRefs] = useState({});
+  const [summaryRefs, setSummaryRefs] = useState({});
   const [personRefs, setPersonRefs] = useState({});
 
   const firebase = useContext(FirebaseContext);
@@ -26,6 +27,7 @@ export default function useFirestore() {
     r.apiKeysRef = r.orgRef.collection("apiKeys");
     r.analysesRef = r.orgRef.collection("analyses");
     r.documentsRef = r.orgRef.collection("documents");
+    r.summariesRef = r.orgRef.collection("summaries");
     r.callsRef = r.orgRef.collection("calls");
     r.membersRef = r.orgRef.collection("members");
     r.peopleRef = r.orgRef.collection("people");
@@ -72,10 +74,21 @@ export default function useFirestore() {
     setPersonRefs(r);
   }, [orgRefs.peopleRef, personID]);
 
+  useEffect(() => {
+    if (!summaryID || !orgRefs.summariesRef) {
+      setSummaryRefs({});
+      return;
+    }
+    let r = {};
+    r.summaryRef = orgRefs.summariesRef.doc(summaryID);
+    setSummaryRefs(r);
+  }, [orgRefs.summariesRef, summaryID]);
+
   return {
     ...orgRefs,
     ...analysisRefs,
     ...documentRefs,
     ...personRefs,
+    ...summaryRefs,
   };
 }
