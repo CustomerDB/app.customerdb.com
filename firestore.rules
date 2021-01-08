@@ -30,7 +30,7 @@ service cloud.firestore {
     // Allow verified users to create a new organization
     match /organizations/{orgID} {
       allow create: if signedInAndVerified()
-        && resource.data.pending == true
+        && resource.data.ready == false
         && 'name' in resource.data;
     }
 
