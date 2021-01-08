@@ -31,6 +31,7 @@ import { white } from "material-ui/styles/colors";
 import LocalOfferIcon from "@material-ui/icons/LocalOffer";
 import Profile from "./Profile";
 import Create from "./Create";
+import CreateOrg from "./CreateOrg";
 
 const drawerWidth = 240;
 
@@ -184,7 +185,7 @@ export default function Shell({
 
             <div className={classes.grow} />
 
-            {!noSidebar && <Create />}
+            {noSidebar ? <CreateOrg /> : <Create />}
 
             <Profile noOrgSelector={noOrgSelector} />
           </Toolbar>
