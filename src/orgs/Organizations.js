@@ -9,18 +9,54 @@ import FirebaseContext from "../util/FirebaseContext";
 export default function Organizations() {
   const { oauthClaims } = useContext(UserAuthContext);
   const [orgIDs, setOrgIDs] = useState([]);
+  const [invitedOrgIDs, setInvitedOrgIDs] = useState([]);
+
+  const firebase = useContext(FirebaseContext);
+  const db = firebase.firestore();
 
   useEffect(() => {
-    if (!oauthClaims || !oauthClaims.orgs) {
+    if (!oauthClaims) {
       return;
     }
-    setOrgIDs(Object.keys(oauthClaims.orgs));
-  }, [oauthClaims]);
+
+    return db
+      .collectionGroup("members")
+      .where("email", "==", oauthClaims.email)
+      .onSnapshot((snapshot) => {
+        let newOrgIDs = [];
+        let newInvitedOrgIDs = [];
+
+        snapshot.forEach((doc) => {
+          let member = doc.data();
+          if (!member.active && member.invited) {
+            newInvitedOrgIDs.push(member.orgID);
+          }
+
+          if (member.active) {
+            newOrgIDs.push(member.orgID);
+          }
+        });
+
+        setOrgIDs(newOrgIDs);
+        setInvitedOrgIDs(newInvitedOrgIDs);
+      });
+  }, [oauthClaims, firebase, db]);
+
+  console.log("invitedOrgIDs", invitedOrgIDs);
 
   return (
     <Shell noOrgSelector noSidebar>
       <Grid container style={{ padding: "1rem" }}>
-        <PendingInvites orgIDs={orgIDs} />
+        <Grid container item xs={12}>
+          {invitedOrgIDs.length > 0 && (
+            <Grid item xs={12}>
+              <h5>Pending invites</h5>
+            </Grid>
+          )}
+          {invitedOrgIDs.map((id) => (
+            <InviteCard key={id} orgID={id} />
+          ))}
+        </Grid>
 
         <Grid container item xs={12}>
           <Grid item xs={12}>
@@ -32,48 +68,5 @@ export default function Organizations() {
         </Grid>
       </Grid>
     </Shell>
-  );
-}
-
-function PendingInvites() {
-  const firebase = useContext(FirebaseContext);
-  const [invitedOrgs, setInvitedOrgs] = useState();
-  const [rerender, setRerender] = useState();
-
-  useEffect(() => {
-    if (!firebase) {
-      return;
-    }
-    const getInvitedOrgs = firebase
-      .functions()
-      .httpsCallable("auth-getInvitedOrgs");
-
-    getInvitedOrgs().then((result) => {
-      console.debug("invited orgs", result.data);
-      setInvitedOrgs(result.data);
-    });
-  }, [firebase, rerender]);
-
-  if (!invitedOrgs || !invitedOrgs.length) return <></>;
-
-  const inviteCards = invitedOrgs.map(
-    ({ orgID, orgName, inviteSentTimestamp }) => (
-      <InviteCard
-        key={orgID}
-        orgID={orgID}
-        orgName={orgName}
-        inviteSentTimestamp={inviteSentTimestamp}
-        setRerender={setRerender}
-      />
-    )
-  );
-
-  return (
-    <Grid container item xs={12}>
-      <Grid item xs={12}>
-        <h5>Pending invites</h5>
-      </Grid>
-      {inviteCards}
-    </Grid>
   );
 }

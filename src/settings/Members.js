@@ -74,6 +74,7 @@ export default function Members(props) {
       active: false,
       email: lowerCaseEmail,
       inviteSentTimestamp: "",
+      orgID: orgID,
     });
   };
 

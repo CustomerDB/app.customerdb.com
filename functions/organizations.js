@@ -142,7 +142,7 @@ exports.create = functions.firestore
     if (orgData.teamEmails) {
       createMembersPromise = Promise.all(
         orgData.teamEmails.map((memberEmail) => {
-          return orgRef.collection("members").doc(adminEmail).set({
+          return orgRef.collection("members").doc(memberEmail).set({
             email: memberEmail,
             invited: true,
             active: false,

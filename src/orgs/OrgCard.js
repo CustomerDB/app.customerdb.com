@@ -4,6 +4,7 @@ import CardContent from "@material-ui/core/CardContent";
 import Typography from "@material-ui/core/Typography";
 import FirebaseContext from "../util/FirebaseContext.js";
 import { Link } from "react-router-dom";
+import LinearProgress from "@material-ui/core/LinearProgress";
 
 export default function OrgCard({ orgID }) {
   const firebase = useContext(FirebaseContext);
@@ -46,6 +47,10 @@ export default function OrgCard({ orgID }) {
     members = `${numMembers} member`;
   }
 
+  if (!org) {
+    return <></>;
+  }
+
   return (
     <Card
       style={{
@@ -56,9 +61,14 @@ export default function OrgCard({ orgID }) {
       }}
     >
       <CardContent>
-        <Typography variant="h6" gutterBottom style={{ fontWeight: "bold" }}>
-          {linkedTitle}
+        <Typography
+          variant="h6"
+          gutterBottom
+          style={{ fontWeight: "bold", color: org.ready ? "black" : "grey" }}
+        >
+          {org.ready ? linkedTitle : org.name}
         </Typography>
+        {!org.ready && <LinearProgress />}
         {members}
       </CardContent>
     </Card>

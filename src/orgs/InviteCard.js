@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect, useCallback } from "react";
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import CardActions from "@material-ui/core/CardActions";
@@ -18,7 +18,7 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 
 const { v4: uuidv4 } = require("uuid");
 
-export default function InviteCard({ orgID, orgName, setRerender }) {
+export default function InviteCard({ orgID }) {
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
   const db = firebase.firestore();
@@ -26,50 +26,72 @@ export default function InviteCard({ orgID, orgName, setRerender }) {
   const [loading, setLoading] = useState(false);
   const [show, setShow] = useState(true);
   const [ignoreDialogOpen, setIgnoreDialogOpen] = useState();
+  const [org, setOrg] = useState();
 
-  const linkedTitle = orgID && orgName && (
-    <Link style={{ color: "black" }} to={`/orgs/${orgID}`}>
-      {orgName}
-    </Link>
-  );
+  const [memberRef, setMemberRef] = useState();
 
-  const onAccept = (e) => {
-    setLoading(true);
+  console.log("Trying to get org data", db, orgID);
 
-    if (!db || !oauthClaims || !oauthClaims.email) {
+  useEffect(() => {
+    console.log(db, orgID);
+    if (!db || !orgID) {
       return;
     }
 
     return db
       .collection("organizations")
       .doc(orgID)
-      .collection("members")
-      .doc(oauthClaims.email)
-      .update({
-        email: oauthClaims.email,
-        displayName: oauthClaims.name || "",
-        photoURL: oauthClaims.picture || "",
-        invited: false,
-        active: true,
-        joinedTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
-      })
-      .then(() => {
-        setShow(false);
-        setRerender(uuidv4());
-      })
-      .catch((err) => {
-        setLoading(false);
-        console.error(err);
-      });
-  };
+      .onSnapshot((doc) => setOrg(doc.data()));
+  }, [db, orgID]);
+
+  useEffect(() => {
+    if (!db || !orgID || !oauthClaims || !oauthClaims.email) {
+      return;
+    }
+    setMemberRef(
+      db
+        .collection("organizations")
+        .doc(orgID)
+        .collection("members")
+        .doc(oauthClaims.email)
+    );
+  }, [db, orgID, oauthClaims]);
+
+  const onAccept = useCallback(
+    (e) => {
+      if (!oauthClaims || !oauthClaims.email) {
+        return;
+      }
+
+      return memberRef
+        .update({
+          email: oauthClaims.email,
+          displayName: oauthClaims.name || "",
+          photoURL: oauthClaims.picture || "",
+          invited: false,
+          active: true,
+          joinedTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        })
+        .then(() => {
+          setShow(false);
+        });
+    },
+    [memberRef, oauthClaims]
+  );
 
   const onIgnore = (e) => {
     setIgnoreDialogOpen(true);
   };
 
-  if (!show) {
-    return <></>;
+  if (!org) {
+    return <>no org</>;
   }
+
+  const linkedTitle = orgID && org.name && (
+    <Link style={{ color: "black" }} to={`/orgs/${orgID}`}>
+      {org.name}
+    </Link>
+  );
 
   return (
     <>
@@ -80,7 +102,7 @@ export default function InviteCard({ orgID, orgName, setRerender }) {
         aria-describedby="alert-dialog-description"
       >
         <DialogTitle id="alert-dialog-title">
-          Ignore invite to {orgName}
+          Ignore invite to {org.name}
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
@@ -98,22 +120,9 @@ export default function InviteCard({ orgID, orgName, setRerender }) {
           <Button
             variant="contained"
             onClick={() => {
-              setLoading(true);
-              const ignoreInviteFunc = firebase
-                .functions()
-                .httpsCallable("auth-ignoreInvite");
-
-              ignoreInviteFunc({ orgID: orgID })
-                .then(() => {
-                  setShow(false);
-                  setRerender(uuidv4());
-                })
-                .catch((err) => {
-                  setLoading(false);
-                  console.error(err);
-                });
-
-              setIgnoreDialogOpen(false);
+              memberRef.delete().then(() => {
+                setIgnoreDialogOpen(false);
+              });
             }}
             color="secondary"
             autoFocus
