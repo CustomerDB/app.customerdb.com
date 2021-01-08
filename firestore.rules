@@ -41,7 +41,7 @@ service cloud.firestore {
       
       // Allow invited org members to read the organization details (name, etc)
       allow get: if signedInAndVerified()
-                 && invitedOrgMember()
+                 && invitedOrgMember(orgID)
     }
 
     match /organizations/{orgID}/members/{email} {
