@@ -246,6 +246,36 @@ service cloud.firestore {
                          && activeOrgMember(orgID);
     }
 
+    // Active non-admin users can write **SUMMARIES** in the org.
+    match /organizations/{orgID}/summaries/{summary} {
+      allow write: if signedInAndVerified()
+                   && activeOrgMember(orgID);
+    }
+
+    // Active non-admin users can write **SUMMARY REVISIONS** in the org.
+    match /organizations/{orgID}/summaries/{summary}/revisions/{revision} {
+      allow write: if signedInAndVerified()
+                   && activeOrgMember(orgID);
+    }
+
+    // Active non-admin users can write **SUMMARY DELTAS** in the org.
+    match /organizations/{orgID}/summaries/{summary}/deltas/{delta} {
+      allow write: if signedInAndVerified()
+                   && activeOrgMember(orgID);
+    }
+
+    // Active non-admin users can read and write **SUMMARY COLLABORATORS** in the org.
+    match /organizations/{orgID}/summaries/{summary}/collaborators/{collaborator} {
+      allow read, write: if signedInAndVerified()
+                         && activeOrgMember(orgID);
+    }
+
+    // Active non-admin users can read and write **SUMMARY CURSORS** in the org.
+    match /organizations/{orgID}/summaries/{summary}/cursors/{cursor} {
+      allow read, write: if signedInAndVerified()
+                         && activeOrgMember(orgID);
+    }
+
     // Active non-admin users can write **CALLS** in the org.
     match /organizations/{orgID}/calls/{document} {
       allow write: if signedInAndVerified()
