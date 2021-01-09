@@ -8,7 +8,6 @@ import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
 import useFirestore from "../db/Firestore.js";
 import { useOrganization } from "../organization/hooks.js";
-import Shell from "../shell/Shell.js";
 import TagGroup from "./TagGroup.js";
 import Typography from "@material-ui/core/Typography";
 
@@ -74,7 +73,7 @@ export default function Tags({ create }) {
   }
 
   return (
-    <Shell>
+    <>
       <Typography
         variant="h6"
         style={{ fontWeight: "bold", padding: "1rem" }}
@@ -85,6 +84,6 @@ export default function Tags({ create }) {
       <Grid container item xs={12} alignItems="baseline">
         {tagGroups && tagGroups.map((tg) => <TagGroup tagGroupID={tg.ID} />)}
       </Grid>
-    </Shell>
+    </>
   );
 }

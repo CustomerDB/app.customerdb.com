@@ -17,7 +17,7 @@ import ListItemText from "@material-ui/core/ListItemText";
 import Tooltip from "@material-ui/core/Tooltip";
 import Moment from "react-moment";
 import Scrollable from "../shell/Scrollable.js";
-import Shell from "../shell/Shell.js";
+import { Search } from "../shell/Search.js";
 import TheatersIcon from "@material-ui/icons/Theaters";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import { connectHits } from "react-instantsearch-dom";
@@ -265,12 +265,12 @@ export default function Interviews({ create, fromGuide }) {
   }
 
   return (
-    <Shell search={searchConfig}>
+    <Search search={searchConfig}>
       <Grid container className="fullHeight" style={{ position: "relative" }}>
         {list}
         {content}
         {guideModal}
       </Grid>
-    </Shell>
+    </Search>
   );
 }
