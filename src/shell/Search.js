@@ -21,7 +21,7 @@ import Chip from "@material-ui/core/Chip";
 import Divider from "@material-ui/core/Divider";
 import Tooltip from "@material-ui/core/Tooltip";
 import Moment from "react-moment";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import GroupIcon from "@material-ui/icons/Group";
 import RecordVoiceOverIcon from "@material-ui/icons/RecordVoiceOver";
 import { useQuery } from "../util/Query.js";
@@ -157,12 +157,13 @@ function documentsFromHits(hits) {
 function RefinementChip() {
   const query = useQuery();
   const navigate = useNavigate();
+  const location = useLocation();
 
   return query.get("q") ? (
     <Chip
       label={query.get("q")}
       onDelete={() => {
-        navigate(".");
+        navigate(location.pathname);
       }}
     />
   ) : (
