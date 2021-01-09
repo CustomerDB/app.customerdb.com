@@ -78,7 +78,7 @@ function sendVerifyEmail(email) {
           let htmlContent = fs.readFileSync("email-templates/verify.html", {
             encoding: "utf8",
           });
-          htmlContent = htmlContent.replace("{{link}}", orgName);
+          htmlContent = htmlContent.replace("{{link}}", link);
 
           const msg = {
             to: email,

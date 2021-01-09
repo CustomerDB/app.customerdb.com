@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { TextValidator, ValidatorForm } from "react-material-ui-form-validator";
 import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
@@ -12,6 +12,27 @@ import UserAuthContext from "../auth/UserAuthContext";
 
 export default function CreateOrg() {
   const [open, setOpen] = useState(false);
+  const [firstOpened, setFirstOpened] = useState(false);
+
+  const firebase = useContext(FirebaseContext);
+  const db = firebase.firestore();
+  const { oauthClaims } = useContext(UserAuthContext);
+
+  useEffect(() => {
+    if (!db || !oauthClaims || !oauthClaims.email) {
+      return;
+    }
+
+    return db
+      .collectionGroup("members")
+      .where("email", "==", oauthClaims.email)
+      .onSnapshot((snapshot) => {
+        if (snapshot.size === 0 && !firstOpened) {
+          setOpen(true);
+          setFirstOpened(true);
+        }
+      });
+  }, [db, oauthClaims]);
 
   return (
     <>
