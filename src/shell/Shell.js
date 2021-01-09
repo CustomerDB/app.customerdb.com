@@ -1,7 +1,7 @@
 import "./style.css";
 
 import React, { useState } from "react";
-import { Search, SearchDropdown } from "./Search.js";
+import { SearchDropdown } from "./Search.js";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import AppBar from "@material-ui/core/AppBar";
@@ -10,8 +10,6 @@ import ChevronRightIcon from "@material-ui/icons/ChevronRight";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import Divider from "@material-ui/core/Divider";
 import Drawer from "@material-ui/core/Drawer";
-import ExploreIcon from "@material-ui/icons/Explore";
-import FormatQuoteIcon from "@material-ui/icons/FormatQuote";
 import GroupIcon from "@material-ui/icons/Group";
 import IconButton from "@material-ui/core/IconButton";
 import List from "@material-ui/core/List";
@@ -31,6 +29,7 @@ import { white } from "material-ui/styles/colors";
 import LocalOfferIcon from "@material-ui/icons/LocalOffer";
 import Profile from "./Profile";
 import Create from "./Create";
+import CreateOrg from "./CreateOrg";
 
 const drawerWidth = 240;
 
@@ -152,127 +151,117 @@ export default function Shell({
   const lgBreakpoint = useMediaQuery(theme.breakpoints.up("lg"));
 
   let app = (
-    <Search search={search}>
-      <div className={classes.root}>
-        <CssBaseline />
-        <AppBar
-          position="fixed"
-          className={clsx(classes.appBar, {
-            [classes.appBarShift]: !noSidebar && (open || lgBreakpoint),
+    <div className={classes.root}>
+      <CssBaseline />
+      <AppBar
+        position="fixed"
+        className={clsx(classes.appBar, {
+          [classes.appBarShift]: !noSidebar && (open || lgBreakpoint),
+        })}
+      >
+        <Toolbar>
+          {!noSidebar && (
+            <IconButton
+              color="inherit"
+              aria-label="open drawer"
+              onClick={handleDrawerOpen}
+              edge="start"
+              className={clsx(classes.menuButton, {
+                [classes.hide]: open || lgBreakpoint,
+              })}
+            >
+              <MenuIcon />
+            </IconButton>
+          )}
+
+          {noSidebar && (
+            <img style={{ height: "2rem" }} src={logo} alt="CustomerDB" />
+          )}
+
+          <SearchDropdown />
+
+          <div className={classes.grow} />
+
+          {noSidebar ? <CreateOrg /> : <Create />}
+
+          <Profile noOrgSelector={noOrgSelector} />
+        </Toolbar>
+      </AppBar>
+      {!noSidebar && (
+        <Drawer
+          variant="permanent"
+          className={clsx(classes.drawer, {
+            [classes.drawerOpen]: open,
+            [classes.drawerClose]: !open,
           })}
-        >
-          <Toolbar>
-            {!noSidebar && (
-              <IconButton
-                color="inherit"
-                aria-label="open drawer"
-                onClick={handleDrawerOpen}
-                edge="start"
-                className={clsx(classes.menuButton, {
-                  [classes.hide]: open || lgBreakpoint,
-                })}
-              >
-                <MenuIcon />
-              </IconButton>
-            )}
-
-            {noSidebar && (
-              <img style={{ height: "2rem" }} src={logo} alt="CustomerDB" />
-            )}
-
-            <SearchDropdown />
-
-            <div className={classes.grow} />
-
-            {!noSidebar && <Create />}
-
-            <Profile noOrgSelector={noOrgSelector} />
-          </Toolbar>
-        </AppBar>
-        {!noSidebar && (
-          <Drawer
-            variant="permanent"
-            className={clsx(classes.drawer, {
+          classes={{
+            paper: clsx({
               [classes.drawerOpen]: open,
               [classes.drawerClose]: !open,
-            })}
-            classes={{
-              paper: clsx({
-                [classes.drawerOpen]: open,
-                [classes.drawerClose]: !open,
-              }),
-            }}
-          >
-            <div className={classes.toolbar}>
-              <img style={{ width: "80%" }} src={logoDarkBG} alt="CustomerDB" />
-              {!lgBreakpoint && (
-                <IconButton onClick={handleDrawerClose}>
-                  {theme.direction === "rtl" ? (
-                    <ChevronRightIcon />
-                  ) : (
-                    <ChevronLeftIcon />
-                  )}
-                </IconButton>
-              )}
-            </div>
-            <Divider />
-            <List>
-              <NavListItem
-                key="Quotes"
-                to={`/orgs/${orgID}/quotes`}
-                icon={FormatQuoteIcon}
-                label="Quotes"
-              />
-              <NavListItem
-                key="Interviews"
-                to={`/orgs/${orgID}/interviews`}
-                icon={RecordVoiceOverIcon}
-                label="Interviews"
-              />
-              <NavListItem
-                key="Guides"
-                to={`/orgs/${orgID}/guides`}
-                icon={ExploreIcon}
-                label="Guides"
-              />
-              <NavListItem
-                key="Customers"
-                to={`/orgs/${orgID}/people`}
-                icon={GroupIcon}
-                label="Customers"
-              />
-              <NavListItem
-                key="Analysis"
-                to={`/orgs/${orgID}/analyze`}
-                icon={MultilineChartIcon}
-                label="Analysis"
-              />
-              <NavListItem
-                key="Tags"
-                to={`/orgs/${orgID}/tags`}
-                icon={LocalOfferIcon}
-                label="Tags"
-              />
-            </List>
+            }),
+          }}
+        >
+          <div className={classes.toolbar}>
+            <img style={{ width: "80%" }} src={logoDarkBG} alt="CustomerDB" />
+            {!lgBreakpoint && (
+              <IconButton onClick={handleDrawerClose}>
+                {theme.direction === "rtl" ? (
+                  <ChevronRightIcon />
+                ) : (
+                  <ChevronLeftIcon />
+                )}
+              </IconButton>
+            )}
+          </div>
+          <Divider />
+          <List>
+            <NavListItem
+              key="Interviews"
+              to={[
+                `/orgs/${orgID}/quotes`,
+                `/orgs/${orgID}/interviews`,
+                `/orgs/${orgID}/guides`,
+              ]}
+              icon={RecordVoiceOverIcon}
+              label="Interviews"
+            />
+            <NavListItem
+              key="Customers"
+              to={[`/orgs/${orgID}/people`]}
+              icon={GroupIcon}
+              label="Customers"
+            />
+            <NavListItem
+              key="Analysis"
+              to={[`/orgs/${orgID}/analyze`]}
+              icon={MultilineChartIcon}
+              label="Analysis"
+            />
+            <NavListItem
+              key="Tags"
+              to={[`/orgs/${orgID}/tags`]}
+              icon={LocalOfferIcon}
+              label="Tags"
+            />
+          </List>
 
-            <Divider />
+          <Divider />
 
-            <List>
-              <NavListItem
-                key="Settings"
-                to={`/orgs/${orgID}/settings`}
-                icon={SettingsIcon}
-                label="Settings"
-              />
-            </List>
-          </Drawer>
-        )}
-        <main className={classes.content}>
-          <div className={classes.toolbar} />
-          {children}
-        </main>
-      </div>
-    </Search>
+          <List>
+            <NavListItem
+              key="Settings"
+              to={[`/orgs/${orgID}/settings`]}
+              icon={SettingsIcon}
+              label="Settings"
+            />
+          </List>
+        </Drawer>
+      )}
+      <main className={classes.content}>
+        <div className={classes.toolbar} />
+        {children}
+      </main>
+    </div>
   );
 
   return app;
@@ -284,9 +273,16 @@ function NavListItem(props) {
   const location = useLocation();
   const navigate = useNavigate();
 
-  let selected = props.end
-    ? location.pathname === props.to
-    : location.pathname.startsWith(props.to);
+  let selected = false;
+  props.to.forEach((path) => {
+    let pathSelected = props.end
+      ? location.pathname === path
+      : location.pathname.startsWith(path);
+
+    if (pathSelected) {
+      selected = true;
+    }
+  });
 
   let IconComponent = props.icon;
 
@@ -294,7 +290,7 @@ function NavListItem(props) {
     <ListItem
       button
       className={selected ? classes.listItemSelected : classes.listItem}
-      onClick={() => navigate(props.to)}
+      onClick={() => navigate(props.to[0])}
     >
       <ListItemIcon>
         <IconComponent

@@ -81,9 +81,7 @@ export default function App() {
                   element={
                     <WithOauthUser>
                       <RequireVerifiedEmail>
-                        <RequireMembership>
-                          <Organizations />
-                        </RequireMembership>
+                        <Organizations />
                       </RequireVerifiedEmail>
                     </WithOauthUser>
                   }

@@ -30,7 +30,6 @@ import Moment from "react-moment";
 import Paper from "@material-ui/core/Paper";
 import ReactQuill from "react-quill";
 import Scrollable from "../shell/Scrollable.js";
-import Shell from "../shell/Shell.js";
 import TagGroupSelector from "./TagGroupSelector.js";
 import Typography from "@material-ui/core/Typography";
 import UserAuthContext from "../auth/UserAuthContext.js";
@@ -185,12 +184,10 @@ export default function Guides({ create }) {
   }
 
   return (
-    <Shell>
-      <Grid container className="fullHeight" style={{ position: "relative" }}>
-        {list}
-        {content}
-      </Grid>
-    </Shell>
+    <Grid container className="fullHeight" style={{ position: "relative" }}>
+      {list}
+      {content}
+    </Grid>
   );
 }
 

@@ -21,14 +21,31 @@ service cloud.firestore {
       return member.data.active == true;
     }
 
+    function invitedOrgMember(orgID) {
+      let member = get(/databases/$(database)/documents/organizations/$(orgID)/members/$(request.auth.token.email));
+      return member.data.active == false && member.data.invited == true;
+    }
+
     // Allow clients to subscribe to their own token refresh trigger
     match /uids/{uid} {
       allow read: if signedIn()
                   && request.auth.uid == uid;
     }
 
-    // Only allow verified emails with the 'invited' bit set, to change to 'active' (and remove the invited 'bit' in the same operation).
+    match /organizations/{orgID} {
+      // Allow verified users to create a new organization
+      allow create: if signedInAndVerified()
+        && request.resource.data.ready == false
+        && 'name' in request.resource.data
+        && request.resource.data.adminEmail == request.auth.token.email;
+      
+      // Allow invited org members to read the organization details (name, etc)
+      allow get: if signedInAndVerified()
+                 && invitedOrgMember(orgID)
+    }
+
     match /organizations/{orgID}/members/{email} {
+      // Only allow verified emails with the 'invited' bit set, to change to 'active' (and remove the invited 'bit' in the same operation).
       allow update: if signedInAndVerified()
                     && request.auth.token.email == email
                     && resource.data.invited == true
@@ -36,6 +53,12 @@ service cloud.firestore {
                     && request.resource.data.invited == false
                     && request.resource.data.active == true
                     && (!('email' in request.resource.data) || request.resource.data.email == email);
+
+      // Allow invited members to ignore/decline by deleting the invite.
+      allow delete: if signedInAndVerified()
+                    && request.auth.token.email == email
+                    && resource.data.invited == true
+                    && resource.data.active == false;
     }
 
     // FIXME: Users can read and write their own user to org mapping. Currently only allows for 1 active org.

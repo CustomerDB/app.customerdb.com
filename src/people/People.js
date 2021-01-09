@@ -15,7 +15,7 @@ import PeopleHelp from "./PeopleHelp.js";
 import Person from "./Person.js";
 import PersonEditDialog from "./PersonEditDialog.js";
 import Scrollable from "../shell/Scrollable.js";
-import Shell from "../shell/Shell.js";
+import { Search } from "../shell/Search.js";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import { connectHits } from "react-instantsearch-dom";
 import event from "../analytics/event.js";
@@ -183,12 +183,12 @@ export default function People({ create }) {
   }
 
   return (
-    <Shell search={searchConfig}>
+    <Search search={searchConfig}>
       <Grid container className="fullHeight" style={{ position: "relative" }}>
         {list}
         {content}
         {addModal}
       </Grid>
-    </Shell>
+    </Search>
   );
 }

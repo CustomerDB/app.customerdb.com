@@ -6,7 +6,7 @@ import { useTheme } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
 import Quote from "./Quote.js";
 import React, { useEffect, useRef } from "react";
-import Shell from "../shell/Shell.js";
+import { Search } from "../shell/Search.js";
 import useMediaQuery from "@material-ui/core/useMediaQuery";
 import { useSearchClient } from "../search/client.js";
 import QuotesHelp from "./QuotesHelp.js";
@@ -118,12 +118,12 @@ export default function Quotes(props) {
   );
 
   return (
-    <Shell search={searchConfig}>
+    <Search search={searchConfig}>
       <Grid container className="fullHeight">
         <Grid container item xs>
           {searchGrid}
         </Grid>
       </Grid>
-    </Shell>
+    </Search>
   );
 }

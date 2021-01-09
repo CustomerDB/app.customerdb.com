@@ -330,67 +330,48 @@ exports.highlightRepair = functions.pubsub
       });
   });
 
-exports.clearPlayheadFormatting = functions
-  .runWith({
-    timeoutSeconds: 300,
-    memory: "2GB",
-  })
-  .pubsub.topic("clear-playhead-formatting")
+exports.repairMembers = functions.pubsub
+  .topic("repair-members")
   .onPublish((message) => {
     let db = admin.firestore();
 
     return db
       .collection("organizations")
       .get()
-      .then((snapshot) => {
-        return Promise.all(
-          snapshot.docs.map((orgDoc) => {
-            const orgID = orgDoc.id;
-            console.log(`Removing playheads in org ${orgID}`);
-            return orgDoc.ref
-              .collection("documents")
+      .then((snapshot) =>
+        Promise.all(
+          snapshot.docs.map((orgDoc) =>
+            orgDoc.ref
+              .collection("members")
               .get()
-              .then((snapshot) => {
-                return Promise.all(
-                  snapshot.docs.map((doc) => {
-                    const documentID = doc.id;
-                    return util
-                      .revisionAtTime(
-                        orgID,
-                        documentID,
-                        "transcript",
-                        undefined
-                      )
-                      .then((revision) => {
-                        if (!revision) {
-                          console.debug(
-                            `Skipping ${documentID} as it doesn't have a transcript`
-                          );
-                          return;
-                        }
-                        let delta = revision;
-                        let length = delta.length();
+              .then((snapshot) =>
+                Promise.all(
+                  snapshot.docs.map((memberDoc) =>
+                    memberDoc.ref.update({
+                      orgID: orgDoc.id,
+                    })
+                  )
+                )
+              )
+          )
+        )
+      );
+  });
 
-                        let resetPlayheadDelta = new Delta().retain(length, {
-                          playhead: null,
-                        });
-
-                        let deltaID = uuidv4();
-                        return doc.ref
-                          .collection("transcriptDeltas")
-                          .doc(deltaID)
-                          .set({
-                            ID: deltaID,
-                            editorID: "system",
-                            ops: resetPlayheadDelta.ops,
-                            timestamp: admin.firestore.FieldValue.serverTimestamp(),
-                            userEmail: "",
-                          });
-                      });
-                  })
-                );
-              });
-          })
-        );
-      });
+exports.repairOrgs = functions.pubsub
+  .topic("repair-orgs")
+  .onPublish((message) => {
+    let db = admin.firestore();
+    return db
+      .collection("organizations")
+      .get()
+      .then((snapshot) =>
+        Promise.all(
+          snapshot.docs.map((orgDoc) =>
+            orgDoc.ref.update({
+              ready: true,
+            })
+          )
+        )
+      );
   });

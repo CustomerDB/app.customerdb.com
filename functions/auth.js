@@ -1,6 +1,7 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const sgMail = require("@sendgrid/mail");
+const fs = require("fs");
 
 sgMail.setApiKey(functions.config().sendgrid.api_key);
 
@@ -26,12 +27,27 @@ exports.sendSignupEmail = functions.firestore
         })
         .then((orgName) => {
           let signupLink = `${baseURL}/signup?email=${urlEncodedEmail}`;
+
+          let htmlContent = fs.readFileSync("email-templates/signup.html", {
+            encoding: "utf8",
+          });
+          htmlContent = htmlContent.replace(/{{signupLink}}/g, signupLink);
+          htmlContent = htmlContent.replace(/{{orgName}}/g, orgName);
+
           const msg = {
             to: email,
             from: "hello@customerdb.com",
-            subject: `Join CustomerDB Organization ${orgName}`,
-            text: `Open ${signupLink} in a browser to get started`,
-            html: `<a href="${signupLink}">Get started</a> with CustomerDB`,
+            subject: `You've been invited to join ${orgName} on CustomerDB`,
+            text: `
+              Hi there!
+
+              One of your team mates have invited you to join ${orgName} on CustomerDB.
+              Open ${signupLink} in a browser to get started.
+
+              Sincerely,
+              The CustomerDB team
+            `,
+            html: htmlContent,
           };
 
           return sgMail.send(msg);
@@ -59,12 +75,25 @@ function sendVerifyEmail(email) {
         .auth()
         .generateEmailVerificationLink(email, actionCodeSettings)
         .then((link) => {
+          let htmlContent = fs.readFileSync("email-templates/verify.html", {
+            encoding: "utf8",
+          });
+          htmlContent = htmlContent.replace(/{{link}}/g, link);
+
           const msg = {
             to: email,
             from: "hello@customerdb.com",
-            subject: `Verify your email for CustomerDB`,
-            text: `Click ${link} in a browser to verify your email`,
-            html: `<a href="${link}">Click here</a> to verify your email with CustomerDB`,
+            subject: `Verify your email for CustomerDB to get started`,
+            text: `
+            Hi there!
+
+            You are one step away from getting started making sense of customer conversations with CustomerDB.
+            Please, click ${link} in a browser to verify your email.
+
+            Sincerely,
+            The CustomerDB team
+            `,
+            html: htmlContent,
           };
 
           return sgMail.send(msg);
@@ -118,35 +147,26 @@ exports.signupEmail = functions.https.onCall((data, context) => {
         .collectionGroup("members")
         .where("email", "==", email)
         .where("invited", "==", true);
-      return membersRef.get().then((snapshot) => {
-        if (snapshot.size === 0) {
-          throw new functions.https.HttpsError("internal", "user not invited");
-        }
+      console.debug(`Creating user for email ${email}`);
 
-        console.debug(`Creating user for email ${email}`);
-
-        // Create firebase user.
-        return admin
-          .auth()
-          .createUser({
-            email: email,
-            emailVerified: false,
-            password: password,
-            displayName: name,
-            disabled: false,
-          })
-          .catch((err) => {
-            console.error(`Could not create user ${email}: ${err}`);
-            throw new functions.https.HttpsError(
-              "internal",
-              "user not created"
-            );
-          })
-          .then(() => {
-            // Send the verify email email.
-            return sendVerifyEmail(email);
-          });
-      });
+      // Create firebase user.
+      return admin
+        .auth()
+        .createUser({
+          email: email,
+          emailVerified: false,
+          password: password,
+          displayName: name,
+          disabled: false,
+        })
+        .catch((err) => {
+          console.error(`Could not create user ${email}: ${err}`);
+          throw new functions.https.HttpsError("internal", "user not created");
+        })
+        .then(() => {
+          // Send the verify email email.
+          return sendVerifyEmail(email);
+        });
     });
 });
 
@@ -171,63 +191,7 @@ exports.signupGoogle = functions.https.onCall((data, context) => {
         // User already have access to an org and should be redirected to the orgs page.
         throw new functions.https.HttpsError("internal", "user already exists");
       }
-
-      return db
-        .collectionGroup("members")
-        .where("email", "==", email)
-        .where("invited", "==", true)
-        .get()
-        .then((invitedSnapshot) => {
-          if (invitedSnapshot.size === 0) {
-            throw new functions.https.HttpsError(
-              "internal",
-              "user not invited"
-            );
-          }
-
-          return {};
-        });
-    });
-});
-
-// Returns an array of organization objects, each with
-// name, ID, and the timestamp of when the user was invited.
-exports.getInvitedOrgs = functions.https.onCall((data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError(
-      "permission-denied",
-      "Authentication required."
-    );
-  }
-
-  if (!context.auth.token.email_verified) {
-    throw new functions.https.HttpsError(
-      "permission-denied",
-      "Email verification required."
-    );
-  }
-
-  const db = admin.firestore();
-  return db
-    .collectionGroup("members")
-    .where("email", "==", context.auth.token.email)
-    .where("invited", "==", true)
-    .get()
-    .then((snapshot) => {
-      return Promise.all(
-        snapshot.docs.map((memberDoc) => {
-          const member = memberDoc.data();
-          const orgRef = memberDoc.ref.parent.parent;
-          return orgRef.get().then((orgDoc) => {
-            let org = orgDoc.data();
-            return {
-              inviteSentTimestamp: member.inviteSentTimestamp,
-              orgID: orgDoc.id,
-              orgName: org.name,
-            };
-          });
-        })
-      );
+      return {};
     });
 });
 
@@ -289,10 +253,11 @@ exports.installMemberOAuthClaim = functions.firestore
         let needsClaims = after.active && missingClaims;
 
         // True if a user is writing their own member uid (join org operation)
-        let memberJoined = !before.uid && before.uid !== after.uid;
+        // If the member record is new, assume newly joined.
+        let memberJoined = !before || (!before.uid && before.uid !== after.uid);
 
         // True if the member admin bit changed
-        let adminChanged = before.admin !== after.admin;
+        let adminChanged = before && before.admin !== after.admin;
 
         if (needsClaims || memberJoined || adminChanged) {
           let newOrg = {};
@@ -333,49 +298,3 @@ exports.installMemberOAuthClaim = functions.firestore
         }
       });
   });
-
-exports.ignoreInvite = functions.https.onCall((data, context) => {
-  // If signed in and email verified, a user can delete an invited member record.
-  if (!context.auth) {
-    throw new functions.https.HttpsError(
-      "permission-denied",
-      "Authentication required."
-    );
-  }
-
-  if (!context.auth.token.email_verified) {
-    throw new functions.https.HttpsError(
-      "permission-denied",
-      "Email verification required."
-    );
-  }
-
-  let email = context.auth.token.email;
-
-  if (!data.orgID) {
-    throw new functions.https.HttpsError("invalid-argument", "orgID required");
-  }
-
-  let db = admin.firestore();
-  return db
-    .collection("organizations")
-    .doc(data.orgID)
-    .collection("members")
-    .doc(email)
-    .get()
-    .then((doc) => {
-      if (!doc.exists) {
-        throw new functions.https.HttpsError("not-found", "member not found");
-      }
-
-      let member = doc.data();
-      if (!member.invited || member.active) {
-        throw new functions.https.HttpsError(
-          "internal",
-          "member already accepted invite"
-        );
-      }
-
-      return doc.ref.delete();
-    });
-});
