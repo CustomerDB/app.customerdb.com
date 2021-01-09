@@ -1,6 +1,7 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const sgMail = require("@sendgrid/mail");
+const fs = require("fs");
 
 sgMail.setApiKey(functions.config().sendgrid.api_key);
 
@@ -18,6 +19,10 @@ exports.sendSignupEmail = functions.firestore
       const db = admin.firestore();
       const orgRef = db.collection("organizations").doc(orgID);
 
+      const htmlContent = fs.readFileSync("email-templates/signup.html", {
+        encoding: "utf8",
+      });
+
       return orgRef
         .get()
         .then((doc) => {
@@ -26,12 +31,24 @@ exports.sendSignupEmail = functions.firestore
         })
         .then((orgName) => {
           let signupLink = `${baseURL}/signup?email=${urlEncodedEmail}`;
+
+          htmlContent = htmlContent.replace("{{signupLink}}", signupLink);
+          htmlContent = htmlContent.replace("{{orgName}}", orgName);
+
           const msg = {
             to: email,
             from: "hello@customerdb.com",
-            subject: `Join CustomerDB Organization ${orgName}`,
-            text: `Open ${signupLink} in a browser to get started`,
-            html: `<a href="${signupLink}">Get started</a> with CustomerDB`,
+            subject: `You've been invited to join ${orgName} on CustomerDB`,
+            text: `
+              Hi there!
+
+              One of your team mates have invited you to join ${orgName} on CustomerDB.
+              Open ${signupLink} in a browser to get started.
+
+              Sincerely,
+              The CustomerDB team
+            `,
+            html: htmlContent,
           };
 
           return sgMail.send(msg);
@@ -59,12 +76,25 @@ function sendVerifyEmail(email) {
         .auth()
         .generateEmailVerificationLink(email, actionCodeSettings)
         .then((link) => {
+          const htmlContent = fs.readFileSync("email-templates/verify.html", {
+            encoding: "utf8",
+          });
+          htmlContent = htmlContent.replace("{{link}}", orgName);
+
           const msg = {
             to: email,
             from: "hello@customerdb.com",
-            subject: `Verify your email for CustomerDB`,
-            text: `Click ${link} in a browser to verify your email`,
-            html: `<a href="${link}">Click here</a> to verify your email with CustomerDB`,
+            subject: `Verify your email for CustomerDB to get started`,
+            text: `
+            Hi there!
+
+            You are one step away from getting started making sense of customer conversations with CustomerDB.
+            Please, click ${link} in a browser to verify your email.
+
+            Sincerely,
+            The CustomerDB team
+            `,
+            html: htmlContent,
           };
 
           return sgMail.send(msg);
