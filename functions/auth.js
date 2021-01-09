@@ -19,10 +19,6 @@ exports.sendSignupEmail = functions.firestore
       const db = admin.firestore();
       const orgRef = db.collection("organizations").doc(orgID);
 
-      const htmlContent = fs.readFileSync("email-templates/signup.html", {
-        encoding: "utf8",
-      });
-
       return orgRef
         .get()
         .then((doc) => {
@@ -32,6 +28,9 @@ exports.sendSignupEmail = functions.firestore
         .then((orgName) => {
           let signupLink = `${baseURL}/signup?email=${urlEncodedEmail}`;
 
+          let htmlContent = fs.readFileSync("email-templates/signup.html", {
+            encoding: "utf8",
+          });
           htmlContent = htmlContent.replace("{{signupLink}}", signupLink);
           htmlContent = htmlContent.replace("{{orgName}}", orgName);
 
@@ -76,7 +75,7 @@ function sendVerifyEmail(email) {
         .auth()
         .generateEmailVerificationLink(email, actionCodeSettings)
         .then((link) => {
-          const htmlContent = fs.readFileSync("email-templates/verify.html", {
+          let htmlContent = fs.readFileSync("email-templates/verify.html", {
             encoding: "utf8",
           });
           htmlContent = htmlContent.replace("{{link}}", orgName);
