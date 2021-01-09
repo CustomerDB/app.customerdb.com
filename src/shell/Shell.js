@@ -5,6 +5,7 @@ import { SearchDropdown } from "./Search.js";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import AppBar from "@material-ui/core/AppBar";
+import AssignmentIcon from "@material-ui/icons/Assignment";
 import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
 import ChevronRightIcon from "@material-ui/icons/ChevronRight";
 import CssBaseline from "@material-ui/core/CssBaseline";
@@ -236,6 +237,12 @@ export default function Shell({
               to={[`/orgs/${orgID}/analyze`]}
               icon={MultilineChartIcon}
               label="Analysis"
+            />
+            <NavListItem
+              key="Summaries"
+              to={`/orgs/${orgID}/summaries`}
+              icon={AssignmentIcon}
+              label="Summaries"
             />
             <NavListItem
               key="Tags"
