@@ -246,6 +246,12 @@ export default function Shell({
             />
             <Divider />
             <NavListItem
+              key="Summaries"
+              to={`/orgs/${orgID}/summaries`}
+              icon={AssignmentIcon}
+              label="Summaries"
+            />
+            <NavListItem
               key="Tags"
               to={[`/orgs/${orgID}/tags`]}
               icon={LocalOfferIcon}
