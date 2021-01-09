@@ -9,22 +9,17 @@ import UserAuthContext from "../auth/UserAuthContext";
 import FirebaseContext from "../util/FirebaseContext";
 import CheckIcon from "@material-ui/icons/Check";
 import ClearIcon from "@material-ui/icons/Clear";
-import LinearProgress from "@material-ui/core/LinearProgress";
 import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
 
-const { v4: uuidv4 } = require("uuid");
-
 export default function InviteCard({ orgID }) {
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
   const db = firebase.firestore();
 
-  const [loading, setLoading] = useState(false);
-  const [show, setShow] = useState(true);
   const [ignoreDialogOpen, setIgnoreDialogOpen] = useState();
   const [org, setOrg] = useState();
 
@@ -63,20 +58,16 @@ export default function InviteCard({ orgID }) {
         return;
       }
 
-      return memberRef
-        .update({
-          email: oauthClaims.email,
-          displayName: oauthClaims.name || "",
-          photoURL: oauthClaims.picture || "",
-          invited: false,
-          active: true,
-          joinedTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
-        })
-        .then(() => {
-          setShow(false);
-        });
+      return memberRef.update({
+        email: oauthClaims.email,
+        displayName: oauthClaims.name || "",
+        photoURL: oauthClaims.picture || "",
+        invited: false,
+        active: true,
+        joinedTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      });
     },
-    [memberRef, oauthClaims]
+    [memberRef, oauthClaims, firebase]
   );
 
   const onIgnore = (e) => {
@@ -143,14 +134,12 @@ export default function InviteCard({ orgID }) {
           <Typography variant="h6" gutterBottom style={{ fontWeight: "bold" }}>
             {linkedTitle}
           </Typography>
-          {loading && <LinearProgress />}
           <CardActions>
             <Button
               startIcon={<ClearIcon />}
               size="small"
               variant="contained"
               onClick={onIgnore}
-              disabled={loading}
             >
               Ignore
             </Button>
@@ -160,7 +149,6 @@ export default function InviteCard({ orgID }) {
               color="secondary"
               variant="contained"
               onClick={onAccept}
-              disabled={loading}
             >
               Accept
             </Button>

@@ -14,7 +14,6 @@ import ListItemAvatar from "@material-ui/core/ListItemAvatar";
 import ListItemText from "@material-ui/core/ListItemText";
 import Moment from "react-moment";
 import Scrollable from "../shell/Scrollable.js";
-import Shell from "../shell/Shell.js";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
 import useFirestore from "../db/Firestore.js";
@@ -151,11 +150,9 @@ export default function Analyze({ create }) {
   }
 
   return (
-    <Shell>
-      <Grid container className="fullHeight" style={{ position: "relative" }}>
-        {list}
-        {content}
-      </Grid>
-    </Shell>
+    <Grid container className="fullHeight" style={{ position: "relative" }}>
+      {list}
+      {content}
+    </Grid>
   );
 }

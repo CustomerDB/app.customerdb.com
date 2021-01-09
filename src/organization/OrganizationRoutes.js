@@ -8,10 +8,11 @@ import Quotes from "../quotes/Quotes.js";
 import React from "react";
 import Settings from "../settings/Settings.js";
 import Tags from "../tags/Tags.js";
+import Shell from "../shell/Shell.js";
 
 export default function OrganizationRoutes(props) {
   return (
-    <>
+    <Shell>
       <Routes>
         <Route path="/" element={<Navigate to="quotes" />} />
 
@@ -61,6 +62,6 @@ export default function OrganizationRoutes(props) {
         <Route path="*" element={<Navigate to="/404" />} />
       </Routes>
       <Outlet />
-    </>
+    </Shell>
   );
 }

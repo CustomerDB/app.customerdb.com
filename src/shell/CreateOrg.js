@@ -32,7 +32,7 @@ export default function CreateOrg() {
           setFirstOpened(true);
         }
       });
-  }, [db, oauthClaims]);
+  }, [db, oauthClaims, firstOpened]);
 
   return (
     <>
