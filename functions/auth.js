@@ -31,8 +31,8 @@ exports.sendSignupEmail = functions.firestore
           let htmlContent = fs.readFileSync("email-templates/signup.html", {
             encoding: "utf8",
           });
-          htmlContent = htmlContent.replace("{{signupLink}}", signupLink);
-          htmlContent = htmlContent.replace("{{orgName}}", orgName);
+          htmlContent = htmlContent.replace(/{{signupLink}}/g, signupLink);
+          htmlContent = htmlContent.replace(/{{orgName}}/g, orgName);
 
           const msg = {
             to: email,
@@ -78,7 +78,7 @@ function sendVerifyEmail(email) {
           let htmlContent = fs.readFileSync("email-templates/verify.html", {
             encoding: "utf8",
           });
-          htmlContent = htmlContent.replace("{{link}}", link);
+          htmlContent = htmlContent.replace(/{{link}}/g, link);
 
           const msg = {
             to: email,
