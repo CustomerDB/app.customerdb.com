@@ -3,6 +3,7 @@ import { Navigate, Outlet, Route, Routes } from "react-router-dom";
 import React from "react";
 import Analyze from "../analyze/Analyze.js";
 import Guides from "../guides/Guides.js";
+import InterviewList from "../interviews/InterviewList.js";
 import Interviews from "../interviews/Interviews.js";
 import People from "../people/People.js";
 import Quotes from "../quotes/Quotes.js";
@@ -25,23 +26,29 @@ export default function OrganizationRoutes(props) {
           <Route path=":personID/:tabID" element={<People />} />
         </Route>
 
-        <Route path="interviews/*">
-          <Route path="/" element={<Interviews />} />
-          <Route path="create" element={<Interviews create />} />
-          <Route path="guide" element={<Interviews create fromGuide />} />
-          <Route path=":documentID" element={<Interviews />} />
-          <Route path=":documentID/:tabID" element={<Interviews />} />
-        </Route>
+        <Interviews>
+          <Route path="interviews/*">
+            <Route path="/" element={<InterviewList />} />
+            <Route path="create" element={<InterviewList create />} />
+            <Route path="guide" element={<InterviewList create fromGuide />} />
+            <Route path=":documentID" element={<InterviewList />} />
+            <Route path=":documentID/:tabID" element={<InterviewList />} />
+          </Route>
+        </Interviews>
 
-        <Route path="quotes/*">
-          <Route path="/" element={<Quotes />} />
-        </Route>
+        <Interviews>
+          <Route path="quotes/*">
+            <Route path="/" element={<Quotes />} />
+          </Route>
+        </Interviews>
 
-        <Route path="guides/*">
-          <Route path="/" element={<Guides />} />
-          <Route path="create" element={<Guides create />} />
-          <Route path=":guideID" element={<Guides />} />
-        </Route>
+        <Interviews>
+          <Route path="guides/*">
+            <Route path="/" element={<Guides />} />
+            <Route path="create" element={<Guides create />} />
+            <Route path=":guideID" element={<Guides />} />
+          </Route>
+        </Interviews>
 
         <Route path="analyze/*">
           <Route path="/" element={<Analyze />} />

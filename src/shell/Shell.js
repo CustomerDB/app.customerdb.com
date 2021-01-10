@@ -11,8 +11,6 @@ import ChevronRightIcon from "@material-ui/icons/ChevronRight";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import Divider from "@material-ui/core/Divider";
 import Drawer from "@material-ui/core/Drawer";
-import ExploreIcon from "@material-ui/icons/Explore";
-import FormatQuoteIcon from "@material-ui/icons/FormatQuote";
 import GroupIcon from "@material-ui/icons/Group";
 import IconButton from "@material-ui/core/IconButton";
 import List from "@material-ui/core/List";
@@ -219,32 +217,24 @@ export default function Shell({
           <Divider />
           <List>
             <NavListItem
-              key="Quotes"
-              to={`/orgs/${orgID}/quotes`}
-              icon={FormatQuoteIcon}
-              label="Quotes"
-            />
-            <NavListItem
               key="Interviews"
-              to={`/orgs/${orgID}/interviews`}
+              to={[
+                `/orgs/${orgID}/quotes`,
+                `/orgs/${orgID}/interviews`,
+                `/orgs/${orgID}/guides`,
+              ]}
               icon={RecordVoiceOverIcon}
               label="Interviews"
             />
             <NavListItem
-              key="Guides"
-              to={`/orgs/${orgID}/guides`}
-              icon={ExploreIcon}
-              label="Guides"
-            />
-            <NavListItem
               key="Customers"
-              to={`/orgs/${orgID}/people`}
+              to={[`/orgs/${orgID}/people`]}
               icon={GroupIcon}
               label="Customers"
             />
             <NavListItem
               key="Analysis"
-              to={`/orgs/${orgID}/analyze`}
+              to={[`/orgs/${orgID}/analyze`]}
               icon={MultilineChartIcon}
               label="Analysis"
             />
@@ -256,7 +246,7 @@ export default function Shell({
             />
             <NavListItem
               key="Tags"
-              to={`/orgs/${orgID}/tags`}
+              to={[`/orgs/${orgID}/tags`]}
               icon={LocalOfferIcon}
               label="Tags"
             />
@@ -267,7 +257,7 @@ export default function Shell({
           <List>
             <NavListItem
               key="Settings"
-              to={`/orgs/${orgID}/settings`}
+              to={[`/orgs/${orgID}/settings`]}
               icon={SettingsIcon}
               label="Settings"
             />
@@ -290,9 +280,16 @@ function NavListItem(props) {
   const location = useLocation();
   const navigate = useNavigate();
 
-  let selected = props.end
-    ? location.pathname === props.to
-    : location.pathname.startsWith(props.to);
+  let selected = false;
+  props.to.forEach((path) => {
+    let pathSelected = props.end
+      ? location.pathname === path
+      : location.pathname.startsWith(path);
+
+    if (pathSelected) {
+      selected = true;
+    }
+  });
 
   let IconComponent = props.icon;
 
@@ -300,7 +297,7 @@ function NavListItem(props) {
     <ListItem
       button
       className={selected ? classes.listItemSelected : classes.listItem}
-      onClick={() => navigate(props.to)}
+      onClick={() => navigate(props.to[0])}
     >
       <ListItemIcon>
         <IconComponent
