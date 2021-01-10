@@ -3,7 +3,6 @@ import { Search } from "../shell/Search.js";
 import Grid from "@material-ui/core/Grid";
 
 export default function Summaries() {
-
   // state
   const [showResults, setShowResults] = useState();
 
