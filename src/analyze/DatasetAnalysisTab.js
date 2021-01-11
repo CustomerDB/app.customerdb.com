@@ -173,7 +173,7 @@ export default function AnalysisAnalysisTab(props) {
             let group = groups[groupID];
 
             // TODO: Chart will flicker if the unnamed groups compete for the same bar.
-            if (group.name === "Unnamed group") {
+            if (group.name === "Unnamed theme") {
               return;
             }
 

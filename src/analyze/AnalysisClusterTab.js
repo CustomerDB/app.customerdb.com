@@ -110,7 +110,6 @@ export default function AnalysisClusterTab(props) {
       xs={12}
       style={{ display: "flex", flexDirection: "column" }}
     >
-      <ClusterDropdown analysis={props.analysis} />
       <div
         style={
           fullscreen

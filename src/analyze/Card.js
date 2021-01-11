@@ -2,6 +2,7 @@ import { bboxToRect, circumscribingCircle } from "./geom.js";
 
 import Draggable from "react-draggable";
 import React from "react";
+import Chip from "@material-ui/core/Chip";
 
 export default class Card extends React.Component {
   constructor(props) {
@@ -204,17 +205,19 @@ export default class Card extends React.Component {
         >
           <div ref={this.ref} className="card" style={divStyle}>
             <div
-              className="handle titlebar"
+              className="quote handle"
               style={{
-                backgroundColor: titleBarColor,
-                color: titleBarTextColor,
                 cursor: titleBarCursor,
               }}
             >
-              <small>{this.props.document.name}</small>
-            </div>
-            <div className="quote" onClick={this.showModal}>
               {this.props.highlight.text}
+            </div>
+            <div style={{ padding: "0.125rem" }}>
+              <Chip
+                size="small"
+                onClick={this.showModal}
+                label={this.props.document.name}
+              />
             </div>
           </div>
         </Draggable>

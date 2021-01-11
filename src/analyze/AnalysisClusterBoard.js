@@ -501,7 +501,7 @@ export default class AnalysisClusterBoard extends React.Component {
       this.props.groupsRef.doc(groupID).set({
         kind: "group",
         ID: groupID,
-        name: this.nextGroupName("Unnamed group"),
+        name: this.nextGroupName("Unnamed theme"),
         color: colors.background,
         textColor: colors.foreground,
       });

@@ -73,7 +73,9 @@ export default function Signup(props) {
 
   let navigate = useNavigate();
 
-  const urlParams = new URLSearchParams(window.location.search);
+  const urlParams = URLSearchParams
+    ? new URLSearchParams(window.location.search)
+    : { get: () => {} };
   const [email, setEmail] = useState(urlParams.get("email"));
 
   const urlProvidedEmail = urlParams.get("email");

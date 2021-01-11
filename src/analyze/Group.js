@@ -80,6 +80,8 @@ export default class Group extends React.Component {
             height: circle.diameter,
             borderRadius: "50%",
             border: border,
+            backgroundColor: `${color}`,
+            opacity: 0.5,
           }}
         >
           {}
@@ -107,9 +109,9 @@ export default class Group extends React.Component {
               </IconButton>
             </div>
           </div>
-          <p>
+          {/* <p>
             {this.props.numPeople} out of {this.props.totalPeople}
-          </p>
+          </p> */}
         </div>
       </>
     );

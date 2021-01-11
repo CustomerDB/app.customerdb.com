@@ -37,9 +37,6 @@ const useStyles = makeStyles({
     margin: "1rem",
     padding: "1rem",
   },
-  tabs: {
-    width: "100%",
-  },
   view: {
     position: "relative",
     flexGrow: 1,
