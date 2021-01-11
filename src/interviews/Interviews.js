@@ -23,7 +23,7 @@ export default function Interviews({ children }) {
     if (location.pathname.startsWith(`/orgs/${orgID}/guides`)) {
       setSelectedTab(2);
     }
-  }, [location]);
+  }, [location, orgID]);
 
   return (
     <div
