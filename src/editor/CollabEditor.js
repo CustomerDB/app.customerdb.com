@@ -214,6 +214,9 @@ function CollabEditorWithCache({
 
       if (formatBlacklist) {
         ops.forEach((op) => {
+          if (!op.attributes) {
+            return;
+          }
           formatBlacklist.forEach((blacklistKey) => {
             delete op.attributes[blacklistKey];
           });
