@@ -187,20 +187,13 @@ const Autocomplete = ({ hits, currentRefinement, refine, searchState }) => {
   const enterToSearch = (e) => {
     if (e.key === "Enter") {
       const searchWhitelist = ["quotes", "people", "interviews"];
-      let shouldSearch = false;
       searchWhitelist.forEach((component) => {
         if (location.pathname.startsWith(`/orgs/${orgID}/${component}`)) {
-          shouldSearch = true;
+          setOpen(false);
+          refine("");
+          navigate(`/orgs/${orgID}/${component}?q=${currentRefinement}`);
         }
       });
-
-      if (!shouldSearch) {
-        return;
-      }
-
-      setOpen(false);
-      refine("");
-      navigate(`${location.pathname}?q=${currentRefinement}`);
     }
   };
 
