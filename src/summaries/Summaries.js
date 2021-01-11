@@ -1,9 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 
+import event from "../analytics/event.js";
 import { Search } from "../shell/Search.js";
+import FirebaseContext from "../util/FirebaseContext.js";
 import useFirestore from "../db/Firestore.js";
 import Scrollable from "../shell/Scrollable.js";
 import SummariesHelp from "./SummariesHelp.js";
+import UserAuthContext from "../auth/UserAuthContext.js";
 
 import Avatar from "@material-ui/core/Avatar";
 import AssignmentIcon from "@material-ui/icons/Assignment";
@@ -14,10 +17,14 @@ import ListItem from "@material-ui/core/ListItem";
 import ListItemAvatar from "@material-ui/core/ListItemAvatar";
 import ListItemText from "@material-ui/core/ListItemText";
 import Moment from "react-moment";
+import short from "short-uuid";
+import { initialDelta } from "../editor/delta.js";
 import { useNavigate, useParams } from "react-router-dom";
 
 export default function Summaries({ create }) {
   // hooks
+  const { oauthClaims } = useContext(UserAuthContext);
+  const firebase = useContext(FirebaseContext);
   const { summariesRef } = useFirestore();
   const navigate = useNavigate();
   const { orgID } = useParams();
@@ -71,8 +78,44 @@ export default function Summaries({ create }) {
     );
   };
 
-  // TODO(CD): handle "create" endpoint
-  useEffect(() => {}, [create]);
+  // handle "create" endpoint
+  useEffect(() => {
+    if (
+      !create ||
+      !summariesRef ||
+      !oauthClaims.user_id ||
+      !oauthClaims.email
+    ) {
+      return;
+    }
+
+    event(firebase, "create_summary", {
+      orgID: orgID,
+      userID: oauthClaims.user_id,
+    });
+
+    const summaryID = short.generate();
+    const summaryRef = summariesRef.doc(summaryID);
+
+    summaryRef
+      .set({
+        ID: summaryID,
+        name: "Untitled Summary",
+        createdBy: oauthClaims.email,
+        creationTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        needsIndex: false,
+        deletionTimestamp: "",
+      })
+      .then(() => {
+        summaryRef.collection("revisions").add({
+          delta: { ops: initialDelta().ops },
+          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        });
+      })
+      .then(() => {
+        navigate(`/orgs/${orgID}/summaries/${summaryID}`);
+      });
+  }, [create, summariesRef, firebase, navigate, oauthClaims, orgID]);
 
   const listItems = summaries.map((s) =>
     listItem(s.ID, s.name, s.creationTimestamp && s.creationTimestamp.toDate())

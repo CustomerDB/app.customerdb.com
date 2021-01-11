@@ -24,7 +24,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import useFirestore from "../db/Firestore.js";
 
 const useStyles = makeStyles({
-  documentPaper: {
+  summaryPaper: {
     margin: "0 1rem 0 2rem",
     padding: "0 2rem 4rem 2rem",
     minHeight: "48rem",
@@ -67,7 +67,6 @@ export default function Summary(props) {
     }
 
     return summaryRef.onSnapshot((doc) => {
-      console.debug("received summary snapshot");
       if (!doc.exists) {
         navigate("/404");
         return;
@@ -78,6 +77,10 @@ export default function Summary(props) {
       setSummary(data);
     });
   }, [navigate, summaryRef]);
+
+  useEffect(() => {
+    console.debug("summary", summary);
+  }, [summary]);
 
   if (!summary) {
     return <Loading />;
@@ -110,7 +113,7 @@ export default function Summary(props) {
         <Scrollable id="editorScrollContainer">
           <Grid container item spacing={0} xs={12} style={{ height: "100%" }}>
             <Grid container item justify="center">
-              <Paper className={classes.documentPaper} elevation={0}>
+              <Paper className={classes.summaryPaper} elevation={0}>
                 <Grid
                   container
                   item
@@ -123,10 +126,10 @@ export default function Summary(props) {
                       gutterBottom
                       variant="h6"
                       style={{ fontWeight: "bold" }}
-                      id="documentTitle"
+                      id="summary-title"
                     >
                       <ContentEditable
-                        html={document.name}
+                        html={summary.name}
                         onKeyDown={(e) => {
                           if (e.key === "Enter") {
                             e.target.blur();
@@ -139,7 +142,7 @@ export default function Summary(props) {
                               .replace(/\s+/g, " ")
                               .trim();
 
-                            console.debug("setting document name", newName);
+                            console.debug("setting summary name", newName);
 
                             summaryRef.update({ name: newName });
                           }
@@ -157,11 +160,11 @@ export default function Summary(props) {
                   <Grid container item xs={5} justify="flex-end">
                     <>
                       <IconButton
-                        id="document-options"
+                        id="summary-options"
                         edge="end"
-                        aria-label="document options"
+                        aria-label="summary options"
                         aria-haspopup="true"
-                        aria-controls="document-menu"
+                        aria-controls="summary-menu"
                         onClick={handleOptionsClick}
                         color="inherit"
                       >
@@ -175,7 +178,7 @@ export default function Summary(props) {
                         onClose={handleOptionsClose}
                       >
                         <MenuItem
-                          id="archive-document-button"
+                          id="archive-summary-button"
                           onClick={() => {
                             setAnchorEl(null);
                             setOpenDeleteDialog(true);
@@ -190,7 +193,7 @@ export default function Summary(props) {
                       <IconButton
                         onClick={() => {
                           // TODO: Communicate with parent component instead of using navigate.
-                          navigate(`/orgs/${orgID}/interviews`);
+                          navigate(`/orgs/${orgID}/summaries`);
                         }}
                         color="inherit"
                       >
