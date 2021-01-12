@@ -4,11 +4,7 @@ import React, { useEffect, useState } from "react";
 import Avatar from "@material-ui/core/Avatar";
 import AnalysisClusterTab from "./AnalysisClusterTab.js";
 import AnalysisDataTab from "./AnalysisDataTab.js";
-<<<<<<< Updated upstream
-import AnalysisSummaryTab from "./AnalysisSummaryTab.js";
-=======
 import DescriptionIcon from "@material-ui/icons/Description";
->>>>>>> Stashed changes
 import Grid from "@material-ui/core/Grid";
 import { Loading } from "../util/Utils.js";
 import Moment from "react-moment";
@@ -158,32 +154,6 @@ export default function Analysis(props) {
     );
   }
 
-<<<<<<< Updated upstream
-  if (selectedTab === 1) {
-    view = (
-      <AnalysisDataTab
-        analysis={analysis}
-        analysisRef={props.analysisRef}
-        documentsRef={props.documentsRef}
-      />
-    );
-  }
-
-  if (selectedTab === 2) {
-    view = (
-      <AnalysisSummaryTab
-        key={`${analysisID}-${tagID}`}
-        orgID={orgID}
-        analysis={analysis}
-        analysisRef={props.analysisRef}
-        documentsRef={props.documentsRef}
-        allHighlightsRef={props.allHighlightsRef}
-      />
-    );
-  }
-
-=======
->>>>>>> Stashed changes
   let title = (
     <>
       <Grid
