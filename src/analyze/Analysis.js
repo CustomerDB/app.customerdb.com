@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 
 import AnalysisClusterTab from "./AnalysisClusterTab.js";
 import Grid from "@material-ui/core/Grid";
@@ -32,10 +32,14 @@ const useStyles = makeStyles({
   },
 });
 
-export default function Analysis(props) {
+export default function Analysis({
+  analysisRef,
+  documentsRef,
+  allHighlightsRef,
+}) {
   const { orgID, analysisID } = useParams();
   const [showDeleteModal, setShowDeleteModal] = useState();
-  const [sidepaneOpen, setSidepaneOpen] = useState(true);
+  const [sidepaneOpen, setSidepaneOpen] = useState(false);
 
   const navigate = useNavigate();
 
@@ -43,20 +47,39 @@ export default function Analysis(props) {
 
   const classes = useStyles();
 
+  const [maxReached, setMaxReached] = useState(false);
+
   useEffect(() => {
-    if (!props.analysisRef) {
+    if (!analysisRef) {
       return;
     }
 
-    return props.analysisRef.onSnapshot((doc) => {
+    return analysisRef.onSnapshot((doc) => {
       let data = doc.data();
       data.ID = doc.id;
       setAnalysis(data);
+
+      setMaxReached(data.documentIDs && data.documentIDs.length >= 10);
     });
-  }, [props.analysisRef]);
+  }, [analysisRef]);
+
+  const onAdd = useCallback(
+    (documentID) => {
+      if (!analysisRef || !analysis || !documentID) {
+        return;
+      }
+
+      let documentIDs = analysis.documentIDs || [];
+      documentIDs.push(documentID);
+
+      analysisRef.update({
+        documentIDs: documentIDs,
+      });
+    },
+    [analysisRef, analysis]
+  );
 
   if (!analysis) {
-    console.log("No analysis - waiting for something");
     return <Loading />;
   }
 
@@ -97,9 +120,9 @@ export default function Analysis(props) {
       key={analysisID}
       orgID={orgID}
       analysis={analysis}
-      analysisRef={props.analysisRef}
-      documentsRef={props.documentsRef}
-      allHighlightsRef={props.allHighlightsRef}
+      analysisRef={analysisRef}
+      documentsRef={documentsRef}
+      allHighlightsRef={allHighlightsRef}
       setSidepaneOpen={setSidepaneOpen}
     />
   );
@@ -128,13 +151,13 @@ export default function Analysis(props) {
                 }
               }}
               onBlur={(e) => {
-                if (props.analysisRef) {
+                if (analysisRef) {
                   let newName = e.target.innerText
                     .replace(/(\r\n|\n|\r)/gm, " ")
                     .replace(/\s+/g, " ")
                     .trim();
 
-                  props.analysisRef.update({ name: newName });
+                  analysisRef.update({ name: newName });
                 }
               }}
             />
@@ -174,7 +197,7 @@ export default function Analysis(props) {
         onHide={() => {
           setShowDeleteModal(false);
         }}
-        analysisRef={props.analysisRef}
+        analysisRef={analysisRef}
       />
     </>
   );
@@ -200,7 +223,11 @@ export default function Analysis(props) {
             open={sidepaneOpen}
             setOpen={setSidepaneOpen}
           >
-            <InterviewSelector analysis={analysis} />
+            <InterviewSelector
+              analysis={analysis}
+              onAdd={onAdd}
+              maxReached={maxReached}
+            />
           </Sidepane>
         </Paper>
       </Grid>

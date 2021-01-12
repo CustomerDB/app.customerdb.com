@@ -16,7 +16,6 @@ import Scrollable from "../shell/Scrollable.js";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
 import useFirestore from "../db/Firestore.js";
-import { BubbleChart } from "@material-ui/icons";
 
 export default function Boards({ create }) {
   const { oauthClaims } = useContext(UserAuthContext);

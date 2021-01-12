@@ -2,7 +2,7 @@ import { bboxToRect, circumscribingCircle } from "./geom.js";
 
 import Draggable from "react-draggable";
 import React from "react";
-import Chip from "@material-ui/core/Chip";
+// import Chip from "@material-ui/core/Chip";
 import Avatar from "react-avatar";
 import Tooltip from "@material-ui/core/Tooltip";
 

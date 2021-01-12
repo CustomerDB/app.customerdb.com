@@ -542,9 +542,7 @@ export default class AnalysisClusterBoard extends React.Component {
       !this.state.loadedDocuments ||
       !this.state.loadedHighlights ||
       !this.state.loadedCards ||
-      !this.state.loadedGroups ||
-      Object.keys(this.state.highlights).length !==
-        Object.keys(this.state.cards).length
+      !this.state.loadedGroups
     ) {
       console.debug("board state", this.state);
       return Loading();

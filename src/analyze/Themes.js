@@ -19,7 +19,7 @@ export default function Themes({ children }) {
     if (location.pathname.startsWith(`/orgs/${orgID}/boards`)) {
       setSelectedTab(1);
     }
-  }, [location]);
+  }, [location, orgID]);
 
   return (
     <div

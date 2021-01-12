@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 import AnalysisClusterBoard from "./AnalysisClusterBoard.js";
 import Button from "react-bootstrap/Button";
@@ -20,7 +20,6 @@ export default function AnalysisClusterTab(props) {
   const firebase = useContext(FirebaseContext);
   const focus = useContext(FocusContext);
   const [boardKey, setBoardKey] = useState();
-  // const navigate = useNavigate();
 
   const {
     documentsRef,
@@ -58,8 +57,6 @@ export default function AnalysisClusterTab(props) {
   }
 
   if (!props.analysis.documentIDs || props.analysis.documentIDs.length === 0) {
-    // navigate(`/orgs/${orgID}/boards/${analysisID}/interviews`);
-    // TODO: Show side panel in this case.
     props.setSidepaneOpen(true);
     return <></>;
   }
