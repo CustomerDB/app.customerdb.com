@@ -57,7 +57,7 @@ export default function ClusterTabs(props) {
   if (!tagID) {
     if (allTagsList.length > 0) {
       navigate(
-        `/orgs/${orgID}/analyze/${analysisID}/${tabID}/${allTagsList[0].ID}`
+        `/orgs/${orgID}/boards/${analysisID}/${tabID}/${allTagsList[0].ID}`
       );
     }
   }
@@ -65,7 +65,7 @@ export default function ClusterTabs(props) {
   const onTagChange = (e) => {
     e.persist();
     let newTagID = e.target.value;
-    navigate(`/orgs/${orgID}/analyze/${analysisID}/${tabID}/${newTagID}`);
+    navigate(`/orgs/${orgID}/boards/${analysisID}/${tabID}/${newTagID}`);
   };
 
   return (
@@ -85,7 +85,7 @@ export default function ClusterTabs(props) {
                   value={option.ID}
                   onClick={(event) => {
                     navigate(
-                      `/orgs/${orgID}/analyze/${analysisID}/${tabID}/${option.ID}`
+                      `/orgs/${orgID}/boards/${analysisID}/${tabID}/${option.ID}`
                     );
                   }}
                 >

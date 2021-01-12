@@ -42,7 +42,7 @@ export default function AnalysisRenameModal(props) {
           onClick={() => {
             props.analysisRef.update({ name: name });
 
-            navigate(`/orgs/${orgID}/analyze/${analysis.ID}`);
+            navigate(`/orgs/${orgID}/boards/${analysis.ID}`);
           }}
         >
           Save

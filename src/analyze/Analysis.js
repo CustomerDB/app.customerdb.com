@@ -1,9 +1,14 @@
 import { useParams, useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 
+import Avatar from "@material-ui/core/Avatar";
 import AnalysisClusterTab from "./AnalysisClusterTab.js";
 import AnalysisDataTab from "./AnalysisDataTab.js";
+<<<<<<< Updated upstream
 import AnalysisSummaryTab from "./AnalysisSummaryTab.js";
+=======
+import DescriptionIcon from "@material-ui/icons/Description";
+>>>>>>> Stashed changes
 import Grid from "@material-ui/core/Grid";
 import { Loading } from "../util/Utils.js";
 import Moment from "react-moment";
@@ -14,9 +19,19 @@ import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
 import AnalysisDeleteModal from "./AnalysisDeleteModal.js";
 import ArchiveIcon from "@material-ui/icons/Archive";
+import FormatQuoteIcon from "@material-ui/icons/FormatQuote";
 import ContentEditable from "react-contenteditable";
-import Tab from "@material-ui/core/Tab";
-import Tabs from "@material-ui/core/Tabs";
+import Tooltip from "@material-ui/core/Tooltip";
+import List from "@material-ui/core/List";
+import ListItem from "@material-ui/core/ListItem";
+import ListItemAvatar from "@material-ui/core/ListItemAvatar";
+import ListItemText from "@material-ui/core/ListItemText";
+import ListItemSecondaryAction from "@material-ui/core/ListItemSecondaryAction";
+import DeleteIcon from "@material-ui/icons/Delete";
+import InputAdornment from "@material-ui/core/InputAdornment";
+import TextField from "@material-ui/core/TextField";
+import SearchIcon from "@material-ui/icons/Search";
+import Sidepane from "../shell/Sidepane.js";
 
 const useStyles = makeStyles({
   paper: {
@@ -39,6 +54,7 @@ export default function Analysis(props) {
   const { orgID, analysisID, tabID, tagID } = useParams();
   const [showDeleteModal, setShowDeleteModal] = useState();
   const [selectedTab, setSelectedTab] = useState();
+  const [sidepaneOpen, setSidepaneOpen] = useState(true);
 
   const navigate = useNavigate();
 
@@ -88,7 +104,7 @@ export default function Analysis(props) {
     if (newValue === 2) {
       tab = "summary";
     }
-    navigate(`/orgs/${orgID}/analyze/${analysisID}/${tab}`);
+    navigate(`/orgs/${orgID}/boards/${analysisID}/${tab}`);
   };
 
   if (!analysis) {
@@ -142,6 +158,7 @@ export default function Analysis(props) {
     );
   }
 
+<<<<<<< Updated upstream
   if (selectedTab === 1) {
     view = (
       <AnalysisDataTab
@@ -165,6 +182,8 @@ export default function Analysis(props) {
     );
   }
 
+=======
+>>>>>>> Stashed changes
   let title = (
     <>
       <Grid
@@ -203,6 +222,16 @@ export default function Analysis(props) {
           </Typography>
         </Grid>
         <Grid container item xs={3} justify="flex-end">
+          <Tooltip title="Select quotes">
+            <IconButton
+              onClick={() => {
+                setSidepaneOpen(true);
+              }}
+            >
+              <FormatQuoteIcon />
+            </IconButton>
+          </Tooltip>
+
           <IconButton
             color="primary"
             aria-label="Archive document"
@@ -214,7 +243,7 @@ export default function Analysis(props) {
           </IconButton>
           <IconButton
             onClick={() => {
-              navigate(`/orgs/${orgID}/analyze`);
+              navigate(`/orgs/${orgID}/boards`);
             }}
           >
             <CloseIcon />
@@ -231,6 +260,8 @@ export default function Analysis(props) {
     </>
   );
 
+  console.log("sidepaneOpen", sidepaneOpen);
+
   return (
     <>
       <Grid
@@ -246,30 +277,72 @@ export default function Analysis(props) {
       >
         <Paper className={classes.paper} elevation={0}>
           {title}
-          <Grid item xs={12} style={{ maxHeight: "3rem" }}>
-            <Tabs
-              value={selectedTab}
-              onChange={handleTabChange}
-              indicatorColor="secondary"
-              textColor="primary"
-              variant="fullWidth"
-              aria-label="full width"
-              className={classes.tabs}
-            >
-              <Tab label="Themes" id="themes" aria-controls="tabpanel-themes" />
-              <Tab
-                label="Interviews"
-                id="interviews"
-                aria-controls="tabpanel-interviews"
-              />
-              <Tab
-                label="Summary"
-                id="summary"
-                aria-controls="tabpanel-summary"
-              />
-            </Tabs>
-          </Grid>
           {view}
+          <Sidepane
+            title="Select interview"
+            open={sidepaneOpen}
+            setOpen={setSidepaneOpen}
+          >
+            <Grid container item style={{ paddingLeft: "2rem" }}>
+              <TextField
+                placeholder="Search..."
+                // value={currentRefinement}
+                // onClick={() => {
+                //   setOpen(true);
+                // }}
+                // onChange={(event) => {
+                //   refine(event.currentTarget.value);
+                // }}
+                InputProps={{
+                  disableUnderline: true,
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Grid>
+            <Grid
+              container
+              item
+              style={{ backgroundColor: "#f9f9f9", flexGrow: "1" }}
+            >
+              <List
+                style={{
+                  paddingLeft: "1rem",
+                  paddingRight: "1rem",
+                  width: "100%",
+                }}
+              >
+                <ListItem
+                  style={{
+                    backgroundColor: "white",
+                    borderRadius: "0.5rem",
+                    marginBottom: "1rem",
+                  }}
+                  button
+                  // key={ID}
+                  // selected={ID === documentID}
+                >
+                  <ListItemAvatar>
+                    <Avatar>
+                      <DescriptionIcon />
+                    </Avatar>
+                  </ListItemAvatar>
+                  <ListItemText
+                    primary={"foo"}
+                    // secondary={date && <Moment fromNow date={date} />}
+                  />
+                  <ListItemSecondaryAction>
+                    <IconButton edge="end" aria-label="delete">
+                      <DeleteIcon />
+                    </IconButton>
+                  </ListItemSecondaryAction>
+                </ListItem>
+              </List>
+            </Grid>
+          </Sidepane>
         </Paper>
       </Grid>
     </>

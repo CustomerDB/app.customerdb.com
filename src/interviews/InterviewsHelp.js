@@ -24,7 +24,7 @@ export default function InterviewsHelp(props) {
           Link customer interviews to{" "}
           <Link to={`/orgs/${orgID}/people`}>people</Link>. Then find patterns
           in your interviews using the{" "}
-          <Link to={`/orgs/${orgID}/analyze`}>analyze</Link> tab.
+          <Link to={`/orgs/${orgID}/boards`}>analyze</Link> tab.
         </p>
         <p>
           New interviews start with a default tag group. You can set up tag

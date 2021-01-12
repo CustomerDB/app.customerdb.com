@@ -58,7 +58,7 @@ export default function AnalysisClusterTab(props) {
   }
 
   if (!props.analysis.documentIDs || props.analysis.documentIDs.length === 0) {
-    navigate(`/orgs/${orgID}/analyze/${analysisID}/interviews`);
+    navigate(`/orgs/${orgID}/boards/${analysisID}/interviews`);
   }
 
   if (!tagID) {

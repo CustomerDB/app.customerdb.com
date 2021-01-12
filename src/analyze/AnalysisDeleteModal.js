@@ -52,7 +52,7 @@ export default function AnalysisDeleteModal(props) {
               deletionTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
             });
 
-            navigate(`/orgs/${orgID}/analyze`);
+            navigate(`/orgs/${orgID}/boards`);
           }}
         >
           Delete

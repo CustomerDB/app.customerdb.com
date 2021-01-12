@@ -178,7 +178,7 @@ export default function AnalysisSummaryTab(props) {
       <>
         <p>
           Start analysis by selecting documents in the{" "}
-          <Link to={`/orgs/${props.orgID}/analyze/${props.analysis.ID}/data`}>
+          <Link to={`/orgs/${props.orgID}/boards/${props.analysis.ID}/data`}>
             data tab
           </Link>
         </p>

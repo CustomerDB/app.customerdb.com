@@ -1,10 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 
-import Col from "react-bootstrap/Col";
-import Container from "react-bootstrap/Container";
+import Grid from "@material-ui/core/Grid";
 import FirebaseContext from "../util/FirebaseContext.js";
-import GridSelector from "../search/GridSelector.js";
-import Row from "react-bootstrap/Row";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
 import useFirestore from "../db/Firestore.js";
@@ -117,10 +114,15 @@ export default function AnalysisDataTab(props) {
 
   return (
     <>
-      <Container className="p-3">
+      <Grid container>
+        <Grid container item xs={12}>
+          <p>Select</p>
+        </Grid>
+      </Grid>
+      {/* <Container className="p-3">
         <Row>
           <Col>
-            <p>Interviews in this analysis</p>
+            <p>Get started by </p>
           </Col>
         </Row>
         <Row>
@@ -137,7 +139,7 @@ export default function AnalysisDataTab(props) {
             </Container>
           </Col>
         </Row>
-      </Container>
+      </Container> */}
     </>
   );
 }

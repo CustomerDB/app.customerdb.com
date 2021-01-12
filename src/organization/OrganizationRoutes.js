@@ -1,7 +1,9 @@
 import { Navigate, Outlet, Route, Routes } from "react-router-dom";
 
 import React from "react";
-import Analyze from "../analyze/Analyze.js";
+import Themes from "../analyze/Themes.js";
+import Boards from "../analyze/Boards.js";
+import ThemeList from "../analyze/Boards.js";
 import Guides from "../guides/Guides.js";
 import InterviewList from "../interviews/InterviewList.js";
 import Interviews from "../interviews/Interviews.js";
@@ -50,13 +52,21 @@ export default function OrganizationRoutes(props) {
           </Route>
         </Interviews>
 
-        <Route path="analyze/*">
-          <Route path="/" element={<Analyze />} />
-          <Route path="create" element={<Analyze create />} />
-          <Route path=":analysisID" element={<Analyze />} />
-          <Route path=":analysisID/:tabID" element={<Analyze />} />
-          <Route path=":analysisID/:tabID/:tagID" element={<Analyze />} />
-        </Route>
+        <Themes>
+          <Route path="boards/*">
+            <Route path="/" element={<Boards />} />
+            <Route path="create" element={<Boards create />} />
+            <Route path=":analysisID" element={<Boards />} />
+            <Route path=":analysisID/:tabID" element={<Boards />} />
+            <Route path=":analysisID/:tabID/:tagID" element={<Boards />} />
+          </Route>
+        </Themes>
+
+        <Themes>
+          <Route path="themes/*">
+            <Route path="/" element={<ThemeList />} />
+          </Route>
+        </Themes>
 
         <Route path="summaries/*">
           <Route path="/" element={<Summaries />} />
