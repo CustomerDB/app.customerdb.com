@@ -5,7 +5,9 @@ import Grid from "@material-ui/core/Grid";
 import Typography from "@material-ui/core/Typography";
 import IconButton from "@material-ui/core/IconButton";
 
-export default function Sidepane({ title, open, setOpen, children }) {
+export default function Sidepane({ title, open, setOpen, width, children }) {
+  const openWidth = width || "30rem";
+
   return (
     <Grid
       container
@@ -18,7 +20,7 @@ export default function Sidepane({ title, open, setOpen, children }) {
         height: "100%",
         top: 0,
         right: 0,
-        width: open ? "30rem" : "0rem",
+        width: open ? openWidth : "0rem",
         overflow: "hidden",
         transition: "width 0.5s",
         zIndex: 300,
@@ -26,7 +28,7 @@ export default function Sidepane({ title, open, setOpen, children }) {
     >
       <Grid
         container
-        style={{ width: "30rem" }}
+        style={{ width: openWidth }}
         alignItems="flex-start"
         direction="column"
         justify="flex-start"
