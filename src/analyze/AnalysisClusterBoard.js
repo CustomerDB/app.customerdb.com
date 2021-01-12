@@ -75,7 +75,7 @@ export default class AnalysisClusterBoard extends React.Component {
 
   componentDidMount() {
     this.subscriptions.push(
-      this.props.cardsRef.where("tagID", "==", this.props.tagID).onSnapshot(
+      this.props.cardsRef.onSnapshot(
         function (querySnapshot) {
           console.debug("received cards snapshot");
 
@@ -162,9 +162,6 @@ export default class AnalysisClusterBoard extends React.Component {
 
         snapshot.forEach((doc) => {
           let data = doc.data();
-
-          console.debug("document", data);
-
           newDocuments[doc.id] = data;
         });
 
@@ -603,6 +600,7 @@ export default class AnalysisClusterBoard extends React.Component {
       let personIDs = new Set();
       let representationFactor = 0;
       objs.forEach((o) => {
+        if (!o) return;
         if (personIDs.has(o.personID)) return;
         representationFactor++;
         if (!o.personID) return;
@@ -642,7 +640,7 @@ export default class AnalysisClusterBoard extends React.Component {
     let pointers = undefined;
     // pointers = <Pointers activeUsersRef={this.props.activeUsersRef} />;
 
-    let boardID = `board-${this.props.analysisID}-${this.props.tagID}`;
+    let boardID = `board-${this.props.analysisID}`;
 
     return (
       <TransformWrapper
@@ -733,7 +731,7 @@ export default class AnalysisClusterBoard extends React.Component {
                     domNode.style.width = `${CANVAS_WIDTH}px`;
                     domNode.style.height = `${CANVAS_HEIGHT}px`;
                     let link = document.createElement("a");
-                    link.download = `CustomerDB (${this.props.analysisName}) - clusters-${this.props.tagID}.png`;
+                    link.download = `CustomerDB (${this.props.analysisName}) - clusters.png`;
                     link.href = dataURL;
                     link.click();
                   })

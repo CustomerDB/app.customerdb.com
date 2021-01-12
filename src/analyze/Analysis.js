@@ -1,10 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 
-import Avatar from "@material-ui/core/Avatar";
 import AnalysisClusterTab from "./AnalysisClusterTab.js";
-import AnalysisDataTab from "./AnalysisDataTab.js";
-import DescriptionIcon from "@material-ui/icons/Description";
 import Grid from "@material-ui/core/Grid";
 import { Loading } from "../util/Utils.js";
 import Moment from "react-moment";
@@ -15,18 +12,10 @@ import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
 import AnalysisDeleteModal from "./AnalysisDeleteModal.js";
 import ArchiveIcon from "@material-ui/icons/Archive";
-import FormatQuoteIcon from "@material-ui/icons/FormatQuote";
+import RecordVoiceOverIcon from "@material-ui/icons/RecordVoiceOver";
 import ContentEditable from "react-contenteditable";
 import Tooltip from "@material-ui/core/Tooltip";
-import List from "@material-ui/core/List";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemAvatar from "@material-ui/core/ListItemAvatar";
-import ListItemText from "@material-ui/core/ListItemText";
-import ListItemSecondaryAction from "@material-ui/core/ListItemSecondaryAction";
-import DeleteIcon from "@material-ui/icons/Delete";
-import InputAdornment from "@material-ui/core/InputAdornment";
-import TextField from "@material-ui/core/TextField";
-import SearchIcon from "@material-ui/icons/Search";
+import InterviewSelector from "./InterviewSelector.js";
 import Sidepane from "../shell/Sidepane.js";
 
 const useStyles = makeStyles({
@@ -44,9 +33,8 @@ const useStyles = makeStyles({
 });
 
 export default function Analysis(props) {
-  const { orgID, analysisID, tabID, tagID } = useParams();
+  const { orgID, analysisID } = useParams();
   const [showDeleteModal, setShowDeleteModal] = useState();
-  const [selectedTab, setSelectedTab] = useState();
   const [sidepaneOpen, setSidepaneOpen] = useState(true);
 
   const navigate = useNavigate();
@@ -67,40 +55,8 @@ export default function Analysis(props) {
     });
   }, [props.analysisRef]);
 
-  useEffect(() => {
-    if (!tabID) {
-      setSelectedTab(0);
-      return;
-    }
-
-    if (tabID === "themes") {
-      setSelectedTab(0);
-    }
-
-    if (tabID === "interviews") {
-      setSelectedTab(1);
-    }
-
-    if (tabID === "summary") {
-      setSelectedTab(2);
-    }
-  }, [tabID]);
-
-  const handleTabChange = (e, newValue) => {
-    let tab = "";
-    if (newValue === 0) {
-      tab = "themes";
-    }
-    if (newValue === 1) {
-      tab = "interviews";
-    }
-    if (newValue === 2) {
-      tab = "summary";
-    }
-    navigate(`/orgs/${orgID}/boards/${analysisID}/${tab}`);
-  };
-
   if (!analysis) {
+    console.log("No analysis - waiting for something");
     return <Loading />;
   }
 
@@ -136,20 +92,17 @@ export default function Analysis(props) {
     );
   }
 
-  let view = <></>;
-
-  if (selectedTab === 0) {
-    view = (
-      <AnalysisClusterTab
-        key={`${analysisID}-${tagID}`}
-        orgID={orgID}
-        analysis={analysis}
-        analysisRef={props.analysisRef}
-        documentsRef={props.documentsRef}
-        allHighlightsRef={props.allHighlightsRef}
-      />
-    );
-  }
+  let view = (
+    <AnalysisClusterTab
+      key={analysisID}
+      orgID={orgID}
+      analysis={analysis}
+      analysisRef={props.analysisRef}
+      documentsRef={props.documentsRef}
+      allHighlightsRef={props.allHighlightsRef}
+      setSidepaneOpen={setSidepaneOpen}
+    />
+  );
 
   let title = (
     <>
@@ -168,14 +121,13 @@ export default function Analysis(props) {
             component="h2"
           >
             <ContentEditable
-              html={props.analysis.name}
+              html={analysis.name}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   e.target.blur();
                 }
               }}
               onBlur={(e) => {
-                console.log("e", e, "props.analysisRef", props.analysisRef);
                 if (props.analysisRef) {
                   let newName = e.target.innerText
                     .replace(/(\r\n|\n|\r)/gm, " ")
@@ -189,13 +141,13 @@ export default function Analysis(props) {
           </Typography>
         </Grid>
         <Grid container item xs={3} justify="flex-end">
-          <Tooltip title="Select quotes">
+          <Tooltip title="Select interviews">
             <IconButton
               onClick={() => {
                 setSidepaneOpen(true);
               }}
             >
-              <FormatQuoteIcon />
+              <RecordVoiceOverIcon />
             </IconButton>
           </Tooltip>
 
@@ -227,8 +179,6 @@ export default function Analysis(props) {
     </>
   );
 
-  console.log("sidepaneOpen", sidepaneOpen);
-
   return (
     <>
       <Grid
@@ -250,65 +200,7 @@ export default function Analysis(props) {
             open={sidepaneOpen}
             setOpen={setSidepaneOpen}
           >
-            <Grid container item style={{ paddingLeft: "2rem" }}>
-              <TextField
-                placeholder="Search..."
-                // value={currentRefinement}
-                // onClick={() => {
-                //   setOpen(true);
-                // }}
-                // onChange={(event) => {
-                //   refine(event.currentTarget.value);
-                // }}
-                InputProps={{
-                  disableUnderline: true,
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </Grid>
-            <Grid
-              container
-              item
-              style={{ backgroundColor: "#f9f9f9", flexGrow: "1" }}
-            >
-              <List
-                style={{
-                  paddingLeft: "1rem",
-                  paddingRight: "1rem",
-                  width: "100%",
-                }}
-              >
-                <ListItem
-                  style={{
-                    backgroundColor: "white",
-                    borderRadius: "0.5rem",
-                    marginBottom: "1rem",
-                  }}
-                  button
-                  // key={ID}
-                  // selected={ID === documentID}
-                >
-                  <ListItemAvatar>
-                    <Avatar>
-                      <DescriptionIcon />
-                    </Avatar>
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={"foo"}
-                    // secondary={date && <Moment fromNow date={date} />}
-                  />
-                  <ListItemSecondaryAction>
-                    <IconButton edge="end" aria-label="delete">
-                      <DeleteIcon />
-                    </IconButton>
-                  </ListItemSecondaryAction>
-                </ListItem>
-              </List>
-            </Grid>
+            <InterviewSelector analysis={analysis} />
           </Sidepane>
         </Paper>
       </Grid>

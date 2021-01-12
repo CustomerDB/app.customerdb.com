@@ -3,6 +3,8 @@ import { bboxToRect, circumscribingCircle } from "./geom.js";
 import Draggable from "react-draggable";
 import React from "react";
 import Chip from "@material-ui/core/Chip";
+import Avatar from "react-avatar";
+import Tooltip from "@material-ui/core/Tooltip";
 
 export default class Card extends React.Component {
   constructor(props) {
@@ -157,9 +159,6 @@ export default class Card extends React.Component {
   }
 
   render() {
-    let titleBarColor = this.props.groupColor;
-    let titleBarTextColor = this.props.textColor;
-
     let divStyle = {
       zIndex: this.state.zIndex,
     };
@@ -189,6 +188,8 @@ export default class Card extends React.Component {
 
     let titleBarCursor = this.state.dragging ? "grabbing" : "grab";
 
+    console.log("this.props.highlight", this.props.document);
+
     // Draggable nodeRef required to fix findDOMNode warnings.
     // see: https://github.com/STRML/react-draggable/pull/478
     return (
@@ -212,13 +213,22 @@ export default class Card extends React.Component {
             >
               {this.props.highlight.text}
             </div>
-            <div style={{ padding: "0.125rem" }}>
+            <Tooltip title={this.props.document.personName}>
+              <Avatar
+                name={this.props.document.personName}
+                size={30}
+                round={true}
+                style={{ margin: "0.125rem" }}
+                src={this.props.document.personImageURL}
+              />
+            </Tooltip>
+            {/* <div style={{ padding: "0.125rem" }}>
               <Chip
                 size="small"
                 onClick={this.showModal}
                 label={this.props.document.name}
               />
-            </div>
+            </div> */}
           </div>
         </Draggable>
 

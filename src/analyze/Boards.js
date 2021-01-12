@@ -30,14 +30,13 @@ export default function Boards({ create }) {
 
   const [analysisList, setAnalysisList] = useState(undefined);
   const [analysisMap, setAnalysisMap] = useState(undefined);
-  const [listTotal, setListTotal] = useState();
 
   useEffect(() => {
     if (!analysesRef) {
       return;
     }
 
-    let unsubscribe = analysesRef
+    return analysesRef
       .where("deletionTimestamp", "==", "")
       .orderBy("creationTimestamp", "desc")
       .onSnapshot((snapshot) => {
@@ -53,9 +52,7 @@ export default function Boards({ create }) {
 
         setAnalysisList(newAnalysisList);
         setAnalysisMap(newAnalysisMap);
-        setListTotal(snapshot.size);
       });
-    return unsubscribe;
   }, [analysesRef]);
 
   useEffect(() => {
@@ -70,7 +67,7 @@ export default function Boards({ create }) {
 
     analysesRef
       .add({
-        name: "Unnamed analysis",
+        name: "Unnamed board",
         documentIDs: [],
         createdBy: oauthClaims.email,
         creationTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
@@ -87,65 +84,54 @@ export default function Boards({ create }) {
 
   let content;
   if (analysisID && analysisMap) {
-    let analysis = analysisMap[analysisID];
     let analysisRef = analysesRef.doc(analysisID);
 
-    content = (
-      <Analysis
-        key={analysisID}
-        analysis={analysis}
-        analysisRef={analysisRef}
-      />
-    );
+    content = <Analysis key={analysisID} analysisRef={analysisRef} />;
   }
-
-  let list = (
-    <ListContainer sm={3}>
-      <Scrollable>
-        <List style={{ paddingLeft: "1rem", paddingRight: "1rem" }}>
-          {analysisList.map((analysis) => (
-            <>
-              <ListItem
-                button
-                key={analysis.ID}
-                selected={analysis.ID === analysisID}
-                onClick={() => {
-                  navigate(`/orgs/${orgID}/boards/${analysis.ID}`);
-                }}
-                style={{
-                  backgroundColor: "white",
-                  borderRadius: "0.5rem",
-                  marginBottom: "1rem",
-                }}
-              >
-                <ListItemAvatar>
-                  <Avatar>
-                    <BubbleChartIcon />
-                  </Avatar>
-                </ListItemAvatar>
-                <ListItemText
-                  primary={analysis.name}
-                  secondary={
-                    <Moment
-                      fromNow
-                      date={
-                        analysis.creationTimestamp &&
-                        analysis.creationTimestamp.toDate()
-                      }
-                    />
-                  }
-                />
-              </ListItem>
-            </>
-          ))}
-        </List>
-      </Scrollable>
-    </ListContainer>
-  );
 
   return (
     <Grid container className="fullHeight" style={{ position: "relative" }}>
-      {list}
+      <ListContainer sm={3}>
+        <Scrollable>
+          <List style={{ paddingLeft: "1rem", paddingRight: "1rem" }}>
+            {analysisList.map((analysis) => (
+              <>
+                <ListItem
+                  button
+                  key={analysis.ID}
+                  selected={analysis.ID === analysisID}
+                  onClick={() => {
+                    navigate(`/orgs/${orgID}/boards/${analysis.ID}`);
+                  }}
+                  style={{
+                    backgroundColor: "white",
+                    borderRadius: "0.5rem",
+                    marginBottom: "1rem",
+                  }}
+                >
+                  <ListItemAvatar>
+                    <Avatar>
+                      <BubbleChartIcon />
+                    </Avatar>
+                  </ListItemAvatar>
+                  <ListItemText
+                    primary={analysis.name}
+                    secondary={
+                      <Moment
+                        fromNow
+                        date={
+                          analysis.creationTimestamp &&
+                          analysis.creationTimestamp.toDate()
+                        }
+                      />
+                    }
+                  />
+                </ListItem>
+              </>
+            ))}
+          </List>
+        </Scrollable>
+      </ListContainer>
       {content}
     </Grid>
   );

@@ -3,7 +3,6 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import AnalysisClusterBoard from "./AnalysisClusterBoard.js";
 import Button from "react-bootstrap/Button";
-import ClusterDropdown from "./ClusterDropdown.js";
 import FirebaseContext from "../util/FirebaseContext.js";
 import FocusContext from "../util/FocusContext.js";
 import Form from "react-bootstrap/Form";
@@ -21,7 +20,7 @@ export default function AnalysisClusterTab(props) {
   const firebase = useContext(FirebaseContext);
   const focus = useContext(FocusContext);
   const [boardKey, setBoardKey] = useState();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   const {
     documentsRef,
@@ -32,7 +31,7 @@ export default function AnalysisClusterTab(props) {
     activeUsersRef,
   } = useFirestore();
 
-  const { orgID, analysisID, tagID } = useParams();
+  const { orgID, analysisID } = useParams();
 
   const [showRenameGroupModal, setShowRenameGroupModal] = useState(false);
   const [modalGroupID, setModalGroupID] = useState();
@@ -40,11 +39,11 @@ export default function AnalysisClusterTab(props) {
   const [fullscreen, setFullscreen] = useState(false);
 
   useEffect(() => {
-    if (!analysisID || !tagID) {
+    if (!analysisID) {
       return;
     }
-    setBoardKey(`${analysisID}-${tagID}`);
-  }, [analysisID, tagID]);
+    setBoardKey(`${analysisID}`);
+  }, [analysisID]);
 
   if (
     !documentsRef ||
@@ -54,32 +53,26 @@ export default function AnalysisClusterTab(props) {
     !groupsRef ||
     !activeUsersRef
   ) {
+    console.log("Waiting for something");
     return <Loading />;
   }
 
   if (!props.analysis.documentIDs || props.analysis.documentIDs.length === 0) {
-    navigate(`/orgs/${orgID}/boards/${analysisID}/interviews`);
-  }
-
-  if (!tagID) {
-    return (
-      <>
-        <ClusterDropdown analysis={props.analysis} />
-      </>
-    );
+    // navigate(`/orgs/${orgID}/boards/${analysisID}/interviews`);
+    // TODO: Show side panel in this case.
+    props.setSidepaneOpen(true);
+    return <></>;
   }
 
   // NB: the `in` clause is limited to ten values for filtering.
   //     For now, we support clustering highlights from up to ten documents.
   let highlightsRef = allHighlightsRef
     .where("organizationID", "==", orgID)
-    .where("documentID", "in", props.analysis.documentIDs)
-    .where("tagID", "==", tagID);
+    .where("documentID", "in", props.analysis.documentIDs);
 
   let transcriptHighlightsRef = allTranscriptHighlightsRef
     .where("organizationID", "==", orgID)
-    .where("documentID", "in", props.analysis.documentIDs)
-    .where("tagID", "==", tagID);
+    .where("documentID", "in", props.analysis.documentIDs);
 
   let analysisDocumentsRef = documentsRef.where(
     firebase.firestore.FieldPath.documentId(),
@@ -151,7 +144,6 @@ export default function AnalysisClusterTab(props) {
           key={boardKey}
           orgID={orgID}
           userID={oauthClaims.user_id}
-          tagID={tagID}
           documentsRef={analysisDocumentsRef}
           highlightsRef={highlightsRef}
           transcriptHighlightsRef={transcriptHighlightsRef}
