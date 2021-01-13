@@ -188,8 +188,6 @@ export default class Card extends React.Component {
 
     let titleBarCursor = this.state.dragging ? "grabbing" : "grab";
 
-    console.log("this.props.highlight", this.props.document);
-
     // Draggable nodeRef required to fix findDOMNode warnings.
     // see: https://github.com/STRML/react-draggable/pull/478
     return (

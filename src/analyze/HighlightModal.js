@@ -4,6 +4,7 @@ import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import React from "react";
 
+// TODO: Will be replaced by side pane
 export default function HighlightModal(props) {
   const { orgID } = useParams();
 

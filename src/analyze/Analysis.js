@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import React, { useEffect, useState, useCallback } from "react";
 
-import AnalysisClusterTab from "./AnalysisClusterTab.js";
+import BoardContainer from "./BoardContainer.js";
 import Grid from "@material-ui/core/Grid";
 import { Loading } from "../util/Utils.js";
 import Moment from "react-moment";
@@ -115,93 +115,6 @@ export default function Analysis({
     );
   }
 
-  let view = (
-    <AnalysisClusterTab
-      key={analysisID}
-      orgID={orgID}
-      analysis={analysis}
-      analysisRef={analysisRef}
-      documentsRef={documentsRef}
-      allHighlightsRef={allHighlightsRef}
-      setSidepaneOpen={setSidepaneOpen}
-    />
-  );
-
-  let title = (
-    <>
-      <Grid
-        container
-        item
-        xs={12}
-        alignItems="flex-start"
-        style={{ maxHeight: "3rem" }}
-      >
-        <Grid item xs={9}>
-          <Typography
-            gutterBottom
-            variant="h6"
-            style={{ fontWeight: "bold" }}
-            component="h2"
-          >
-            <ContentEditable
-              html={analysis.name}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.target.blur();
-                }
-              }}
-              onBlur={(e) => {
-                if (analysisRef) {
-                  let newName = e.target.innerText
-                    .replace(/(\r\n|\n|\r)/gm, " ")
-                    .replace(/\s+/g, " ")
-                    .trim();
-
-                  analysisRef.update({ name: newName });
-                }
-              }}
-            />
-          </Typography>
-        </Grid>
-        <Grid container item xs={3} justify="flex-end">
-          <Tooltip title="Select interviews">
-            <IconButton
-              onClick={() => {
-                setSidepaneOpen(true);
-              }}
-            >
-              <RecordVoiceOverIcon />
-            </IconButton>
-          </Tooltip>
-
-          <IconButton
-            color="primary"
-            aria-label="Archive document"
-            onClick={() => {
-              setShowDeleteModal(true);
-            }}
-          >
-            <ArchiveIcon />
-          </IconButton>
-          <IconButton
-            onClick={() => {
-              navigate(`/orgs/${orgID}/boards`);
-            }}
-          >
-            <CloseIcon />
-          </IconButton>
-        </Grid>
-      </Grid>
-      <AnalysisDeleteModal
-        show={showDeleteModal}
-        onHide={() => {
-          setShowDeleteModal(false);
-        }}
-        analysisRef={analysisRef}
-      />
-    </>
-  );
-
   return (
     <>
       <Grid
@@ -216,8 +129,87 @@ export default function Analysis({
         }}
       >
         <Paper className={classes.paper} elevation={0}>
-          {title}
-          {view}
+          <>
+            <Grid
+              container
+              item
+              xs={12}
+              alignItems="flex-start"
+              style={{ maxHeight: "3rem" }}
+            >
+              <Grid item xs={9}>
+                <Typography
+                  gutterBottom
+                  variant="h6"
+                  style={{ fontWeight: "bold" }}
+                  component="h2"
+                >
+                  <ContentEditable
+                    html={analysis.name}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.target.blur();
+                      }
+                    }}
+                    onBlur={(e) => {
+                      if (analysisRef) {
+                        let newName = e.target.innerText
+                          .replace(/(\r\n|\n|\r)/gm, " ")
+                          .replace(/\s+/g, " ")
+                          .trim();
+
+                        analysisRef.update({ name: newName });
+                      }
+                    }}
+                  />
+                </Typography>
+              </Grid>
+              <Grid container item xs={3} justify="flex-end">
+                <Tooltip title="Select interviews">
+                  <IconButton
+                    onClick={() => {
+                      setSidepaneOpen(true);
+                    }}
+                  >
+                    <RecordVoiceOverIcon />
+                  </IconButton>
+                </Tooltip>
+
+                <IconButton
+                  color="primary"
+                  aria-label="Archive document"
+                  onClick={() => {
+                    setShowDeleteModal(true);
+                  }}
+                >
+                  <ArchiveIcon />
+                </IconButton>
+                <IconButton
+                  onClick={() => {
+                    navigate(`/orgs/${orgID}/boards`);
+                  }}
+                >
+                  <CloseIcon />
+                </IconButton>
+              </Grid>
+            </Grid>
+            <AnalysisDeleteModal
+              show={showDeleteModal}
+              onHide={() => {
+                setShowDeleteModal(false);
+              }}
+              analysisRef={analysisRef}
+            />
+          </>
+          <BoardContainer
+            key={analysisID}
+            orgID={orgID}
+            analysis={analysis}
+            analysisRef={analysisRef}
+            documentsRef={documentsRef}
+            allHighlightsRef={allHighlightsRef}
+            setSidepaneOpen={setSidepaneOpen}
+          />
           <Sidepane
             title="Select interview"
             open={sidepaneOpen}

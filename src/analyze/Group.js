@@ -109,9 +109,6 @@ export default class Group extends React.Component {
               </IconButton>
             </div>
           </div>
-          {/* <p>
-            {this.props.numPeople} out of {this.props.totalPeople}
-          </p> */}
         </div>
       </>
     );
