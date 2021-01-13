@@ -1,6 +1,6 @@
 import CreateIcon from "@material-ui/icons/Create";
 import IconButton from "@material-ui/core/IconButton";
-import React from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { circumscribingCircle } from "./geom.js";
 
 export function computeGroupBounds(cards) {
@@ -23,94 +23,68 @@ export function computeGroupBounds(cards) {
   return rect;
 }
 
-export default class Group extends React.Component {
-  constructor(props) {
-    super(props);
-    this.nameRef = React.createRef();
+export default function Group({ name, group, cards }) {
+  const nameRef = useRef();
 
-    this.updateName = this.updateName.bind(this);
+  if (cards === undefined || cards.length === 0) {
+    return <></>;
   }
 
-  updateName(e) {
-    this.props.group.name = e.target.innerText;
-    this.props.groupRef.update(this.props.group);
-  }
+  console.log(`${name} contains ${cards.length}`);
 
-  componentWillUnmount() {
-    this.props.removeGroupLocationCallback(this.props.group);
-  }
+  let rect = computeGroupBounds(cards);
+  group.minX = rect.minX;
+  group.minY = rect.minY;
+  group.maxX = rect.maxX;
+  group.maxY = rect.maxY;
 
-  render() {
-    if (this.props.cards === undefined || this.props.cards.length === 0) {
-      return <></>;
-    }
+  let circle = circumscribingCircle(rect);
+  let color = group.color;
 
-    this.props.removeGroupLocationCallback(this.props.group);
+  let border = `2px ${color} solid`;
 
-    let rect = computeGroupBounds(this.props.cards);
-    this.props.group.minX = rect.minX;
-    this.props.group.minY = rect.minY;
-    this.props.group.maxX = rect.maxX;
-    this.props.group.maxY = rect.maxY;
+  return (
+    <>
+      <div
+        className="group"
+        style={{
+          position: "absolute",
+          left: circle.minX,
+          top: circle.minY,
+          width: circle.diameter,
+          height: circle.diameter,
+          borderRadius: "50%",
+          border: border,
+          backgroundColor: `${color}`,
+          opacity: 0.5,
+        }}
+      >
+        {}
+      </div>
 
-    this.props.addGroupLocationCallback(this.props.group);
-
-    let circle = circumscribingCircle(rect);
-    let color = this.props.group.color;
-
-    let border = `2px ${color} solid`;
-
-    // let debug = <div style={{
-    //   position: "absolute",
-    //   left: rect.minX,
-    //   top: rect.minY,
-    //   width: rect.maxX - rect.minX,
-    //   height: rect.maxY - rect.minY,
-    //   border: "1px solid red"}}>{ }</div>;
-
-    return (
-      <>
-        <div
-          className="group"
-          style={{
-            position: "absolute",
-            left: circle.minX,
-            top: circle.minY,
-            width: circle.diameter,
-            height: circle.diameter,
-            borderRadius: "50%",
-            border: border,
-            backgroundColor: `${color}`,
-            opacity: 0.5,
-          }}
-        >
-          {}
-        </div>
-
-        <div
-          className="groupLabel"
-          style={{
-            position: "absolute",
-            left: circle.minX,
-            top: circle.maxY + 10,
-            width: circle.diameter,
-            textAlign: "center",
-          }}
-        >
+      <div
+        className="groupLabel"
+        style={{
+          position: "absolute",
+          left: circle.minX,
+          top: circle.maxY + 10,
+          width: circle.diameter,
+          textAlign: "center",
+        }}
+      >
+        <div className="d-flex justify-content-center">
           <div className="d-flex justify-content-center">
-            <div className="d-flex justify-content-center">
-              <div className="align-self-center">{this.props.name}</div>{" "}
-              <IconButton
-                onClick={() =>
-                  this.props.renameGroupModalCallback(this.props.group.ID)
-                }
-              >
-                <CreateIcon />
-              </IconButton>
-            </div>
+            <div className="align-self-center">{name}</div>{" "}
+            <IconButton
+            // onClick={() =>
+            //   this.props.renameGroupModalCallback(this.props.group.ID)
+            // }
+            >
+              <CreateIcon />
+            </IconButton>
           </div>
         </div>
-      </>
-    );
-  }
+      </div>
+    </>
+  );
 }

@@ -46,7 +46,11 @@ export default function Profile({ noOrgSelector }) {
               src={oauthUser.photoURL}
             />
           </IconButton>
-          <Popper open={Boolean(anchorEl)} anchorEl={anchorEl}>
+          <Popper
+            open={Boolean(anchorEl)}
+            anchorEl={anchorEl}
+            style={{ zIndex: "500" }}
+          >
             <ClickAwayListener onClickAway={handleClose}>
               <Card
                 elevation={3}

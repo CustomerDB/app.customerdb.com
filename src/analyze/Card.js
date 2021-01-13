@@ -1,77 +1,101 @@
 import { bboxToRect, circumscribingCircle } from "./geom.js";
 
 import Draggable from "react-draggable";
-import React from "react";
+import React, { useRef, useEffect, useState } from "react";
 // import Chip from "@material-ui/core/Chip";
 import Avatar from "react-avatar";
 import Tooltip from "@material-ui/core/Tooltip";
 
-export default class Card extends React.Component {
-  constructor(props) {
-    super(props);
+export default function Card({
+  cardRef,
+  scale,
+  card,
+  getIntersectingCardsCallBack,
+  getIntersectingGroupsCallBack,
+  addLocationCallBack,
+  removeLocationCallBack,
+  cardDragging,
+  setCardDragging,
+  groupDataForCardCallback,
+  highlight,
+  document,
+}) {
+  const ref = useRef();
+  const rect = useRef();
 
-    this.handleStart = this.handleStart.bind(this);
-    this.handleDrag = this.handleDrag.bind(this);
-    this.handleStop = this.handleStop.bind(this);
-    this.showModal = this.showModal.bind(this);
-    this.getRect = this.getRect.bind(this);
+  const [previewCircle, setPreviewCircle] = useState();
+  const [previewColor, setPreviewColor] = useState();
 
-    // This is a react handle to the rendered dom element
-    this.ref = React.createRef();
+  const [minX, setMinX] = useState(card.minX);
+  const [minY, setMinY] = useState(card.minY);
 
-    // This is a reference to a document in firestore database
-    this.cardRef = this.props.cardRef;
+  const getRect = () => {
+    if (!ref.current) {
+      return;
+    }
 
-    this.state = {
-      zIndex: 0,
-      dragging: false,
-    };
-  }
-
-  getRect() {
-    let translateCSS = this.ref.current.style.transform;
+    let translateCSS = ref.current.style.transform;
     const [x, y] = translateCSS.match(/(\d+(\.\d+)?)/g);
 
-    let boundingBox = this.ref.current.getBoundingClientRect();
+    let boundingBox = ref.current.getBoundingClientRect();
 
     boundingBox.x = x;
     boundingBox.y = y;
-    boundingBox.width = boundingBox.width / this.props.scale;
-    boundingBox.height = boundingBox.height / this.props.scale;
+    boundingBox.width = boundingBox.width / scale;
+    boundingBox.height = boundingBox.height / scale;
 
     return bboxToRect(boundingBox);
-  }
+  };
 
-  componentDidMount() {
-    this.rect = this.getRect();
-    Object.assign(this.props.card, this.rect);
-    this.cardRef.set(this.props.card);
-  }
+  const handleStart = () => {
+    setCardDragging(true);
+    removeLocationCallBack(card);
+  };
 
-  componentWillUnmount() {
-    this.props.removeLocationCallBack(this.props.card);
-  }
+  const handleStop = () => {
+    rect.current = getRect();
 
-  handleStart(e) {
-    this.props.setCardDragging(true);
-    this.setState({ zIndex: 100, dragging: true });
-    this.props.removeLocationCallBack(this.props.card);
-  }
+    // Object.assign(card, rect);
+    let newCard = Object.assign(card, rect.current);
 
-  handleDrag(e) {
-    let rect = this.getRect();
+    // Update group membership based on location.
+    let groupData = groupDataForCardCallback(newCard);
+    console.log("groupData", groupData);
+    if (groupData.ID === undefined) {
+      delete newCard["groupID"];
+    } else {
+      newCard.groupID = groupData.ID;
+    }
+    newCard.groupColor = groupData.color;
+    newCard.textColor = groupData.textColor;
+
+    addLocationCallBack(newCard);
+
+    setPreviewCircle();
+    setPreviewColor();
+
+    console.log("Setting new card: ", newCard);
+    cardRef.set(newCard);
+
+    setMinX(rect.current.minX);
+    setMinY(rect.current.minY);
+    setCardDragging(false);
+  };
+
+  const handleDrag = () => {
+    let rect = getRect();
 
     let cardGroupIDs = new Set();
     let cardGroupColor = "#000";
 
-    let intersections = this.props.getIntersectingCardsCallBack(rect);
+    let intersections = getIntersectingCardsCallBack(rect);
+
+    console.log("intersections", intersections.length);
 
     // Nothing to do
     if (intersections.length === 0) {
-      this.setState({
-        previewCircle: undefined,
-        previewColor: undefined,
-      });
+      setPreviewCircle();
+      setPreviewColor();
       return;
     }
 
@@ -83,10 +107,8 @@ export default class Card extends React.Component {
     // group. (Includes case where we are intersecting an ungrouped
     // card and a grouped card.)
     if (cardGroupIDs.size !== 1) {
-      this.setState({
-        previewCircle: undefined,
-        previewColor: undefined,
-      });
+      setPreviewCircle();
+      setPreviewColor();
       return;
     }
 
@@ -96,7 +118,7 @@ export default class Card extends React.Component {
     // of a group, in which case we would create a new group if
     // dropped here
     if (groupID !== undefined) {
-      let intersectingGroups = this.props.getIntersectingGroupsCallBack(rect);
+      let intersectingGroups = getIntersectingGroupsCallBack(rect);
       intersectingGroups.forEach((group) => {
         if (group.ID === groupID) {
           cardGroupColor = group.color;
@@ -117,121 +139,99 @@ export default class Card extends React.Component {
 
     let circle = circumscribingCircle(bounds);
 
-    this.setState({
-      previewCircle: circle,
-      previewColor: cardGroupColor,
-    });
-  }
+    setPreviewCircle(circle);
+    setPreviewColor(cardGroupColor);
+  };
 
-  handleStop(e) {
-    this.rect = this.getRect();
+  useEffect(() => {
+    rect.current = getRect();
+    // Object.assign(card, rect.current);
+    // cardRef.set(card);
+  });
 
-    Object.assign(this.props.card, this.rect);
-
-    // Update group membership based on location.
-    let groupData = this.props.groupDataForCardCallback(this.props.card);
-    if (groupData.ID === undefined) {
-      delete this.props.card["groupID"];
-    } else {
-      this.props.card.groupID = groupData.ID;
+  useEffect(() => {
+    if (!card) {
+      return;
     }
-    this.props.card.groupColor = groupData.color;
-    this.props.card.textColor = groupData.textColor;
 
-    this.props.addLocationCallBack(this.props.card);
+    if (card.minX !== minX || card.minY !== minY) {
+      setMinX(card.minX);
+      setMinY(card.minY);
+    }
+  }, [card]);
 
-    this.setState({
-      zIndex: 0,
-      dragging: false,
-      previewCircle: undefined,
-      previewColor: undefined,
-    });
-    this.cardRef.set(this.props.card);
-    this.props.setCardDragging(false);
-  }
+  let divStyle = {
+    zIndex: cardDragging ? "100" : "0",
+  };
 
-  showModal() {
-    this.props.modalCallBack(
-      this.props.card,
-      this.props.highlight,
-      this.props.document
+  let position = {
+    x: minX,
+    y: minY,
+  };
+
+  let groupPreview =
+    previewCircle === undefined ? (
+      <></>
+    ) : (
+      <div
+        className="groupLabel"
+        style={{
+          position: "absolute",
+          left: previewCircle.minX,
+          top: previewCircle.minY,
+          height: previewCircle.diameter,
+          width: previewCircle.diameter,
+          borderRadius: "50%",
+          border: `3px solid ${previewColor}`,
+        }}
+      />
     );
-  }
 
-  render() {
-    let divStyle = {
-      zIndex: this.state.zIndex,
-    };
+  let titleBarCursor = cardDragging ? "grabbing" : "grab";
 
-    let position = {
-      x: this.props.minX,
-      y: this.props.minY,
-    };
-
-    let groupPreview =
-      this.state.previewCircle === undefined ? (
-        <></>
-      ) : (
-        <div
-          className="groupLabel"
-          style={{
-            position: "absolute",
-            left: this.state.previewCircle.minX,
-            top: this.state.previewCircle.minY,
-            height: this.state.previewCircle.diameter,
-            width: this.state.previewCircle.diameter,
-            borderRadius: "50%",
-            border: `3px solid ${this.state.previewColor}`,
-          }}
-        />
-      );
-
-    let titleBarCursor = this.state.dragging ? "grabbing" : "grab";
-
-    // Draggable nodeRef required to fix findDOMNode warnings.
-    // see: https://github.com/STRML/react-draggable/pull/478
-    return (
-      <>
-        <Draggable
-          nodeRef={this.ref}
-          handle=".handle"
-          bounds="parent"
-          position={position}
-          scale={this.props.scale}
-          onStart={this.handleStart}
-          onDrag={this.handleDrag}
-          onStop={this.handleStop}
-        >
-          <div ref={this.ref} className="card" style={divStyle}>
-            <div
-              className="quote handle"
-              style={{
-                cursor: titleBarCursor,
-              }}
-            >
-              {this.props.highlight.text}
-            </div>
-            <Tooltip title={this.props.document.personName}>
-              <Avatar
-                name={this.props.document.personName}
-                size={30}
-                round={true}
-                style={{ margin: "0.125rem" }}
-                src={this.props.document.personImageURL}
-              />
-            </Tooltip>
-            {/* <div style={{ padding: "0.125rem" }}>
-              <Chip
-                size="small"
-                onClick={this.showModal}
-                label={this.props.document.name}
-              />
-            </div> */}
+  // Draggable nodeRef required to fix findDOMNode warnings.
+  // see: https://github.com/STRML/react-draggable/pull/478
+  return (
+    <>
+      <Draggable
+        nodeRef={ref}
+        handle=".handle"
+        bounds="parent"
+        position={position}
+        scale={scale}
+        onStart={handleStart}
+        onDrag={handleDrag}
+        onStop={handleStop}
+      >
+        <div ref={ref} className="card" style={divStyle}>
+          <div
+            className="quote handle"
+            style={{
+              cursor: titleBarCursor,
+            }}
+          >
+            {highlight.text}
           </div>
-        </Draggable>
+          <Tooltip title={document.personName}>
+            <Avatar
+              name={document.personName}
+              size={30}
+              round={true}
+              style={{ margin: "0.125rem" }}
+              src={document.personImageURL}
+            />
+          </Tooltip>
+          {/* <div style={{ padding: "0.125rem" }}>
+            <Chip
+              size="small"
+              onClick={this.showModal}
+              label={this.props.document.name}
+            />
+          </div> */}
+        </div>
+      </Draggable>
 
-        {groupPreview}
-      </>
-    );
-  }
+      {groupPreview}
+    </>
+  );
 }
