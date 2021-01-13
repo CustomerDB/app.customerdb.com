@@ -322,12 +322,19 @@ function indexHighlight(source, orgID, highlightID, highlightRef) {
                   }
 
                   // Write to the algolia index
-                  return index.saveObject(highlightToIndex).then(
+                  return index.saveObject(highlightToIndex).then(() => {
                     // Update last indexed timestamp
-                    highlightRef.ref.update({
-                      lastIndexTimestamp: admin.firestore.FieldValue.serverTimestamp(),
-                    })
-                  );
+                    return highlightRef.ref
+                      .update({
+                        lastIndexTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+                      })
+                      .then(() => {
+                        return highlightRef.ref
+                          .collection("cache")
+                          .doc("hit")
+                          .set(highlightToIndex);
+                      });
+                  });
                 });
               }
             );

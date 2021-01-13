@@ -8,7 +8,6 @@ export default class QuoteBlot extends Embed {
   static tagName = "div";
   static onClick = () => {
     console.log("clicked quote");
-    // do something
   };
 
   static create(value) {

@@ -1,23 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
 
 import { useSearchClient } from "../search/client.js";
-import { useParams } from "react-router-dom";
 import { Loading } from "../util/Utils.js";
 import { Search } from "../shell/Search.js";
 import Scrollable from "../shell/Scrollable.js";
 import QuoteHit from "./QuoteHit.js";
 
-import Box from "@material-ui/core/Box";
-import ClickAwayListener from "@material-ui/core/ClickAwayListener";
 import Grid from "@material-ui/core/Grid";
 import { connectInfiniteHits } from "react-instantsearch-dom";
-import {
-  InstantSearch,
-  connectSearchBox,
-  Index,
-} from "react-instantsearch-dom";
 
-function InfiniteHits({ hasMore, refine, hits }) {
+function InfiniteHits({ reactQuillRef, hasMore, refine, hits }) {
   let sentinel = useRef();
   let observer = useRef();
 
@@ -50,11 +42,18 @@ function InfiniteHits({ hasMore, refine, hits }) {
   }
 
   return (
-    <Grid container className="fullHeight" style={{ position: "relative" }}>
+    <Grid
+      container
+      className="fullHeight"
+      style={{
+        position: "relative",
+        zIndex: 2,
+      }}
+    >
       <Scrollable>
         {hits.map((hit) => (
-          <Grid container item xs={12}>
-            <QuoteHit key={hit.objectID} hit={hit} />
+          <Grid key={hit.objectID} container item xs={12}>
+            <QuoteHit hit={hit} reactQuillRef={reactQuillRef} />
           </Grid>
         ))}
         <div
@@ -68,7 +67,6 @@ function InfiniteHits({ hasMore, refine, hits }) {
 
 export default function SummarySidebar({ reactQuillRef }) {
   const searchClient = useSearchClient();
-  const [searchState, setSearchState] = useState({});
 
   if (!searchClient) {
     console.error("search client not available");
@@ -90,9 +88,17 @@ export default function SummarySidebar({ reactQuillRef }) {
   }
 
   return (
-    <Grid container item md={4} xl={3} direction="column" spacing={0}>
+    <Grid
+      id="summarySidebarContainer"
+      container
+      item
+      md={4}
+      xl={3}
+      direction="column"
+      spacing={0}
+    >
       <Search search={searchConfig}>
-        <SearchResults />
+        <SearchResults reactQuillRef={reactQuillRef} />
       </Search>
     </Grid>
   );

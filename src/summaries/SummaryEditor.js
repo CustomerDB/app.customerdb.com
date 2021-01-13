@@ -31,7 +31,11 @@ export default function SummaryEditor({ reactQuillRef }) {
         ref={quillContainerRef}
         item
         xs={12}
-        style={{ position: "relative" }}
+        style={{
+          position: "relative",
+          backgroundColor: "#fff",
+          zIndex: 2,
+        }}
         spacing={0}
       >
         <CollabEditor

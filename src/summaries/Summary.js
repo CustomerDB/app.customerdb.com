@@ -31,6 +31,14 @@ const useStyles = makeStyles({
     width: "100%",
     maxWidth: "80rem",
     borderRight: "1px solid rgba(0, 0, 0, 0.12)",
+    backgroundColor: "#fff",
+  },
+  tabsContainer: {
+    position: "sticky",
+    top: 0,
+    height: "6rem",
+    width: "100%",
+    overflow: "hidden",
   },
   detailsParagraph: {
     marginBottom: "0.35rem",
@@ -91,7 +99,12 @@ export default function Summary(props) {
   }
 
   return (
-    <Grid container className="fullHeight" style={{ position: "relative" }}>
+    <Grid
+      id="summaryEditorContainer"
+      container
+      className="fullHeight"
+      style={{ position: "relative" }}
+    >
       <Grid
         container
         item
@@ -104,7 +117,11 @@ export default function Summary(props) {
         }}
       >
         <Grid
-          style={{ position: "relative", height: "100%" }}
+          style={{
+            position: "relative",
+            height: "100%",
+            zIndex: 1,
+          }}
           container
           item
           sm={12}

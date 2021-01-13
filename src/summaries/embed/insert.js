@@ -1,9 +1,8 @@
-export function insertQuote(editor, highlightID) {
+export function insertQuote(editor, highlightID, index) {
   console.debug("inserting highlight", highlightID);
-  editor.insertText(selection.index, "\n", "user");
-  editor.insertEmbed(selection.index + 1, "direct-quote", highlightID, "user");
-  editor.insertText(selection.index + 2, "\n", "user");
-  editor.setSelection(selection.index + 3);
+  editor.insertEmbed(index, "direct-quote", highlightID, "user");
+  editor.insertText(index + 1, "\n", "user");
+  editor.setSelection(index + 2);
 }
 
 export function insertBoard(editor, boardID) {
