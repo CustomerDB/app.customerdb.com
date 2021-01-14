@@ -45,7 +45,7 @@ export default function QuoteHit({ hit, reactQuillRef }) {
       return;
     }
 
-    firebase
+    return firebase
       .storage()
       .ref()
       .child(hit.mediaPath)

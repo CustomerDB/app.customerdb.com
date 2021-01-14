@@ -70,6 +70,7 @@ function QuoteContent({ highlightID }) {
     true
   );
   const [highlight, setHighlight] = useState();
+  const [highlightRef, setHighlightRef] = useState();
   const [highlightCache, setHighlightCache] = useState();
   const [mediaURL, setMediaURL] = useState();
   const { allHighlightsRef, allTranscriptHighlightsRef } = useFirestore();
@@ -94,19 +95,24 @@ function QuoteContent({ highlightID }) {
           setExists(false);
           return;
         }
-        setExists(true);
-
-        snapshot.forEach((doc) => {
+        return snapshot.forEach((doc) => {
+          setHighlightRef(doc.ref);
           setHighlight(doc.data());
-          doc.ref
-            .collection("cache")
-            .doc("hit")
-            .onSnapshot((doc) => {
-              setHighlightCache(doc.data());
-            });
+          setExists(true);
         });
       });
   };
+
+  useEffect(() => {
+    if (!highlightRef) return;
+
+    return highlightRef
+      .collection("cache")
+      .doc("hit")
+      .onSnapshot((doc) => {
+        setHighlightCache(doc.data());
+      });
+  }, [highlightRef]);
 
   useEffect(() => {
     return subscribeToHighlight(

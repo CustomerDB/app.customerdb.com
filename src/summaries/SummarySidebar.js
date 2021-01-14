@@ -2,7 +2,6 @@ import React, { useEffect, useRef } from "react";
 
 import { useSearchClient } from "../search/client.js";
 import { Loading } from "../util/Utils.js";
-import { Search } from "../shell/Search.js";
 import Scrollable from "../shell/Scrollable.js";
 import QuoteHit from "./QuoteHit.js";
 
@@ -10,7 +9,11 @@ import Grid from "@material-ui/core/Grid";
 import InputAdornment from "@material-ui/core/InputAdornment";
 import SearchIcon from "@material-ui/icons/Search";
 import TextField from "@material-ui/core/TextField";
-import { connectSearchBox, connectInfiniteHits } from "react-instantsearch-dom";
+import {
+  InstantSearch,
+  connectSearchBox,
+  connectInfiniteHits,
+} from "react-instantsearch-dom";
 
 function InfiniteHits({ reactQuillRef, hasMore, refine, hits }) {
   let sentinel = useRef();
@@ -114,13 +117,6 @@ export default function SummarySidebar({ reactQuillRef }) {
     return <></>;
   }
 
-  let searchConfig;
-  if (process.env.REACT_APP_ALGOLIA_HIGHLIGHTS_INDEX) {
-    searchConfig = {
-      index: process.env.REACT_APP_ALGOLIA_HIGHLIGHTS_INDEX,
-    };
-  }
-
   return (
     <Grid
       id="summarySidebarContainer"
@@ -139,12 +135,15 @@ export default function SummarySidebar({ reactQuillRef }) {
           zIndex: 2,
         }}
       >
-        <Search search={searchConfig}>
+        <InstantSearch
+          searchClient={searchClient}
+          indexName={process.env.REACT_APP_ALGOLIA_HIGHLIGHTS_INDEX}
+        >
           <Scrollable id="summary-sidebar-scroll">
             <SearchBox />
             <SearchResults reactQuillRef={reactQuillRef} />
           </Scrollable>
-        </Search>
+        </InstantSearch>
       </Grid>
     </Grid>
   );
