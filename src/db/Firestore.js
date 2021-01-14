@@ -45,7 +45,7 @@ export default function useFirestore() {
     let r = {};
     r.analysisRef = orgRefs.analysesRef.doc(analysisID);
     r.cardsRef = r.analysisRef.collection("cards");
-    r.groupsRef = r.analysisRef.collection("groups");
+    r.themesRef = r.analysisRef.collection("themes");
     r.activeUsersRef = r.analysisRef.collection("activeUsers");
     setAnalysisRefs(r);
   }, [orgRefs.analysesRef, analysisID]);

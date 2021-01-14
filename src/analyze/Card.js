@@ -13,12 +13,12 @@ export default function Card({
   scale,
   card,
   getIntersectingCardsCallBack,
-  getIntersectingGroupsCallBack,
+  getIntersectingThemesCallBack,
   addLocationCallBack,
   removeLocationCallBack,
   cardDragging,
   setCardDragging,
-  groupDataForCardCallback,
+  themeDataForCardCallback,
   highlight,
   document,
   setSidepaneHighlight,
@@ -86,16 +86,16 @@ export default function Card({
     // Object.assign(card, rect);
     let newCard = Object.assign(card, rect.current);
 
-    // Update group membership based on location.
-    let groupData = groupDataForCardCallback(newCard);
-    console.log("groupData", groupData);
-    if (groupData.ID === undefined) {
-      delete newCard["groupID"];
+    // Update theme membership based on location.
+    let themeData = themeDataForCardCallback(newCard);
+    console.log("themeData", themeData);
+    if (themeData.ID === undefined) {
+      delete newCard["themeID"];
     } else {
-      newCard.groupID = groupData.ID;
+      newCard.themeID = themeData.ID;
     }
-    newCard.groupColor = groupData.color;
-    newCard.textColor = groupData.textColor;
+    newCard.themeColor = themeData.color;
+    newCard.textColor = themeData.textColor;
 
     addLocationCallBack(newCard);
 
@@ -112,8 +112,8 @@ export default function Card({
   const handleDrag = () => {
     let rect = getRect();
 
-    let cardGroupIDs = new Set();
-    let cardGroupColor = "#000";
+    let cardThemeIDs = new Set();
+    let cardThemeColor = "#000";
 
     let intersections = getIntersectingCardsCallBack(rect);
 
@@ -125,29 +125,29 @@ export default function Card({
     }
 
     intersections.forEach((card) => {
-      cardGroupIDs.add(card.groupID);
+      cardThemeIDs.add(card.themeID);
     });
 
     // Check whether we are intersecting cards of more than one
-    // group. (Includes case where we are intersecting an ungrouped
-    // card and a grouped card.)
-    if (cardGroupIDs.size !== 1) {
+    // theme. (Includes case where we are intersecting an unthemeed
+    // card and a themeed card.)
+    if (cardThemeIDs.size !== 1) {
       setPreviewCircle();
       setPreviewColor();
       return;
     }
 
-    let groupID = cardGroupIDs.values().next().value; // may be `undefined`
+    let themeID = cardThemeIDs.values().next().value; // may be `undefined`
 
     // Check whether the intersecting cards are not already part
-    // of a group, in which case we would create a new group if
+    // of a theme, in which case we would create a new theme if
     // dropped here
-    if (groupID !== undefined) {
-      let intersectingGroups = getIntersectingGroupsCallBack(rect);
-      intersectingGroups.forEach((group) => {
-        if (group.ID === groupID) {
-          cardGroupColor = group.color;
-          intersections.push(group);
+    if (themeID !== undefined) {
+      let intersectingThemes = getIntersectingThemesCallBack(rect);
+      intersectingThemes.forEach((theme) => {
+        if (theme.ID === themeID) {
+          cardThemeColor = theme.color;
+          intersections.push(theme);
         }
       });
     }
@@ -165,7 +165,7 @@ export default function Card({
     let circle = circumscribingCircle(bounds);
 
     setPreviewCircle(circle);
-    setPreviewColor(cardGroupColor);
+    setPreviewColor(cardThemeColor);
   };
 
   useEffect(() => {
@@ -184,11 +184,11 @@ export default function Card({
   }, [card]);
 
   useEffect(() => {
-    if (!orgTags || !orgTags[document.tagGroupID]) {
+    if (!orgTags || !orgTags[document.tagThemeID]) {
       return;
     }
 
-    setTag(orgTags[document.tagGroupID].tags[highlight.tagID]);
+    setTag(orgTags[document.tagThemeID].tags[highlight.tagID]);
   }, [orgTags]);
 
   let divStyle = {
@@ -200,12 +200,12 @@ export default function Card({
     y: minY,
   };
 
-  let groupPreview =
+  let themePreview =
     previewCircle === undefined ? (
       <></>
     ) : (
       <div
-        className="groupLabel"
+        className="themeLabel"
         style={{
           position: "absolute",
           left: previewCircle.minX,
@@ -277,7 +277,7 @@ export default function Card({
         </div>
       </Draggable>
 
-      {groupPreview}
+      {themePreview}
     </>
   );
 }
