@@ -2,9 +2,11 @@ import { bboxToRect, circumscribingCircle } from "./geom.js";
 
 import Draggable from "react-draggable";
 import React, { useRef, useEffect, useState } from "react";
-// import Chip from "@material-ui/core/Chip";
+import Chip from "@material-ui/core/Chip";
 import Avatar from "react-avatar";
 import Tooltip from "@material-ui/core/Tooltip";
+import { useOrgTags } from "../organization/hooks";
+import { useParams, Link } from "react-router-dom";
 
 export default function Card({
   cardRef,
@@ -19,15 +21,24 @@ export default function Card({
   groupDataForCardCallback,
   highlight,
   document,
+  setSidepaneHighlight,
 }) {
   const ref = useRef();
   const rect = useRef();
+
+  const dragStartPosition = useRef();
+
+  const orgTags = useOrgTags();
+
+  const { orgID } = useParams();
 
   const [previewCircle, setPreviewCircle] = useState();
   const [previewColor, setPreviewColor] = useState();
 
   const [minX, setMinX] = useState(card.minX);
   const [minY, setMinY] = useState(card.minY);
+
+  const [tag, setTag] = useState();
 
   const getRect = () => {
     if (!ref.current) {
@@ -50,10 +61,27 @@ export default function Card({
   const handleStart = () => {
     setCardDragging(true);
     removeLocationCallBack(card);
+    dragStartPosition.current = Object.assign({}, rect.current);
   };
 
   const handleStop = () => {
     rect.current = getRect();
+
+    // Detect "click" (non move).
+    if (
+      rect.current &&
+      dragStartPosition.current &&
+      rect.current.minX === dragStartPosition.current.minX &&
+      rect.current.maxX === dragStartPosition.current.maxX &&
+      rect.current.minY === dragStartPosition.current.minY &&
+      rect.current.maxY === dragStartPosition.current.maxY
+    ) {
+      setSidepaneHighlight(highlight);
+      dragStartPosition.current = undefined;
+      addLocationCallBack(card);
+      setCardDragging(false);
+      return;
+    }
 
     // Object.assign(card, rect);
     let newCard = Object.assign(card, rect.current);
@@ -74,7 +102,6 @@ export default function Card({
     setPreviewCircle();
     setPreviewColor();
 
-    console.log("Setting new card: ", newCard);
     cardRef.set(newCard);
 
     setMinX(rect.current.minX);
@@ -89,8 +116,6 @@ export default function Card({
     let cardGroupColor = "#000";
 
     let intersections = getIntersectingCardsCallBack(rect);
-
-    console.log("intersections", intersections.length);
 
     // Nothing to do
     if (intersections.length === 0) {
@@ -145,8 +170,6 @@ export default function Card({
 
   useEffect(() => {
     rect.current = getRect();
-    // Object.assign(card, rect.current);
-    // cardRef.set(card);
   });
 
   useEffect(() => {
@@ -159,6 +182,14 @@ export default function Card({
       setMinY(card.minY);
     }
   }, [card]);
+
+  useEffect(() => {
+    if (!orgTags || !orgTags[document.tagGroupID]) {
+      return;
+    }
+
+    setTag(orgTags[document.tagGroupID].tags[highlight.tagID]);
+  }, [orgTags]);
 
   let divStyle = {
     zIndex: cardDragging ? "100" : "0",
@@ -212,22 +243,37 @@ export default function Card({
           >
             {highlight.text}
           </div>
-          <Tooltip title={document.personName}>
-            <Avatar
-              name={document.personName}
-              size={30}
-              round={true}
-              style={{ margin: "0.125rem" }}
-              src={document.personImageURL}
-            />
-          </Tooltip>
-          {/* <div style={{ padding: "0.125rem" }}>
-            <Chip
-              size="small"
-              onClick={this.showModal}
-              label={this.props.document.name}
-            />
-          </div> */}
+          <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
+            <div>
+              <Tooltip title={document.personName}>
+                <Link to={`/orgs/${orgID}/people/${document.personID}`}>
+                  <Avatar
+                    name={document.personName}
+                    size={30}
+                    round={true}
+                    style={{ margin: "0.125rem" }}
+                    src={document.personImageURL}
+                  />
+                </Link>
+              </Tooltip>
+            </div>
+            {tag && (
+              <div
+                style={{
+                  display: "flex",
+                  padding: "0.125rem",
+                  flexGrow: "1",
+                  justifyContent: "flex-end",
+                }}
+              >
+                <Chip
+                  size="small"
+                  label={tag.name}
+                  style={{ backgroundColor: tag.color, color: tag.textColor }}
+                />
+              </div>
+            )}
+          </div>
         </div>
       </Draggable>
 

@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import React, { useEffect, useState, useCallback } from "react";
 
-import BoardContainer from "./BoardContainer.js";
+import Board from "./Board.js";
 import Grid from "@material-ui/core/Grid";
 import { Loading } from "../util/Utils.js";
 import Moment from "react-moment";
@@ -17,6 +17,7 @@ import ContentEditable from "react-contenteditable";
 import Tooltip from "@material-ui/core/Tooltip";
 import InterviewSelector from "./InterviewSelector.js";
 import Sidepane from "../shell/Sidepane.js";
+import QuoteSidepane from "./QuoteSidepane.js";
 
 const useStyles = makeStyles({
   paper: {
@@ -32,14 +33,12 @@ const useStyles = makeStyles({
   },
 });
 
-export default function Analysis({
-  analysisRef,
-  documentsRef,
-  allHighlightsRef,
-}) {
+export default function Analysis({ analysisRef }) {
   const { orgID, analysisID } = useParams();
   const [showDeleteModal, setShowDeleteModal] = useState();
-  const [sidepaneOpen, setSidepaneOpen] = useState(false);
+  const [interviewsSidepaneOpen, setInterviewsSidepaneOpen] = useState(false);
+
+  const [sidepaneHighlight, setSidepaneHighlight] = useState(undefined);
 
   const navigate = useNavigate();
 
@@ -168,7 +167,7 @@ export default function Analysis({
                 <Tooltip title="Select interviews">
                   <IconButton
                     onClick={() => {
-                      setSidepaneOpen(true);
+                      setInterviewsSidepaneOpen(true);
                     }}
                   >
                     <RecordVoiceOverIcon />
@@ -201,25 +200,29 @@ export default function Analysis({
               analysisRef={analysisRef}
             />
           </>
-          <BoardContainer
+          <Board
             key={analysisID}
-            orgID={orgID}
             analysis={analysis}
-            analysisRef={analysisRef}
-            documentsRef={documentsRef}
-            allHighlightsRef={allHighlightsRef}
-            setSidepaneOpen={setSidepaneOpen}
+            setSidepaneOpen={setInterviewsSidepaneOpen}
+            setSidepaneHighlight={setSidepaneHighlight}
           />
           <Sidepane
-            title="Select interview"
-            open={sidepaneOpen}
-            setOpen={setSidepaneOpen}
+            title="Select interviews"
+            open={interviewsSidepaneOpen}
+            setOpen={setInterviewsSidepaneOpen}
           >
             <InterviewSelector
               analysis={analysis}
               onAdd={onAdd}
               maxReached={maxReached}
             />
+          </Sidepane>
+          <Sidepane
+            title="Quote"
+            open={!!sidepaneHighlight}
+            setOpen={setSidepaneHighlight}
+          >
+            <QuoteSidepane highlight={sidepaneHighlight} />
           </Sidepane>
         </Paper>
       </Grid>

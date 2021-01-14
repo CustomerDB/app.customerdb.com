@@ -320,7 +320,7 @@ function CollabEditorWithCache({
             const selection = editor.getSelection();
             if (
               (selection && cursor.selection.index !== selection.index) ||
-              cursor.selection.length !== selection.length
+              (selection && cursor.selection.length !== selection.length)
             ) {
               updateCursor(editor, editorID, authorID, authorName);
             }
