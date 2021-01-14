@@ -2,6 +2,7 @@ import React, { useState, useRef } from "react";
 import Button from "@material-ui/core/Button";
 import Popper from "@material-ui/core/Popper";
 import Paper from "@material-ui/core/Paper";
+import AssignmentIcon from "@material-ui/icons/Assignment";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
 import ListItemText from "@material-ui/core/ListItemText";
 import ExploreIcon from "@material-ui/icons/Explore";
@@ -104,6 +105,17 @@ export default function Create() {
                 <ExploreIcon fontSize="small" />
               </ListItemIcon>
               <ListItemText primary="Guide" />
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                setOpen(false);
+                navigate(`/orgs/${orgID}/summaries/create`);
+              }}
+            >
+              <ListItemIcon>
+                <AssignmentIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText primary="Summary" />
             </MenuItem>
             <MenuItem
               onClick={() => {

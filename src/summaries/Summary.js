@@ -13,6 +13,7 @@ import { Loading } from "../util/Utils.js";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
+import CloudDownloadIcon from "@material-ui/icons/CloudDownload";
 import ArchiveIcon from "@material-ui/icons/Archive";
 import MoreVertIcon from "@material-ui/icons/MoreVert";
 import CloseIcon from "@material-ui/icons/Close";
@@ -22,15 +23,24 @@ import Scrollable from "../shell/Scrollable.js";
 import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
 import useFirestore from "../db/Firestore.js";
+import domToPdf from "dom-to-pdf";
 
 const useStyles = makeStyles({
-  documentPaper: {
+  summaryPaper: {
     margin: "0 1rem 0 2rem",
     padding: "0 2rem 4rem 2rem",
     minHeight: "48rem",
     width: "100%",
     maxWidth: "80rem",
     borderRight: "1px solid rgba(0, 0, 0, 0.12)",
+    backgroundColor: "#fff",
+  },
+  tabsContainer: {
+    position: "sticky",
+    top: 0,
+    height: "6rem",
+    width: "100%",
+    overflow: "hidden",
   },
   detailsParagraph: {
     marginBottom: "0.35rem",
@@ -67,7 +77,6 @@ export default function Summary(props) {
     }
 
     return summaryRef.onSnapshot((doc) => {
-      console.debug("received summary snapshot");
       if (!doc.exists) {
         navigate("/404");
         return;
@@ -91,131 +100,181 @@ export default function Summary(props) {
     );
   }
 
+  const downloadSummary = () => {
+    const element = document.getElementById("editorSummaryPaper");
+    if (!element) return;
+    const options = {
+      filename: summary.name,
+      excludeClassNames: ["noPrint", "ql-toolbar", "ql-cursors"],
+      overrideWidth: 800,
+    };
+    domToPdf(element, options, () => {
+      console.debug("download complete");
+    });
+  };
+
   return (
     <Grid
+      id="summaryEditorContainer"
       container
-      item
-      xs={12}
-      spacing={0}
-      style={{ backgroundColor: "white", position: "absolute", height: "100%" }}
+      className="fullHeight"
+      style={{ position: "relative" }}
     >
       <Grid
-        style={{ position: "relative", height: "100%" }}
         container
         item
-        sm={12}
-        md={8}
-        xl={9}
+        xs={12}
+        spacing={0}
+        style={{
+          backgroundColor: "white",
+          position: "absolute",
+          height: "100%",
+        }}
       >
-        <Scrollable id="editorScrollContainer">
-          <Grid container item spacing={0} xs={12} style={{ height: "100%" }}>
-            <Grid container item justify="center">
-              <Paper className={classes.documentPaper} elevation={0}>
-                <Grid
-                  container
-                  item
-                  xs={12}
-                  alignItems="center"
-                  className={classes.tabsContainer}
+        <Grid
+          style={{
+            position: "relative",
+            height: "100%",
+            zIndex: 1,
+          }}
+          container
+          item
+          sm={12}
+          md={8}
+          xl={9}
+        >
+          <Scrollable id="editorScrollContainer">
+            <Grid container item spacing={0} xs={12} style={{ height: "100%" }}>
+              <Grid container item justify="center">
+                <Paper
+                  id="editorSummaryPaper"
+                  className={classes.summaryPaper}
+                  elevation={0}
                 >
-                  <Grid item xs={7} sm={5}>
-                    <Typography
-                      gutterBottom
-                      variant="h6"
-                      style={{ fontWeight: "bold" }}
-                      id="documentTitle"
-                    >
-                      <ContentEditable
-                        html={document.name}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.target.blur();
-                          }
-                        }}
-                        onBlur={(e) => {
-                          if (summaryRef) {
-                            let newName = e.target.innerText
-                              .replace(/(\r\n|\n|\r)/gm, " ")
-                              .replace(/\s+/g, " ")
-                              .trim();
-
-                            console.debug("setting document name", newName);
-
-                            summaryRef.update({ name: newName });
-                          }
-                        }}
-                      />
-                    </Typography>
-                  </Grid>
-
-                  <Hidden xsDown>
-                    <Grid container item xs={2}>
-                      <Collaborators dbRef={summaryRef} />
-                    </Grid>
-                  </Hidden>
-
-                  <Grid container item xs={5} justify="flex-end">
-                    <>
-                      <IconButton
-                        id="document-options"
-                        edge="end"
-                        aria-label="document options"
-                        aria-haspopup="true"
-                        aria-controls="document-menu"
-                        onClick={handleOptionsClick}
-                        color="inherit"
+                  <Grid
+                    container
+                    item
+                    xs={12}
+                    alignItems="center"
+                    className={classes.tabsContainer}
+                  >
+                    <Grid item xs={7} sm={5}>
+                      <Typography
+                        gutterBottom
+                        variant="h6"
+                        style={{ fontWeight: "bold" }}
+                        id="summary-title"
                       >
-                        <MoreVertIcon />
-                      </IconButton>
-                      <Menu
-                        id="profile-menu"
-                        anchorEl={anchorEl}
-                        keepMounted
-                        open={Boolean(anchorEl)}
-                        onClose={handleOptionsClose}
-                      >
-                        <MenuItem
-                          id="archive-document-button"
-                          onClick={() => {
-                            setAnchorEl(null);
-                            setOpenDeleteDialog(true);
+                        <ContentEditable
+                          html={summary.name}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.target.blur();
+                            }
                           }}
+                          onBlur={(e) => {
+                            if (summaryRef) {
+                              let newName = e.target.innerText
+                                .replace(/(\r\n|\n|\r)/gm, " ")
+                                .replace(/\s+/g, " ")
+                                .trim();
+
+                              console.debug("setting summary name", newName);
+
+                              summaryRef.update({ name: newName });
+                            }
+                          }}
+                        />
+                      </Typography>
+                    </Grid>
+
+                    <Hidden xsDown>
+                      <Grid className="noPrint" container item xs={2}>
+                        <Collaborators dbRef={summaryRef} />
+                      </Grid>
+                    </Hidden>
+
+                    <Grid
+                      className="noPrint"
+                      container
+                      item
+                      xs={5}
+                      justify="flex-end"
+                    >
+                      <>
+                        <IconButton
+                          id="summary-options"
+                          edge="end"
+                          aria-label="summary options"
+                          aria-haspopup="true"
+                          aria-controls="summary-menu"
+                          onClick={handleOptionsClick}
+                          color="inherit"
                         >
-                          <ListItemIcon>
-                            <ArchiveIcon />
-                          </ListItemIcon>
-                          Archive
-                        </MenuItem>
-                      </Menu>
-                      <IconButton
-                        onClick={() => {
-                          // TODO: Communicate with parent component instead of using navigate.
-                          navigate(`/orgs/${orgID}/interviews`);
-                        }}
-                        color="inherit"
-                      >
-                        <CloseIcon />
-                      </IconButton>
-                    </>
+                          <MoreVertIcon />
+                        </IconButton>
+                        <Menu
+                          id="profile-menu"
+                          anchorEl={anchorEl}
+                          keepMounted
+                          open={Boolean(anchorEl)}
+                          onClose={handleOptionsClose}
+                        >
+                          <MenuItem
+                            id="download-summary-button"
+                            onClick={() => {
+                              downloadSummary();
+                              setAnchorEl(null);
+                            }}
+                          >
+                            <ListItemIcon>
+                              <CloudDownloadIcon />
+                            </ListItemIcon>
+                            Download PDF
+                          </MenuItem>
+                          <MenuItem
+                            id="archive-summary-button"
+                            onClick={() => {
+                              setAnchorEl(null);
+                              setOpenDeleteDialog(true);
+                            }}
+                          >
+                            <ListItemIcon>
+                              <ArchiveIcon />
+                            </ListItemIcon>
+                            Archive
+                          </MenuItem>
+                        </Menu>
+                        <IconButton
+                          onClick={() => {
+                            // TODO: Communicate with parent component instead of using navigate.
+                            navigate(`/orgs/${orgID}/summaries`);
+                          }}
+                          color="inherit"
+                        >
+                          <CloseIcon />
+                        </IconButton>
+                      </>
+                    </Grid>
                   </Grid>
-                </Grid>
 
-                <SummaryEditor reactQuillRef={reactQuillSummaryRef} />
-              </Paper>
+                  <SummaryEditor reactQuillRef={reactQuillSummaryRef} />
+                </Paper>
+              </Grid>
             </Grid>
-          </Grid>
-        </Scrollable>
+          </Scrollable>
+        </Grid>
+
+        <Hidden smDown>
+          <SummarySidebar reactQuillRef={reactQuillSummaryRef} />
+        </Hidden>
+
+        <SummaryDeleteDialog
+          open={openDeleteDialog}
+          setOpen={setOpenDeleteDialog}
+          summary={summary}
+        />
       </Grid>
-
-      <Hidden smDown>
-        <SummarySidebar reactQuillRef={reactQuillSummaryRef} />
-      </Hidden>
-
-      <SummaryDeleteDialog
-        open={openDeleteDialog}
-        setOpen={setOpenDeleteDialog}
-        summary={summary}
-      />
     </Grid>
   );
 }

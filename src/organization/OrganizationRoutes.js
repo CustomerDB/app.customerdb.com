@@ -74,6 +74,12 @@ export default function OrganizationRoutes(props) {
           <Route path=":summaryID" element={<Summary />} />
         </Route>
 
+        <Route path="summaries/*">
+          <Route path="/" element={<Summaries />} />
+          <Route path="create" element={<Summaries create />} />
+          <Route path=":summaryID" element={<Summary />} />
+        </Route>
+
         <Route path="tags/*">
           <Route path="/" element={<Tags />} />
           <Route path="create" element={<Tags create />} />

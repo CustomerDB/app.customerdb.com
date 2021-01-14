@@ -138,6 +138,7 @@ const Autocomplete = ({ hits, currentRefinement, refine, searchState }) => {
   const classes = useStyles();
   const navigate = useNavigate();
   const { orgID } = useParams();
+  const location = useLocation();
 
   const [open, setOpen] = useState(false);
 
@@ -145,6 +146,19 @@ const Autocomplete = ({ hits, currentRefinement, refine, searchState }) => {
   let people = peopleFromHits(hits);
 
   let showResults = !!searchState.query;
+
+  const enterToSearch = (e) => {
+    if (e.key === "Enter") {
+      const searchWhitelist = ["quotes", "people", "interviews"];
+      searchWhitelist.forEach((component) => {
+        if (location.pathname.startsWith(`/orgs/${orgID}/${component}`)) {
+          setOpen(false);
+          refine("");
+          navigate(`/orgs/${orgID}/${component}?q=${currentRefinement}`);
+        }
+      });
+    }
+  };
 
   return (
     <div style={{ position: "relative" }}>
@@ -184,6 +198,7 @@ const Autocomplete = ({ hits, currentRefinement, refine, searchState }) => {
                 onChange={(event) => {
                   refine(event.currentTarget.value);
                 }}
+                onKeyDown={enterToSearch}
                 InputProps={{
                   disableUnderline: true,
                   startAdornment: (
