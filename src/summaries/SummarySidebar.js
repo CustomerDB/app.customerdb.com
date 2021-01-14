@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 
 import { useSearchClient } from "../search/client.js";
 import { Loading } from "../util/Utils.js";

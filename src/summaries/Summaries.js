@@ -31,7 +31,6 @@ export default function Summaries({ create }) {
 
   // state
   const [summaries, setSummaries] = useState([]);
-  const [showResults, setShowResults] = useState();
 
   // subscribe to summaries collection
   useEffect(() => {
@@ -125,9 +124,6 @@ export default function Summaries({ create }) {
   if (process.env.REACT_APP_ALGOLIA_SUMMARIES_INDEX) {
     searchConfig = {
       index: process.env.REACT_APP_ALGOLIA_SUMMARIES_INDEX,
-      setShowResults: (value) => {
-        setShowResults(value);
-      },
     };
   }
 

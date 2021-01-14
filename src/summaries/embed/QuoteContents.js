@@ -65,18 +65,26 @@ export default function QuoteContents({ quillContainerRef }) {
 
 function QuoteContent({ highlightID }) {
   const { orgID } = useParams();
-  const [exists, setExists] = useState(true);
+  const [highlightExists, setHighlightExists] = useState(true);
+  const [transcriptHighlightExists, setTranscriptHighlightExists] = useState(
+    true
+  );
   const [highlight, setHighlight] = useState();
   const [highlightCache, setHighlightCache] = useState();
   const [mediaURL, setMediaURL] = useState();
-  const { allHighlightsRef } = useFirestore();
+  const { allHighlightsRef, allTranscriptHighlightsRef } = useFirestore();
   const firebase = useContext(FirebaseContext);
   const playerRef = useRef();
 
-  useEffect(() => {
-    if (!allHighlightsRef) return;
+  const subscribeToHighlight = (
+    collectionRef,
+    orgID,
+    highlightID,
+    setExists
+  ) => {
+    if (!collectionRef || !orgID || !highlightID || !setExists) return;
 
-    return allHighlightsRef
+    return collectionRef
       .where("organizationID", "==", orgID)
       .where("deletionTimestamp", "==", "")
       .where("ID", "==", highlightID)
@@ -98,29 +106,40 @@ function QuoteContent({ highlightID }) {
             });
         });
       });
+  };
+
+  useEffect(() => {
+    return subscribeToHighlight(
+      allHighlightsRef,
+      orgID,
+      highlightID,
+      setHighlightExists
+    );
   }, [allHighlightsRef, highlightID, orgID]);
 
   useEffect(() => {
-    if (!firebase || !highlightCache || !highlightCache.mediaPath) {
-      return;
-    }
-
-    console.debug(
-      `Starting to fetch media URL for ${highlightCache.mediaPath}`
+    return subscribeToHighlight(
+      allTranscriptHighlightsRef,
+      orgID,
+      highlightID,
+      setTranscriptHighlightExists
     );
+  }, [allTranscriptHighlightsRef, highlightID, orgID]);
 
-    firebase
+  useEffect(() => {
+    if (!firebase || !highlightCache || !highlightCache.mediaPath) return;
+    return firebase
       .storage()
       .ref()
       .child(highlightCache.mediaPath)
       .getDownloadURL()
       .then((url) => {
-        console.debug(`Got url: ${url}`);
         setMediaURL(url);
       });
   }, [highlightCache, firebase]);
 
-  if (!exists) return "Highlight not found";
+  if (!highlightExists && !transcriptHighlightExists)
+    return "Highlight not found";
 
   if (!highlight || !highlightCache)
     return (
