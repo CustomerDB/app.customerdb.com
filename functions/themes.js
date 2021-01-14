@@ -155,7 +155,7 @@ function highlightUpdates(change, context, source) {
             analysis.documentIDs &&
             analysis.documentIDs.includes(documentID)
           ) {
-            let cardRef = cardsRef.doc(doc.id);
+            let cardRef = cardsRef.doc(highlightID);
 
             console.debug(
               `Adding highlight ${highlightID} to analysis ${doc.id}`
@@ -243,6 +243,7 @@ function highlightCacheUpdates(change, context, source) {
 
               if (doc.exists && change.after.exists) {
                 card = doc.data();
+                let cache = change.after.data();
                 card.highlightHitCache = cache;
               }
 
