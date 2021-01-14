@@ -134,7 +134,7 @@ function QuoteContent({ highlightID }) {
 
   useEffect(() => {
     if (!firebase || !highlightCache || !highlightCache.mediaPath) return;
-    return firebase
+    firebase
       .storage()
       .ref()
       .child(highlightCache.mediaPath)

@@ -45,7 +45,7 @@ export default function QuoteHit({ hit, reactQuillRef }) {
       return;
     }
 
-    return firebase
+    firebase
       .storage()
       .ref()
       .child(hit.mediaPath)
@@ -99,6 +99,10 @@ export default function QuoteHit({ hit, reactQuillRef }) {
       editor.setSelection(insertIndex);
     }
   }, 1000);
+
+  useEffect(() => {
+    updateCursor.clear();
+  }, [updateCursor]);
 
   const handleDrag = (e) => {
     setPosition({

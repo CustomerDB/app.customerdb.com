@@ -50,9 +50,7 @@ function InfiniteHits({ reactQuillRef, hasMore, refine, hits }) {
   return (
     <>
       {hits.map((hit) => (
-        <Grid key={hit.objectID} container item xs={12}>
-          <QuoteHit hit={hit} reactQuillRef={reactQuillRef} />
-        </Grid>
+        <QuoteHit key={hit.objectID} hit={hit} reactQuillRef={reactQuillRef} />
       ))}
       <div
         ref={(c) => (sentinel.current = c)}
