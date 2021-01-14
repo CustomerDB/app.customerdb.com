@@ -11,18 +11,7 @@ import { Highlight } from "react-instantsearch-dom";
 import Moment from "react-moment";
 import ReactPlayer from "react-player";
 import Typography from "@material-ui/core/Typography";
-
-const hexToRGB = (hex) => {
-  if (hex.startsWith("#")) hex = hex.slice(1);
-  const base = 16;
-  const mask = 255;
-  const decimal = parseInt(hex, base);
-  return {
-    r: (decimal >> 16) & mask,
-    g: (decimal >> 8) & mask,
-    b: decimal & mask,
-  };
-};
+import { hexToRGB } from "../util/color.js";
 
 export default function Quote({ hit }) {
   const firebase = useContext(FirebaseContext);

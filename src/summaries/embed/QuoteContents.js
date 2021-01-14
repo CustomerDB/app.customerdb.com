@@ -11,20 +11,8 @@ import Typography from "@material-ui/core/Typography";
 import Moment from "react-moment";
 import ReactPlayer from "react-player";
 import FirebaseContext from "../../util/FirebaseContext.js";
-
 import useFirestore from "../../db/Firestore.js";
-
-const hexToRGB = (hex) => {
-  if (hex.startsWith("#")) hex = hex.slice(1);
-  const base = 16;
-  const mask = 255;
-  const decimal = parseInt(hex, base);
-  return {
-    r: (decimal >> 16) & mask,
-    g: (decimal >> 8) & mask,
-    b: decimal & mask,
-  };
-};
+import { hexToRGB } from "../../util/color.js";
 
 export default function QuoteContents({ quillContainerRef }) {
   const [quoteNodes, setQuoteNodes] = useState([]);
