@@ -7,47 +7,31 @@ import Modal from "../shell_obsolete/Modal.js";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
 
-export default function AnalysisDeleteModal(props) {
+export default function BoardDeleteModal({ boardRef, board, show, onHide }) {
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
   const navigate = useNavigate();
-
   const { orgID } = useParams();
 
-  const [analysis, setAnalysis] = useState();
-
-  useEffect(() => {
-    if (!props.analysisRef) {
-      return;
-    }
-
-    props.analysisRef.get().then((doc) => {
-      let analysis = doc.data();
-      analysis.ID = doc.id;
-      setAnalysis(analysis);
-    });
-  }, [props.show, props.analysisRef]);
-
-  if (!analysis) {
+  if (!board) {
     return <></>;
   }
 
   return (
     <Modal
-      key={analysis.ID}
-      name="Delete analysis"
-      show={props.show}
-      onHide={props.onHide}
+      name="Archive board"
+      show={show}
+      onHide={onHide}
       footer={[
         <Button
-          key={analysis.ID}
+          key={board.ID}
           onClick={() => {
-            event(firebase, "delete_analysis", {
+            event(firebase, "archive_board", {
               orgID: orgID,
               userID: oauthClaims.user_id,
             });
 
-            props.analysisRef.update({
+            boardRef.update({
               deletedBy: oauthClaims.email,
               deletionTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
             });
@@ -55,12 +39,12 @@ export default function AnalysisDeleteModal(props) {
             navigate(`/orgs/${orgID}/boards`);
           }}
         >
-          Delete
+          Archive
         </Button>,
       ]}
     >
       <p>
-        Do you want to delete <b>{analysis.name}</b>?
+        Do you want to archive <b>{board.name}</b>?
       </p>
     </Modal>
   );

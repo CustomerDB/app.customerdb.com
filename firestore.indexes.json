@@ -1,7 +1,7 @@
 {
   "indexes": [
     {
-      "collectionGroup": "analyses",
+      "collectionGroup": "boards",
       "queryScope": "COLLECTION",
       "fields": [
         {
@@ -561,7 +561,7 @@
       ]
     },
     {
-      "collectionGroup": "analyses",
+      "collectionGroup": "boards",
       "fieldPath": "deletionTimestamp",
       "indexes": [
         {
