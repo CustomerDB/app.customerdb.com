@@ -12,6 +12,7 @@ import ReactPlayer from "react-player";
 import Typography from "@material-ui/core/Typography";
 import Quill from "quill";
 import { insertQuote } from "./embed/insert.js";
+import { debounce } from "debounce";
 
 const hexToRGB = (hex) => {
   if (hex.startsWith("#")) hex = hex.slice(1);
@@ -29,8 +30,9 @@ export default function QuoteHit({ hit, reactQuillRef }) {
   const firebase = useContext(FirebaseContext);
   const [mediaURL, setMediaURL] = useState();
   const [drag, setDrag] = useState(false);
-  const [cardHeight, setCardHeight] = useState("6rem");
-  const [dragCardWidth, setDragCardWidth] = useState("100%");
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [cardRect, setCardRect] = useState();
+  const [scrollTop, setScrollTop] = useState(0);
   const playerRef = useRef();
   const cardRef = useRef();
 
@@ -43,15 +45,12 @@ export default function QuoteHit({ hit, reactQuillRef }) {
       return;
     }
 
-    console.debug(`Starting to fetch media URL for ${hit.mediaPath}`);
-
     firebase
       .storage()
       .ref()
       .child(hit.mediaPath)
       .getDownloadURL()
       .then((url) => {
-        console.debug(`Got url: ${url}`);
         setMediaURL(url);
       });
   }, [hit.mediaPath, firebase]);
@@ -71,15 +70,47 @@ export default function QuoteHit({ hit, reactQuillRef }) {
   const attenuatedHighlightColor = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${opacity})`;
 
   const handleDragStart = (e) => {
-    e.preventDefault();
     const cardRect = cardRef.current.getBoundingClientRect();
-    setCardHeight(cardRect.height);
-    setDragCardWidth(cardRect.width);
+    const scrollPane = document.getElementById("summary-sidebar-scroll");
+    setScrollTop(scrollPane.scrollTop);
+    setCardRect(cardRect);
     setDrag(true);
   };
 
+  const updateCursor = debounce((e) => {
+    const editor =
+      reactQuillRef &&
+      reactQuillRef.current &&
+      reactQuillRef.current.getEditor();
+
+    if (!editor) return;
+    const dropTarget = document.elementFromPoint(e.x, e.y);
+    if (dropTarget && editor.container.contains(dropTarget)) {
+      const blot = Quill.find(dropTarget, true);
+      if (!blot) return;
+      let insertIndex = 0;
+
+      if (!blot.cache || !blot.cache.length) {
+        insertIndex = editor.getLength();
+      } else {
+        const blotStart = editor.getIndex(blot);
+        insertIndex = blotStart + blot.cache.length;
+      }
+      editor.setSelection(insertIndex);
+    }
+  }, 1000);
+
+  const handleDrag = (e) => {
+    setPosition({
+      x: e.x - cardRect.x,
+      y: e.y - cardRect.y - scrollTop,
+    });
+    updateCursor.clear();
+    updateCursor(e);
+  };
+
   const handleDragStop = (e) => {
-    console.debug("item drag stop", e);
+    setPosition({ x: 0, y: 0 });
     setDrag(false);
 
     const editor =
@@ -89,15 +120,19 @@ export default function QuoteHit({ hit, reactQuillRef }) {
 
     if (!editor) return;
 
-    console.debug("editor", editor);
-
     const dropTarget = document.elementFromPoint(e.x, e.y);
     if (dropTarget && editor.container.contains(dropTarget)) {
       const blot = Quill.find(dropTarget, true);
       if (!blot) return;
-      const blotStart = editor.getIndex(blot);
-      const blotEnd = blotStart + blot.cache.length;
-      insertQuote(editor, hit.objectID, blotEnd);
+      let insertIndex = 0;
+
+      if (!blot.cache || !blot.cache.length) {
+        insertIndex = editor.getLength();
+      } else {
+        const blotStart = editor.getIndex(blot);
+        insertIndex = blotStart + blot.cache.length;
+      }
+      insertQuote(editor, hit.objectID, insertIndex);
     }
   };
 
@@ -109,7 +144,7 @@ export default function QuoteHit({ hit, reactQuillRef }) {
       style={{
         zIndex: "99",
         position: drag ? "absolute" : "relative",
-        width: drag ? dragCardWidth : "100%",
+        width: drag ? cardRect.width : "100%",
         margin: "0.5rem",
         borderRadius: "0.5rem",
         cursor: "pointer",
@@ -202,7 +237,7 @@ export default function QuoteHit({ hit, reactQuillRef }) {
           padding: 0,
           margin: "0.5rem",
           borderRadius: "0.5rem",
-          height: `${cardHeight}px`,
+          height: `${cardRect.height}px`,
           backgroundColor: "#fafafa",
         }}
       ></Card>
@@ -212,11 +247,12 @@ export default function QuoteHit({ hit, reactQuillRef }) {
   return (
     <>
       <Draggable
-        position={drag ? undefined : { x: 0, y: 0 }}
+        position={position}
+        axis="none"
         nodeRef={cardRef}
         onStart={handleDragStart}
+        onDrag={handleDrag}
         onStop={handleDragStop}
-        zIndex={drag ? 99 : 1}
       >
         {card}
       </Draggable>

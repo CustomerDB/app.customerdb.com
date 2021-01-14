@@ -13,6 +13,7 @@ import { Loading } from "../util/Utils.js";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
+import CloudDownloadIcon from "@material-ui/icons/CloudDownload";
 import ArchiveIcon from "@material-ui/icons/Archive";
 import MoreVertIcon from "@material-ui/icons/MoreVert";
 import CloseIcon from "@material-ui/icons/Close";
@@ -22,6 +23,7 @@ import Scrollable from "../shell/Scrollable.js";
 import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
 import useFirestore from "../db/Firestore.js";
+import domToPdf from "dom-to-pdf";
 
 const useStyles = makeStyles({
   summaryPaper: {
@@ -98,6 +100,19 @@ export default function Summary(props) {
     );
   }
 
+  const downloadSummary = () => {
+    const element = document.getElementById("editorSummaryPaper");
+    if (!element) return;
+    const options = {
+      filename: summary.name,
+      excludeClassNames: ["noPrint", "ql-toolbar", "ql-cursors"],
+      overrideWidth: 800,
+    };
+    domToPdf(element, options, () => {
+      console.debug("download complete");
+    });
+  };
+
   return (
     <Grid
       id="summaryEditorContainer"
@@ -131,7 +146,11 @@ export default function Summary(props) {
           <Scrollable id="editorScrollContainer">
             <Grid container item spacing={0} xs={12} style={{ height: "100%" }}>
               <Grid container item justify="center">
-                <Paper className={classes.summaryPaper} elevation={0}>
+                <Paper
+                  id="editorSummaryPaper"
+                  className={classes.summaryPaper}
+                  elevation={0}
+                >
                   <Grid
                     container
                     item
@@ -170,12 +189,18 @@ export default function Summary(props) {
                     </Grid>
 
                     <Hidden xsDown>
-                      <Grid container item xs={2}>
+                      <Grid className="noPrint" container item xs={2}>
                         <Collaborators dbRef={summaryRef} />
                       </Grid>
                     </Hidden>
 
-                    <Grid container item xs={5} justify="flex-end">
+                    <Grid
+                      className="noPrint"
+                      container
+                      item
+                      xs={5}
+                      justify="flex-end"
+                    >
                       <>
                         <IconButton
                           id="summary-options"
@@ -195,6 +220,18 @@ export default function Summary(props) {
                           open={Boolean(anchorEl)}
                           onClose={handleOptionsClose}
                         >
+                          <MenuItem
+                            id="download-summary-button"
+                            onClick={() => {
+                              downloadSummary();
+                              setAnchorEl(null);
+                            }}
+                          >
+                            <ListItemIcon>
+                              <CloudDownloadIcon />
+                            </ListItemIcon>
+                            Download PDF
+                          </MenuItem>
                           <MenuItem
                             id="archive-summary-button"
                             onClick={() => {

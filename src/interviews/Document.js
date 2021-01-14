@@ -16,6 +16,7 @@ import IconButton from "@material-ui/core/IconButton";
 import { Loading } from "../util/Utils.js";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
+import CloudDownloadIcon from "@material-ui/icons/CloudDownload";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
 import FlashOnRoundedIcon from "@material-ui/icons/FlashOnRounded";
 import DeleteSweepIcon from "@material-ui/icons/DeleteSweep";
@@ -32,6 +33,7 @@ import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
 import useFirestore from "../db/Firestore.js";
 import { Tooltip } from "@material-ui/core";
+import domToPdf from "dom-to-pdf";
 
 const useStyles = makeStyles({
   documentPaper: {
@@ -191,6 +193,19 @@ export default function Document(props) {
     );
   }
 
+  const downloadDocument = () => {
+    const element = window.document.getElementById("interviewPaper");
+    if (!element) return;
+    const options = {
+      filename: document.name,
+      excludeClassNames: ["noPrint", "ql-toolbar", "ql-cursors"],
+      overrideWidth: 800,
+    };
+    domToPdf(element, options, () => {
+      console.debug("download complete");
+    });
+  };
+
   return (
     <Grid
       container
@@ -210,7 +225,11 @@ export default function Document(props) {
         <Scrollable id="editorScrollContainer">
           <Grid container item spacing={0} xs={12} style={{ height: "100%" }}>
             <Grid container item justify="center">
-              <Paper className={classes.documentPaper} elevation={0}>
+              <Paper
+                id="interviewPaper"
+                className={classes.documentPaper}
+                elevation={0}
+              >
                 <Grid
                   container
                   item
@@ -249,12 +268,18 @@ export default function Document(props) {
                   </Grid>
 
                   <Hidden xsDown>
-                    <Grid container item xs={2}>
+                    <Grid className="noPrint" container item xs={2}>
                       <Collaborators dbRef={documentRef} />
                     </Grid>
                   </Hidden>
 
-                  <Grid container item xs={5} justify="flex-end">
+                  <Grid
+                    className="noPrint"
+                    container
+                    item
+                    xs={5}
+                    justify="flex-end"
+                  >
                     <>
                       <Tooltip title="Suggest highlights">
                         <IconButton
@@ -291,6 +316,18 @@ export default function Document(props) {
                         open={Boolean(anchorEl)}
                         onClose={handleOptionsClose}
                       >
+                        <MenuItem
+                          id="download-document-button"
+                          onClick={() => {
+                            downloadDocument();
+                            setAnchorEl(null);
+                          }}
+                        >
+                          <ListItemIcon>
+                            <CloudDownloadIcon />
+                          </ListItemIcon>
+                          Download PDF
+                        </MenuItem>
                         <MenuItem
                           id="archive-document-button"
                           onClick={() => {
@@ -335,7 +372,7 @@ export default function Document(props) {
                     textColor="primary"
                     variant="fullWidth"
                     aria-label="full width"
-                    className={classes.tabs}
+                    className={`${classes.tabs} noPrint`}
                   >
                     <Tab
                       label="transcript"

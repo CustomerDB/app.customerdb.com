@@ -121,8 +121,6 @@ function QuoteContent({ highlightID }) {
 
   if (!exists) return "Highlight not found";
 
-  console.debug("QuoteContents::render", highlight, highlightCache);
-
   if (!highlight || !highlightCache) return <></>;
 
   let contextPrefix, contextSuffix;
