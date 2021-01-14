@@ -210,9 +210,13 @@ button.addButton {
 
 .ql-toolbar {
   position: sticky;
-  top: 10rem;
   background: #fff;
   z-index: 1;
+}
+
+#quill-notes-editor > .ql-toolbar,
+#quill-transcript-editor > .ql-toolbar {
+  top: 10rem;
 }
 
 .guideQuill .ql-toolbar {
@@ -231,19 +235,3 @@ button.addButton {
 .ql-snow {
   border: 0 !important;
 }
-
-/*
-.ql-snow .ql-picker {
-  height: 30px !important;
-}
-
-.ql-snow .ql-picker-label::before {
-  line-height: 28px !important;
-}
-
-.ql-snow.ql-toolbar button,
-.ql-snow .ql-toolbar button {
-  height: 30px !important;
-  padding: 3px 15px !important;
-}
-*/

@@ -36,3 +36,15 @@ function intToRGB(i) {
 export function colorForString(str) {
   return `#${intToRGB(hashCode(str))}`;
 }
+
+export function hexToRGB(hex) {
+  if (hex.startsWith("#")) hex = hex.slice(1);
+  const base = 16;
+  const mask = 255;
+  const decimal = parseInt(hex, base);
+  return {
+    r: (decimal >> 16) & mask,
+    g: (decimal >> 8) & mask,
+    b: decimal & mask,
+  };
+}

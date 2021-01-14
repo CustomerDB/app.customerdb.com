@@ -15,6 +15,10 @@ const ALGOLIA_DOCUMENTS_INDEX_NAME = functions.config().algolia
   ? functions.config().algolia.documents_index
   : undefined;
 
+const ALGOLIA_SUMMARIES_INDEX_NAME = functions.config().algolia
+  ? functions.config().algolia.summaries_index
+  : undefined;
+
 let client;
 if (ALGOLIA_ID && ALGOLIA_ADMIN_KEY) {
   client = algoliasearch(ALGOLIA_ID, ALGOLIA_ADMIN_KEY);
@@ -226,6 +230,89 @@ if (client) {
     .onWrite(indexUpdated(client.initIndex(ALGOLIA_DOCUMENTS_INDEX_NAME)));
 }
 
+const indexSummary = (index) => {
+  return (change, context) => {
+    if (!change.after.exists || change.after.data().deletionTimestamp != "") {
+      // Delete summary from index;
+      console.log("deleting summary from index", context.params.summaryID);
+      return index.deleteObject(context.params.summaryID);
+    }
+
+    let data = change.after.data();
+    let revisionsRef = change.after.ref.collection("revisions");
+    let deltasRef = change.after.ref.collection("deltas");
+
+    return latestRevision(revisionsRef).then((oldRevision) => {
+      if (data.needsIndex === true) {
+        return updateRevision(
+          oldRevision.delta,
+          oldRevision.timestamp,
+          deltasRef
+        ).then((newRevision) => {
+          // Index the new content
+          let indexRecord = {
+            // Add an 'objectID' field which Algolia requires
+            objectID: change.after.id,
+            orgID: context.params.orgID,
+            name: data.name,
+            createdBy: data.createdBy,
+            creationTimestamp: data.creationTimestamp.seconds,
+            latestSnapshotTimestamp: newRevision.timestamp.seconds,
+            text: util.deltaToPlaintext(newRevision.delta),
+          };
+
+          return index.saveObject(indexRecord).then(() => {
+            // Write the snapshot, timestamp and index state back to document
+            // (but only if the new revision has additional committed deltas
+            // since the last revision was computed).
+
+            let writeRevision = Promise.resolve();
+
+            if (
+              newRevision.timestamp.toDate().valueOf() >
+              oldRevision.timestamp.toDate().valueOf()
+            ) {
+              console.debug(
+                "writing new revision (old ts, new ts)",
+                oldRevision.timestamp.toDate().valueOf(),
+                newRevision.timestamp.toDate().valueOf()
+              );
+
+              writeRevision = revisionsRef.add({
+                delta: { ops: newRevision.delta.ops },
+                timestamp: newRevision.timestamp,
+              });
+            }
+
+            writeRevision.then(change.after.ref.update({ needsIndex: false }));
+          });
+        });
+      }
+
+      // Otherwise, just proceed with updating the index with the
+      // existing document data.
+      return index.saveObject({
+        // Add an 'objectID' field which Algolia requires
+        objectID: change.after.id,
+        orgID: context.params.orgID,
+        name: data.name,
+        createdBy: data.createdBy,
+        creationTimestamp: data.creationTimestamp.seconds,
+        latestSnapshotTimestamp: oldRevision.timestamp.seconds,
+        text: util.deltaToPlaintext(oldRevision.delta),
+      });
+    });
+  };
+};
+
+// Add summary records to the search index when created or
+// when marked for re-index.
+if (client) {
+  exports.indexUpdatedSummary = functions.firestore
+    .document("organizations/{orgID}/summaries/{summaryID}")
+    .onWrite(indexSummary(client.initIndex(ALGOLIA_SUMMARIES_INDEX_NAME)));
+}
+
 // Cache the person name and image URL in document metadata on update
 exports.cachePersonImageURL = functions.firestore
   .document("organizations/{orgID}/documents/{documentID}")
@@ -355,3 +442,8 @@ const markForIndexing = (collectionName) => {
 exports.markDocumentsForIndexing = functions.pubsub
   .schedule("every 2 minutes")
   .onRun(markForIndexing("documents"));
+
+// Mark documents
+exports.markSummariesForIndexing = functions.pubsub
+  .schedule("every 2 minutes")
+  .onRun(markForIndexing("summaries"));

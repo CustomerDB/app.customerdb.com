@@ -85,25 +85,11 @@
       ]
     },
     {
-      "collectionGroup": "snapshots",
+      "collectionGroup": "summaries",
       "queryScope": "COLLECTION",
       "fields": [
         {
           "fieldPath": "deletionTimestamp",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "creationTimestamp",
-          "order": "DESCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "snapshots",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "personID",
           "order": "ASCENDING"
         },
         {
