@@ -7,6 +7,7 @@ import Avatar from "react-avatar";
 import Tooltip from "@material-ui/core/Tooltip";
 import { useOrgTags } from "../organization/hooks";
 import { useParams, Link } from "react-router-dom";
+import LinearProgress from "@material-ui/core/LinearProgress";
 
 export default function Card({
   cardRef,
@@ -184,7 +185,7 @@ export default function Card({
   }, [card]);
 
   useEffect(() => {
-    if (!orgTags || !orgTags[document.tagThemeID]) {
+    if (!orgTags || !card.highlightHitCache || !orgTags[document.tagThemeID]) {
       return;
     }
 
@@ -220,6 +221,8 @@ export default function Card({
 
   let titleBarCursor = cardDragging ? "grabbing" : "grab";
 
+  console.log("Card", card);
+
   // Draggable nodeRef required to fix findDOMNode warnings.
   // see: https://github.com/STRML/react-draggable/pull/478
   return (
@@ -235,45 +238,59 @@ export default function Card({
         onStop={handleStop}
       >
         <div ref={ref} className="card" style={divStyle}>
-          <div
-            className="quote handle"
-            style={{
-              cursor: titleBarCursor,
-            }}
-          >
-            {highlight.text}
-          </div>
-          <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
-            <div>
-              <Tooltip title={document.personName}>
-                <Link to={`/orgs/${orgID}/people/${document.personID}`}>
-                  <Avatar
-                    name={document.personName}
-                    size={30}
-                    round={true}
-                    style={{ margin: "0.125rem" }}
-                    src={document.personImageURL}
-                  />
-                </Link>
-              </Tooltip>
-            </div>
-            {tag && (
+          {!card.highlightHitCache && <LinearProgress />}
+          {card.highlightHitCache && (
+            <>
               <div
+                className="quote handle"
                 style={{
-                  display: "flex",
-                  padding: "0.125rem",
-                  flexGrow: "1",
-                  justifyContent: "flex-end",
+                  cursor: titleBarCursor,
                 }}
               >
-                <Chip
-                  size="small"
-                  label={tag.name}
-                  style={{ backgroundColor: tag.color, color: tag.textColor }}
-                />
+                {card.highlightHitCache.text}
               </div>
-            )}
-          </div>
+              <div
+                style={{ display: "flex", alignItems: "center", width: "100%" }}
+              >
+                <div>
+                  {
+                    <Tooltip title={card.personName}>
+                      <Link
+                        to={`/orgs/${orgID}/people/${card.highlightHitCache.personID}`}
+                      >
+                        <Avatar
+                          name={card.highlightHitCache.personName}
+                          size={30}
+                          round={true}
+                          style={{ margin: "0.125rem" }}
+                          src={card.highlightHitCache.personImageURL}
+                        />
+                      </Link>
+                    </Tooltip>
+                  }
+                </div>
+                {tag && (
+                  <div
+                    style={{
+                      display: "flex",
+                      padding: "0.125rem",
+                      flexGrow: "1",
+                      justifyContent: "flex-end",
+                    }}
+                  >
+                    <Chip
+                      size="small"
+                      label={tag.name}
+                      style={{
+                        backgroundColor: tag.color,
+                        color: tag.textColor,
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </Draggable>
 

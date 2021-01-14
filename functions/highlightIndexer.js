@@ -197,6 +197,7 @@ function indexHighlight(source, orgID, highlightID, highlightRef) {
               text: highlight.text,
               startIndex: highlight.selection.index,
               endIndex: highlight.selection.index + highlight.selection.length,
+              tagGroupID: document.tagGroupID,
               tagID: highlight.tagID,
               createdBy: highlight.createdBy,
               creationTimestamp: highlight.creationTimestamp.seconds,
