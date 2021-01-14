@@ -5,6 +5,7 @@ import { useParams } from "react-router-dom";
 import Avatar from "react-avatar";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
+import CircularProgress from "@material-ui/core/CircularProgress";
 import Chip from "@material-ui/core/Chip";
 import Typography from "@material-ui/core/Typography";
 import Moment from "react-moment";
@@ -121,7 +122,20 @@ function QuoteContent({ highlightID }) {
 
   if (!exists) return "Highlight not found";
 
-  if (!highlight || !highlightCache) return <></>;
+  if (!highlight || !highlightCache)
+    return (
+      <Card
+        key={highlightID}
+        elevation={1}
+        style={{
+          width: "100%",
+          margin: "0.5rem",
+          borderRadius: "0.5rem",
+        }}
+      >
+        <CircularProgress color="secondary" />
+      </Card>
+    );
 
   let contextPrefix, contextSuffix;
 
@@ -159,9 +173,6 @@ function QuoteContent({ highlightID }) {
       }}
     >
       <CardContent>
-        <Typography variant="h6" gutterBottom style={{ fontWeight: "bold" }}>
-          {highlightCache.documentName}
-        </Typography>
         <div>
           {highlightCache.personName && (
             <Avatar
