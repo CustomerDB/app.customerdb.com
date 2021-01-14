@@ -1,9 +1,9 @@
 import { Navigate, Outlet, Route, Routes } from "react-router-dom";
 
 import React from "react";
-import Themes from "../analyze/Themes.js";
-import Boards from "../analyze/Boards.js";
-import ThemeList from "../analyze/Boards.js";
+import Themes from "../themes/Themes.js";
+import Boards from "../themes/Boards.js";
+import ThemeList from "../themes/Boards.js";
 import Guides from "../guides/Guides.js";
 import InterviewList from "../interviews/InterviewList.js";
 import Interviews from "../interviews/Interviews.js";
@@ -56,9 +56,9 @@ export default function OrganizationRoutes(props) {
           <Route path="boards/*">
             <Route path="/" element={<Boards />} />
             <Route path="create" element={<Boards create />} />
-            <Route path=":analysisID" element={<Boards />} />
-            <Route path=":analysisID/:tabID" element={<Boards />} />
-            <Route path=":analysisID/:tabID/:tagID" element={<Boards />} />
+            <Route path=":boardID" element={<Boards />} />
+            <Route path=":boardID/:tabID" element={<Boards />} />
+            <Route path=":boardID/:tabID/:tagID" element={<Boards />} />
           </Route>
         </Themes>
 

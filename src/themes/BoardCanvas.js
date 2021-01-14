@@ -18,8 +18,8 @@ import useFirestore from "../db/Firestore.js";
 import { Loading } from "../util/Utils.js";
 import Grid from "@material-ui/core/Grid";
 
-export default function Board({
-  analysis,
+export default function BoardCanvas({
+  board,
   setSidepaneOpen,
   setSidepaneHighlight,
 }) {
@@ -277,98 +277,11 @@ export default function Board({
     });
   }, [cards, themes]);
 
-  // useEffect(() => {
-  //   if (
-  //     !documentsRef ||
-  //     !analysis ||
-  //     !analysis.documentIDs ||
-  //     analysis.documentIDs.length === 0
-  //   ) {
-  //     return;
-  //   }
-
-  //   let analysisDocumentsRef = documentsRef.where(
-  //     firebase.firestore.FieldPath.documentId(),
-  //     "in",
-  //     analysis.documentIDs
-  //   );
-
-  //   return analysisDocumentsRef.onSnapshot((snapshot) => {
-  //     let newDocuments = [];
-  //     snapshot.forEach((doc) => {
-  //       newDocuments.push(doc.data());
-  //     });
-  //     setDocuments(newDocuments);
-  //   });
-  // }, [documentsRef, analysis, firebase]);
-
-  // useEffect(() => {
-  //   if (
-  //     !allHighlightsRef ||
-  //     !analysis ||
-  //     !analysis.documentIDs ||
-  //     analysis.documentIDs.length === 0
-  //   ) {
-  //     return;
-  //   }
-
-  //   let highlightsRef = allHighlightsRef
-  //     .where("organizationID", "==", orgID)
-  //     .where("documentID", "in", analysis.documentIDs);
-
-  //   return highlightsRef.onSnapshot((snapshot) => {
-  //     let newNoteHighlights = [];
-  //     snapshot.forEach((doc) => {
-  //       let highlight = doc.data();
-  //       highlight["source"] = "notes";
-  //       newNoteHighlights.push(highlight);
-  //     });
-  //     setNoteHighlights(newNoteHighlights);
-  //   });
-  // }, [allHighlightsRef, analysis, orgID]);
-
-  // useEffect(() => {
-  //   if (
-  //     !allTranscriptHighlightsRef ||
-  //     !analysis ||
-  //     !analysis.documentIDs ||
-  //     analysis.documentIDs.length === 0
-  //   ) {
-  //     return;
-  //   }
-
-  //   let transcriptHighlightsRef = allTranscriptHighlightsRef
-  //     .where("organizationID", "==", orgID)
-  //     .where("documentID", "in", analysis.documentIDs);
-
-  //   return transcriptHighlightsRef.onSnapshot((snapshot) => {
-  //     let newTranscriptHighlights = [];
-  //     snapshot.forEach((doc) => {
-  //       let highlight = doc.data();
-  //       highlight["source"] = "transcript";
-  //       newTranscriptHighlights.push(highlight);
-  //     });
-  //     setTranscriptHighlights(newTranscriptHighlights);
-  //   });
-  // }, [allTranscriptHighlightsRef, orgID, analysis]);
-
-  // useEffect(() => {
-  //   let newNoteHighlights = noteHighlights || [];
-  //   let newTranscriptHighlights = transcriptHighlights || [];
-  //   setHighlights(newNoteHighlights.concat(newTranscriptHighlights));
-  // }, [noteHighlights, transcriptHighlights]);
-
-  if (
-    !documentsRef ||
-    !cardsRef ||
-    // !allHighlightsRef ||
-    // !allTranscriptHighlightsRef ||
-    !themesRef
-  ) {
+  if (!documentsRef || !cardsRef || !themesRef) {
     return <Loading />;
   }
 
-  if (!analysis.documentIDs || analysis.documentIDs.length === 0) {
+  if (!board.documentIDs || board.documentIDs.length === 0) {
     setSidepaneOpen(true);
     return <></>;
   }
@@ -444,7 +357,7 @@ export default function Board({
     );
   });
 
-  let boardID = `board-${analysis.ID}`;
+  let boardID = `board-${board.ID}`;
 
   return (
     <Grid
@@ -544,7 +457,7 @@ export default function Board({
                       domNode.style.width = `${CANVAS_WIDTH}px`;
                       domNode.style.height = `${CANVAS_HEIGHT}px`;
                       let link = document.createElement("a");
-                      link.download = `CustomerDB (${analysis.name}) - clusters.png`;
+                      link.download = `CustomerDB - ${board.name}.png`;
                       link.href = dataURL;
                       link.click();
                     })

@@ -217,8 +217,8 @@ exports.tagRepair = functions.pubsub
       });
   });
 
-// Remove deleted documents from analysis
-exports.repairAnalysis = functions.pubsub
+// Remove deleted documents from board
+exports.repairBoard = functions.pubsub
   .schedule("every 5 minutes")
   .onRun((context) => {
     const db = admin.firestore();
@@ -231,32 +231,29 @@ exports.repairAnalysis = functions.pubsub
           snapshot.docs.map((doc) => {
             let orgID = doc.id;
             let orgRef = db.collection("organizations").doc(orgID);
-            let analysesRef = orgRef.collection("analyses");
+            let boardsRef = orgRef.collection("boards");
             let documentsRef = orgRef.collection("documents");
 
-            return analysesRef
+            return boardsRef
               .where("deletionTimestamp", "==", "")
               .get()
               .then((snapshot) =>
                 Promise.all(
                   snapshot.docs.map((doc) => {
-                    let analysisRef = doc.ref;
-                    let analysis = doc.data();
+                    let boardRef = doc.ref;
+                    let board = doc.data();
 
-                    if (
-                      !analysis.documentIDs ||
-                      analysis.documentIDs.length === 0
-                    ) {
+                    if (!board.documentIDs || board.documentIDs.length === 0) {
                       return;
                     }
 
-                    let analysisDocsRef = documentsRef.where(
+                    let boardDocsRef = documentsRef.where(
                       "ID",
                       "in",
-                      analysis.documentIDs
+                      board.documentIDs
                     );
 
-                    return analysisDocsRef.get().then((snapshot) => {
+                    return boardDocsRef.get().then((snapshot) => {
                       let needsUpdate = false;
                       let newDocumentIDs = [];
 
@@ -270,7 +267,7 @@ exports.repairAnalysis = functions.pubsub
                       });
 
                       if (needsUpdate) {
-                        return analysisRef.update({
+                        return boardRef.update({
                           documentIDs: newDocumentIDs,
                         });
                       }

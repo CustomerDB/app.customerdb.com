@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import Analysis from "./Analysis.js";
+import Board from "./Board.js";
 import Avatar from "@material-ui/core/Avatar";
 import BubbleChartIcon from "@material-ui/icons/BubbleChart";
 import FirebaseContext from "../util/FirebaseContext.js";
@@ -21,50 +21,44 @@ export default function Boards({ create }) {
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
 
-  let { analysesRef } = useFirestore();
+  let { boardsRef } = useFirestore();
 
-  let { orgID, analysisID } = useParams();
+  let { orgID, boardID } = useParams();
 
   const navigate = useNavigate();
 
-  const [analysisList, setAnalysisList] = useState(undefined);
-  const [analysisMap, setAnalysisMap] = useState(undefined);
+  const [boardList, setBoardList] = useState(undefined);
 
   useEffect(() => {
-    if (!analysesRef) {
+    if (!boardsRef) {
       return;
     }
 
-    return analysesRef
+    return boardsRef
       .where("deletionTimestamp", "==", "")
       .orderBy("creationTimestamp", "desc")
       .onSnapshot((snapshot) => {
-        let newAnalysisList = [];
-        let newAnalysisMap = {};
-
-        snapshot.forEach((doc) => {
-          let data = doc.data();
-          data.ID = doc.id;
-          newAnalysisList.push(data);
-          newAnalysisMap[data.ID] = data;
-        });
-
-        setAnalysisList(newAnalysisList);
-        setAnalysisMap(newAnalysisMap);
+        setBoardList(
+          snapshot.docs.map((doc) => {
+            let data = doc.data();
+            data.ID = doc.id;
+            return data;
+          })
+        );
       });
-  }, [analysesRef]);
+  }, [boardsRef]);
 
   useEffect(() => {
-    if (!create || !analysesRef || !oauthClaims.user_id || !oauthClaims.email) {
+    if (!create || !boardsRef || !oauthClaims.user_id || !oauthClaims.email) {
       return;
     }
 
-    event(firebase, "create_analysis", {
+    event(firebase, "create_board", {
       orgID: orgID,
       userID: oauthClaims.user_id,
     });
 
-    analysesRef
+    boardsRef
       .add({
         name: "Unnamed board",
         documentIDs: [],
@@ -75,17 +69,15 @@ export default function Boards({ create }) {
       .then((doc) => {
         navigate(`/orgs/${orgID}/boards/${doc.id}`);
       });
-  }, [create, analysesRef, firebase, navigate, oauthClaims, orgID]);
+  }, [create, boardsRef, firebase, navigate, oauthClaims, orgID]);
 
-  if (analysisList === undefined) {
+  if (boardList === undefined) {
     return <></>;
   }
 
   let content;
-  if (analysisID && analysisMap) {
-    let analysisRef = analysesRef.doc(analysisID);
-
-    content = <Analysis key={analysisID} analysisRef={analysisRef} />;
+  if (boardID) {
+    content = <Board />;
   }
 
   return (
@@ -93,14 +85,14 @@ export default function Boards({ create }) {
       <ListContainer sm={3}>
         <Scrollable>
           <List style={{ paddingLeft: "1rem", paddingRight: "1rem" }}>
-            {analysisList.map((analysis) => (
+            {boardList.map((board) => (
               <>
                 <ListItem
                   button
-                  key={analysis.ID}
-                  selected={analysis.ID === analysisID}
+                  key={board.ID}
+                  selected={board.ID === boardID}
                   onClick={() => {
-                    navigate(`/orgs/${orgID}/boards/${analysis.ID}`);
+                    navigate(`/orgs/${orgID}/boards/${board.ID}`);
                   }}
                   style={{
                     backgroundColor: "white",
@@ -114,13 +106,13 @@ export default function Boards({ create }) {
                     </Avatar>
                   </ListItemAvatar>
                   <ListItemText
-                    primary={analysis.name}
+                    primary={board.name}
                     secondary={
                       <Moment
                         fromNow
                         date={
-                          analysis.creationTimestamp &&
-                          analysis.creationTimestamp.toDate()
+                          board.creationTimestamp &&
+                          board.creationTimestamp.toDate()
                         }
                       />
                     }

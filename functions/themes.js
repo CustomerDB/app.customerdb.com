@@ -11,7 +11,7 @@ function newCard(ID, highlight, source) {
     kind: "card",
     tagID: highlight.tagID,
     documentID: highlight.documentID,
-    groupColor: "#000",
+    themeColor: "#000",
     textColor: "#FFF",
     source: source,
   };
@@ -34,7 +34,7 @@ function deleteCardsForDocument(cardsRef, documentID) {
 
 // Remove cards from board
 exports.cardsInBoard = functions.firestore
-  .document("organizations/{orgID}/analyses/{analysisID}")
+  .document("organizations/{orgID}/boards/{boardID}")
   .onUpdate((change, context) => {
     let before = change.before.data();
     let after = change.after.data();
@@ -42,8 +42,8 @@ exports.cardsInBoard = functions.firestore
 
     const db = admin.firestore();
 
-    let analysisRef = change.after.ref;
-    let cardsRef = analysisRef.collection("cards");
+    let boardRef = change.after.ref;
+    let cardsRef = boardRef.collection("cards");
 
     // Remove cards if document is no longer present.
     let cardCleanupPromise = Promise.resolve();
@@ -94,8 +94,8 @@ exports.cardsInBoard = functions.firestore
 
           console.debug(`Adding cards for documents ${newDocuments}`);
 
-          let allHighlightsRef = db.collectionGroup("highlights");
-          let allTranscriptHighlightsRef = db.collectionGroup(
+          let allHighlightsRef = db.collectiontheme("highlights");
+          let allTranscriptHighlightsRef = db.collectiontheme(
             "transcriptHighlights"
           );
 
@@ -138,28 +138,23 @@ function highlightUpdates(change, context, source) {
 
   if (change.after.exists && !change.before.exists) {
     // A new highlight may need to be added (in a card) to boards which subscribes to this document.
-    // Find analyses subscribing to this document.
+    // Find boards subscribing to this document.
 
-    // TODO: Make documentIDs a collection group, so we don't have to traverse the analyses.
+    // TODO: Make documentIDs a collection theme, so we don't have to traverse the boards.
     return db
       .collection("organizations")
       .doc(orgID)
-      .collection("analyses")
+      .collection("boards")
       .get()
       .then((snapshot) =>
         snapshot.docs.map((doc) => {
-          let analysis = doc.data();
+          let board = doc.data();
           let cardsRef = doc.ref.collection("cards");
 
-          if (
-            analysis.documentIDs &&
-            analysis.documentIDs.includes(documentID)
-          ) {
+          if (board.documentIDs && board.documentIDs.includes(documentID)) {
             let cardRef = cardsRef.doc(highlightID);
 
-            console.debug(
-              `Adding highlight ${highlightID} to analysis ${doc.id}`
-            );
+            console.debug(`Adding highlight ${highlightID} to board ${doc.id}`);
 
             return cardRef.set(
               newCard(highlightID, change.after.data(), source)
@@ -174,19 +169,16 @@ function highlightUpdates(change, context, source) {
     return db
       .collection("organizations")
       .doc(orgID)
-      .collection("analyses")
+      .collection("boards")
       .get()
       .then((snapshot) =>
         snapshot.docs.map((doc) => {
-          let analysis = doc.data();
+          let board = doc.data();
           let cardsRef = doc.ref.collection("cards");
 
-          if (
-            analysis.documentIDs &&
-            analysis.documentIDs.includes(documentID)
-          ) {
+          if (board.documentIDs && board.documentIDs.includes(documentID)) {
             console.debug(
-              `Removing highlight ${highlightID} to analysis ${doc.id}`
+              `Removing highlight ${highlightID} from board ${doc.id}`
             );
 
             return cardsRef.doc(highlightID).delete();
@@ -212,6 +204,9 @@ exports.transcriptHighlightUpdates = functions.firestore
     return highlightUpdates(change, context, "transcript");
   });
 
+// TODO: see if we can use a collection theme query to look up all
+//       cards for the highlight in question, the update them directly
+//       without iterating boards.
 function highlightCacheUpdates(change, context, source) {
   // Store the cache object in cards with that ID. Or clear if removed.
   const db = admin.firestore();
@@ -222,14 +217,14 @@ function highlightCacheUpdates(change, context, source) {
   return db
     .collection("organizations")
     .doc(orgID)
-    .collection("analyses")
+    .collection("boards")
     .get()
     .then((snapshot) =>
       snapshot.docs.map((doc) => {
-        let analysisRef = doc.ref;
-        let analysis = doc.data();
-        if (analysis.documentIDs && analysis.documentIDs.includes(documentID)) {
-          return analysisRef
+        let boardRef = doc.ref;
+        let board = doc.data();
+        if (board.documentIDs && board.documentIDs.includes(documentID)) {
+          return boardRef
             .collection("cards")
             .doc(highlightID)
             .get()
@@ -252,7 +247,7 @@ function highlightCacheUpdates(change, context, source) {
                 delete card["highlightHitCache"];
               }
 
-              return analysisRef.collection("cards").doc(highlightID).set(card);
+              return boardRef.collection("cards").doc(highlightID).set(card);
             });
         }
       })
@@ -275,24 +270,24 @@ exports.transcriptHighlightCacheUpdates = functions.firestore
     return highlightCacheUpdates(change, context, "transcript");
   });
 
-function deleteGroupForSingleCard(groupRef, cardsRef) {
-  return groupRef
+function deletethemeForSingleCard(themeRef, cardsRef) {
+  return themeRef
     .collection("cardIDs")
     .get()
     .then((snapshot) => {
       if (snapshot.size < 2) {
-        // Unset group information in the card.
+        // Unset theme information in the card.
         let cardPromise = Promise.resolve();
         if (snapshot.size === 1) {
           let cardID = snapshot.docs[0].id;
           cardPromise = cardsRef.doc(cardID).update({
-            groupID: "",
+            themeID: "",
           });
         }
 
         return cardPromise.then(() =>
           Promise.all(snapshot.docs.map((doc) => doc.ref.delete())).then(() =>
-            groupRef.delete()
+            themeRef.delete()
           )
         );
       }
@@ -300,26 +295,18 @@ function deleteGroupForSingleCard(groupRef, cardsRef) {
 }
 
 exports.cardUpdates = functions.firestore
-  .document("organizations/{orgID}/analyses/{analysisID}/cards/{cardID}")
+  .document("organizations/{orgID}/boards/{boardID}/cards/{cardID}")
   .onWrite((change, context) => {
     const db = admin.firestore();
-    const orgID = context.params.orgID;
-    const analysisID = context.params.analysisID;
-    const cardID = context.params.cardID;
+    const { orgID, boardID, cardID } = context.params;
 
-    let groupsRef = db
+    const boardRef = db
       .collection("organizations")
       .doc(orgID)
-      .collection("analyses")
-      .doc(analysisID)
-      .collection("groups");
-
-    let cardsRef = db
-      .collection("organizations")
-      .doc(orgID)
-      .collection("analyses")
-      .doc(analysisID)
-      .collection("cards");
+      .collection("boards")
+      .doc(boardID);
+    const themesRef = boardRef.collection("themes");
+    const cardsRef = boardRef.collection("cards");
 
     // Make sure card contains a cached highlight hit.
     let hitPromise = Promise.resolve();
@@ -355,43 +342,43 @@ exports.cardUpdates = functions.firestore
       }
     }
 
-    // Update group membership.
+    // Update theme membership.
     let updatePromise = Promise.resolve();
     let membershipChanged = false;
 
-    // See whether group changed for the card.
+    // See whether theme changed for the card.
     if (change.before.exists && change.after.exists) {
       let before = change.before.data();
       let after = change.after.data();
 
-      if (before.groupID !== after.groupID) {
+      if (before.themeID !== after.themeID) {
         membershipChanged = true;
 
-        if (after.groupID) {
-          let groupRef = groupsRef.doc(after.groupID);
-          updatePromise = groupRef.collection("cardIDs").doc(after.ID).set({
+        if (after.themeID) {
+          let themeRef = themesRef.doc(after.themeID);
+          updatePromise = themeRef.collection("cardIDs").doc(after.ID).set({
             ID: after.ID,
           });
         }
       }
     }
 
-    let groupCleanupPromise = updatePromise.then(() => {
-      // If a card has changed groups or just deleted, verify the source group for any existing cards. If only one, delete.
+    let themeCleanupPromise = updatePromise.then(() => {
+      // If a card has changed themes or just deleted, verify the source theme for any existing cards. If only one, delete.
       if (change.before.exists && (membershipChanged || !change.after.exists)) {
-        // Remove from group.
+        // Remove from theme.
         let before = change.before.data();
-        if (before.groupID) {
-          let groupRef = groupsRef.doc(before.groupID);
-          return groupRef
+        if (before.themeID) {
+          let themeRef = themesRef.doc(before.themeID);
+          return themeRef
             .collection("cardIDs")
             .doc(before.ID)
             .delete()
-            .then(() => deleteGroupForSingleCard(groupRef, cardsRef));
+            .then(() => deletethemeForSingleCard(themeRef, cardsRef));
         }
       }
     });
 
-    return Promise.all([hitPromise, groupCleanupPromise]);
-    // TODO: In some cases, a group is broken by a card move. Detect this by recalculating intersections.
+    return Promise.all([hitPromise, themeCleanupPromise]);
+    // TODO: In some cases, a theme is broken by a card move. Detect this by recalculating intersections.
   });

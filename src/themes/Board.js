@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import React, { useEffect, useState, useCallback } from "react";
 
-import Board from "./Board.js";
+import BoardCanvas from "./BoardCanvas.js";
 import Grid from "@material-ui/core/Grid";
 import { Loading } from "../util/Utils.js";
 import Moment from "react-moment";
@@ -10,7 +10,7 @@ import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
 import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
-import AnalysisDeleteModal from "./AnalysisDeleteModal.js";
+import BoardDeleteModal from "./BoardDeleteModal.js";
 import ArchiveIcon from "@material-ui/icons/Archive";
 import RecordVoiceOverIcon from "@material-ui/icons/RecordVoiceOver";
 import ContentEditable from "react-contenteditable";
@@ -18,6 +18,7 @@ import Tooltip from "@material-ui/core/Tooltip";
 import InterviewSelector from "./InterviewSelector.js";
 import Sidepane from "../shell/Sidepane.js";
 import QuoteSidepane from "./QuoteSidepane.js";
+import useFirestore from "../db/Firestore.js";
 
 const useStyles = makeStyles({
   paper: {
@@ -33,8 +34,9 @@ const useStyles = makeStyles({
   },
 });
 
-export default function Analysis({ analysisRef }) {
-  const { orgID, analysisID } = useParams();
+export default function Board() {
+  let { boardRef } = useFirestore();
+  const { orgID, boardID } = useParams();
   const [showDeleteModal, setShowDeleteModal] = useState();
   const [interviewsSidepaneOpen, setInterviewsSidepaneOpen] = useState(false);
 
@@ -42,46 +44,46 @@ export default function Analysis({ analysisRef }) {
 
   const navigate = useNavigate();
 
-  const [analysis, setAnalysis] = useState();
+  const [board, setBoard] = useState();
 
   const classes = useStyles();
 
   useEffect(() => {
-    if (!analysisRef) {
+    if (!boardRef) {
       return;
     }
 
-    return analysisRef.onSnapshot((doc) => {
+    return boardRef.onSnapshot((doc) => {
       let data = doc.data();
       data.ID = doc.id;
-      setAnalysis(data);
+      setBoard(data);
     });
-  }, [analysisRef]);
+  }, [boardRef]);
 
   const onAdd = useCallback(
     (documentID) => {
-      if (!analysisRef || !analysis || !documentID) {
+      if (!boardRef || !board || !documentID) {
         return;
       }
 
-      let documentIDs = analysis.documentIDs || [];
+      let documentIDs = board.documentIDs || [];
       documentIDs.push(documentID);
 
-      analysisRef.update({
+      boardRef.update({
         documentIDs: documentIDs,
       });
     },
-    [analysisRef, analysis]
+    [boardRef, board]
   );
 
-  if (!analysis) {
+  if (!board) {
     return <Loading />;
   }
 
-  // Give a hint if this analysis was deleted while in view.
-  if (analysis.deletionTimestamp !== "") {
+  // Give a hint if this board was deleted while in view.
+  if (board.deletionTimestamp !== "") {
     let relativeTime = (
-      <Moment fromNow date={analysis.deletionTimestamp.toDate()} />
+      <Moment fromNow date={board.deletionTimestamp.toDate()} />
     );
 
     return (
@@ -96,11 +98,10 @@ export default function Analysis({ analysisRef }) {
                   style={{ fontWeight: "bold" }}
                   component="h2"
                 >
-                  {analysis.name}
+                  {board.name}
                 </Typography>
                 <p>
-                  This analysis was deleted {relativeTime} by{" "}
-                  {analysis.deletedBy}
+                  This board was deleted {relativeTime} by {board.deletedBy}
                 </p>
               </Grid>
             </Grid>
@@ -140,20 +141,20 @@ export default function Analysis({ analysisRef }) {
                   component="h2"
                 >
                   <ContentEditable
-                    html={analysis.name}
+                    html={board.name}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         e.target.blur();
                       }
                     }}
                     onBlur={(e) => {
-                      if (analysisRef) {
+                      if (boardRef) {
                         let newName = e.target.innerText
                           .replace(/(\r\n|\n|\r)/gm, " ")
                           .replace(/\s+/g, " ")
                           .trim();
 
-                        analysisRef.update({ name: newName });
+                        boardRef.update({ name: newName });
                       }
                     }}
                   />
@@ -188,17 +189,17 @@ export default function Analysis({ analysisRef }) {
                 </IconButton>
               </Grid>
             </Grid>
-            <AnalysisDeleteModal
+            <BoardDeleteModal
               show={showDeleteModal}
               onHide={() => {
                 setShowDeleteModal(false);
               }}
-              analysisRef={analysisRef}
+              boardRef={boardRef}
+              board={board}
             />
           </>
-          <Board
-            key={analysisID}
-            analysis={analysis}
+          <BoardCanvas
+            board={board}
             setSidepaneOpen={setInterviewsSidepaneOpen}
             setSidepaneHighlight={setSidepaneHighlight}
           />
@@ -207,7 +208,7 @@ export default function Analysis({ analysisRef }) {
             open={interviewsSidepaneOpen}
             setOpen={setInterviewsSidepaneOpen}
           >
-            <InterviewSelector analysis={analysis} onAdd={onAdd} />
+            <InterviewSelector board={board} onAdd={onAdd} />
           </Sidepane>
           <Sidepane
             title="Quote"

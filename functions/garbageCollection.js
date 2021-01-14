@@ -74,6 +74,16 @@ exports.analyses = functions
     return garbageCollect("analyses");
   });
 
+exports.boards = functions
+  .runWith({
+    timeoutSeconds: 540,
+    memory: "2GB",
+  })
+  .pubsub.schedule("every 24 hours")
+  .onRun((context) => {
+    return garbageCollect("boards");
+  });
+
 exports.tags = functions
   .runWith({
     timeoutSeconds: 540,

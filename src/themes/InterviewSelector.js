@@ -180,30 +180,26 @@ const Autocomplete = ({
 };
 const ConnectedAutocomplete = connectAutoComplete(Autocomplete);
 
-export default function InterviewSelector({ analysis, onAdd }) {
-  const { documentsRef, analysisRef } = useFirestore();
+export default function InterviewSelector({ board, onAdd }) {
+  const { documentsRef, boardRef } = useFirestore();
   const firebase = useContext(FirebaseContext);
   const [documents, setDocuments] = useState();
   const searchClient = useSearchClient();
   const [searchState, setSearchState] = useState({});
 
   useEffect(() => {
-    if (!analysis || !analysis.documentIDs || !documentsRef) {
+    if (!board || !board.documentIDs || !documentsRef) {
       return;
     }
 
-    if (analysis.documentIDs.length === 0) {
+    if (board.documentIDs.length === 0) {
       setDocuments([]);
       return;
     }
 
     return documentsRef
       .where("deletionTimestamp", "==", "")
-      .where(
-        firebase.firestore.FieldPath.documentId(),
-        "in",
-        analysis.documentIDs
-      )
+      .where(firebase.firestore.FieldPath.documentId(), "in", board.documentIDs)
       .onSnapshot((snapshot) => {
         let newDocuments = [];
         snapshot.forEach((doc) => {
@@ -214,21 +210,21 @@ export default function InterviewSelector({ analysis, onAdd }) {
 
         setDocuments(newDocuments);
       });
-  }, [documentsRef, analysis, firebase.firestore.FieldPath]);
+  }, [documentsRef, board, firebase.firestore.FieldPath]);
 
   const removeDocument = useCallback(
     (documentID) => {
-      if (!analysis || !analysis.documentIDs || !analysisRef) {
+      if (!board || !board.documentIDs || !boardRef) {
         return;
       }
 
-      let newDocumentIDs = analysis.documentIDs.slice();
+      let newDocumentIDs = board.documentIDs.slice();
       newDocumentIDs = newDocumentIDs.filter((id) => id !== documentID);
-      analysisRef.update({
+      boardRef.update({
         documentIDs: newDocumentIDs,
       });
     },
-    [analysis, analysisRef]
+    [board, boardRef]
   );
 
   if (!searchClient) {
@@ -247,7 +243,7 @@ export default function InterviewSelector({ analysis, onAdd }) {
           <ConnectedAutocomplete
             searchState={searchState}
             onAdd={onAdd}
-            selectedDocumentIDs={analysis.documentIDs || []}
+            selectedDocumentIDs={board.documentIDs || []}
           />
         </InstantSearch>
       </Grid>
