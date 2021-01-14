@@ -34,7 +34,7 @@ export default function InterviewHelp(props) {
         <br />
         <h5>
           Tag customer interviews with themes here. Find patterns in the voice
-          of the customer in the analysis tab.
+          of the customer in the themes tab.
         </h5>
       </Grid>
     </Grid>
