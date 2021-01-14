@@ -68,7 +68,11 @@ exports.cardsInBoard = functions.firestore
 
           console.debug("Creating card for highlight", doc.id);
 
-          return cardRef.set(newCard(doc.id, data, source));
+          return cardRef.get().then((cardDoc) => {
+            if (!cardDoc.exists) {
+              return cardRef.set(newCard(doc.id, data, source));
+            }
+          });
         })
       );
     };
@@ -196,7 +200,7 @@ exports.noteHighlightUpdates = functions.firestore
   .document(
     "organizations/{orgID}/documents/{documentID}/highlights/{highlightID}"
   )
-  .onUpdate((change, context) => {
+  .onWrite((change, context) => {
     return highlightUpdates(change, context, "notes");
   });
 
@@ -204,11 +208,71 @@ exports.transcriptHighlightUpdates = functions.firestore
   .document(
     "organizations/{orgID}/documents/{documentID}/transcriptHighlights/{highlightID}"
   )
-  .onUpdate((change, context) => {
+  .onWrite((change, context) => {
     return highlightUpdates(change, context, "transcript");
   });
 
-// TODO: Add trigger on highlight cache hit update.
+function highlightCacheUpdates(change, context, source) {
+  // Store the cache object in cards with that ID. Or clear if removed.
+  const db = admin.firestore();
+  const orgID = context.params.orgID;
+  const documentID = context.params.documentID;
+  const highlightID = context.params.highlightID;
+
+  return db
+    .collection("organizations")
+    .doc(orgID)
+    .collection("analyses")
+    .get()
+    .then((snapshot) =>
+      snapshot.docs.map((doc) => {
+        let analysisRef = doc.ref;
+        let analysis = doc.data();
+        if (analysis.documentIDs && analysis.documentIDs.includes(documentID)) {
+          return analysisRef
+            .collection("cards")
+            .doc(highlightID)
+            .get()
+            .then((doc) => {
+              let card;
+              if (!doc.exists && change.after.exists) {
+                let cache = change.after.data();
+                card = newCard(highlightID, cache, source);
+                card.highlightHitCache = cache;
+              }
+
+              if (doc.exists && change.after.exists) {
+                card = doc.data();
+                card.highlightHitCache = cache;
+              }
+
+              if (doc.exists && !change.after.exists) {
+                card = doc.data();
+                delete card["highlightHitCache"];
+              }
+
+              return analysisRef.collection("cards").doc(highlightID).set(card);
+            });
+        }
+      })
+    );
+}
+
+exports.noteHighlightCacheUpdates = functions.firestore
+  .document(
+    "organizations/{orgID}/documents/{documentID}/highlights/{highlightID}/cache/{cacheID}"
+  )
+  .onWrite((change, context) => {
+    return highlightCacheUpdates(change, context, "notes");
+  });
+
+exports.transcriptHighlightCacheUpdates = functions.firestore
+  .document(
+    "organizations/{orgID}/documents/{documentID}/transcriptHighlights/{highlightID}/cache/{cacheID}"
+  )
+  .onWrite((change, context) => {
+    return highlightCacheUpdates(change, context, "transcript");
+  });
 
 function deleteGroupForSingleCard(groupRef, cardsRef) {
   return groupRef

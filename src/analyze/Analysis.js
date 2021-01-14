@@ -46,8 +46,6 @@ export default function Analysis({ analysisRef }) {
 
   const classes = useStyles();
 
-  const [maxReached, setMaxReached] = useState(false);
-
   useEffect(() => {
     if (!analysisRef) {
       return;
@@ -57,8 +55,6 @@ export default function Analysis({ analysisRef }) {
       let data = doc.data();
       data.ID = doc.id;
       setAnalysis(data);
-
-      setMaxReached(data.documentIDs && data.documentIDs.length >= 10);
     });
   }, [analysisRef]);
 
@@ -211,11 +207,7 @@ export default function Analysis({ analysisRef }) {
             open={interviewsSidepaneOpen}
             setOpen={setInterviewsSidepaneOpen}
           >
-            <InterviewSelector
-              analysis={analysis}
-              onAdd={onAdd}
-              maxReached={maxReached}
-            />
+            <InterviewSelector analysis={analysis} onAdd={onAdd} />
           </Sidepane>
           <Sidepane
             title="Quote"

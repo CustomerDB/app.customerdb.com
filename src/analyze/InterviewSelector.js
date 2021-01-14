@@ -40,7 +40,6 @@ const Autocomplete = ({
   refine,
   searchState,
   onAdd,
-  maxReached,
   selectedDocumentIDs,
 }) => {
   const classes = useStyles();
@@ -164,10 +163,7 @@ const Autocomplete = ({
                         justify="flex-start"
                         alignItems="center"
                       >
-                        <IconButton
-                          onClick={() => onAdd(hit.objectID)}
-                          disabled={maxReached}
-                        >
+                        <IconButton onClick={() => onAdd(hit.objectID)}>
                           <AddIcon />
                         </IconButton>
                       </Grid>
@@ -184,7 +180,7 @@ const Autocomplete = ({
 };
 const ConnectedAutocomplete = connectAutoComplete(Autocomplete);
 
-export default function InterviewSelector({ analysis, onAdd, maxReached }) {
+export default function InterviewSelector({ analysis, onAdd }) {
   const { documentsRef, analysisRef } = useFirestore();
   const firebase = useContext(FirebaseContext);
   const [documents, setDocuments] = useState();
@@ -251,7 +247,6 @@ export default function InterviewSelector({ analysis, onAdd, maxReached }) {
           <ConnectedAutocomplete
             searchState={searchState}
             onAdd={onAdd}
-            maxReached={maxReached}
             selectedDocumentIDs={analysis.documentIDs || []}
           />
         </InstantSearch>

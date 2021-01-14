@@ -185,11 +185,19 @@ export default function Card({
   }, [card]);
 
   useEffect(() => {
-    if (!orgTags || !card.highlightHitCache || !orgTags[document.tagThemeID]) {
+    if (
+      !orgTags ||
+      !card.highlightHitCache ||
+      !orgTags[card.highlightHitCache.tagGroupID]
+    ) {
       return;
     }
 
-    setTag(orgTags[document.tagThemeID].tags[highlight.tagID]);
+    setTag(
+      orgTags[card.highlightHitCache.tagGroupID].tags[
+        card.highlightHitCache.tagID
+      ]
+    );
   }, [orgTags]);
 
   let divStyle = {

@@ -592,6 +592,10 @@ export default function Board({
                         //   return [];
                         // }
 
+                        if (!card.ID) {
+                          return [];
+                        }
+
                         return [
                           <Card
                             key={card.ID}

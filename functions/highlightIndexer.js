@@ -208,10 +208,10 @@ function indexHighlight(source, orgID, highlightID, highlightRef) {
             let highlightTime = Promise.resolve();
 
             if (person) {
-              highlightToIndex.personName = person.name;
-              highlightToIndex.personCompany = person.company;
-              highlightToIndex.personImageURL = person.imageURL;
-              highlightToIndex.personJob = person.job;
+              highlightToIndex.personName = person.name || "";
+              highlightToIndex.personCompany = person.company || "";
+              highlightToIndex.personImageURL = person.imageURL || "";
+              highlightToIndex.personJob = person.job || "";
             }
 
             if (transcription && transcription.inputPath) {
