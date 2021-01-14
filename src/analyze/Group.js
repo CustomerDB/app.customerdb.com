@@ -24,13 +24,9 @@ export function computeGroupBounds(cards) {
 }
 
 export default function Group({ name, group, cards }) {
-  const nameRef = useRef();
-
-  if (cards === undefined || cards.length === 0) {
+  if (cards === undefined || cards.length < 2) {
     return <></>;
   }
-
-  console.log(`${name} contains ${cards.length}`);
 
   let rect = computeGroupBounds(cards);
   group.minX = rect.minX;
