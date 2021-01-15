@@ -15,7 +15,7 @@ import ArchiveIcon from "@material-ui/icons/Archive";
 import RecordVoiceOverIcon from "@material-ui/icons/RecordVoiceOver";
 import ContentEditable from "react-contenteditable";
 import Tooltip from "@material-ui/core/Tooltip";
-import InterviewSelector from "./InterviewSelector.js";
+import InterviewSidepane from "./InterviewSidepane.js";
 import Sidepane from "../shell/Sidepane.js";
 import QuoteSidepane from "./QuoteSidepane.js";
 import useFirestore from "../db/Firestore.js";
@@ -219,7 +219,7 @@ export default function Board() {
             open={interviewsSidepaneOpen}
             setOpen={setInterviewsSidepaneOpen}
           >
-            <InterviewSelector board={board} onAdd={onAdd} />
+            <InterviewSidepane board={board} onAdd={onAdd} />
           </Sidepane>
           <Sidepane
             title="Quote"

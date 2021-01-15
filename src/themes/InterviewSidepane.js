@@ -246,9 +246,8 @@ function Interview({ documentID, removeDocument }) {
   );
 }
 
-export default function InterviewSelector({ board, onAdd }) {
-  const { documentsRef, boardRef } = useFirestore();
-  const firebase = useContext(FirebaseContext);
+export default function InterviewSidepane({ board, onAdd }) {
+  const { boardRef } = useFirestore();
   const searchClient = useSearchClient();
   const [searchState, setSearchState] = useState({});
 
