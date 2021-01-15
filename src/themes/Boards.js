@@ -17,7 +17,7 @@ import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
 import useFirestore from "../db/Firestore.js";
 
-export default function Boards({ create }) {
+export default function Boards({ create, download }) {
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
 
@@ -77,7 +77,7 @@ export default function Boards({ create }) {
 
   let content;
   if (boardID) {
-    content = <Board />;
+    content = <Board download={download} />;
   }
 
   return (

@@ -57,8 +57,7 @@ export default function OrganizationRoutes(props) {
             <Route path="/" element={<Boards />} />
             <Route path="create" element={<Boards create />} />
             <Route path=":boardID" element={<Boards />} />
-            <Route path=":boardID/:tabID" element={<Boards />} />
-            <Route path=":boardID/:tabID/:tagID" element={<Boards />} />
+            <Route path=":boardID/download" element={<Boards download />} />
           </Route>
         </Themes>
 

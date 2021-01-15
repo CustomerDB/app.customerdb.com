@@ -37,8 +37,6 @@ export default function Theme({ name, theme, cards, setSidepaneTheme }) {
 
   let border = `2px ${color} solid`;
 
-  console.log("Theme: ", theme);
-
   return (
     <>
       <div

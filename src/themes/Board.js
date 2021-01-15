@@ -13,13 +13,18 @@ import CloseIcon from "@material-ui/icons/Close";
 import BoardDeleteModal from "./BoardDeleteModal.js";
 import ArchiveIcon from "@material-ui/icons/Archive";
 import RecordVoiceOverIcon from "@material-ui/icons/RecordVoiceOver";
+import CloudDownloadIcon from "@material-ui/icons/CloudDownload";
 import ContentEditable from "react-contenteditable";
-import Tooltip from "@material-ui/core/Tooltip";
+import Button from "@material-ui/core/Button";
 import InterviewSidepane from "./InterviewSidepane.js";
 import Sidepane from "../shell/Sidepane.js";
 import QuoteSidepane from "./QuoteSidepane.js";
 import useFirestore from "../db/Firestore.js";
 import ThemeSidepane from "./ThemeSidepane.js";
+import MoreVertIcon from "@material-ui/icons/MoreVert";
+import Menu from "@material-ui/core/Menu";
+import MenuItem from "@material-ui/core/MenuItem";
+import ListItemIcon from "@material-ui/core/ListItemIcon";
 
 const useStyles = makeStyles({
   paper: {
@@ -35,14 +40,15 @@ const useStyles = makeStyles({
   },
 });
 
-export default function Board() {
+export default function Board({ download }) {
   let { boardRef } = useFirestore();
-  const { orgID } = useParams();
+  const { orgID, boardID } = useParams();
   const [showDeleteModal, setShowDeleteModal] = useState();
   const [interviewsSidepaneOpen, setInterviewsSidepaneOpen] = useState(false);
 
   const [sidepaneHighlight, setSidepaneHighlight] = useState(undefined);
   const [sidepaneTheme, setSidepaneTheme] = useState(undefined);
+  const [anchorEl, setAnchorEl] = useState(null);
 
   const navigate = useNavigate();
 
@@ -174,25 +180,55 @@ export default function Board() {
                 </Typography>
               </Grid>
               <Grid container item xs={3} justify="flex-end">
-                <Tooltip title="Select interviews">
-                  <IconButton
-                    onClick={() => {
-                      setInterviewsSidepaneOpen(true);
-                    }}
-                  >
-                    <RecordVoiceOverIcon />
-                  </IconButton>
-                </Tooltip>
-
-                <IconButton
-                  color="primary"
-                  aria-label="Archive document"
+                <Button
+                  startIcon={<RecordVoiceOverIcon />}
                   onClick={() => {
-                    setShowDeleteModal(true);
+                    setInterviewsSidepaneOpen(true);
                   }}
                 >
-                  <ArchiveIcon />
+                  Interviews
+                </Button>
+                <IconButton
+                  edge="end"
+                  onClick={(event) => {
+                    setAnchorEl(event.currentTarget);
+                  }}
+                >
+                  <MoreVertIcon />
                 </IconButton>
+                <Menu
+                  id="profile-menu"
+                  anchorEl={anchorEl}
+                  keepMounted
+                  open={Boolean(anchorEl)}
+                  onClose={() => setAnchorEl(null)}
+                >
+                  <MenuItem
+                    id="download-board-button"
+                    onClick={() => {
+                      navigate(`/orgs/${orgID}/boards/${boardID}/download`);
+                      setAnchorEl(null);
+                    }}
+                  >
+                    <ListItemIcon>
+                      <CloudDownloadIcon />
+                    </ListItemIcon>
+                    Download PNG
+                  </MenuItem>
+                  <MenuItem
+                    id="archive-board-button"
+                    onClick={() => {
+                      setAnchorEl(null);
+                      setShowDeleteModal(true);
+                    }}
+                  >
+                    <ListItemIcon>
+                      <ArchiveIcon />
+                    </ListItemIcon>
+                    Archive
+                  </MenuItem>
+                </Menu>
+
                 <IconButton
                   onClick={() => {
                     navigate(`/orgs/${orgID}/boards`);
@@ -213,6 +249,7 @@ export default function Board() {
           </>
           <BoardCanvas
             board={board}
+            download={download}
             setSidepaneOpen={(open) => {
               setInterviewsSidepaneOpen(open);
               setSidepaneHighlight(undefined);

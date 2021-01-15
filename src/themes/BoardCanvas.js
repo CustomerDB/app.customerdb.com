@@ -1,28 +1,32 @@
 import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 
-import AspectRatioIcon from "@material-ui/icons/AspectRatio";
-import Button from "react-bootstrap/Button";
 import Card from "./Card.js";
-import GetAppIcon from "@material-ui/icons/GetApp";
 import Theme, { computeThemeBounds } from "./Theme.js";
 import RBush from "rbush";
-import React, { useState, useEffect, useRef, useContext } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useContext,
+  useCallback,
+} from "react";
 import colorPair from "../util/color.js";
-import domToImage from "dom-to-image";
 import event from "../analytics/event.js";
 import { v4 as uuidv4 } from "uuid";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import FirebaseContext from "../util/FirebaseContext.js";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import useFirestore from "../db/Firestore.js";
 import { Loading } from "../util/Utils.js";
 import Grid from "@material-ui/core/Grid";
+import domToImage from "dom-to-image";
 
 export default function BoardCanvas({
   board,
   setSidepaneOpen,
   setSidepaneHighlight,
   setSidepaneTheme,
+  download,
 }) {
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
@@ -38,28 +42,112 @@ export default function BoardCanvas({
 
   const rtree = useRef(new RBush(4));
 
+  const navigate = useNavigate();
+
+  // Use 4:3 aspect ratio
+  const CANVAS_WIDTH = 12000;
+  const CANVAS_HEIGHT = 8000;
+  const VIEWPORT_WIDTH = 1500;
+  const VIEWPORT_HEIGHT = 800;
+  let boardID = `board-${board.ID}`;
+
+  const downloadBoard = useCallback(() => {
+    if (!document || !board) {
+      return;
+    }
+
+    let domNode = document.getElementById(boardID);
+    if (!domNode) {
+      console.warn(`Domnode not found for ${boardID}`);
+      return;
+    }
+
+    let minX = CANVAS_WIDTH;
+    let minY = CANVAS_HEIGHT;
+    let maxX = 0;
+    let maxY = 0;
+    rtree.current.all().forEach((g) => {
+      minX = Math.min(minX, g.minX);
+      minY = Math.min(minY, g.minY);
+      maxX = Math.max(maxX, g.maxX);
+      maxY = Math.max(maxY, g.maxY);
+    });
+
+    let themesLabels = domNode.getElementsByClassName("themesLabel");
+    for (let i = 0; i < themesLabels.length; i++) {
+      let node = themesLabels[i];
+      maxX = Math.max(
+        maxX,
+        parseInt(node.style.left) + parseInt(node.style.width)
+      );
+      maxY = Math.max(maxY, parseInt(node.style.top) + 128);
+    }
+
+    // A little extra padding
+    maxX += 64;
+    maxY += 64;
+    minX -= 64;
+    minY -= 64;
+
+    // Clamp to canvas bounds
+    maxX = Math.min(maxX, CANVAS_WIDTH);
+    maxY = Math.min(maxY, CANVAS_HEIGHT);
+
+    console.log(`minX ${minX} minY ${minY} maxX ${maxX} maxY ${maxY}`);
+
+    let containerNode = document.getElementById(`${boardID}-container`);
+    if (!containerNode) {
+      console.warn(`containerNode not found for ${containerNode}`);
+      return;
+    }
+
+    containerNode.style.position = "relative";
+    domNode.style.position = "absolute";
+    domNode.style.top = `${-minY}px`;
+    domNode.style.left = `${-minX}px`;
+    containerNode.style.width = `${maxX - minX}px`;
+    containerNode.style.height = `${maxY - minY}px`;
+    domNode.style.width = `${maxX - minX}px`;
+    domNode.style.height = `${maxY - minY}px`;
+    containerNode.style.overflow = "hidden";
+    containerNode.style.boxShadow = "";
+
+    const resetStyle = () => {
+      domNode.style.width = `${CANVAS_WIDTH}px`;
+      domNode.style.height = `${CANVAS_HEIGHT}px`;
+      domNode.style.position = "";
+      domNode.style.top = "";
+      domNode.style.left = "";
+      containerNode.style.position = "";
+      containerNode.style.width = `${CANVAS_WIDTH}px`;
+      containerNode.style.height = `${CANVAS_HEIGHT}px`;
+      containerNode.style.boxShadow = "0 6px 6px rgba(0, 0, 0, 0.2)";
+    };
+
+    domToImage
+      .toPng(containerNode)
+      .then((dataURL) => {
+        resetStyle();
+        let link = document.createElement("a");
+        link.download = `CustomerDB - ${board.name}.png`;
+        link.href = dataURL;
+        link.click();
+        navigate(`/orgs/${orgID}/boards/${board.ID}`);
+      })
+      .catch((error) => {
+        resetStyle();
+        throw error;
+      });
+  }, [document, board]);
+
   const addCardLocation = (card) => {
-    console.debug(
-      `addCardLocation (size@pre: ${rtree.current.all().length})`,
-      card
-    );
     rtree.current.insert(card);
-    console.debug(
-      `addCardLocation add (size@post: ${rtree.current.all().length})`
-    );
   };
 
   const removeCardLocation = (card) => {
-    console.debug(
-      `removeCardLocation (size@pre: ${rtree.current.all().length})`,
-      card
-    );
     rtree.current.remove(card, (a, b) => {
       return a.kind === "card" && b.kind === "card" && a.ID === b.ID;
     });
-    console.debug(
-      `removeCardLocation (size@post: ${rtree.current.all().length})`
-    );
   };
 
   const addThemeLocation = (theme) => {
@@ -108,8 +196,6 @@ export default function BoardCanvas({
     let intersections = getIntersectingCards(card).filter((c) => {
       return c.ID !== card.ID;
     });
-
-    console.debug("themeDataForCard (intersections):\n", intersections);
 
     // Case 1: The new card location does not intersect with any other card
     if (intersections.length === 0) {
@@ -255,6 +341,13 @@ export default function BoardCanvas({
     });
   }, [cards, themes]);
 
+  useEffect(() => {
+    if (!download) {
+      return;
+    }
+    downloadBoard();
+  }, [download]);
+
   if (!cardsRef || !themesRef) {
     return <Loading />;
   }
@@ -268,20 +361,10 @@ export default function BoardCanvas({
     return <></>;
   }
 
-  // Use 4:3 aspect ratio
-  const CANVAS_WIDTH = 12000;
-  const CANVAS_HEIGHT = 8000;
-  const VIEWPORT_WIDTH = 1500;
-  const VIEWPORT_HEIGHT = 800;
-
   let themesComponents = themes.map((theme) => {
     let newCards = cards.filter((card) => {
       return card.themeID === theme.ID;
     });
-    console.log(
-      "THeme in component creation",
-      themes.find((t) => theme.ID == t.ID)
-    );
 
     return (
       <Theme
@@ -296,8 +379,6 @@ export default function BoardCanvas({
       />
     );
   });
-
-  let boardID = `board-${board.ID}`;
 
   let defaultCanvasX = -(CANVAS_WIDTH / 2 - VIEWPORT_WIDTH / 2);
   let defaultCanvasY = -(CANVAS_HEIGHT / 2 - VIEWPORT_HEIGHT / 2);
@@ -328,80 +409,15 @@ export default function BoardCanvas({
             },
           }}
         >
-          {({ setPositionX, setPositionY, scale }) => (
+          {({ scale }) => (
             <>
-              <Button
-                title="Download board image"
-                style={{
-                  color: "black",
-                  background: "#ddf",
-                  border: "0",
-                  borderRadius: "0.25rem",
-                  position: "absolute",
-                  top: "2rem",
-                  right: "0.25rem",
-                  opacity: 0.8,
-                  zIndex: 200,
-                }}
-                variant="light"
-                onClick={() => {
-                  let domNode = document.getElementById(boardID);
-
-                  let maxX = 0;
-                  let maxY = 0;
-                  rtree.current.all().forEach((g) => {
-                    maxX = Math.max(maxX, g.maxX);
-                    maxY = Math.max(maxY, g.maxY);
-                  });
-
-                  let themesLabels = domNode.getElementsByClassName(
-                    "themesLabel"
-                  );
-                  for (let i = 0; i < themesLabels.length; i++) {
-                    let node = themesLabels[i];
-                    maxX = Math.max(
-                      maxX,
-                      parseInt(node.style.left) + parseInt(node.style.width)
-                    );
-                    maxY = Math.max(maxY, parseInt(node.style.top) + 128);
-                  }
-
-                  // A little extra padding
-                  maxX += 64;
-                  maxY += 64;
-
-                  // Clamp to canvas bounds
-                  maxX = Math.min(maxX, CANVAS_WIDTH);
-                  maxY = Math.min(maxY, CANVAS_HEIGHT);
-
-                  domNode.style.width = `${maxX}px`;
-                  domNode.style.height = `${maxY}px`;
-
-                  domToImage
-                    .toPng(domNode)
-                    .then((dataURL) => {
-                      domNode.style.width = `${CANVAS_WIDTH}px`;
-                      domNode.style.height = `${CANVAS_HEIGHT}px`;
-                      let link = document.createElement("a");
-                      link.download = `CustomerDB - ${board.name}.png`;
-                      link.href = dataURL;
-                      link.click();
-                    })
-                    .catch((error) => {
-                      domNode.style.width = `${CANVAS_WIDTH}px`;
-                      domNode.style.height = `${CANVAS_HEIGHT}px`;
-                      throw error;
-                    });
-                }}
-              >
-                <GetAppIcon />
-              </Button>
               <div
                 className="scrollContainer"
                 style={{ overflow: "hidden", background: "#e9e9e9" }}
               >
                 <TransformComponent>
                   <div
+                    id={`${boardID}-container`}
                     style={{
                       width: `${CANVAS_WIDTH}px`,
                       height: `${CANVAS_HEIGHT}px`,
