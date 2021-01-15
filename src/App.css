@@ -120,7 +120,6 @@ div.listCardInactive {
 
 .listCardTitle {
   margin: 0;
-  cursor: pointer;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
@@ -130,36 +129,38 @@ div.listCardInactive {
   display: none;
 }
 
-div.analysisContainer {
-  width: 100%;
-  height: 100%;
-  background-color: white;
-}
-
 div.listTitleButtonContainer {
   text-align: right;
 }
 
 .card {
   text-align: left;
-  box-shadow: 0 6px 6px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 3px 3px rgba(0, 0, 0, 0.2);
   width: 16rem;
   height: 9rem;
   top: 0;
   left: 0;
   position: absolute;
   overflow: hidden;
+  border-radius: 0.5rem;
+  display: flex;
 }
 
 .titlebar {
-  background-color: #000;
-  color: white;
   padding: 0.5rem;
   font-weight: bold;
 }
 
 .quote {
   padding: 0.5rem;
+  flex-grow: 1;
+  height: 7rem;
+  overflow: hidden;
+  background-image: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 1) 100%
+  );
 }
 
 span.quoteContext {

@@ -234,7 +234,7 @@ export default function Shell({
             />
             <NavListItem
               key="Themes"
-              to={[`/orgs/${orgID}/analyze`]}
+              to={[`/orgs/${orgID}/boards`]}
               icon={BubbleChartIcon}
               label="Themes"
             />

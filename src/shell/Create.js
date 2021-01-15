@@ -10,7 +10,7 @@ import MenuItem from "@material-ui/core/MenuItem";
 import ClickAwayListener from "@material-ui/core/ClickAwayListener";
 import AddIcon from "@material-ui/icons/Add";
 import RecordVoiceOverIcon from "@material-ui/icons/RecordVoiceOver";
-import MultilineChartIcon from "@material-ui/icons/MultilineChart";
+import BubbleChartIcon from "@material-ui/icons/BubbleChart";
 import AddToPhotosIcon from "@material-ui/icons/AddToPhotos";
 import GroupIcon from "@material-ui/icons/Group";
 import LocalOfferIcon from "@material-ui/icons/LocalOffer";
@@ -87,13 +87,13 @@ export default function Create() {
             <MenuItem
               onClick={() => {
                 setOpen(false);
-                navigate(`/orgs/${orgID}/analyze/create`);
+                navigate(`/orgs/${orgID}/boards/create`);
               }}
             >
               <ListItemIcon>
-                <MultilineChartIcon fontSize="small" />
+                <BubbleChartIcon fontSize="small" />
               </ListItemIcon>
-              <ListItemText primary="Analysis" />
+              <ListItemText primary="Quote Board" />
             </MenuItem>
             <MenuItem
               onClick={() => {

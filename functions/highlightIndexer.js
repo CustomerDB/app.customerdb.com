@@ -197,6 +197,7 @@ function indexHighlight(source, orgID, highlightID, highlightRef) {
               text: highlight.text,
               startIndex: highlight.selection.index,
               endIndex: highlight.selection.index + highlight.selection.length,
+              tagGroupID: document.tagGroupID,
               tagID: highlight.tagID,
               createdBy: highlight.createdBy,
               creationTimestamp: highlight.creationTimestamp.seconds,
@@ -207,10 +208,10 @@ function indexHighlight(source, orgID, highlightID, highlightRef) {
             let highlightTime = Promise.resolve();
 
             if (person) {
-              highlightToIndex.personName = person.name;
-              highlightToIndex.personCompany = person.company;
-              highlightToIndex.personImageURL = person.imageURL;
-              highlightToIndex.personJob = person.job;
+              highlightToIndex.personName = person.name || "";
+              highlightToIndex.personCompany = person.company || "";
+              highlightToIndex.personImageURL = person.imageURL || "";
+              highlightToIndex.personJob = person.job || "";
             }
 
             if (transcription && transcription.inputPath) {

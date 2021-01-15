@@ -4,9 +4,9 @@ import FirebaseContext from "../util/FirebaseContext.js";
 import { useParams } from "react-router-dom";
 
 export default function useFirestore() {
-  const { orgID, personID, documentID, analysisID, summaryID } = useParams();
+  const { orgID, personID, documentID, boardID, summaryID } = useParams();
   const [orgRefs, setOrgRefs] = useState({});
-  const [analysisRefs, setAnalysisRefs] = useState({});
+  const [boardRefs, setBoardRefs] = useState({});
   const [documentRefs, setDocumentRefs] = useState({});
   const [summaryRefs, setSummaryRefs] = useState({});
   const [personRefs, setPersonRefs] = useState({});
@@ -25,7 +25,7 @@ export default function useFirestore() {
     r.allHighlightsRef = db.collectionGroup("highlights");
     r.allTranscriptHighlightsRef = db.collectionGroup("transcriptHighlights");
     r.apiKeysRef = r.orgRef.collection("apiKeys");
-    r.analysesRef = r.orgRef.collection("analyses");
+    r.boardsRef = r.orgRef.collection("boards");
     r.documentsRef = r.orgRef.collection("documents");
     r.summariesRef = r.orgRef.collection("summaries");
     r.callsRef = r.orgRef.collection("calls");
@@ -38,17 +38,16 @@ export default function useFirestore() {
   }, [db, orgID]);
 
   useEffect(() => {
-    if (!analysisID || !orgRefs.analysesRef) {
-      setAnalysisRefs({});
+    if (!boardID || !orgRefs.boardsRef) {
+      setBoardRefs({});
       return;
     }
     let r = {};
-    r.analysisRef = orgRefs.analysesRef.doc(analysisID);
-    r.cardsRef = r.analysisRef.collection("cards");
-    r.groupsRef = r.analysisRef.collection("groups");
-    r.activeUsersRef = r.analysisRef.collection("activeUsers");
-    setAnalysisRefs(r);
-  }, [orgRefs.analysesRef, analysisID]);
+    r.boardRef = orgRefs.boardsRef.doc(boardID);
+    r.cardsRef = r.boardRef.collection("cards");
+    r.themesRef = r.boardRef.collection("themes");
+    setBoardRefs(r);
+  }, [orgRefs.boardsRef, boardID]);
 
   useEffect(() => {
     if (!documentID || !orgRefs.documentsRef) {
@@ -86,7 +85,7 @@ export default function useFirestore() {
 
   return {
     ...orgRefs,
-    ...analysisRefs,
+    ...boardRefs,
     ...documentRefs,
     ...personRefs,
     ...summaryRefs,

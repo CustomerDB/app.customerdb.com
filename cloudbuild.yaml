@@ -30,7 +30,9 @@ steps:
   - 'REACT_APP_ALGOLIA_PEOPLE_INDEX=$_ALGOLIA_PEOPLE_INDEX'
   - 'REACT_APP_ALGOLIA_DOCUMENTS_INDEX=$_ALGOLIA_DOCUMENTS_INDEX'
   - 'REACT_APP_ALGOLIA_HIGHLIGHTS_INDEX=$_ALGOLIA_HIGHLIGHTS_INDEX'
-  - 'REACT_APP_ALGOLIA_SNAPSHOTS_INDEX=$_ALGOLIA_SNAPSHOTS_INDEX'
+  - 'REACT_APP_ALGOLIA_SUMMARIES_INDEX=$_ALGOLIA_SUMMARIES_INDEX'
+  - 'REACT_APP_ALGOLIA_THEMES_INDEX=$_ALGOLIA_THEMES_INDEX'
+  - 'REACT_APP_ALGOLIA_BOARDS_INDEX=$_ALGOLIA_BOARDS_INDEX'
   - 'REACT_APP_ERROR_API_KEY=$_ERROR_API_KEY'
   - 'REACT_APP_VERSION=$REVISION_ID'
 - name: 'gcr.io/$PROJECT_ID/firebase'
@@ -54,7 +56,7 @@ steps:
   id: deploy-functions-group-3
   waitFor:
   - deploy-functions-group-2
-  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=functions:transcript,functions:twilio,functions:video,functions:waitList']
+  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=functions:transcript,functions:twilio,functions:video,functions:waitList,functions:themes']
 
 - name: 'gcr.io/$PROJECT_ID/firebase'
   id: deploy-hosting
