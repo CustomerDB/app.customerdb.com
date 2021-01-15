@@ -19,6 +19,7 @@ import InterviewSidepane from "./InterviewSidepane.js";
 import Sidepane from "../shell/Sidepane.js";
 import QuoteSidepane from "./QuoteSidepane.js";
 import useFirestore from "../db/Firestore.js";
+import ThemeSidepane from "./ThemeSidepane.js";
 
 const useStyles = makeStyles({
   paper: {
@@ -41,6 +42,7 @@ export default function Board() {
   const [interviewsSidepaneOpen, setInterviewsSidepaneOpen] = useState(false);
 
   const [sidepaneHighlight, setSidepaneHighlight] = useState(undefined);
+  const [sidepaneTheme, setSidepaneTheme] = useState(undefined);
 
   const navigate = useNavigate();
 
@@ -211,8 +213,21 @@ export default function Board() {
           </>
           <BoardCanvas
             board={board}
-            setSidepaneOpen={setInterviewsSidepaneOpen}
-            setSidepaneHighlight={setSidepaneHighlight}
+            setSidepaneOpen={(open) => {
+              setInterviewsSidepaneOpen(open);
+              setSidepaneHighlight(undefined);
+              setSidepaneTheme(undefined);
+            }}
+            setSidepaneHighlight={(highlight) => {
+              setInterviewsSidepaneOpen(false);
+              setSidepaneHighlight(highlight);
+              setSidepaneTheme(undefined);
+            }}
+            setSidepaneTheme={(theme) => {
+              setInterviewsSidepaneOpen(false);
+              setSidepaneHighlight(undefined);
+              setSidepaneTheme(theme);
+            }}
           />
           <Sidepane
             title="Select interviews"
@@ -227,6 +242,13 @@ export default function Board() {
             setOpen={setSidepaneHighlight}
           >
             <QuoteSidepane highlight={sidepaneHighlight} />
+          </Sidepane>
+          <Sidepane
+            title="Theme"
+            open={!!sidepaneTheme}
+            setOpen={setSidepaneTheme}
+          >
+            <ThemeSidepane theme={sidepaneTheme} />
           </Sidepane>
         </Paper>
       </Grid>

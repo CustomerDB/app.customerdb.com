@@ -37,6 +37,8 @@ export default function Theme({ name, theme, cards, setSidepaneTheme }) {
 
   let border = `2px ${color} solid`;
 
+  console.log("Theme: ", theme);
+
   return (
     <>
       <div
@@ -65,6 +67,9 @@ export default function Theme({ name, theme, cards, setSidepaneTheme }) {
           width: circle.diameter,
           textAlign: "center",
           cursor: "pointer",
+        }}
+        onClick={() => {
+          setSidepaneTheme(theme);
         }}
       >
         <div className="d-flex justify-content-center">

@@ -22,6 +22,7 @@ export default function BoardCanvas({
   board,
   setSidepaneOpen,
   setSidepaneHighlight,
+  setSidepaneTheme,
 }) {
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
@@ -54,7 +55,6 @@ export default function BoardCanvas({
       card
     );
     rtree.current.remove(card, (a, b) => {
-      // console.debug(`comparing\n${a.ID}\n${b.ID}`);
       return a.kind === "card" && b.kind === "card" && a.ID === b.ID;
     });
     console.debug(
@@ -68,7 +68,6 @@ export default function BoardCanvas({
 
   const removeThemeLocation = (themes) => {
     rtree.current.remove(themes, (a, b) => {
-      // console.debug(`comparing\n${a.ID}\n${b.ID}`);
       return a.kind === "theme" && b.kind === "theme" && a.ID === b.ID;
     });
   };
@@ -78,13 +77,6 @@ export default function BoardCanvas({
   };
 
   const getIntersectingCards = (rect) => {
-    console.log(
-      "getIntersectingCards",
-      rect,
-      getIntersecting(rect),
-      rtree.current.toJSON()
-    );
-
     return getIntersecting(rect).filter((item) => item.kind === "card");
   };
 
@@ -187,13 +179,14 @@ export default function BoardCanvas({
       let themeID = uuidv4();
       let colors = colorPair();
 
-      themesRef.doc(themeID).set({
+      let theme = {
         kind: "theme",
         ID: themeID,
         name: nextThemeName("Unnamed theme"),
         color: colors.background,
         textColor: colors.foreground,
-      });
+      };
+      themesRef.doc(themeID).set(theme);
 
       intersections.forEach((c) => {
         c.themeID = themeID;
@@ -201,7 +194,9 @@ export default function BoardCanvas({
         c.textColor = colors.foreground;
         cardsRef.doc(c.ID).set(c);
       });
-      // this.setState({ cards: Object.assign({}, this.state.cards) });
+
+      console.log("Setting theme: ", theme);
+      setSidepaneTheme(theme);
 
       return {
         ID: themeID,
@@ -225,7 +220,6 @@ export default function BoardCanvas({
         let newCard = doc.data();
         newCards.push(newCard);
       });
-      console.log("Received card update", newCards);
       setCards(newCards);
     });
   }, [cardsRef]);
@@ -280,51 +274,6 @@ export default function BoardCanvas({
   const VIEWPORT_WIDTH = 1500;
   const VIEWPORT_HEIGHT = 800;
 
-  const pxPerRem = 16;
-  const cardWidthRems = 16;
-  const cardHeightRems = 9;
-  const cardSpaceRems = 2;
-  const cardWidthPx = cardWidthRems * pxPerRem;
-  const cardHeightPx = cardHeightRems * pxPerRem;
-  const cardSpacePx = cardSpaceRems * pxPerRem;
-  const cardLayoutWidthPx = cardSpacePx + cardWidthPx;
-  const cardLayoutHeightPx = cardSpacePx + cardHeightPx;
-
-  // TODO: Move this "initial layout" code
-  // lay out cards in diagonal grid order, like so:
-  //
-  // [0] [1] [3] [6] ...
-  //
-  // [2] [4] [7] ...
-  //
-  // [5] [8] ...
-  //
-  // [9] ...
-  //
-  // ...
-
-  // Coordinates in the layout grid, as shown above
-  let x = 0;
-  let y = 0;
-  let nextRowX = 1;
-
-  cards.forEach((card) => {
-    if (card.minX === 0 && card.maxX === 0) {
-      card.minX = x * cardLayoutWidthPx;
-      card.minY = y * cardLayoutHeightPx;
-    }
-
-    if (x === 0) {
-      x = nextRowX;
-      y = 0;
-      nextRowX++;
-      return;
-    }
-
-    x--;
-    y++;
-  });
-
   let themesComponents = themes.map((theme) => {
     let newCards = cards.filter((card) => {
       return card.themeID === theme.ID;
@@ -334,16 +283,20 @@ export default function BoardCanvas({
       <Theme
         key={theme.ID}
         name={theme.name}
-        theme={theme}
+        theme={themes.find((t) => theme.ID == t.ID)}
         cards={newCards}
         themesRef={themesRef.doc(theme.ID)}
         addThemeLocationCallback={addThemeLocation}
         removeThemeLocationCallback={removeThemeLocation}
+        setSidepaneTheme={setSidepaneTheme}
       />
     );
   });
 
   let boardID = `board-${board.ID}`;
+
+  let defaultCanvasX = -(CANVAS_WIDTH / 2 - VIEWPORT_WIDTH / 2);
+  let defaultCanvasY = -(CANVAS_HEIGHT / 2 - VIEWPORT_HEIGHT / 2);
 
   return (
     <Grid
@@ -354,8 +307,8 @@ export default function BoardCanvas({
     >
       <div style={{ position: "relative", width: "100%", flexGrow: 1 }}>
         <TransformWrapper
-          defaultPositionX={-(CANVAS_WIDTH / 2 - VIEWPORT_WIDTH / 2)}
-          defaultPositionY={-(CANVAS_HEIGHT / 2 - VIEWPORT_HEIGHT / 2)}
+          defaultPositionX={defaultCanvasX}
+          defaultPositionY={defaultCanvasY}
           options={{
             minScale: 0.1,
             maxScale: 2,
@@ -371,24 +324,8 @@ export default function BoardCanvas({
             },
           }}
         >
-          {({ resetTransform, scale }) => (
+          {({ setPositionX, setPositionY, scale }) => (
             <>
-              <Button
-                onClick={resetTransform}
-                style={{
-                  color: "black",
-                  background: "#ddf",
-                  border: "0",
-                  borderRadius: "0.25rem",
-                  position: "absolute",
-                  top: "0rem",
-                  right: "0.25rem",
-                  opacity: 0.8,
-                  zIndex: 200,
-                }}
-              >
-                <AspectRatioIcon />
-              </Button>
               <Button
                 title="Download board image"
                 style={{
@@ -480,19 +417,6 @@ export default function BoardCanvas({
                     >
                       {themesComponents}
                       {cards.flatMap((card) => {
-                        // let highlight = highlights.find(
-                        //   (highlight) => highlight.ID === card.ID
-                        // );
-                        // if (!highlight) {
-                        //   return [];
-                        // }
-                        // let doc = documents.find(
-                        //   (document) => document.ID == highlight.documentID
-                        // );
-                        // if (!doc) {
-                        //   return [];
-                        // }
-
                         if (!card.ID) {
                           return [];
                         }
@@ -502,8 +426,6 @@ export default function BoardCanvas({
                             key={card.ID}
                             scale={scale}
                             card={card}
-                            // highlight={highlight}
-                            // document={doc}
                             themesColor={card.themesColor}
                             textColor={card.textColor}
                             cardRef={cardsRef.doc(card.ID)}
