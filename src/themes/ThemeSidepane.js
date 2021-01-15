@@ -106,7 +106,7 @@ export default function ThemeSidepane({ theme }) {
 
                 themeRef.update({
                   name: newName,
-                  lastUpdatedTimestamp: firebaseClient.firestore.FieldValue.serverTimestamp(),
+                  lastUpdateTimestamp: firebaseClient.firestore.FieldValue.serverTimestamp(),
                 });
               }
             }}
@@ -134,7 +134,10 @@ export default function ThemeSidepane({ theme }) {
                   .replace(/\s+/g, " ")
                   .trim();
 
-                themeRef.update({ description: newDescription });
+                themeRef.update({
+                  description: newDescription,
+                  lastUpdateTimestamp: firebaseClient.firestore.FieldValue.serverTimestamp(),
+                });
               }
             }}
           />

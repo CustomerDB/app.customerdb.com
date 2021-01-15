@@ -425,7 +425,7 @@ exports.indexUpdatedTheme = functions.firestore
   .document("organizations/{orgID}/boards/{boardID}/themes/{themeID}")
   .onWrite((change, context) => {
     const { orgID, boardID, themeID } = context.params;
-    const index = client.initIndex(ALGOLIA_HIGHLIGHTS_INDEX_NAME);
+    const index = client.initIndex(ALGOLIA_THEMES_INDEX_NAME);
 
     if (!change.after.exists) {
       // Delete theme from index
@@ -456,12 +456,12 @@ exports.indexUpdatedTheme = functions.firestore
       orgID: orgID,
       boardID: boardID,
       name: theme.name,
-      description: theme.description,
+      description: theme.description || "",
       creationTimestamp:
         theme.creationTimestamp && theme.creationTimestamp.seconds,
     };
 
-    index.saveObject(themeToIndex).then(() => {
+    return index.saveObject(themeToIndex).then(() => {
       return themeRef.update({
         lastIndexTimestamp: admin.firestore.FieldValue.serverTimestamp(),
       });

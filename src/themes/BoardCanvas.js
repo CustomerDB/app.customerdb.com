@@ -273,7 +273,10 @@ export default function BoardCanvas({
         name: nextThemeName("Unnamed theme"),
         color: colors.background,
         textColor: colors.foreground,
-        lastUpdatedTimestamp: firebaseClient.firestore.FieldValue.serverTimestamp(),
+        creationTimestamp: firebaseClient.firestore.FieldValue.serverTimestamp(),
+        lastUpdateTimestamp: firebaseClient.firestore.FieldValue.serverTimestamp(),
+        indexRequestedTimestamp: firebaseClient.firestore.FieldValue.serverTimestamp(),
+        lastIndexTimestamp: new firebaseClient.firestore.Timestamp(0, 0),
       };
       themesRef.doc(themeID).set(theme);
 
