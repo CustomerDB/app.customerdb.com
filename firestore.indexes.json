@@ -307,6 +307,20 @@
       ]
     },
     {
+      "collectionGroup": "themes",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "organizationID",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "lastUpdateTimestamp",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "people",
       "queryScope": "COLLECTION",
       "fields": [

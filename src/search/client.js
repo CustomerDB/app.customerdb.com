@@ -17,7 +17,9 @@ export function useSearchClient() {
     if (
       !process.env.REACT_APP_ALGOLIA_PEOPLE_INDEX ||
       !process.env.REACT_APP_ALGOLIA_DOCUMENTS_INDEX ||
+      !process.env.REACT_APP_ALGOLIA_BOARDS_INDEX ||
       !process.env.REACT_APP_ALGOLIA_SUMMARIES_INDEX ||
+      !process.env.REACT_APP_ALGOLIA_THEMES_INDEX ||
       !process.env.REACT_APP_ALGOLIA_HIGHLIGHTS_INDEX
     ) {
       console.debug("Search not available: missing indexes");

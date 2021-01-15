@@ -5,6 +5,7 @@ import useFirestore from "../db/Firestore.js";
 import Quote from "./Quote";
 import Scrollable from "../shell/Scrollable.js";
 import ContentEditable from "react-contenteditable";
+import * as firebaseClient from "firebase/app";
 
 function Card({ cardID }) {
   // Look up highlight hit for card.
@@ -103,7 +104,10 @@ export default function ThemeSidepane({ theme }) {
                   .replace(/\s+/g, " ")
                   .trim();
 
-                themeRef.update({ name: newName });
+                themeRef.update({
+                  name: newName,
+                  lastUpdateTimestamp: firebaseClient.firestore.FieldValue.serverTimestamp(),
+                });
               }
             }}
           />
@@ -130,7 +134,10 @@ export default function ThemeSidepane({ theme }) {
                   .replace(/\s+/g, " ")
                   .trim();
 
-                themeRef.update({ description: newDescription });
+                themeRef.update({
+                  description: newDescription,
+                  lastUpdateTimestamp: firebaseClient.firestore.FieldValue.serverTimestamp(),
+                });
               }
             }}
           />
