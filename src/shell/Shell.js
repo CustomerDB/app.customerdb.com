@@ -5,6 +5,7 @@ import { SearchDropdown } from "./Search.js";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import AppBar from "@material-ui/core/AppBar";
+import AssignmentIcon from "@material-ui/icons/Assignment";
 import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
 import ChevronRightIcon from "@material-ui/icons/ChevronRight";
 import CssBaseline from "@material-ui/core/CssBaseline";
@@ -16,7 +17,7 @@ import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
 import ListItemText from "@material-ui/core/ListItemText";
-import MultilineChartIcon from "@material-ui/icons/MultilineChart";
+import BubbleChartIcon from "@material-ui/icons/BubbleChart";
 import RecordVoiceOverIcon from "@material-ui/icons/RecordVoiceOver";
 import MenuIcon from "@material-ui/icons/Menu";
 import SettingsIcon from "@material-ui/icons/Settings";
@@ -232,22 +233,26 @@ export default function Shell({
               label="Customers"
             />
             <NavListItem
-              key="Analysis"
+              key="Themes"
               to={[`/orgs/${orgID}/analyze`]}
-              icon={MultilineChartIcon}
-              label="Analysis"
+              icon={BubbleChartIcon}
+              label="Themes"
             />
+            <NavListItem
+              key="Summaries"
+              to={[`/orgs/${orgID}/summaries`]}
+              icon={AssignmentIcon}
+              label="Summaries"
+            />
+            <Divider />
+          </List>
+          <List>
             <NavListItem
               key="Tags"
               to={[`/orgs/${orgID}/tags`]}
               icon={LocalOfferIcon}
               label="Tags"
             />
-          </List>
-
-          <Divider />
-
-          <List>
             <NavListItem
               key="Settings"
               to={[`/orgs/${orgID}/settings`]}
