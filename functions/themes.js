@@ -168,78 +168,95 @@ exports.cardsInBoard = functions.firestore
     return Promise.all([cardCleanupPromise, cardCreationPromise]);
   });
 
-function highlightUpdates(change, context, source) {
+function highlightCreate(highlightDoc, context, source) {
   const db = admin.firestore();
   const orgID = context.params.orgID;
   const documentID = context.params.documentID;
   const highlightID = context.params.highlightID;
 
-  if (change.after.exists && !change.before.exists) {
-    // A new highlight may need to be added (in a card) to boards which subscribes to this document.
-    // Find boards subscribing to this document.
+  // A new highlight may need to be added (in a card) to boards which subscribes to this document.
+  // Find boards subscribing to this document.
 
-    // TODO: Make documentIDs a collection theme, so we don't have to traverse the boards.
-    return db
-      .collection("organizations")
-      .doc(orgID)
-      .collection("boards")
-      .get()
-      .then((snapshot) =>
-        snapshot.docs.map((doc) => {
-          let board = doc.data();
-          let cardsRef = doc.ref.collection("cards");
+  // TODO: Make documentIDs a collection group, so we don't have to traverse the boards.
+  return db
+    .collection("organizations")
+    .doc(orgID)
+    .collection("boards")
+    .get()
+    .then((snapshot) =>
+      snapshot.docs.map((doc) => {
+        let board = doc.data();
+        let cardsRef = doc.ref.collection("cards");
 
-          if (board.documentIDs && board.documentIDs.includes(documentID)) {
-            let cardRef = cardsRef.doc(highlightID);
+        if (board.documentIDs && board.documentIDs.includes(documentID)) {
+          let cardRef = cardsRef.doc(highlightID);
 
-            console.debug(`Adding highlight ${highlightID} to board ${doc.id}`);
+          console.debug(`Adding highlight ${highlightID} to board ${doc.id}`);
 
-            return cardRef.set(
-              newCard(highlightID, change.after.data(), source)
-            );
-          }
-        })
-      );
-  }
-
-  if (!change.after.exists) {
-    // Remove card from boards which subscribes to this document.
-    return db
-      .collection("organizations")
-      .doc(orgID)
-      .collection("boards")
-      .get()
-      .then((snapshot) =>
-        snapshot.docs.map((doc) => {
-          let board = doc.data();
-          let cardsRef = doc.ref.collection("cards");
-
-          if (board.documentIDs && board.documentIDs.includes(documentID)) {
-            console.debug(
-              `Removing highlight ${highlightID} from board ${doc.id}`
-            );
-
-            return cardsRef.doc(highlightID).delete();
-          }
-        })
-      );
-  }
+          return cardRef.set(newCard(highlightID, highlightDoc.data(), source));
+        }
+      })
+    );
 }
 
-exports.noteHighlightUpdates = functions.firestore
+function highlightDelete(doc, context, source) {
+  const db = admin.firestore();
+  const orgID = context.params.orgID;
+  const documentID = context.params.documentID;
+  const highlightID = context.params.highlightID;
+
+  // Remove card from boards which subscribes to this document.
+  return db
+    .collection("organizations")
+    .doc(orgID)
+    .collection("boards")
+    .get()
+    .then((snapshot) =>
+      snapshot.docs.map((doc) => {
+        let board = doc.data();
+        let cardsRef = doc.ref.collection("cards");
+
+        if (board.documentIDs && board.documentIDs.includes(documentID)) {
+          console.debug(
+            `Removing highlight ${highlightID} from board ${doc.id}`
+          );
+
+          return cardsRef.doc(highlightID).delete();
+        }
+      })
+    );
+}
+
+exports.noteHighlightCreate = functions.firestore
   .document(
     "organizations/{orgID}/documents/{documentID}/highlights/{highlightID}"
   )
-  .onWrite((change, context) => {
-    return highlightUpdates(change, context, "notes");
+  .onCreate((doc, context) => {
+    return highlightCreate(doc, context, "notes");
   });
 
-exports.transcriptHighlightUpdates = functions.firestore
+exports.transcriptHighlightCreate = functions.firestore
   .document(
     "organizations/{orgID}/documents/{documentID}/transcriptHighlights/{highlightID}"
   )
-  .onWrite((change, context) => {
-    return highlightUpdates(change, context, "transcript");
+  .onCreate((doc, context) => {
+    return highlightCreate(doc, context, "transcript");
+  });
+
+exports.noteHighlightDelete = functions.firestore
+  .document(
+    "organizations/{orgID}/documents/{documentID}/highlights/{highlightID}"
+  )
+  .onDelete((doc, context) => {
+    return highlightDelete(doc, context, "notes");
+  });
+
+exports.transcriptHighlightDelete = functions.firestore
+  .document(
+    "organizations/{orgID}/documents/{documentID}/transcriptHighlights/{highlightID}"
+  )
+  .onDelete((doc, context) => {
+    return highlightDelete(doc, context, "transcript");
   });
 
 // TODO: see if we can use a collection theme query to look up all
