@@ -1,5 +1,21 @@
 const admin = require("firebase-admin");
 const functions = require("firebase-functions");
+const algoliasearch = require("algoliasearch");
+
+const ALGOLIA_ID = functions.config().algolia
+  ? functions.config().algolia.app_id
+  : undefined;
+const ALGOLIA_ADMIN_KEY = functions.config().algolia
+  ? functions.config().algolia.api_key
+  : undefined;
+const ALGOLIA_THEMES_INDEX_NAME = functions.config().algolia
+  ? functions.config().algolia.themes_index
+  : undefined;
+
+let client;
+if (ALGOLIA_ID && ALGOLIA_ADMIN_KEY) {
+  client = algoliasearch(ALGOLIA_ID, ALGOLIA_ADMIN_KEY);
+}
 
 function newCard(ID, highlight, source) {
   const CANVAS_WIDTH = 12000;
@@ -403,4 +419,51 @@ exports.cardUpdates = functions.firestore
 
     return Promise.all([hitPromise, themeCleanupPromise]);
     // TODO: In some cases, a theme is broken by a card move. Detect this by recalculating intersections.
+  });
+
+exports.indexUpdatedTheme = functions.firestore
+  .document("organizations/{orgID}/boards/{boardID}/themes/{themeID}")
+  .onWrite((change, context) => {
+    const { orgID, boardID, themeID } = context.params;
+    const index = client.initIndex(ALGOLIA_HIGHLIGHTS_INDEX_NAME);
+
+    if (!change.after.exists) {
+      // Delete theme from index
+      index.deleteObject(themeID);
+      return;
+    }
+
+    const theme = change.after.data();
+    const themeRef = change.after.ref;
+
+    console.debug("indexUpdatedTheme", JSON.stringify(theme));
+
+    if (
+      theme.lastIndexTimestamp &&
+      theme.indexRequestedTimestamp &&
+      theme.lastIndexTimestamp.toDate().valueOf() >
+        theme.indexRequestedTimestamp.toDate().valueOf()
+    ) {
+      console.log(
+        `skipping indexing theme ${themeID} as it was indexed after index requested`
+      );
+      return;
+    }
+
+    // Compute record to send to the search index service
+    const themeToIndex = {
+      objectID: themeID,
+      orgID: orgID,
+      boardID: boardID,
+      name: theme.name,
+      description: theme.description,
+      creationTimestamp:
+        theme.creationTimestamp && theme.creationTimestamp.seconds,
+    };
+
+    index.saveObject(themeToIndex).then(() => {
+      return themeRef.update({
+        lastIndexTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+      });
+    });
   });
