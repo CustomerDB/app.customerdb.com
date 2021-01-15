@@ -25,100 +25,57 @@ const hexToRGB = (hex) => {
 };
 
 export default function QuoteSidepane({ highlight }) {
-  const { allHighlightsRef, allTranscriptHighlightsRef } = useFirestore();
   const firebase = useContext(FirebaseContext);
   const [mediaURL, setMediaURL] = useState();
   const playerRef = useRef();
-  const [cacheRef, setCacheRef] = useState();
-  const [cache, setCache] = useState();
   const { orgID } = useParams();
 
   useEffect(() => {
-    if (!highlight) {
-      return;
-    }
-
-    let highlightRef;
-    if (highlight.source === "notes") {
-      highlightRef = allHighlightsRef.where("ID", "==", highlight.ID);
-    }
-
-    if (highlight.source === "transcript") {
-      highlightRef = allTranscriptHighlightsRef.where("ID", "==", highlight.ID);
-    }
-
-    if (!highlightRef) {
-      console.log(highlight);
-      return;
-    }
-
-    return highlightRef.onSnapshot((snapshot) => {
-      if (snapshot.size !== 1) {
-        return;
-      }
-
-      setCacheRef(snapshot.docs[0].ref.collection("cache").doc("hit"));
-    });
-  }, [highlight, allHighlightsRef, allTranscriptHighlightsRef]);
-
-  useEffect(() => {
-    if (!cacheRef) {
-      return;
-    }
-
-    console.log("Installing cache subscription");
-
-    return cacheRef.onSnapshot((doc) => {
-      setCache(doc.data());
-    });
-  }, [cacheRef]);
-
-  useEffect(() => {
-    if (!firebase || !cache || !cache.mediaPath) {
+    if (!firebase || !highlight || !highlight.mediaPath) {
       setMediaURL();
       return;
     }
 
-    console.debug(`Starting to fetch media URL for ${cache.mediaPath}`);
+    console.debug(`Starting to fetch media URL for ${highlight.mediaPath}`);
 
     firebase
       .storage()
       .ref()
-      .child(cache.mediaPath)
+      .child(highlight.mediaPath)
       .getDownloadURL()
       .then((url) => {
         console.debug(`Got url: ${url}`);
         setMediaURL(url);
       });
-  }, [cache, firebase]);
+  }, [highlight, firebase]);
 
-  if (!cache) {
+  if (!highlight) {
     return <></>;
   }
 
   let documentCreationTimestamp = new Date(
-    cache.documentCreationTimestamp * 1000
+    highlight.documentCreationTimestamp * 1000
   );
 
-  const quoteURL = `/orgs/${orgID}/interviews/${cache.documentID}/${cache.source}?quote=${cache.objectID}`;
+  const quoteURL = `/orgs/${orgID}/interviews/${highlight.documentID}/${highlight.source}?quote=${highlight.objectID}`;
 
   const linkedTitle = (
     <Link style={{ color: "black" }} to={quoteURL}>
-      {cache.documentName}
+      {highlight.documentName}
     </Link>
   );
 
   let contextPrefix, contextSuffix;
-  if (cache.context) {
-    const start = cache.startIndex - cache.contextStartIndex;
-    const end = cache.endIndex - cache.contextStartIndex;
-    contextPrefix = cache.context.slice(0, start).trimStart();
-    contextSuffix = cache.context.slice(end).trimEnd();
+  if (highlight.context) {
+    const start = highlight.startIndex - highlight.contextStartIndex;
+    const end = highlight.endIndex - highlight.contextStartIndex;
+    contextPrefix = highlight.context.slice(0, start).trimStart();
+    contextSuffix = highlight.context.slice(end).trimEnd();
     if (contextPrefix) contextPrefix = `...${contextPrefix}`;
     if (contextSuffix) contextSuffix = `${contextSuffix}...`;
   }
 
-  const rgb = hexToRGB(cache.tagColor);
+  const rgb = hexToRGB(highlight.tagColor);
   const opacity = 0.2;
   const attenuatedHighlightColor = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${opacity})`;
 
@@ -145,17 +102,17 @@ export default function QuoteSidepane({ highlight }) {
               {linkedTitle}
             </Typography>
             <div>
-              {cache.personName && (
+              {highlight.personName && (
                 <Avatar
                   size={30}
-                  name={cache.personName}
+                  name={highlight.personName}
                   round={true}
-                  src={cache.personImageURL}
-                  style={{ display: "inline", paddingRight: "0.5rem" }}
+                  src={highlight.personImageURL}
+                  style={{ display: "inline-block", marginRight: "0.5rem" }}
                 />
               )}
               <p style={{ display: "inline" }}>
-                {cache.personName}{" "}
+                {highlight.personName}{" "}
                 <Moment fromNow date={documentCreationTimestamp} />
               </p>
             </div>
@@ -173,14 +130,14 @@ export default function QuoteSidepane({ highlight }) {
                   url={mediaURL}
                   width="100%"
                   height="12rem"
-                  light={cache.thumbnailURL || true}
+                  light={highlight.thumbnailURL || true}
                   playing={true}
                   onReady={() => {
                     if (
-                      cache.startTime &&
+                      highlight.startTime &&
                       playerRef.current.getCurrentTime() === 0
                     ) {
-                      playerRef.current.seekTo(cache.startTime);
+                      playerRef.current.seekTo(highlight.startTime);
                     }
                   }}
                   controls
@@ -197,17 +154,17 @@ export default function QuoteSidepane({ highlight }) {
                     color: "#000",
                   }}
                 >
-                  {cache.text}
+                  {highlight.text}
                 </span>
                 <span className="quoteContext">{contextSuffix}</span>
               </Typography>
               <div style={{ paddingTop: "1rem" }}>
                 <Chip
                   size="small"
-                  label={cache.tagName}
+                  label={highlight.tagName}
                   style={{
-                    backgroundColor: cache.tagColor,
-                    color: cache.tagTextColor,
+                    backgroundColor: highlight.tagColor,
+                    color: highlight.tagTextColor,
                     fontWeight: "bold",
                   }}
                 />

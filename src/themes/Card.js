@@ -77,7 +77,7 @@ export default function Card({
       rect.current.minY === dragStartPosition.current.minY &&
       rect.current.maxY === dragStartPosition.current.maxY
     ) {
-      setSidepaneHighlight(highlight);
+      setSidepaneHighlight(card.highlightHitCache);
       dragStartPosition.current = undefined;
       addLocationCallBack(card);
       setCardDragging(false);
@@ -198,7 +198,7 @@ export default function Card({
         card.highlightHitCache.tagID
       ]
     );
-  }, [orgTags]);
+  }, [orgTags, card]);
 
   let divStyle = {
     zIndex: cardDragging ? "100" : "0",

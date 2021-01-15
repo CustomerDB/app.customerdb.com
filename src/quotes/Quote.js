@@ -83,7 +83,7 @@ export default function Quote({ hit }) {
                 name={hit.personName}
                 round={true}
                 src={hit.personImageURL}
-                style={{ display: "inline", paddingRight: "0.5rem" }}
+                style={{ display: "inline-block", marginRight: "0.5rem" }}
               />
             )}
             <p style={{ display: "inline" }}>

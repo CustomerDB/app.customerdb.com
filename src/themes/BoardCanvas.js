@@ -26,20 +26,10 @@ export default function BoardCanvas({
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
 
-  const [documents, setDocuments] = useState([]);
-  const [noteHighlights, setNoteHighlights] = useState();
-  const [transcriptHighlights, setTranscriptHighlights] = useState();
-  const [highlights, setHighlights] = useState([]);
   const [cards, setCards] = useState([]);
   const [themes, setThemes] = useState([]);
 
-  const {
-    documentsRef,
-    allHighlightsRef,
-    allTranscriptHighlightsRef,
-    cardsRef,
-    themesRef,
-  } = useFirestore();
+  const { cardsRef, themesRef } = useFirestore();
 
   const { orgID } = useParams();
 
@@ -141,11 +131,6 @@ export default function BoardCanvas({
 
         if (remainingCards.length < 2 && card.themeID) {
           // Delete the theme.
-          console.debug("deleting theme with ID", card.themeID);
-          themesRef.doc(card.themeID).delete();
-
-          console.debug("remainingCards to clean up\n", remainingCards);
-
           remainingCards.forEach((cardToCleanUp) => {
             cardToCleanUp.themesColor = "#000";
             cardToCleanUp.textColor = "#FFF";
@@ -272,12 +257,11 @@ export default function BoardCanvas({
       }
       let newthemes = computeThemeBounds(memberCards);
       Object.assign(newthemes, themes);
-      console.log("Adding themes: ", themes);
       addThemeLocation(newthemes);
     });
   }, [cards, themes]);
 
-  if (!documentsRef || !cardsRef || !themesRef) {
+  if (!cardsRef || !themesRef) {
     return <Loading />;
   }
 
@@ -293,6 +277,8 @@ export default function BoardCanvas({
   // Use 4:3 aspect ratio
   const CANVAS_WIDTH = 12000;
   const CANVAS_HEIGHT = 8000;
+  const VIEWPORT_WIDTH = 1500;
+  const VIEWPORT_HEIGHT = 800;
 
   const pxPerRem = 16;
   const cardWidthRems = 16;
@@ -368,8 +354,10 @@ export default function BoardCanvas({
     >
       <div style={{ position: "relative", width: "100%", flexGrow: 1 }}>
         <TransformWrapper
+          defaultPositionX={-(CANVAS_WIDTH / 2 - VIEWPORT_WIDTH / 2)}
+          defaultPositionY={-(CANVAS_HEIGHT / 2 - VIEWPORT_HEIGHT / 2)}
           options={{
-            minScale: 0.5,
+            minScale: 0.1,
             maxScale: 2,
             limitToBounds: false,
             limitToWrapper: false,

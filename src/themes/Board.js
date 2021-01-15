@@ -36,7 +36,7 @@ const useStyles = makeStyles({
 
 export default function Board() {
   let { boardRef } = useFirestore();
-  const { orgID, boardID } = useParams();
+  const { orgID } = useParams();
   const [showDeleteModal, setShowDeleteModal] = useState();
   const [interviewsSidepaneOpen, setInterviewsSidepaneOpen] = useState(false);
 
@@ -87,7 +87,18 @@ export default function Board() {
     );
 
     return (
-      <Grid container item sm={9} xl={10} spacing={0}>
+      <Grid
+        container
+        item
+        sm={9}
+        xl={10}
+        spacing={0}
+        style={{
+          backgroundColor: "white",
+          position: "absolute",
+          height: "100%",
+        }}
+      >
         <Paper className={classes.paper} elevation={0}>
           <Grid container>
             <Grid container item xs={12} alignItems="flex-start">

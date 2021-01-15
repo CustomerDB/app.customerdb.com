@@ -2,12 +2,34 @@ const admin = require("firebase-admin");
 const functions = require("firebase-functions");
 
 function newCard(ID, highlight, source) {
+  const CANVAS_WIDTH = 12000;
+  const CANVAS_HEIGHT = 8000;
+  const VIEWPORT_WIDTH = 1500;
+  const VIEWPORT_HEIGHT = 800;
+  const pxPerRem = 16;
+  const cardWidthRems = 16;
+  const cardHeightRems = 9;
+  const cardWidthPx = cardWidthRems * pxPerRem;
+  const cardHeightPx = cardHeightRems * pxPerRem;
+
+  // Pick random location around middle of canvas.
+  let minX =
+    CANVAS_WIDTH / 2 -
+    VIEWPORT_WIDTH / 2 +
+    Math.floor(Math.random() * VIEWPORT_WIDTH);
+  let maxX = minX + cardWidthPx;
+  let minY =
+    CANVAS_HEIGHT / 2 -
+    VIEWPORT_HEIGHT / 2 +
+    Math.floor(Math.random() * VIEWPORT_HEIGHT);
+  let maxY = minY + cardHeightPx;
+
   return {
     ID: ID,
-    minX: 0,
-    minY: 0,
-    maxX: 0,
-    maxY: 0,
+    minX: minX,
+    minY: minY,
+    maxX: maxX,
+    maxY: maxY,
     kind: "card",
     tagID: highlight.tagID,
     documentID: highlight.documentID,
@@ -94,8 +116,8 @@ exports.cardsInBoard = functions.firestore
 
           console.debug(`Adding cards for documents ${newDocuments}`);
 
-          let allHighlightsRef = db.collectiontheme("highlights");
-          let allTranscriptHighlightsRef = db.collectiontheme(
+          let allHighlightsRef = db.collectionGroup("highlights");
+          let allTranscriptHighlightsRef = db.collectionGroup(
             "transcriptHighlights"
           );
 
