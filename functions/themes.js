@@ -106,6 +106,9 @@ exports.cardsInBoard = functions.firestore
 
           console.debug("Creating card for highlight", doc.id);
 
+          // Try to prefetch highlight cache.
+          doc.ref.collection("cache").doc("");
+
           return cardRef.get().then((cardDoc) => {
             if (!cardDoc.exists) {
               return cardRef.set(newCard(doc.id, data, source));
@@ -448,26 +451,27 @@ exports.documentUpdates = functions.firestore
 
     if (before.deletionTimestamp === "" && after.deletionTimestamp !== "") {
       // If document has been marked for deletion, remove documentID from boards.
-      return Promise.all(
-        db
-          .collection("organizations")
-          .doc(orgID)
-          .collection("boards")
-          .get()
-          .then((snapshot) =>
+      return db
+        .collection("organizations")
+        .doc(orgID)
+        .collection("boards")
+        .get()
+        .then((snapshot) =>
+          Promise.all(
             snapshot.docs.map((doc) => {
               let board = doc.data();
 
               if (board.documentIDs && board.documentIDs.includes(documentID)) {
-                let documentIDs = board.documentIDs;
-                delete document[documentID];
+                console.log(`Should remove ${documentID} to board ${doc.id}`);
                 return doc.ref.update({
-                  documentIDs: documentIDs,
+                  documentIDs: board.documentIDs.filter(
+                    (item) => item !== documentID
+                  ),
                 });
               }
             })
           )
-      );
+        );
     }
   });
 

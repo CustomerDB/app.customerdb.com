@@ -299,8 +299,8 @@ function indexHighlight(source, orgID, highlightID, highlightRef) {
                 // Attach time codes into highlightToIndex.
                 return highlightTime.then((time) => {
                   if (time) {
-                    highlightToIndex.startTime = time.startTime;
-                    highlightToIndex.endTime = time.endTime;
+                    highlightToIndex.startTime = time.startTime || 0;
+                    highlightToIndex.endTime = time.endTime || 0;
 
                     if (transcription && transcription.thumbnailToken) {
                       // Calculate sequence number from start time.
