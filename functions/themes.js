@@ -106,9 +106,6 @@ exports.cardsInBoard = functions.firestore
 
           console.debug("Creating card for highlight", doc.id);
 
-          // Try to prefetch highlight cache.
-          doc.ref.collection("cache").doc("");
-
           return cardRef.get().then((cardDoc) => {
             if (!cardDoc.exists) {
               return cardRef.set(newCard(doc.id, data, source));
