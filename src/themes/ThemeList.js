@@ -72,7 +72,9 @@ function InfiniteHits({ reactQuillRef, hasMore, refine, hits }) {
 
     observer.current.observe(sentinel.current);
 
-    return observer.current.disconnect;
+    return () => {
+      observer.current.disconnect();
+    };
   }, [sentinel, hasMore, refine]);
 
   console.debug("hits", hits);
