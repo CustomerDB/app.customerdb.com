@@ -7,6 +7,7 @@ import Profile from "./Profile.js";
 import UserAuthContext from "../auth/UserAuthContext";
 import Typography from "@material-ui/core/Typography";
 import PrivacySettings from "./PrivacySettings.js";
+import OrgSettings from "./OrgSettings.js";
 
 export default function Settings(props) {
   const auth = useContext(UserAuthContext);
@@ -27,6 +28,7 @@ export default function Settings(props) {
       <Grid container item xs={12}>
         <Profile />
         {auth.oauthClaims.orgs[orgID].admin === true && <Members />}
+        {auth.oauthClaims.orgs[orgID].admin === true && <OrgSettings />}
         <PrivacySettings />
       </Grid>
     </Grid>
