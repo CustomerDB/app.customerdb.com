@@ -1,7 +1,6 @@
 import React, { useEffect, useRef } from "react";
 
 import Grid from "@material-ui/core/Grid";
-import Scrollable from "../shell/Scrollable.js";
 import { Loading } from "../util/Utils.js";
 import { InstantSearch, connectInfiniteHits } from "react-instantsearch-dom";
 
@@ -12,11 +11,17 @@ import Moment from "react-moment";
 
 import { useSearchClient } from "../search/client.js";
 import { useNavigate } from "react-router-dom";
+import { QuoteContent } from "../summaries/embed/QuoteContents.js";
 
 function ThemeHit({ hit }) {
   const navigate = useNavigate();
 
   let themeCreationTimestamp = new Date(hit.creationTimestamp * 1000);
+
+  // card IDs are 1:1 correspondence with highlight IDs
+  const quotePreviews = hit.cardIDs.map((cardID) => {
+    return <QuoteContent highlightID={cardID} hideNotFound />;
+  });
 
   const card = (
     <Card
@@ -25,6 +30,7 @@ function ThemeHit({ hit }) {
         margin: "1rem",
         borderRadius: "0.5rem",
         cursor: "pointer",
+        width: "100%",
       }}
       onClick={() => {
         navigate(`/orgs/${hit.orgID}/boards/${hit.boardID}`);
@@ -37,6 +43,9 @@ function ThemeHit({ hit }) {
         <p style={{ display: "inline" }}>
           {hit.boardName} <Moment fromNow date={themeCreationTimestamp} />
         </p>
+        <Grid xs={12} container item>
+          {quotePreviews}
+        </Grid>
       </CardContent>
     </Card>
   );
@@ -108,6 +117,7 @@ export default function ThemeList() {
     <Grid
       container
       className="fullHeight"
+      xs={12}
       style={{
         background: "#fafafa",
       }}
@@ -116,9 +126,7 @@ export default function ThemeList() {
         searchClient={searchClient}
         indexName={process.env.REACT_APP_ALGOLIA_THEMES_INDEX}
       >
-        <Scrollable id="themes-search-results-scroll">
-          <SearchResults />
-        </Scrollable>
+        <SearchResults />
       </InstantSearch>
     </Grid>
   );

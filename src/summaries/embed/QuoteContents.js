@@ -51,7 +51,7 @@ export default function QuoteContents({ quillContainerRef }) {
   );
 }
 
-function QuoteContent({ highlightID }) {
+export function QuoteContent({ highlightID, hideNotFound }) {
   const { orgID } = useParams();
   const [highlightExists, setHighlightExists] = useState(true);
   const [transcriptHighlightExists, setTranscriptHighlightExists] = useState(
@@ -132,8 +132,24 @@ function QuoteContent({ highlightID }) {
       });
   }, [highlightCache, firebase]);
 
-  if (!highlightExists && !transcriptHighlightExists)
-    return "Highlight not found";
+  if (!highlightExists && !transcriptHighlightExists) {
+    if (hideNotFound) return <></>;
+
+    return (
+      <Card
+        key={highlightID}
+        elevation={1}
+        style={{
+          width: "100%",
+          margin: "0.5rem",
+          borderRadius: "0.5rem",
+          padding: "0.5rem",
+        }}
+      >
+        <p>Highlight not found</p>
+      </Card>
+    );
+  }
 
   if (!highlight || !highlightCache)
     return (
