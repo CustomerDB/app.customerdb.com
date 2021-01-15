@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
 import { InstantSearch, connectAutoComplete } from "react-instantsearch-dom";
 import { useSearchClient } from "../search/client.js";
@@ -10,7 +10,6 @@ import ListItemText from "@material-ui/core/ListItemText";
 import ListItemSecondaryAction from "@material-ui/core/ListItemSecondaryAction";
 import DeleteIcon from "@material-ui/icons/Delete";
 import InputAdornment from "@material-ui/core/InputAdornment";
-import FirebaseContext from "../util/FirebaseContext.js";
 import TextField from "@material-ui/core/TextField";
 import AddIcon from "@material-ui/icons/Add";
 import SearchIcon from "@material-ui/icons/Search";
@@ -193,7 +192,7 @@ function Interview({ documentID, removeDocument }) {
     return documentsRef.doc(documentID).onSnapshot((doc) => {
       setDocument(doc.data());
     });
-  }, [documentsRef]);
+  }, [documentsRef, documentID]);
 
   if (!document) {
     return <></>;

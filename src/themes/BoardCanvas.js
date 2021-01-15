@@ -139,7 +139,7 @@ export default function BoardCanvas({
         resetStyle();
         throw error;
       });
-  }, [document, board]);
+  }, [board, boardID, navigate, orgID]);
 
   const addCardLocation = (card) => {
     rtree.current.insert(card);
@@ -240,7 +240,7 @@ export default function BoardCanvas({
         });
       }
 
-      let theme = themes.find((theme) => theme.ID == themeID);
+      let theme = themes.find((theme) => theme.ID === themeID);
       if (theme === undefined) {
         return undefinedThemeData;
       }
@@ -352,7 +352,7 @@ export default function BoardCanvas({
       return;
     }
     downloadBoard();
-  }, [download]);
+  }, [download, downloadBoard]);
 
   if (!cardsRef || !themesRef) {
     return <Loading />;
@@ -376,7 +376,7 @@ export default function BoardCanvas({
       <Theme
         key={theme.ID}
         name={theme.name}
-        theme={themes.find((t) => theme.ID == t.ID)}
+        theme={themes.find((t) => theme.ID === t.ID)}
         cards={newCards}
         themesRef={themesRef.doc(theme.ID)}
         addThemeLocationCallback={addThemeLocation}

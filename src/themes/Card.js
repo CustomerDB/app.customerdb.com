@@ -182,7 +182,7 @@ export default function Card({
       setMinX(card.minX);
       setMinY(card.minY);
     }
-  }, [card]);
+  }, [card, minX, minY]);
 
   useEffect(() => {
     if (

@@ -34,7 +34,7 @@ function Card({ cardID }) {
 }
 
 export default function ThemeSidepane({ theme }) {
-  const { cardsRef, themesRef } = useFirestore();
+  const { themesRef } = useFirestore();
 
   // Subscribe to theme document, as we may not receive an updated theme
   // once cards makes it into it's cardIDs collection.
@@ -42,7 +42,7 @@ export default function ThemeSidepane({ theme }) {
   const [cardIDs, setCardIDs] = useState([]);
 
   useEffect(() => {
-    if (!theme) {
+    if (!theme || !themesRef) {
       return;
     }
 
@@ -53,10 +53,10 @@ export default function ThemeSidepane({ theme }) {
 
       setThemeDocument(doc.data());
     });
-  }, [theme]);
+  }, [theme, themesRef]);
 
   useEffect(() => {
-    if (!themeDocument) {
+    if (!theme || !themeDocument) {
       return;
     }
 
@@ -70,13 +70,11 @@ export default function ThemeSidepane({ theme }) {
         });
         setCardIDs(newCardIDs);
       });
-  }, [themeDocument]);
+  }, [themeDocument, themesRef, theme]);
 
   if (!theme || !themeDocument) {
     return <></>;
   }
-
-  console.log("themeDocument", themeDocument);
 
   const enterToBlur = (e) => {
     if (e.key === "Enter") {
