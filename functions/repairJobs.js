@@ -217,68 +217,68 @@ exports.tagRepair = functions.pubsub
       });
   });
 
-// Remove deleted documents from board
-exports.repairBoard = functions.pubsub
-  .schedule("every 5 minutes")
-  .onRun((context) => {
-    const db = admin.firestore();
+// // Remove deleted documents from board
+// exports.repairBoard = functions.pubsub
+//   .schedule("every 5 minutes")
+//   .onRun((context) => {
+//     const db = admin.firestore();
 
-    return db
-      .collection("organizations")
-      .get()
-      .then((snapshot) =>
-        Promise.all(
-          snapshot.docs.map((doc) => {
-            let orgID = doc.id;
-            let orgRef = db.collection("organizations").doc(orgID);
-            let boardsRef = orgRef.collection("boards");
-            let documentsRef = orgRef.collection("documents");
+//     return db
+//       .collection("organizations")
+//       .get()
+//       .then((snapshot) =>
+//         Promise.all(
+//           snapshot.docs.map((doc) => {
+//             let orgID = doc.id;
+//             let orgRef = db.collection("organizations").doc(orgID);
+//             let boardsRef = orgRef.collection("boards");
+//             let documentsRef = orgRef.collection("documents");
 
-            return boardsRef
-              .where("deletionTimestamp", "==", "")
-              .get()
-              .then((snapshot) =>
-                Promise.all(
-                  snapshot.docs.map((doc) => {
-                    let boardRef = doc.ref;
-                    let board = doc.data();
+//             return boardsRef
+//               .where("deletionTimestamp", "==", "")
+//               .get()
+//               .then((snapshot) =>
+//                 Promise.all(
+//                   snapshot.docs.map((doc) => {
+//                     let boardRef = doc.ref;
+//                     let board = doc.data();
 
-                    if (!board.documentIDs || board.documentIDs.length === 0) {
-                      return;
-                    }
+//                     if (!board.documentIDs || board.documentIDs.length === 0) {
+//                       return;
+//                     }
 
-                    let boardDocsRef = documentsRef.where(
-                      "ID",
-                      "in",
-                      board.documentIDs
-                    );
+//                     let boardDocsRef = documentsRef.where(
+//                       "ID",
+//                       "in",
+//                       board.documentIDs
+//                     );
 
-                    return boardDocsRef.get().then((snapshot) => {
-                      let needsUpdate = false;
-                      let newDocumentIDs = [];
+//                     return boardDocsRef.get().then((snapshot) => {
+//                       let needsUpdate = false;
+//                       let newDocumentIDs = [];
 
-                      snapshot.docs.forEach((doc) => {
-                        let document = doc.data();
-                        if (document.deletionTimestamp !== "") {
-                          needsUpdate = true;
-                          return;
-                        }
-                        newDocumentIDs.push(doc.id);
-                      });
+//                       snapshot.docs.forEach((doc) => {
+//                         let document = doc.data();
+//                         if (document.deletionTimestamp !== "") {
+//                           needsUpdate = true;
+//                           return;
+//                         }
+//                         newDocumentIDs.push(doc.id);
+//                       });
 
-                      if (needsUpdate) {
-                        return boardRef.update({
-                          documentIDs: newDocumentIDs,
-                        });
-                      }
-                    });
-                  })
-                )
-              );
-          })
-        )
-      );
-  });
+//                       if (needsUpdate) {
+//                         return boardRef.update({
+//                           documentIDs: newDocumentIDs,
+//                         });
+//                       }
+//                     });
+//                   })
+//                 )
+//               );
+//           })
+//         )
+//       );
+//   });
 
 exports.highlightRepair = functions.pubsub
   .schedule("every 4 hours")

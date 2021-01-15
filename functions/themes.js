@@ -421,6 +421,39 @@ exports.cardUpdates = functions.firestore
     // TODO: In some cases, a theme is broken by a card move. Detect this by recalculating intersections.
   });
 
+exports.documentUpdates = functions.firestore
+  .document("organizations/{orgID}/documents/{documentID}")
+  .onUpdate((change, context) => {
+    const db = admin.firestore();
+    let before = change.before.data();
+    let after = change.after.data();
+    const { orgID, documentID } = context.params;
+
+    if (before.deletionTimestamp === "" && after.deletionTimestamp !== "") {
+      // If document has been marked for deletion, remove documentID from boards.
+      return Promise.all(
+        db
+          .collection("organizations")
+          .doc(orgID)
+          .collection("boards")
+          .get()
+          .then((snapshot) =>
+            snapshot.docs.map((doc) => {
+              let board = doc.data();
+
+              if (board.documentIDs && board.documentIDs.includes(documentID)) {
+                let documentIDs = board.documentIDs;
+                delete document[documentID];
+                return doc.ref.update({
+                  documentIDs: documentIDs,
+                });
+              }
+            })
+          )
+      );
+    }
+  });
+
 exports.indexUpdatedTheme = functions.firestore
   .document("organizations/{orgID}/boards/{boardID}/themes/{themeID}")
   .onWrite((change, context) => {
