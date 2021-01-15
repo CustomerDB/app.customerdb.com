@@ -278,6 +278,10 @@ export default function BoardCanvas({
     let newCards = cards.filter((card) => {
       return card.themeID === theme.ID;
     });
+    console.log(
+      "THeme in component creation",
+      themes.find((t) => theme.ID == t.ID)
+    );
 
     return (
       <Theme
@@ -346,7 +350,6 @@ export default function BoardCanvas({
                   let maxX = 0;
                   let maxY = 0;
                   rtree.current.all().forEach((g) => {
-                    console.debug("adding geometry", g);
                     maxX = Math.max(maxX, g.maxX);
                     maxY = Math.max(maxY, g.maxY);
                   });
@@ -370,8 +373,6 @@ export default function BoardCanvas({
                   // Clamp to canvas bounds
                   maxX = Math.min(maxX, CANVAS_WIDTH);
                   maxY = Math.min(maxY, CANVAS_HEIGHT);
-
-                  console.debug("computed bounding box", maxX, maxY);
 
                   domNode.style.width = `${maxX}px`;
                   domNode.style.height = `${maxY}px`;
