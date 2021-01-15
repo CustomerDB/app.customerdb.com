@@ -37,21 +37,21 @@ exports.reThumbnailEverything = functions.pubsub
       });
   });
 
+const reindexAllInSnapshot = (snapshot) => {
+  return Promise.all(
+    snapshot.docs.map((doc) =>
+      doc.ref.update({
+        indexRequestedTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+      })
+    )
+  );
+};
+
 exports.reIndexAllHighlights = functions.pubsub
   .topic("reindex-all-highlights")
   .onPublish((message) => {
     // Search for highlights and update the indexRequestedTimestamp.
     const db = admin.firestore();
-
-    const reindexAllInSnapshot = (snapshot) => {
-      return Promise.all(
-        snapshot.docs.map((doc) =>
-          doc.ref.update({
-            indexRequestedTimestamp: admin.firestore.FieldValue.serverTimestamp(),
-          })
-        )
-      );
-    };
 
     let highlightsPromise = db
       .collectionGroup("highlights")
@@ -64,6 +64,14 @@ exports.reIndexAllHighlights = functions.pubsub
       .then(reindexAllInSnapshot);
 
     return Promise.all([highlightsPromise, transcriptHighlightsPromise]);
+  });
+
+exports.reIndexAllThemes = functions.pubsub
+  .topic("reindex-all-themes")
+  .onPublish((message) => {
+    // Search for themes and update the indexRequestedTimestamp.
+    const db = admin.firestore();
+    return db.collectionGroup("themes").get().then(reindexAllInSnapshot);
   });
 
 exports.rewriteOauthClaims = functions

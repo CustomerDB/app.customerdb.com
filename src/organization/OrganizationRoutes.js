@@ -3,7 +3,7 @@ import { Navigate, Outlet, Route, Routes } from "react-router-dom";
 import React from "react";
 import Themes from "../themes/Themes.js";
 import Boards from "../themes/Boards.js";
-import ThemeList from "../themes/Boards.js";
+import ThemeList from "../themes/ThemeList.js";
 import Guides from "../guides/Guides.js";
 import InterviewList from "../interviews/InterviewList.js";
 import Interviews from "../interviews/Interviews.js";

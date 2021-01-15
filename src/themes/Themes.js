@@ -5,13 +5,15 @@ import Scrollable from "../shell/Scrollable.js";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 export default function Themes({ children }) {
-  const [selectedTab, setSelectedTab] = useState();
+  const [selectedTab, setSelectedTab] = useState(0);
 
   const location = useLocation();
   const navigate = useNavigate();
   const { orgID } = useParams();
 
   useEffect(() => {
+    if (!location) return;
+
     if (location.pathname.startsWith(`/orgs/${orgID}/themes`)) {
       setSelectedTab(0);
     }
@@ -23,7 +25,7 @@ export default function Themes({ children }) {
 
   return (
     <div
-      class="fullHeight"
+      className="fullHeight"
       style={{ display: "flex", flexDirection: "column" }}
     >
       <div>

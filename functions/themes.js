@@ -480,8 +480,7 @@ exports.indexUpdatedTheme = functions.firestore
 
     if (!change.after.exists) {
       // Delete theme from index
-      index.deleteObject(themeID);
-      return;
+      return index.deleteObject(themeID);
     }
 
     const theme = change.after.data();
@@ -498,31 +497,46 @@ exports.indexUpdatedTheme = functions.firestore
       console.log(
         `skipping indexing theme ${themeID} as it was indexed after index requested`
       );
-      return;
+      return Promise.resolve();
     }
 
-    // Compute record to send to the search index service
-    const themeToIndex = {
-      objectID: themeID,
-      orgID: orgID,
-      boardID: boardID,
-      name: theme.name,
-      description: theme.description || "",
-      creationTimestamp:
-        theme.creationTimestamp && theme.creationTimestamp.seconds,
-    };
+    return themeRef
+      .collection("cardIDs")
+      .get()
+      .then((snapshot) => {
+        const cardIDs = snapshot.docs.map((doc) => doc.id);
+        const boardRef = themeRef.parent.parent;
 
-    return index.saveObject(themeToIndex).then(() => {
-      return themeRef.update({
-        lastIndexTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+        return boardRef.get().then((doc) => {
+          // Compute record to send to the search index service
+          const board = doc.exists ? doc.data() : {};
+          const boardName = board.name || "";
+
+          const themeToIndex = {
+            objectID: themeID,
+            orgID: orgID,
+            boardID: boardID,
+            boardName: boardName,
+            name: theme.name,
+            description: theme.description || "",
+            cardIDs: cardIDs,
+            creationTimestamp:
+              theme.creationTimestamp && theme.creationTimestamp.seconds,
+          };
+
+          return index.saveObject(themeToIndex).then(() => {
+            return themeRef.update({
+              lastIndexTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+            });
+          });
+        });
       });
-    });
   });
 
 // Mark themes with edits more recent than the last indexing operation
 // for re-indexing.
 exports.markThemesForIndexing = functions.pubsub
-  .schedule("every 2 minutes")
+  .schedule("every 30 seconds")
   .onRun((context) => {
     let db = admin.firestore();
 
