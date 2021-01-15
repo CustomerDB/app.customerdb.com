@@ -20,6 +20,7 @@ import useFirestore from "../db/Firestore.js";
 import { Loading } from "../util/Utils.js";
 import Grid from "@material-ui/core/Grid";
 import domToImage from "dom-to-image";
+import * as firebaseClient from "firebase/app";
 
 export default function BoardCanvas({
   board,
@@ -257,7 +258,7 @@ export default function BoardCanvas({
       // Create a theme.
       console.debug("Creating a theme");
 
-      event(firebase, "create_themes", {
+      event(firebase, "create_theme", {
         orgID: orgID,
         userID: oauthClaims.user_id,
       });
@@ -268,9 +269,11 @@ export default function BoardCanvas({
       let theme = {
         kind: "theme",
         ID: themeID,
+        organizationID: orgID,
         name: nextThemeName("Unnamed theme"),
         color: colors.background,
         textColor: colors.foreground,
+        lastUpdatedTimestamp: firebaseClient.firestore.FieldValue.serverTimestamp(),
       };
       themesRef.doc(themeID).set(theme);
 

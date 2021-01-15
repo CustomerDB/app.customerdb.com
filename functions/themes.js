@@ -467,3 +467,60 @@ exports.indexUpdatedTheme = functions.firestore
       });
     });
   });
+
+// Mark themes with edits more recent than the last indexing operation
+// for re-indexing.
+exports.markThemesForIndexing = functions.pubsub
+  .schedule("every 2 minutes")
+  .onRun((context) => {
+    let db = admin.firestore();
+
+    return db
+      .collection("organizations")
+      .get()
+      .then((orgsSnapshot) => {
+        // Iterate all organizations
+        return Promise.all(
+          orgsSnapshot.docs.map((orgDoc) => {
+            let indexStateRef = orgDoc.ref
+              .collection("system")
+              .doc("indexState");
+            return indexStateRef.get().then((indexStateDoc) => {
+              let lastIndexTimestamp = new admin.firestore.Timestamp(0, 0);
+
+              if (indexStateDoc.exists) {
+                let cachedTimestamp = indexStateDoc.data().themeTimestamp;
+                if (cachedTimestamp) {
+                  lastIndexTimestamp = cachedTimestamp;
+                }
+              }
+
+              return db
+                .collectionGroup("themes")
+                .where("organizationID", "==", orgDoc.id)
+                .where("lastUpdateTimestamp", ">", lastIndexTimestamp)
+                .get()
+                .then((themesSnapshot) =>
+                  Promise.all(
+                    themesSnapshot.docs.map((themeDoc) => {
+                      console.debug("indexing theme", themeDoc.data());
+                      return themeDoc.ref.update({
+                        indexRequestedTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+                      });
+                    })
+                  )
+                )
+                .then(() => {
+                  // Update last indexed time
+                  return indexStateRef.set(
+                    {
+                      themeTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+                    },
+                    { merge: true }
+                  );
+                });
+            });
+          })
+        );
+      });
+  });
