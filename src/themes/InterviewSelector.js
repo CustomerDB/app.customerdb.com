@@ -180,37 +180,77 @@ const Autocomplete = ({
 };
 const ConnectedAutocomplete = connectAutoComplete(Autocomplete);
 
+function Interview({ documentID, removeDocument }) {
+  const [document, setDocument] = useState();
+
+  let { documentsRef } = useFirestore();
+
+  useEffect(() => {
+    if (!documentsRef) {
+      return;
+    }
+
+    return documentsRef.doc(documentID).onSnapshot((doc) => {
+      setDocument(doc.data());
+    });
+  }, [documentsRef]);
+
+  if (!document) {
+    return <></>;
+  }
+
+  let personName = document.personName;
+  let personImageURL = document.personImageURL;
+  let transcript = document.transcription;
+  let date = document.creationTimestamp && document.creationTimestamp.toDate();
+
+  let avatar = (
+    <Avatar alt={personName}>
+      {transcript ? <TheatersIcon /> : <DescriptionIcon />}
+    </Avatar>
+  );
+
+  if (personImageURL) {
+    avatar = <Avatar alt={personName} src={personImageURL} />;
+  }
+
+  if (personName) {
+    avatar = <Tooltip title={personName}>{avatar}</Tooltip>;
+  }
+
+  return (
+    <ListItem
+      style={{
+        backgroundColor: "white",
+        borderRadius: "0.5rem",
+        marginBottom: "1rem",
+      }}
+      button
+      key={document.ID}
+    >
+      <ListItemAvatar>{avatar}</ListItemAvatar>
+      <ListItemText
+        primary={document.name}
+        secondary={date && <Moment fromNow date={date} />}
+      />
+      <ListItemSecondaryAction>
+        <IconButton
+          edge="end"
+          aria-label="delete"
+          onClick={() => removeDocument(document.ID)}
+        >
+          <DeleteIcon />
+        </IconButton>
+      </ListItemSecondaryAction>
+    </ListItem>
+  );
+}
+
 export default function InterviewSelector({ board, onAdd }) {
   const { documentsRef, boardRef } = useFirestore();
   const firebase = useContext(FirebaseContext);
-  const [documents, setDocuments] = useState();
   const searchClient = useSearchClient();
   const [searchState, setSearchState] = useState({});
-
-  useEffect(() => {
-    if (!board || !board.documentIDs || !documentsRef) {
-      return;
-    }
-
-    if (board.documentIDs.length === 0) {
-      setDocuments([]);
-      return;
-    }
-
-    return documentsRef
-      .where("deletionTimestamp", "==", "")
-      .where(firebase.firestore.FieldPath.documentId(), "in", board.documentIDs)
-      .onSnapshot((snapshot) => {
-        let newDocuments = [];
-        snapshot.forEach((doc) => {
-          let data = doc.data();
-          data["ID"] = doc.id;
-          newDocuments.push(data);
-        });
-
-        setDocuments(newDocuments);
-      });
-  }, [documentsRef, board, firebase.firestore.FieldPath]);
 
   const removeDocument = useCallback(
     (documentID) => {
@@ -259,55 +299,12 @@ export default function InterviewSelector({ board, onAdd }) {
             width: "100%",
           }}
         >
-          {documents &&
-            documents.map((doc) => {
-              let personName = doc.personName;
-              let personImageURL = doc.personImageURL;
-              let transcript = doc.transcription;
-              let date =
-                doc.creationTimestamp && doc.creationTimestamp.toDate();
-
-              let avatar = (
-                <Avatar alt={personName}>
-                  {transcript ? <TheatersIcon /> : <DescriptionIcon />}
-                </Avatar>
-              );
-
-              if (personImageURL) {
-                avatar = <Avatar alt={personName} src={personImageURL} />;
-              }
-
-              if (personName) {
-                avatar = <Tooltip title={personName}>{avatar}</Tooltip>;
-              }
-
-              return (
-                <ListItem
-                  style={{
-                    backgroundColor: "white",
-                    borderRadius: "0.5rem",
-                    marginBottom: "1rem",
-                  }}
-                  button
-                  key={document.ID}
-                >
-                  <ListItemAvatar>{avatar}</ListItemAvatar>
-                  <ListItemText
-                    primary={doc.name}
-                    secondary={date && <Moment fromNow date={date} />}
-                  />
-                  <ListItemSecondaryAction>
-                    <IconButton
-                      edge="end"
-                      aria-label="delete"
-                      onClick={() => removeDocument(doc.ID)}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </ListItemSecondaryAction>
-                </ListItem>
-              );
-            })}
+          {(board.documentIDs || "").map((documentID) => (
+            <Interview
+              documentID={documentID}
+              removeDocument={removeDocument}
+            />
+          ))}
         </List>
       </Grid>
     </>

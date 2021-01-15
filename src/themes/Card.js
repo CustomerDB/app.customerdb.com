@@ -229,8 +229,6 @@ export default function Card({
 
   let titleBarCursor = cardDragging ? "grabbing" : "grab";
 
-  console.log("Card", card);
-
   // Draggable nodeRef required to fix findDOMNode warnings.
   // see: https://github.com/STRML/react-draggable/pull/478
   return (
@@ -262,7 +260,7 @@ export default function Card({
               >
                 <div>
                   {
-                    <Tooltip title={card.personName}>
+                    <Tooltip title={card.highlightHitCache.personName}>
                       <Link
                         to={`/orgs/${orgID}/people/${card.highlightHitCache.personID}`}
                       >
