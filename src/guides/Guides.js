@@ -18,7 +18,6 @@ import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import FirebaseContext from "../util/FirebaseContext.js";
 import Grid from "@material-ui/core/Grid";
-import GuideHelp from "./GuideHelp.js";
 import Hidden from "@material-ui/core/Hidden";
 import IconButton from "@material-ui/core/IconButton";
 import List from "@material-ui/core/List";
@@ -39,6 +38,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import useFirestore from "../db/Firestore.js";
 import { v4 as uuidv4 } from "uuid";
 import CloseIcon from "@material-ui/icons/Close";
+import EmptyStateHelp from "../util/EmptyStateHelp.js";
 
 // Synchronize every second (1000ms).
 const syncPeriod = 1000;
@@ -161,18 +161,26 @@ export default function Guides({ create }) {
       </ListItem>
     ));
 
-  let list =
-    listItems.length > 0 ? (
-      <ListContainer>
-        <Scrollable>
-          <List style={{ paddingLeft: "1rem", paddingRight: "1rem" }}>
-            {listItems}
-          </List>
-        </Scrollable>
-      </ListContainer>
-    ) : (
-      <GuideHelp />
+  if (listItems.length === 0) {
+    return (
+      <EmptyStateHelp
+        title="Collaborate on interview questions and instructions"
+        description="You can collaborate on questions and interview instructions to seed new interviews with your team in guides."
+        buttonText="Create guide"
+        path={`/orgs/${orgID}/guides/create`}
+      />
     );
+  }
+
+  let list = (
+    <ListContainer>
+      <Scrollable>
+        <List style={{ paddingLeft: "1rem", paddingRight: "1rem" }}>
+          {listItems}
+        </List>
+      </Scrollable>
+    </ListContainer>
+  );
 
   if (guideID) {
     list = <Hidden mdDown>{list}</Hidden>;
