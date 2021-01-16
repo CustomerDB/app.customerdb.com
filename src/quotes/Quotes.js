@@ -69,7 +69,7 @@ function InfiniteHits({ hasMore, refine, hits }) {
       <>
         <EmptyStateHelp
           title="Get started by adding an interview"
-          description="Customer quotes will appear hear once you have added an interview."
+          description="Customer quotes will appear here once you have added an interview."
           buttonText="Create interview"
           path={`/orgs/${orgID}/interviews/create`}
         />

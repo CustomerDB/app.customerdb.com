@@ -225,7 +225,7 @@ export default function InterviewList({ create, fromGuide }) {
     return (
       <EmptyStateHelp
         title="Get started by adding an interview"
-        description="Interviews is where it all begins. Add notes and transcripts from your customer conversations here and start creating customer quotes."
+        description="Interviews are where it all begins. Add notes and transcripts from your customer conversations here and start creating customer quotes."
         buttonText="Create interview"
         path={`/orgs/${orgID}/interviews/create`}
       />
