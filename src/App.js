@@ -47,6 +47,15 @@ export default function App() {
           fontWeight: "bold",
         },
       },
+      MuiTab: {
+        root: {
+          textTransform: "none",
+          fontWeight: "bold",
+        },
+        selected: {
+          color: "#ff5252",
+        },
+      },
     },
   });
 

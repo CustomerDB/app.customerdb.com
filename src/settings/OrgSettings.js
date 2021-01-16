@@ -48,7 +48,7 @@ export default function OrgSettings(props) {
           >
             <Grid container item xs={12}>
               <Grid container item xs={12} alignItems="center">
-                <Grid item xs={10}>
+                <Grid item xs={9}>
                   <p>
                     <b>Organization Name</b>
                   </p>
@@ -59,7 +59,7 @@ export default function OrgSettings(props) {
                     }}
                   />
                 </Grid>
-                <Grid item xs={2} style={{ paddingTop: "2rem" }}>
+                <Grid item xs={3} style={{ paddingTop: "2rem" }}>
                   <Button
                     variant="contained"
                     color="secondary"

@@ -34,7 +34,7 @@ export default function Interviews({ children }) {
         <Tabs
           value={selectedTab}
           indicatorColor="secondary"
-          textColor="primary"
+          textColor="secondary"
           aria-label="full width"
           style={{ borderBottom: "1px solid rgba(0, 0, 0, 0.12)" }}
         >

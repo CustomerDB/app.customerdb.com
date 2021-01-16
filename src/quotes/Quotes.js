@@ -9,8 +9,9 @@ import React, { useEffect, useRef } from "react";
 import { Search } from "../shell/Search.js";
 import useMediaQuery from "@material-ui/core/useMediaQuery";
 import { useSearchClient } from "../search/client.js";
-import QuotesHelp from "./QuotesHelp.js";
 import { Loading } from "../util/Utils.js";
+import EmptyStateHelp from "../util/EmptyStateHelp.js";
+import { useParams } from "react-router-dom";
 
 function InfiniteHits({ hasMore, refine, hits }) {
   const theme = useTheme();
@@ -18,6 +19,8 @@ function InfiniteHits({ hasMore, refine, hits }) {
   const mdBreakpoint = useMediaQuery(theme.breakpoints.up("md"));
   const lgBreakpoint = useMediaQuery(theme.breakpoints.up("lg"));
   const xlBreakpoint = useMediaQuery(theme.breakpoints.up("xl"));
+
+  const { orgID } = useParams();
 
   let colCount = 1;
 
@@ -64,8 +67,13 @@ function InfiniteHits({ hasMore, refine, hits }) {
   if (hits.length === 0) {
     return (
       <>
-        <QuotesHelp />
-        <div ref={(c) => (sentinel.current = c)}></div>
+        <EmptyStateHelp
+          title="Get started by adding an interview"
+          description="Customer quotes will appear hear once you have added an interview."
+          buttonText="Create interview"
+          path={`/orgs/${orgID}/interviews/create`}
+        />
+        ;<div ref={(c) => (sentinel.current = c)}></div>
       </>
     );
   }
