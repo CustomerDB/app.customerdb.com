@@ -25,6 +25,7 @@ import { useNavigate, useParams, useLocation } from "react-router-dom";
 import GroupIcon from "@material-ui/icons/Group";
 import RecordVoiceOverIcon from "@material-ui/icons/RecordVoiceOver";
 import { useQuery } from "../util/Query.js";
+import BubbleChartIcon from "@material-ui/icons/BubbleChart";
 
 const useStyles = makeStyles((theme) => ({
   avatar: {
@@ -149,7 +150,13 @@ const Autocomplete = ({ hits, currentRefinement, refine, searchState }) => {
 
   const enterToSearch = (e) => {
     if (e.key === "Enter") {
-      const searchWhitelist = ["quotes", "people", "interviews"];
+      const searchWhitelist = [
+        "quotes",
+        "people",
+        "interviews",
+        "themes",
+        "summaries",
+      ];
       searchWhitelist.forEach((component) => {
         if (location.pathname.startsWith(`/orgs/${orgID}/${component}`)) {
           setOpen(false);
@@ -345,7 +352,7 @@ const Autocomplete = ({ hits, currentRefinement, refine, searchState }) => {
                   <Grid
                     container
                     item
-                    xs={4}
+                    xs={3}
                     justify="center"
                     style={{ cursor: "pointer" }}
                     onClick={() => {
@@ -366,7 +373,28 @@ const Autocomplete = ({ hits, currentRefinement, refine, searchState }) => {
                   <Grid
                     container
                     item
-                    xs={4}
+                    xs={3}
+                    justify="center"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => {
+                      navigate(`/orgs/${orgID}/themes?q=${currentRefinement}`);
+                      setOpen(false);
+                      refine("");
+                    }}
+                  >
+                    <Grid container item justify="center">
+                      <Avatar className={classes.searchAvatar}>
+                        <BubbleChartIcon />
+                      </Avatar>
+                    </Grid>
+                    <Grid container item justify="center">
+                      Themes
+                    </Grid>
+                  </Grid>
+                  <Grid
+                    container
+                    item
+                    xs={3}
                     justify="center"
                     style={{ cursor: "pointer" }}
                     onClick={() => {
@@ -389,7 +417,7 @@ const Autocomplete = ({ hits, currentRefinement, refine, searchState }) => {
                   <Grid
                     container
                     item
-                    xs={4}
+                    xs={3}
                     justify="center"
                     style={{ cursor: "pointer" }}
                     onClick={() => {
@@ -437,6 +465,8 @@ export function SearchDropdown() {
       <ConnectedAutocomplete searchState={searchState} />
       <Index indexName={process.env.REACT_APP_ALGOLIA_DOCUMENTS_INDEX} />
       <Index indexName={process.env.REACT_APP_ALGOLIA_PEOPLE_INDEX} />
+      <Index indexName={process.env.REACT_APP_ALGOLIA_THEMES_INDEX} />
+      <Index indexName={process.env.REACT_APP_ALGOLIA_SUMMARIES_INDEX} />
     </InstantSearch>
   );
 }

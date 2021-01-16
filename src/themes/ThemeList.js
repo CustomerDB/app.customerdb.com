@@ -1,15 +1,14 @@
 import React, { useEffect, useRef } from "react";
 
 import Grid from "@material-ui/core/Grid";
-import { Loading } from "../util/Utils.js";
-import { InstantSearch, connectInfiniteHits } from "react-instantsearch-dom";
+import { connectInfiniteHits } from "react-instantsearch-dom";
 
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import Typography from "@material-ui/core/Typography";
 import Moment from "react-moment";
 
-import { useSearchClient } from "../search/client.js";
+import { Search } from "../shell/Search.js";
 import { useNavigate } from "react-router-dom";
 import { QuoteContent } from "../summaries/embed/QuoteContents.js";
 
@@ -104,15 +103,12 @@ function InfiniteHits({ reactQuillRef, hasMore, refine, hits }) {
 const SearchResults = connectInfiniteHits(InfiniteHits);
 
 export default function ThemeList() {
-  const searchClient = useSearchClient();
-
-  if (!process.env.REACT_APP_ALGOLIA_THEMES_INDEX) {
-    console.error("themes index not set");
-    return <></>;
-  }
-  if (!searchClient) {
-    console.debug("search client not available");
-    return <Loading />;
+  let searchConfig;
+  if (process.env.REACT_APP_ALGOLIA_THEMES_INDEX) {
+    searchConfig = {
+      index: process.env.REACT_APP_ALGOLIA_THEMES_INDEX,
+      setShowResults: (value) => {},
+    };
   }
 
   return (
@@ -124,12 +120,11 @@ export default function ThemeList() {
         background: "#fafafa",
       }}
     >
-      <InstantSearch
-        searchClient={searchClient}
-        indexName={process.env.REACT_APP_ALGOLIA_THEMES_INDEX}
-      >
-        <SearchResults />
-      </InstantSearch>
+      <Search search={searchConfig}>
+        <Grid container item alignItems="baseline">
+          <SearchResults />
+        </Grid>
+      </Search>
     </Grid>
   );
 }

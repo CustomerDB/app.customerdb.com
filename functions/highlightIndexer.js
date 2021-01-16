@@ -53,6 +53,7 @@ function indexHighlight(source, orgID, highlightID, highlightRef) {
     console.debug(
       "document for highlight does not exist; deleting highlight from index"
     );
+
     // Delete highlight from index;
     index.deleteObject(highlightID);
     return;
@@ -345,6 +346,14 @@ function indexHighlight(source, orgID, highlightID, highlightRef) {
   });
 }
 
+function cleanupHighlightCache(before) {
+  // Highlight was deleted and may have a collection of cache objects to clean up.
+  return before.ref
+    .collection("cache")
+    .get()
+    .then((snapshot) => snapshot.docs.map((doc) => doc.ref.delete()));
+}
+
 exports.onHighlightWritten = functions.firestore
   .document(
     "organizations/{orgID}/documents/{documentID}/highlights/{highlightID}"
@@ -353,7 +362,15 @@ exports.onHighlightWritten = functions.firestore
     const orgID = context.params.orgID;
     const highlightID = context.params.highlightID;
 
-    return indexHighlight("notes", orgID, highlightID, change.after);
+    let indexPromise =
+      indexHighlight("notes", orgID, highlightID, change.after) ||
+      Promise.resolve();
+
+    return indexPromise.then(() => {
+      if (!change.after.exists) {
+        return cleanupHighlightCache(change.before);
+      }
+    });
   });
 
 exports.onTranscriptHighlightWritten = functions.firestore
@@ -364,7 +381,15 @@ exports.onTranscriptHighlightWritten = functions.firestore
     const orgID = context.params.orgID;
     const highlightID = context.params.highlightID;
 
-    return indexHighlight("transcript", orgID, highlightID, change.after);
+    let indexPromise =
+      indexHighlight("transcript", orgID, highlightID, change.after) ||
+      Promise.resolve();
+
+    return indexPromise.then(() => {
+      if (!change.after.exists) {
+        return cleanupHighlightCache(change.before);
+      }
+    });
   });
 
 // Mark highlights with edits more recent than the last indexing operation
