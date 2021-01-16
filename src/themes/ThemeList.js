@@ -23,7 +23,10 @@ function ThemeHit({ hit }) {
   });
 
   const card = (
-    <Card
+    <Grid
+      container
+      item
+      xs={12}
       key={hit.objectID}
       style={{
         margin: "1rem",
@@ -35,18 +38,22 @@ function ThemeHit({ hit }) {
         navigate(`/orgs/${hit.orgID}/boards/${hit.boardID}`);
       }}
     >
-      <CardContent>
-        <Typography variant="h6" gutterBottom style={{ fontWeight: "bold" }}>
-          {hit.name}
-        </Typography>
-        <p style={{ display: "inline" }}>
-          {hit.boardName} <Moment fromNow date={themeCreationTimestamp} />
-        </p>
-        <Grid xs={12} container item>
-          {quotePreviews}
+      <Grid container item xs={12}>
+        <Grid container item xs={12}>
+          <Typography variant="h6" gutterBottom style={{ fontWeight: "bold" }}>
+            {hit.name}
+          </Typography>
         </Grid>
-      </CardContent>
-    </Card>
+        <Grid container item xs={12}>
+          <p>
+            {hit.boardName} <Moment fromNow date={themeCreationTimestamp} />
+          </p>
+        </Grid>
+      </Grid>
+      <Grid xs={12} container item>
+        {quotePreviews}
+      </Grid>
+    </Grid>
   );
 
   return card;

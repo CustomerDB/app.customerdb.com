@@ -138,7 +138,7 @@ export function QuoteContent({ highlightID, hideNotFound }) {
     return (
       <Card
         key={highlightID}
-        elevation={1}
+        elevation={0}
         style={{
           width: "100%",
           margin: "0.5rem",
@@ -155,14 +155,14 @@ export function QuoteContent({ highlightID, hideNotFound }) {
     return (
       <Card
         key={highlightID}
-        elevation={1}
+        elevation={0}
         style={{
           width: "100%",
           margin: "0.5rem",
           borderRadius: "0.5rem",
         }}
       >
-        <CircularProgress color="secondary" />
+        <CircularProgress />
       </Card>
     );
 
@@ -194,7 +194,7 @@ export function QuoteContent({ highlightID, hideNotFound }) {
   return (
     <Card
       key={highlightID}
-      elevation={1}
+      elevation={0}
       style={{
         width: "100%",
         margin: "0.5rem",
