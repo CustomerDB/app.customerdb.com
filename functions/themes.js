@@ -17,7 +17,7 @@ if (ALGOLIA_ID && ALGOLIA_ADMIN_KEY) {
   client = algoliasearch(ALGOLIA_ID, ALGOLIA_ADMIN_KEY);
 }
 
-function newCard(ID, highlight, source) {
+function newCard(ID, highlight, cache, source) {
   const CANVAS_WIDTH = 12000;
   const CANVAS_HEIGHT = 8000;
   const VIEWPORT_WIDTH = 1500;
@@ -40,7 +40,7 @@ function newCard(ID, highlight, source) {
     Math.floor(Math.random() * VIEWPORT_HEIGHT);
   let maxY = minY + cardHeightPx;
 
-  return {
+  let card = {
     ID: ID,
     minX: minX,
     minY: minY,
@@ -53,6 +53,12 @@ function newCard(ID, highlight, source) {
     textColor: "#FFF",
     source: source,
   };
+
+  if (cache) {
+    card.highlightHitCache = cache;
+  }
+
+  return card;
 }
 
 function deleteCardsForDocument(cardsRef, documentID) {
@@ -104,12 +110,20 @@ exports.cardsInBoard = functions.firestore
           // Each highlight should have a card
           let cardRef = cardsRef.doc(doc.id);
 
-          console.debug("Creating card for highlight", doc.id);
+          let cacheRef = doc.ref.collection("cache").doc("hit");
+          return cacheRef.get().then((doc) => {
+            console.debug("Creating card for highlight", doc.id);
 
-          return cardRef.get().then((cardDoc) => {
-            if (!cardDoc.exists) {
-              return cardRef.set(newCard(doc.id, data, source));
+            let cache = undefined;
+            if (doc.exists) {
+              cache = doc.data();
             }
+
+            return cardRef.get().then((cardDoc) => {
+              if (!cardDoc.exists) {
+                return cardRef.set(newCard(doc.id, data, cache, source));
+              }
+            });
           });
         })
       );
@@ -193,7 +207,9 @@ function highlightCreate(highlightDoc, context, source) {
 
           console.debug(`Adding highlight ${highlightID} to board ${doc.id}`);
 
-          return cardRef.set(newCard(highlightID, highlightDoc.data(), source));
+          return cardRef.set(
+            newCard(highlightID, highlightDoc.data(), undefined, source)
+          );
         }
       })
     );
@@ -536,7 +552,7 @@ exports.indexUpdatedTheme = functions.firestore
 // Mark themes with edits more recent than the last indexing operation
 // for re-indexing.
 exports.markThemesForIndexing = functions.pubsub
-  .schedule("every 30 seconds")
+  .schedule("every 1 minute")
   .onRun((context) => {
     let db = admin.firestore();
 
