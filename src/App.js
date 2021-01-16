@@ -42,8 +42,9 @@ export default function App() {
     overrides: {
       MuiButton: {
         root: {
-          borderRadius: "2rem",
+          borderRadius: "0.5rem",
           textTransform: "none",
+          fontWeight: "bold",
         },
       },
     },
