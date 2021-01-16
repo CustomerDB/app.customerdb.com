@@ -20,7 +20,7 @@ function ThemeHit({ hit }) {
 
   // card IDs are 1:1 correspondence with highlight IDs
   const quotePreviews = hit.cardIDs.map((cardID) => {
-    return <QuoteContent highlightID={cardID} hideNotFound />;
+    return <QuoteContent key={cardID} highlightID={cardID} hideNotFound />;
   });
 
   const card = (
@@ -118,6 +118,7 @@ export default function ThemeList() {
   return (
     <Grid
       container
+      item
       className="fullHeight"
       xs={12}
       style={{
