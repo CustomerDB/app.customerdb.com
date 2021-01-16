@@ -39,6 +39,15 @@ export default function App() {
         main: "#ff5252",
       },
     },
+    overrides: {
+      MuiButton: {
+        root: {
+          borderRadius: "0.5rem",
+          textTransform: "none",
+          fontWeight: "bold",
+        },
+      },
+    },
   });
 
   return (
