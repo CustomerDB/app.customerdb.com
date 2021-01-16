@@ -39,6 +39,14 @@ export default function App() {
         main: "#ff5252",
       },
     },
+    overrides: {
+      MuiButton: {
+        root: {
+          borderRadius: "2rem",
+          textTransform: "none",
+        },
+      },
+    },
   });
 
   return (
