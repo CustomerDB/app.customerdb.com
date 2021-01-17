@@ -3,14 +3,12 @@ import React, { useEffect, useRef } from "react";
 import Grid from "@material-ui/core/Grid";
 import { connectInfiniteHits } from "react-instantsearch-dom";
 
-import Card from "@material-ui/core/Card";
-import CardContent from "@material-ui/core/CardContent";
 import Typography from "@material-ui/core/Typography";
 import Moment from "react-moment";
 
 import { Search } from "../shell/Search.js";
 import { useNavigate } from "react-router-dom";
-import { QuoteContent } from "../summaries/embed/QuoteContents.js";
+import QuotePreview from "../quotes/QuotePreview.js";
 
 function ThemeHit({ hit }) {
   const navigate = useNavigate();
@@ -19,7 +17,7 @@ function ThemeHit({ hit }) {
 
   // card IDs are 1:1 correspondence with highlight IDs
   const quotePreviews = hit.cardIDs.map((cardID) => {
-    return <QuoteContent key={cardID} highlightID={cardID} hideNotFound />;
+    return <QuotePreview key={cardID} highlightID={cardID} hideNotFound />;
   });
 
   const card = (

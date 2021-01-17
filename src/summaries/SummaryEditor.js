@@ -7,12 +7,15 @@ import UserAuthContext from "../auth/UserAuthContext";
 import CollabEditor from "../editor/CollabEditor.js";
 import QuoteBlot from "./embed/QuoteBlot";
 import QuoteContents from "./embed/QuoteContents";
+import ThemeBlot from "./embed/ThemeBlot";
+import ThemeContents from "./embed/ThemeContents";
 import useFirestore from "../db/Firestore.js";
 
 import Grid from "@material-ui/core/Grid";
 import Quill from "quill";
 
 Quill.register(QuoteBlot);
+Quill.register(ThemeBlot);
 
 // SummaryEditor augments a collaborative editor with embedded item previews.
 export default function SummaryEditor({ reactQuillRef }) {
@@ -71,6 +74,7 @@ export default function SummaryEditor({ reactQuillRef }) {
       </Grid>
 
       <QuoteContents quillContainerRef={quillContainerRef} />
+      <ThemeContents quillContainerRef={quillContainerRef} />
     </>
   );
 }
