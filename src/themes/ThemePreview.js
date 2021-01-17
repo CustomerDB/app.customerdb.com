@@ -41,11 +41,11 @@ export default function ThemePreview({ boardID, themeID, hideNotFound }) {
     return (
       <Card
         key={themeID}
-        elevation={1}
         style={{
           width: "100%",
           margin: "0.5rem",
           borderRadius: "0.5rem",
+          backgroundColor: "#fafafa",
         }}
       >
         <CircularProgress color="secondary" />
@@ -58,11 +58,11 @@ export default function ThemePreview({ boardID, themeID, hideNotFound }) {
   return (
     <Card
       key={themeID}
-      elevation={1}
       style={{
         width: "100%",
         margin: "0.5rem",
         borderRadius: "0.5rem",
+        backgroundColor: "#fafafa",
       }}
     >
       <CardContent>

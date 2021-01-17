@@ -87,7 +87,6 @@ export default function Hit({ reactQuillRef, onDrop, children }) {
   const card = (
     <Card
       ref={cardRef}
-      elevation={1}
       style={{
         zIndex: "99",
         position: drag ? "absolute" : "relative",
@@ -108,7 +107,6 @@ export default function Hit({ reactQuillRef, onDrop, children }) {
     placeholder = (
       <Card
         key="drag-placeholder"
-        elevation={1}
         style={{
           position: "relative",
           width: "100%",

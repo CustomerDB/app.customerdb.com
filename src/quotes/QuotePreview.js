@@ -100,7 +100,6 @@ export default function QuotePreview({ highlightID, hideNotFound }) {
     return (
       <Card
         key={highlightID}
-        elevation={1}
         style={{
           width: "100%",
           margin: "0.5rem",
@@ -117,7 +116,6 @@ export default function QuotePreview({ highlightID, hideNotFound }) {
     return (
       <Card
         key={highlightID}
-        elevation={1}
         style={{
           width: "100%",
           margin: "0.5rem",
@@ -156,7 +154,6 @@ export default function QuotePreview({ highlightID, hideNotFound }) {
   return (
     <Card
       key={highlightID}
-      elevation={1}
       style={{
         width: "100%",
         margin: "0.5rem",
