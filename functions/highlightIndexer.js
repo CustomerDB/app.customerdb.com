@@ -470,7 +470,7 @@ exports.markHighlightsForIndexing = functions.pubsub
   });
 
 // Update highlights if an interview's personID changes.
-exports.updateHighlightPeopleForDocument = functions.firestore
+exports.updateHighlightForDocument = functions.firestore
   .document("organizations/{orgID}/documents/{documentID}")
   .onUpdate((change) => {
     let documentRef = change.after.ref;
@@ -479,35 +479,70 @@ exports.updateHighlightPeopleForDocument = functions.firestore
       "transcriptHighlights"
     );
 
-    let before = change.before.data();
-    let after = change.after.data();
-
-    if (before.personID !== after.personID) {
-      let newPersonID = after.personID || "";
+    const requestUpdate = (newFields) => {
+      let highlightUpdate = Object.assign(
+        {
+          lastUpdateTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+        },
+        newFields || {}
+      );
 
       return highlightsRef
         .get()
         .then((snapshot) =>
           Promise.all(
-            snapshot.docs.map((doc) =>
-              doc.ref.update({
-                personID: newPersonID,
-                lastUpdateTimestamp: admin.firestore.FieldValue.serverTimestamp(),
-              })
-            )
+            snapshot.docs.map((doc) => doc.ref.update(highlightUpdate))
           )
         )
         .then(() =>
-          transcriptHighlightsRef.get().then((snapshot) =>
-            Promise.all(
-              snapshot.docs.map((doc) =>
-                doc.ref.update({
-                  personID: newPersonID,
-                  lastUpdateTimestamp: admin.firestore.FieldValue.serverTimestamp(),
-                })
+          transcriptHighlightsRef
+            .get()
+            .then((snapshot) =>
+              Promise.all(
+                snapshot.docs.map((doc) => doc.ref.update(highlightUpdate))
               )
             )
-          )
         );
+    };
+
+    let before = change.before.data();
+    let after = change.after.data();
+
+    if (!client) {
+      console.warn("Algolia client not available; skipping index operation");
+      return;
+    }
+    const index = client.initIndex(ALGOLIA_HIGHLIGHTS_INDEX_NAME);
+
+    if (before.deletionTimestamp === "" && after.deletionTimestamp !== "") {
+      // Delete index object for highlights.
+      return highlightsRef
+        .get()
+        .then((snapshot) =>
+          Promise.all(snapshot.docs.map((doc) => index.deleteObject(doc.id)))
+        )
+        .then(() =>
+          transcriptHighlightsRef
+            .get()
+            .then((snapshot) =>
+              Promise.all(
+                snapshot.docs.map((doc) => index.deleteObject(doc.id))
+              )
+            )
+        );
+    }
+
+    if (before.deletionTimestamp !== "" && after.deletionTimestamp === "") {
+      // Request update as we need new index objects.
+      return requestUpdate();
+    }
+
+    if (before.name !== after.name) {
+      return requestUpdate();
+    }
+
+    if (before.personID !== after.personID) {
+      let newPersonID = after.personID || "";
+      return requestUpdate({ personID: newPersonID });
     }
   });

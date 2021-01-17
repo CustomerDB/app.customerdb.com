@@ -105,23 +105,25 @@ exports.cardsInBoard = functions.firestore
 
     const createCardsFromHighlight = (snapshot, source) => {
       return Promise.all(
-        snapshot.docs.map((doc) => {
-          let data = doc.data();
+        snapshot.docs.map((highlightDoc) => {
+          let data = highlightDoc.data();
           // Each highlight should have a card
-          let cardRef = cardsRef.doc(doc.id);
+          let cardRef = cardsRef.doc(highlightDoc.id);
 
-          let cacheRef = doc.ref.collection("cache").doc("hit");
-          return cacheRef.get().then((doc) => {
-            console.debug("Creating card for highlight", doc.id);
+          let cacheRef = highlightDoc.ref.collection("cache").doc("hit");
+          return cacheRef.get().then((cacheDoc) => {
+            console.debug("Creating card for highlight", cacheDoc.id);
 
             let cache = undefined;
-            if (doc.exists) {
-              cache = doc.data();
+            if (cacheDoc.exists) {
+              cache = cacheDoc.data();
             }
 
             return cardRef.get().then((cardDoc) => {
               if (!cardDoc.exists) {
-                return cardRef.set(newCard(doc.id, data, cache, source));
+                return cardRef.set(
+                  newCard(highlightDoc.id, data, cache, source)
+                );
               }
             });
           });
@@ -552,7 +554,7 @@ exports.indexUpdatedTheme = functions.firestore
 // Mark themes with edits more recent than the last indexing operation
 // for re-indexing.
 exports.markThemesForIndexing = functions.pubsub
-  .schedule("every 1 minute")
+  .schedule("every 1 minutes")
   .onRun((context) => {
     let db = admin.firestore();
 
