@@ -3,14 +3,12 @@ import React, { useEffect, useRef } from "react";
 import Grid from "@material-ui/core/Grid";
 import { connectInfiniteHits } from "react-instantsearch-dom";
 
-import Card from "@material-ui/core/Card";
-import CardContent from "@material-ui/core/CardContent";
 import Typography from "@material-ui/core/Typography";
 import Moment from "react-moment";
 
 import { Search } from "../shell/Search.js";
 import { useNavigate } from "react-router-dom";
-import { QuoteContent } from "../summaries/embed/QuoteContents.js";
+import QuotePreview from "../quotes/QuotePreview.js";
 
 function ThemeHit({ hit }) {
   const navigate = useNavigate();
@@ -19,11 +17,14 @@ function ThemeHit({ hit }) {
 
   // card IDs are 1:1 correspondence with highlight IDs
   const quotePreviews = hit.cardIDs.map((cardID) => {
-    return <QuoteContent key={cardID} highlightID={cardID} hideNotFound />;
+    return <QuotePreview key={cardID} highlightID={cardID} hideNotFound />;
   });
 
   const card = (
-    <Card
+    <Grid
+      container
+      item
+      xs={12}
       key={hit.objectID}
       style={{
         margin: "1rem",
@@ -35,18 +36,22 @@ function ThemeHit({ hit }) {
         navigate(`/orgs/${hit.orgID}/boards/${hit.boardID}`);
       }}
     >
-      <CardContent>
-        <Typography variant="h6" gutterBottom style={{ fontWeight: "bold" }}>
-          {hit.name}
-        </Typography>
-        <p style={{ display: "inline" }}>
-          {hit.boardName} <Moment fromNow date={themeCreationTimestamp} />
-        </p>
-        <Grid xs={12} container item>
-          {quotePreviews}
+      <Grid container item xs={12}>
+        <Grid container item xs={12}>
+          <Typography variant="h6" gutterBottom style={{ fontWeight: "bold" }}>
+            {hit.name}
+          </Typography>
         </Grid>
-      </CardContent>
-    </Card>
+        <Grid container item xs={12}>
+          <p>
+            {hit.boardName} <Moment fromNow date={themeCreationTimestamp} />
+          </p>
+        </Grid>
+      </Grid>
+      <Grid xs={12} container item>
+        {quotePreviews}
+      </Grid>
+    </Grid>
   );
 
   return card;
