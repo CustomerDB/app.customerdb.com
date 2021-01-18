@@ -30,7 +30,7 @@ import { v4 as uuidv4 } from "uuid";
 
 export default function InterviewList({ create, fromGuide }) {
   const [addModalShow, setAddModalShow] = useState(false);
-  const [documents, setDocuments] = useState([]);
+  const [documents, setDocuments] = useState();
   const [showResults, setShowResults] = useState();
 
   const { defaultTagGroupID } = useOrganization();
@@ -192,6 +192,10 @@ export default function InterviewList({ create, fromGuide }) {
       </ListItem>
     );
   };
+
+  if (!documents) {
+    return <></>;
+  }
 
   let documentItems = documents.map((doc) =>
     dataListItem(

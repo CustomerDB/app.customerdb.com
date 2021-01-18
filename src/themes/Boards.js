@@ -16,6 +16,7 @@ import Scrollable from "../shell/Scrollable.js";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
 import useFirestore from "../db/Firestore.js";
+import EmptyStateHelp from "../util/EmptyStateHelp.js";
 
 export default function Boards({ create, download }) {
   const { oauthClaims } = useContext(UserAuthContext);
@@ -73,6 +74,17 @@ export default function Boards({ create, download }) {
 
   if (boardList === undefined) {
     return <></>;
+  }
+
+  if (boardList.length === 0) {
+    return (
+      <EmptyStateHelp
+        title="Use boards to group customer quotes"
+        description="Boards helps finding patterns in quotes from interviews."
+        buttonText="Create quote board"
+        path={`/orgs/${orgID}/boards/create`}
+      />
+    );
   }
 
   let content;

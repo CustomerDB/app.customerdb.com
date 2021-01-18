@@ -69,11 +69,11 @@ function InfiniteHits({ hasMore, refine, hits }) {
       <>
         <EmptyStateHelp
           title="Get started by adding an interview"
-          description="Customer quotes will appear here once you have added an interview."
-          buttonText="Create interview"
-          path={`/orgs/${orgID}/interviews/create`}
+          description="Customer quotes will appear here once you have added and highlighted interviews."
+          buttonText="Go to interviews"
+          path={`/orgs/${orgID}/interviews`}
         />
-        ;<div ref={(c) => (sentinel.current = c)}></div>
+        <div ref={(c) => (sentinel.current = c)}></div>
       </>
     );
   }
