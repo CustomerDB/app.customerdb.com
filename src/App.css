@@ -133,6 +133,10 @@ div.listTitleButtonContainer {
   text-align: right;
 }
 
+.MuiTabs-root button:focus {
+  outline: 0;
+}
+
 .card {
   text-align: left;
   box-shadow: 0 3px 3px rgba(0, 0, 0, 0.2);
