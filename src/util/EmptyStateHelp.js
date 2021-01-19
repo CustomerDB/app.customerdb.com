@@ -15,19 +15,38 @@ export default function EmptyStateHelp({
 
   return (
     <Grid container item xs={12} style={{ flexGrow: 1, padding: "2rem" }}>
-      <Grid container item xs={12} style={{ marginTop: "3rem" }}>
+      <Grid
+        container
+        item
+        xs={12}
+        style={{ marginTop: "3rem" }}
+        justify="center"
+      >
         <Typography variant="h6" style={{ fontWeight: "bold" }} gutterBottom>
           {title}
         </Typography>
       </Grid>
-      <Grid container item xs={12}>
-        <Grid item xs={12} sm={6} lg={4}>
+      <Grid container item xs={12} justify="center">
+        <Grid
+          item
+          xs={12}
+          sm={6}
+          lg={4}
+          justify="center"
+          style={{ textAlign: "center" }}
+        >
           <Typography variant="subtitle2" gutterBottom>
             {description}
           </Typography>
         </Grid>
       </Grid>
-      <Grid container item xs={12} style={{ marginTop: "1rem" }}>
+      <Grid
+        container
+        item
+        xs={12}
+        style={{ marginTop: "1rem" }}
+        justify="center"
+      >
         <Button
           variant="contained"
           color="secondary"

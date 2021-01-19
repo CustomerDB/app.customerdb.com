@@ -79,8 +79,8 @@ export default function Boards({ create, download }) {
   if (boardList.length === 0) {
     return (
       <EmptyStateHelp
-        title="Use boards to group customer quotes"
-        description="Boards helps finding patterns in quotes from interviews."
+        title="Visually group customer quotes"
+        description="Collaborate with your team to find patterns in quotes from customer interviews"
         buttonText="Create quote board"
         path={`/orgs/${orgID}/boards/create`}
       />

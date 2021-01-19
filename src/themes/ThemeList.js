@@ -98,7 +98,7 @@ function InfiniteHits({ reactQuillRef, hasMore, refine, hits }) {
       <>
         <EmptyStateHelp
           title="Use themes to find patterns across interviews"
-          description="Themes are created in boards and helps finding patterns in your interviews."
+          description="Create themes by dragging similar quotes together on a board. Search all of the themes created by your team here."
           buttonText="Go to boards"
           path={`/orgs/${orgID}/boards`}
         />

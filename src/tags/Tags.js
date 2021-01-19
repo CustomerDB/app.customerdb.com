@@ -76,8 +76,8 @@ export default function Tags({ create }) {
   if (tagGroups.length === 0) {
     return (
       <EmptyStateHelp
-        title="Tags helps you categorize customer quotes"
-        description="Tags have a name and color and helps highlight important pieces of your customer interviews"
+        title="Categorize customer quotes"
+        description="Tags are the first line of organization for important customer quotes. Set them up any way that makes sense to you and your team!"
         buttonText="Create tags"
         path={`/orgs/${orgID}/tags/create`}
       />

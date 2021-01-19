@@ -164,8 +164,8 @@ export default function Guides({ create }) {
   if (listItems.length === 0) {
     return (
       <EmptyStateHelp
-        title="Collaborate on interview questions and instructions"
-        description="You can collaborate on questions and interview instructions to seed new interviews with your team in guides."
+        title="Make interview note templates"
+        description="Guides help keep you keep conversations on topic. Try adding interviewer instructions (like asking to record) and sample questions."
         buttonText="Create guide"
         path={`/orgs/${orgID}/guides/create`}
       />

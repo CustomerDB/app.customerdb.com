@@ -133,7 +133,7 @@ export default function People({ create }) {
     return (
       <EmptyStateHelp
         title="Keep track of customers"
-        description="Add customers and prospects here and start track themes across conversations."
+        description="Add customers and prospects here and start tracking themes across conversations."
         buttonText="Create customer"
         path={`/orgs/${orgID}/people/create`}
       />
