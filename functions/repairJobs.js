@@ -426,12 +426,19 @@ exports.migrateAnalysis = functions.pubsub
                                   // Create card ids collection.
                                   if (groupDoc.id in cardMembership) {
                                     let cardIDs = cardMembership[groupDoc.id];
-                                    return Promise.all(
-                                      cardIDs.map((cardID) =>
-                                        themeRef
-                                          .collection("cardIDs")
-                                          .doc(cardID)
-                                          .set({ ID: cardID })
+                                    let deleteGroupCardPromise = themeRef
+                                      .collection("cardIDs")
+                                      .doc(groupDoc.id)
+                                      .delete();
+
+                                    return deleteGroupCardPromise.then(() =>
+                                      Promise.all(
+                                        cardIDs.map((cardID) =>
+                                          themeRef
+                                            .collection("cardIDs")
+                                            .doc(cardID)
+                                            .set({ ID: cardID })
+                                        )
                                       )
                                     );
                                   }
