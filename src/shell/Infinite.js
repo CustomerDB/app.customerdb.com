@@ -1,4 +1,5 @@
 import React from "react";
+import "intersection-observer"; // optional polyfill (webkit)
 
 export default class Infinite extends React.Component {
   sentinel = null;

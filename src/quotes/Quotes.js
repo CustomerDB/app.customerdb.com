@@ -1,4 +1,5 @@
 import "react-quill/dist/quill.snow.css";
+import "intersection-observer"; // optional polyfill (webkit)
 
 import { connectInfiniteHits } from "react-instantsearch-dom";
 import { useTheme } from "@material-ui/core/styles";

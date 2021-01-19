@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from "react";
+import "intersection-observer"; // optional polyfill (webkit)
 
 import { useSearchClient } from "../search/client.js";
 import { Loading } from "../util/Utils.js";

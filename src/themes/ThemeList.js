@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from "react";
+import "intersection-observer"; // optional polyfill (webkit)
 
 import Grid from "@material-ui/core/Grid";
 import { connectInfiniteHits } from "react-instantsearch-dom";
