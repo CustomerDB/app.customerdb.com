@@ -102,6 +102,11 @@ export default function ThemeSidepane({ theme }) {
                   .replace(/\s+/g, " ")
                   .trim();
 
+                if (newName === "") {
+                  // Ignore empty name - otherwise, a user won't be able to rename the theme.
+                  newName = "Unnamed theme";
+                }
+
                 themeRef.update({
                   name: newName,
                   lastUpdateTimestamp: firebaseClient.firestore.FieldValue.serverTimestamp(),
