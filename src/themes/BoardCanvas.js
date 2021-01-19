@@ -32,14 +32,16 @@ export default function BoardCanvas({
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
 
-  const [cards, setCards] = useState([]);
-  const [themes, setThemes] = useState([]);
+  const [cards, setCards] = useState();
+  const [themes, setThemes] = useState();
 
   const { cardsRef, themesRef } = useFirestore();
 
   const { orgID } = useParams();
 
   const [cardDragging, setCardDragging] = useState(false);
+
+  const [initialCardBounds, setInitialCardBounds] = useState();
 
   const rtree = useRef(new RBush(4));
 
@@ -48,8 +50,6 @@ export default function BoardCanvas({
   // Use 4:3 aspect ratio
   const CANVAS_WIDTH = 12000;
   const CANVAS_HEIGHT = 8000;
-  const VIEWPORT_WIDTH = 1500;
-  const VIEWPORT_HEIGHT = 800;
   let boardID = `board-${board.ID}`;
 
   const downloadBoard = useCallback(() => {
@@ -312,9 +312,37 @@ export default function BoardCanvas({
         let newCard = doc.data();
         newCards.push(newCard);
       });
+
       setCards(newCards);
     });
   }, [cardsRef]);
+
+  useEffect(() => {
+    if (!cards || initialCardBounds) return;
+
+    console.debug("initialCardBounds useEffect", cards);
+
+    if (cards.length > 0) {
+      let { minX, minY, maxX, maxY } = cards[0];
+      cards.forEach((card) => {
+        minX = Math.min(card.minX, minX);
+        minY = Math.min(card.minY, minY);
+        maxX = Math.max(card.maxX, maxX);
+        maxY = Math.max(card.maxY, maxY);
+      });
+
+      const width = Math.abs(maxX - minX);
+      const height = Math.abs(maxY - minY);
+
+      // reflect over the line y = -x
+      minX = -minX;
+      minY = -minY;
+      maxX = -maxX;
+      maxY = -maxY;
+
+      setInitialCardBounds({ minX, minY, maxX, maxY, width, height });
+    }
+  }, [cards, initialCardBounds]);
 
   useEffect(() => {
     if (!themesRef) {
@@ -331,6 +359,8 @@ export default function BoardCanvas({
   }, [themesRef]);
 
   useEffect(() => {
+    if (!cards || !themes) return;
+
     rtree.current.clear();
     cards.forEach((card) => addCardLocation(card));
     themes.forEach((themes) => {
@@ -363,7 +393,7 @@ export default function BoardCanvas({
     return <></>;
   }
 
-  if (!cards) {
+  if (!cards || !initialCardBounds || !themes) {
     return <></>;
   }
 
@@ -386,8 +416,22 @@ export default function BoardCanvas({
     );
   });
 
-  let defaultCanvasX = -(CANVAS_WIDTH / 2 - VIEWPORT_WIDTH / 2);
-  let defaultCanvasY = -(CANVAS_HEIGHT / 2 - VIEWPORT_HEIGHT / 2);
+  // Compute scale ratio based on X axis, clamped to min and max zoom
+  const MIN_SCALE = 0.1;
+  const MAX_SCALE = 2;
+  const contentRect = document
+    .getElementsByTagName("main")
+    .item(0)
+    .getBoundingClientRect();
+  const CONTENT_WIDTH = contentRect.width;
+  const scaleRatioX = Math.max(
+    MIN_SCALE,
+    Math.min(MAX_SCALE, CONTENT_WIDTH / initialCardBounds.width)
+  );
+  // const CONTENT_HEIGHT = contentRect.height;
+  // const scaleRatioY = Math.max(MIN_SCALE, Math.min(MAX_SCALE, CONTENT_HEIGHT / initialCardBounds.height));
+  // const scaleRatio = Math.min(scaleRatioX, scaleRatioY);
+  const scaleRatio = scaleRatioX;
 
   return (
     <Grid
@@ -398,11 +442,12 @@ export default function BoardCanvas({
     >
       <div style={{ position: "relative", width: "100%", flexGrow: 1 }}>
         <TransformWrapper
-          defaultPositionX={defaultCanvasX}
-          defaultPositionY={defaultCanvasY}
+          defaultPositionX={initialCardBounds.minX * scaleRatio}
+          defaultPositionY={initialCardBounds.minY * scaleRatio}
+          defaultScale={scaleRatio}
           options={{
-            minScale: 0.1,
-            maxScale: 2,
+            minScale: MIN_SCALE,
+            maxScale: MAX_SCALE,
             limitToBounds: false,
             limitToWrapper: false,
             centerContent: false,
@@ -415,62 +460,66 @@ export default function BoardCanvas({
             },
           }}
         >
-          {({ scale }) => (
-            <>
-              <div
-                className="scrollContainer"
-                style={{ overflow: "hidden", background: "#e9e9e9" }}
-              >
-                <TransformComponent>
-                  <div
-                    id={`${boardID}-container`}
-                    style={{
-                      width: `${CANVAS_WIDTH}px`,
-                      height: `${CANVAS_HEIGHT}px`,
-                      background: "white",
-                      boxShadow: "0 6px 6px rgba(0, 0, 0, 0.2)",
-                    }}
-                  >
+          {({ scale }) => {
+            return (
+              <>
+                <div
+                  className="scrollContainer"
+                  style={{ overflow: "hidden", background: "#e9e9e9" }}
+                >
+                  <TransformComponent>
                     <div
-                      id={boardID}
+                      id={`${boardID}-container`}
                       style={{
                         width: `${CANVAS_WIDTH}px`,
                         height: `${CANVAS_HEIGHT}px`,
+                        background: "white",
+                        boxShadow: "0 6px 6px rgba(0, 0, 0, 0.2)",
                       }}
                     >
-                      {themesComponents}
-                      {cards.flatMap((card) => {
-                        if (!card.ID) {
-                          return [];
-                        }
+                      <div
+                        id={boardID}
+                        style={{
+                          width: `${CANVAS_WIDTH}px`,
+                          height: `${CANVAS_HEIGHT}px`,
+                        }}
+                      >
+                        {themesComponents}
+                        {cards.flatMap((card) => {
+                          if (!card.ID) {
+                            return [];
+                          }
 
-                        return [
-                          <Card
-                            key={card.ID}
-                            scale={scale}
-                            card={card}
-                            themesColor={card.themesColor}
-                            textColor={card.textColor}
-                            cardRef={cardsRef.doc(card.ID)}
-                            addLocationCallBack={addCardLocation}
-                            removeLocationCallBack={removeCardLocation}
-                            getIntersectingCardsCallBack={getIntersectingCards}
-                            getIntersectingThemesCallBack={
-                              getIntersectingThemes
-                            }
-                            themeDataForCardCallback={themeDataForCard}
-                            setCardDragging={setCardDragging}
-                            cardDragging={cardDragging}
-                            setSidepaneHighlight={setSidepaneHighlight}
-                          />,
-                        ];
-                      })}
+                          return [
+                            <Card
+                              key={card.ID}
+                              scale={scale}
+                              card={card}
+                              themesColor={card.themesColor}
+                              textColor={card.textColor}
+                              cardRef={cardsRef.doc(card.ID)}
+                              addLocationCallBack={addCardLocation}
+                              removeLocationCallBack={removeCardLocation}
+                              getIntersectingCardsCallBack={
+                                getIntersectingCards
+                              }
+                              getIntersectingThemesCallBack={
+                                getIntersectingThemes
+                              }
+                              themeDataForCardCallback={themeDataForCard}
+                              setCardDragging={setCardDragging}
+                              cardDragging={cardDragging}
+                              setSidepaneHighlight={setSidepaneHighlight}
+                            />,
+                          ];
+                        })}
+                      </div>
                     </div>
-                  </div>
-                </TransformComponent>
-              </div>
-            </>
-          )}
+                  </TransformComponent>
+                </div>
+              </>
+            );
+          }}
         </TransformWrapper>
       </div>
     </Grid>
