@@ -360,7 +360,7 @@ exports.migrateAnalysis = functions.pubsub
                                   cardMembership[card.themeID] = [];
                                 }
 
-                                cardMembership[card.themeID].push(card.themeID);
+                                cardMembership[card.themeID].push(cardDoc.id);
                               }
 
                               if (card.groupColor) {
