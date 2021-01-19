@@ -124,8 +124,8 @@ export default function Summaries({ create }) {
   if (summaries.length === 0) {
     return (
       <EmptyStateHelp
-        title="Summaries and share your findings"
-        description="You can synthesize your findings and pull in direct customer quotes and themes you have identified"
+        title="Summarize and share"
+        description="Drag and drop customer quotes and themes to help make your point."
         buttonText="Create summary"
         path={`/orgs/${orgID}/summaries/create`}
       />
