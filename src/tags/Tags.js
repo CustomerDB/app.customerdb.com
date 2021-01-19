@@ -10,6 +10,7 @@ import useFirestore from "../db/Firestore.js";
 import { useOrganization } from "../organization/hooks.js";
 import TagGroup from "./TagGroup.js";
 import Typography from "@material-ui/core/Typography";
+import EmptyStateHelp from "../util/EmptyStateHelp.js";
 
 export default function Tags({ create }) {
   const { oauthClaims } = useContext(UserAuthContext);
@@ -70,6 +71,17 @@ export default function Tags({ create }) {
 
   if (!tagGroupsRef || !defaultTagGroupID) {
     return <Loading />;
+  }
+
+  if (tagGroups.length === 0) {
+    return (
+      <EmptyStateHelp
+        title="Categorize customer quotes"
+        description="Tags are the first line of organization for important customer quotes. Set them up any way that makes sense to you and your team!"
+        buttonText="Create tags"
+        path={`/orgs/${orgID}/tags/create`}
+      />
+    );
   }
 
   return (

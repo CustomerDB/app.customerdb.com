@@ -7,8 +7,9 @@ import Typography from "@material-ui/core/Typography";
 import Moment from "react-moment";
 
 import { Search } from "../shell/Search.js";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import QuotePreview from "../quotes/QuotePreview.js";
+import EmptyStateHelp from "../util/EmptyStateHelp.js";
 
 function ThemeHit({ hit }) {
   const navigate = useNavigate();
@@ -60,6 +61,7 @@ function ThemeHit({ hit }) {
 function InfiniteHits({ reactQuillRef, hasMore, refine, hits }) {
   let sentinel = useRef();
   let observer = useRef();
+  const { orgID } = useParams();
 
   useEffect(() => {
     if (!sentinel.current) {
@@ -92,7 +94,17 @@ function InfiniteHits({ reactQuillRef, hasMore, refine, hits }) {
   );
 
   if (hits.length === 0) {
-    return sentinelNode;
+    return (
+      <>
+        <EmptyStateHelp
+          title="Use themes to find patterns across interviews"
+          description="Create themes by dragging similar quotes together on a board. Search all of the themes created by your team here."
+          buttonText="Go to boards"
+          path={`/orgs/${orgID}/boards`}
+        />
+        {sentinelNode}
+      </>
+    );
   }
 
   const results = hits.map((hit) => <ThemeHit key={hit.objectID} hit={hit} />);

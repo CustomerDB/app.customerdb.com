@@ -369,18 +369,18 @@ export default function Document(props) {
                     value={selectedTab}
                     onChange={handleTabChange}
                     indicatorColor="secondary"
-                    textColor="primary"
+                    textColor="secondary"
                     variant="fullWidth"
                     aria-label="full width"
                     className={`${classes.tabs} noPrint`}
                   >
                     <Tab
-                      label="transcript"
+                      label="Transcript"
                       id="transcript"
                       aria-controls="tabpanel-transcript"
                     />
                     <Tab
-                      label="notes"
+                      label="Notes"
                       id="notes"
                       aria-controls="tabpanel-notes"
                     />

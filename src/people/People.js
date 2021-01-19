@@ -11,7 +11,6 @@ import ListContainer from "../shell/ListContainer";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemAvatar from "@material-ui/core/ListItemAvatar";
 import ListItemText from "@material-ui/core/ListItemText";
-import PeopleHelp from "./PeopleHelp.js";
 import Person from "./Person.js";
 import PersonEditDialog from "./PersonEditDialog.js";
 import Scrollable from "../shell/Scrollable.js";
@@ -20,6 +19,7 @@ import UserAuthContext from "../auth/UserAuthContext.js";
 import { connectHits } from "react-instantsearch-dom";
 import event from "../analytics/event.js";
 import useFirestore from "../db/Firestore.js";
+import EmptyStateHelp from "../util/EmptyStateHelp.js";
 
 const batchSize = 25;
 
@@ -129,6 +129,17 @@ export default function People({ create }) {
     );
   });
 
+  if (peopleList.length === 0) {
+    return (
+      <EmptyStateHelp
+        title="Keep track of customers"
+        description="Add customers and prospects here and start tracking themes across conversations."
+        buttonText="Create customer"
+        path={`/orgs/${orgID}/people/create`}
+      />
+    );
+  }
+
   let list = (
     <ListContainer>
       <Scrollable>
@@ -136,31 +147,26 @@ export default function People({ create }) {
           <SearchResults />
         ) : (
           <List style={{ paddingLeft: "1rem", paddingRight: "1rem" }}>
-            {listTotal > 0 ? (
-              <Infinite
-                hasMore={() => {
-                  if (!listTotal) {
-                    return true;
-                  }
-
-                  return listTotal < listLimit;
-                }}
-                onLoad={() => setListLimit(listLimit + batchSize)}
-              >
-                {peopleList
-                  .slice(0, listLimit)
-                  .map((person) =>
-                    personListItem(
-                      person.ID,
-                      person.name,
-                      person.imageURL,
-                      person.company
-                    )
-                  )}
-              </Infinite>
-            ) : (
-              <PeopleHelp />
-            )}
+            <Infinite
+              hasMore={() => {
+                if (!listTotal) {
+                  return true;
+                }
+                return listTotal < listLimit;
+              }}
+              onLoad={() => setListLimit(listLimit + batchSize)}
+            >
+              {peopleList
+                .slice(0, listLimit)
+                .map((person) =>
+                  personListItem(
+                    person.ID,
+                    person.name,
+                    person.imageURL,
+                    person.company
+                  )
+                )}
+            </Infinite>
           </List>
         )}
       </Scrollable>
