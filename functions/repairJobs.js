@@ -317,3 +317,134 @@ exports.repairOrgs = functions.pubsub
         )
       );
   });
+
+exports.migrateAnalysis = functions.pubsub
+  .topic("migrate-analyses")
+  .onPublish((message) => {
+    let db = admin.firestore();
+    return db
+      .collection("organizations")
+      .get()
+      .then((snapshot) =>
+        Promise.all(
+          snapshot.docs.map((orgDoc) =>
+            orgDoc.ref
+              .collection("analyses")
+              .get()
+              .then((snapshot) =>
+                Promise.all(
+                  snapshot.docs.map((analysisDoc) => {
+                    let analysis = analysisDoc.data();
+                    let boardRef = orgDoc.ref
+                      .collection("boards")
+                      .doc(analysisDoc.id);
+
+                    let cardMembership = {};
+
+                    // Create board document.
+                    return boardRef.set(analysis).then(() => {
+                      // Find card membership and repair.
+                      let cardPromise = Promise.resolve();
+                      cardPromise = analysisDoc.ref
+                        .collection("cards")
+                        .get()
+                        .then((snapshot) =>
+                          Promise.all(
+                            snapshot.docs.map((cardDoc) => {
+                              let card = cardDoc.data();
+
+                              if (card.groupID) {
+                                card.themeID = card.groupID;
+
+                                if (!(card.themeID in cardMembership)) {
+                                  cardMembership[card.themeID] = [];
+                                }
+
+                                cardMembership[card.themeID].push(card.themeID);
+                              }
+
+                              if (card.groupColor) {
+                                card.themeColor = card.groupColor;
+                              }
+
+                              if (!card.documentID) {
+                                console.warn(
+                                  `Card ${card.id} in analysis ${analysisDoc.id} in org ${orgDoc.id} does not have a document ID: ${card}`
+                                );
+                                return;
+                              }
+
+                              // Try to fetch highlightHitCache document.
+                              let highlightRef = orgDoc.ref
+                                .collection("documents")
+                                .doc(card.documentID)
+                                .collection(
+                                  card.source === "transcript"
+                                    ? "transcriptHighlights"
+                                    : "highlights"
+                                )
+                                .doc(cardDoc.id);
+                              let cacheRef = highlightRef
+                                .collection("cache")
+                                .doc("hit");
+                              return cacheRef.get().then((cacheDoc) => {
+                                if (cacheDoc.exists) {
+                                  card.highlightHitCache = cacheDoc.data();
+                                }
+
+                                return boardRef
+                                  .collection("cards")
+                                  .doc(cardDoc.id)
+                                  .set(card);
+                              });
+                            })
+                          )
+                        );
+
+                      return cardPromise.then(
+                        analysisDoc.ref
+                          .collection("groups")
+                          .get()
+                          .then((snapshot) =>
+                            Promise.all(
+                              snapshot.docs.map((groupDoc) => {
+                                // Migrate groups to themes
+                                let theme = groupDoc.data();
+                                let themeRef = boardRef
+                                  .collection("themes")
+                                  .doc(groupDoc.id);
+
+                                theme.creationTimestamp = admin.firestore.FieldValue.serverTimestamp();
+                                theme.lastUpdateTimestamp = admin.firestore.FieldValue.serverTimestamp();
+                                theme.indexRequestedTimestamp = admin.firestore.FieldValue.serverTimestamp();
+                                theme.lastIndexTimestamp = new admin.firestore.Timestamp(
+                                  0,
+                                  0
+                                );
+
+                                return themeRef.set(theme).then(() => {
+                                  // Create card ids collection.
+                                  if (groupDoc.id in cardMembership) {
+                                    let cardIDs = cardMembership[groupDoc.id];
+                                    return Promise.all(
+                                      cardIDs.map((cardID) =>
+                                        themeRef
+                                          .collection("cardIDs")
+                                          .doc(cardID)
+                                          .set({ ID: cardID })
+                                      )
+                                    );
+                                  }
+                                });
+                              })
+                            )
+                          )
+                      );
+                    });
+                  })
+                )
+              )
+          )
+        )
+      );
+  });
