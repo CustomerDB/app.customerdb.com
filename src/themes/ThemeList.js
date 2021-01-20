@@ -19,7 +19,7 @@ function ThemeHit({ hit }) {
 
   // card IDs are 1:1 correspondence with highlight IDs
   const quotePreviews = hit.cardIDs.map((cardID) => {
-    return <QuotePreview key={cardID} highlightID={cardID} hideNotFound />;
+    return <Grid container item xs={12} sm={6} md={4} lg={3}><QuotePreview key={cardID} highlightID={cardID} hideNotFound /></Grid>;
   });
 
   const card = (
