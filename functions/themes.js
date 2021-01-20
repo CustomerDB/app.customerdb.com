@@ -320,6 +320,10 @@ function highlightCacheUpdates(change, context, source) {
                 delete card["highlightHitCache"];
               }
 
+              if (!card) {
+                return;
+              }
+
               return boardRef.collection("cards").doc(highlightID).set(card);
             });
         }
