@@ -133,7 +133,8 @@ div.listTitleButtonContainer {
   text-align: right;
 }
 
-.MuiTabs-root button:focus {
+.MuiTabs-root button:focus,
+button.MuiButtonBase-root:focus {
   outline: 0;
 }
 
