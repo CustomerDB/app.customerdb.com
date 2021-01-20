@@ -115,7 +115,8 @@ export default function QuotePreview({ highlightID, hideNotFound }) {
 
   if (!highlight || !highlightCache)
     return (
-      <Grid container
+      <Grid
+        container
         key={highlightID}
         style={{
           width: "100%",

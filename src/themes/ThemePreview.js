@@ -48,7 +48,7 @@ export default function ThemePreview({ boardID, themeID, hideNotFound }) {
           backgroundColor: "#fafafa",
         }}
       >
-        <CircularProgress/>
+        <CircularProgress />
       </Card>
     );
   }
@@ -77,7 +77,13 @@ export default function ThemePreview({ boardID, themeID, hideNotFound }) {
           <Grid container item xs>
             {cardIDs.map((cardID) => {
               return (
-                <QuotePreview key={cardID} highlightID={cardID} hideNotFound />
+                <Grid container item xs={12} sm={6} md={4} lg={3}>
+                  <QuotePreview
+                    key={cardID}
+                    highlightID={cardID}
+                    hideNotFound
+                  />
+                </Grid>
               );
             })}
           </Grid>
