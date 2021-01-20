@@ -212,7 +212,7 @@ export default function QuotePreview({ highlightID, hideNotFound }) {
         )}
 
         <div style={{ margin: "0.5rem" }}>
-          <Typography variant="body2" color="textSecondary" component="p">
+          <Typography variant="body" color="textSecondary" component="p">
             <span className="quoteContext">{contextPrefix}</span>
             <span
               style={{
