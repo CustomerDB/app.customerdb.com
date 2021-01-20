@@ -1,9 +1,11 @@
 import React, { useEffect, useRef } from "react";
+import "intersection-observer"; // optional polyfill (webkit)
 
 import { useSearchClient } from "../search/client.js";
 import { Loading } from "../util/Utils.js";
 import Scrollable from "../shell/Scrollable.js";
 import QuoteHit from "./QuoteHit.js";
+import ThemeHit from "./ThemeHit.js";
 
 import Grid from "@material-ui/core/Grid";
 import InputAdornment from "@material-ui/core/InputAdornment";
@@ -11,11 +13,15 @@ import SearchIcon from "@material-ui/icons/Search";
 import TextField from "@material-ui/core/TextField";
 import {
   InstantSearch,
+  Index,
+  connectAutoComplete,
   connectSearchBox,
   connectInfiniteHits,
 } from "react-instantsearch-dom";
 
-function InfiniteHits({ reactQuillRef, hasMore, refine, hits }) {
+function InfiniteHits(props) {
+  const { reactQuillRef, hasMore, refine, hits, quoteHits, themeHits } = props;
+
   let sentinel = useRef();
   let observer = useRef();
 
@@ -39,7 +45,7 @@ function InfiniteHits({ reactQuillRef, hasMore, refine, hits }) {
     };
   }, [sentinel, hasMore, refine]);
 
-  if (hits.length === 0) {
+  if (hits.length === 0 || !quoteHits || !themeHits) {
     return (
       <>
         <div ref={(c) => (sentinel.current = c)}></div>
@@ -47,11 +53,39 @@ function InfiniteHits({ reactQuillRef, hasMore, refine, hits }) {
     );
   }
 
+  const allHits = [];
+
+  quoteHits.forEach((h) => {
+    h.index = process.env.REACT_APP_ALGOLIA_HIGHLIGHTS_INDEX;
+    allHits.push(h);
+  });
+
+  themeHits.forEach((h) => {
+    h.index = process.env.REACT_APP_ALGOLIA_THEMES_INDEX;
+    allHits.push(h);
+  });
+
+  allHits.sort((a, b) => {
+    return a.creationTimestamp - b.creationTimestamp;
+  });
+
+  const results = allHits.map((hit) => {
+    if (hit.index === process.env.REACT_APP_ALGOLIA_HIGHLIGHTS_INDEX) {
+      return (
+        <QuoteHit key={hit.objectID} hit={hit} reactQuillRef={reactQuillRef} />
+      );
+    }
+    if (hit.index === process.env.REACT_APP_ALGOLIA_THEMES_INDEX) {
+      return (
+        <ThemeHit key={hit.objectID} hit={hit} reactQuillRef={reactQuillRef} />
+      );
+    }
+    return <></>;
+  });
+
   return (
     <>
-      {hits.map((hit) => (
-        <QuoteHit key={hit.objectID} hit={hit} reactQuillRef={reactQuillRef} />
-      ))}
+      {results}
       <div
         ref={(c) => (sentinel.current = c)}
         style={{ height: "1rem", width: "1rem" }}
@@ -100,8 +134,36 @@ const CustomSearchBox = ({ currentRefinement, refine }) => {
   );
 };
 
+const ConnectedAutoComplete = connectAutoComplete(AutoComplete);
 const SearchResults = connectInfiniteHits(InfiniteHits);
 const SearchBox = connectSearchBox(CustomSearchBox);
+
+function AutoComplete({ reactQuillRef, hits }) {
+  let quoteHits;
+  let themeHits;
+  if (hits) {
+    let quoteHitsObj = hits.find((item) => {
+      return item.index === process.env.REACT_APP_ALGOLIA_HIGHLIGHTS_INDEX;
+    });
+    quoteHits = quoteHitsObj && quoteHitsObj.hits;
+
+    let themeHitsObj = hits.find((item) => {
+      return item.index === process.env.REACT_APP_ALGOLIA_THEMES_INDEX;
+    });
+    themeHits = themeHitsObj && themeHitsObj.hits;
+  }
+
+  return (
+    <>
+      <SearchBox />
+      <SearchResults
+        reactQuillRef={reactQuillRef}
+        quoteHits={quoteHits}
+        themeHits={themeHits}
+      />
+    </>
+  );
+}
 
 export default function SummarySidebar({ reactQuillRef }) {
   const searchClient = useSearchClient();
@@ -133,15 +195,16 @@ export default function SummarySidebar({ reactQuillRef }) {
           zIndex: 2,
         }}
       >
-        <InstantSearch
-          searchClient={searchClient}
-          indexName={process.env.REACT_APP_ALGOLIA_HIGHLIGHTS_INDEX}
-        >
-          <Scrollable id="summary-sidebar-scroll">
-            <SearchBox />
-            <SearchResults reactQuillRef={reactQuillRef} />
-          </Scrollable>
-        </InstantSearch>
+        <Scrollable id="summary-sidebar-scroll">
+          <InstantSearch
+            searchClient={searchClient}
+            indexName={process.env.REACT_APP_ALGOLIA_HIGHLIGHTS_INDEX}
+          >
+            <ConnectedAutoComplete reactQuillRef={reactQuillRef} />
+            <Index indexName={process.env.REACT_APP_ALGOLIA_HIGHLIGHTS_INDEX} />
+            <Index indexName={process.env.REACT_APP_ALGOLIA_THEMES_INDEX} />
+          </InstantSearch>
+        </Scrollable>
       </Grid>
     </Grid>
   );

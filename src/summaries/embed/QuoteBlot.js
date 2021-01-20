@@ -14,7 +14,7 @@ export default class QuoteBlot extends Embed {
     let node = super.create();
     node.classList.add(QuoteBlot.className);
     node.dataset.highlightID = value;
-    // node.setAttribute('contenteditable', 'false');
+    node.setAttribute("contenteditable", "false");
     node.addEventListener("click", QuoteBlot.onClick);
     return node;
   }

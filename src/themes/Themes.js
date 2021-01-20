@@ -4,30 +4,28 @@ import Tabs from "@material-ui/core/Tabs";
 import Scrollable from "../shell/Scrollable.js";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
-export default function Interviews({ children }) {
-  const [selectedTab, setSelectedTab] = useState();
+export default function Themes({ children }) {
+  const [selectedTab, setSelectedTab] = useState(0);
 
   const location = useLocation();
   const navigate = useNavigate();
   const { orgID } = useParams();
 
   useEffect(() => {
-    if (location.pathname.startsWith(`/orgs/${orgID}/quotes`)) {
+    if (!location) return;
+
+    if (location.pathname.startsWith(`/orgs/${orgID}/themes`)) {
       setSelectedTab(0);
     }
 
-    if (location.pathname.startsWith(`/orgs/${orgID}/interviews`)) {
+    if (location.pathname.startsWith(`/orgs/${orgID}/boards`)) {
       setSelectedTab(1);
-    }
-
-    if (location.pathname.startsWith(`/orgs/${orgID}/guides`)) {
-      setSelectedTab(2);
     }
   }, [location, orgID]);
 
   return (
     <div
-      class="fullHeight"
+      className="fullHeight"
       style={{ display: "flex", flexDirection: "column" }}
     >
       <div>
@@ -39,27 +37,19 @@ export default function Interviews({ children }) {
           style={{ borderBottom: "1px solid rgba(0, 0, 0, 0.12)" }}
         >
           <Tab
-            label="Quotes"
-            id="quotes"
-            aria-controls="tabpanel-quotes"
+            label="Themes"
+            id="themes"
+            aria-controls="tabpanel-themes"
             onClick={() => {
-              navigate(`/orgs/${orgID}/quotes`);
+              navigate(`/orgs/${orgID}/themes`);
             }}
           />
           <Tab
-            label="Interviews"
-            id="interviews"
-            aria-controls="tabpanel-interviews"
+            label="Boards"
+            id="boards"
+            aria-controls="tabpanel-boards"
             onClick={() => {
-              navigate(`/orgs/${orgID}/interviews`);
-            }}
-          />
-          <Tab
-            label="Guides"
-            id="guides"
-            aria-controls="tabpanel-guides"
-            onClick={() => {
-              navigate(`/orgs/${orgID}/guides`);
+              navigate(`/orgs/${orgID}/boards`);
             }}
           />
         </Tabs>

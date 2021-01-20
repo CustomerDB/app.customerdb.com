@@ -35,7 +35,11 @@ export default function Sidepane({ title, open, setOpen, width, children }) {
       >
         <Grid container item alignItems="center" style={{ padding: "2rem" }}>
           <Grid container item xs={10}>
-            <Typography variant="h6" style={{ fontWeight: "bold" }}>
+            <Typography
+              variant="subtitle1"
+              style={{ fontWeight: "bold" }}
+              gutterBottom
+            >
               {title}
             </Typography>
           </Grid>

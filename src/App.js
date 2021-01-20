@@ -39,6 +39,24 @@ export default function App() {
         main: "#ff5252",
       },
     },
+    overrides: {
+      MuiButton: {
+        root: {
+          borderRadius: "0.5rem",
+          textTransform: "none",
+          fontWeight: "bold",
+        },
+      },
+      MuiTab: {
+        root: {
+          textTransform: "none",
+          fontWeight: "bold",
+        },
+        selected: {
+          color: "#ff5252",
+        },
+      },
+    },
   });
 
   return (

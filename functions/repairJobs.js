@@ -37,21 +37,21 @@ exports.reThumbnailEverything = functions.pubsub
       });
   });
 
+const reindexAllInSnapshot = (snapshot) => {
+  return Promise.all(
+    snapshot.docs.map((doc) =>
+      doc.ref.update({
+        indexRequestedTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+      })
+    )
+  );
+};
+
 exports.reIndexAllHighlights = functions.pubsub
   .topic("reindex-all-highlights")
   .onPublish((message) => {
     // Search for highlights and update the indexRequestedTimestamp.
     const db = admin.firestore();
-
-    const reindexAllInSnapshot = (snapshot) => {
-      return Promise.all(
-        snapshot.docs.map((doc) =>
-          doc.ref.update({
-            indexRequestedTimestamp: admin.firestore.FieldValue.serverTimestamp(),
-          })
-        )
-      );
-    };
 
     let highlightsPromise = db
       .collectionGroup("highlights")
@@ -64,6 +64,14 @@ exports.reIndexAllHighlights = functions.pubsub
       .then(reindexAllInSnapshot);
 
     return Promise.all([highlightsPromise, transcriptHighlightsPromise]);
+  });
+
+exports.reIndexAllThemes = functions.pubsub
+  .topic("reindex-all-themes")
+  .onPublish((message) => {
+    // Search for themes and update the indexRequestedTimestamp.
+    const db = admin.firestore();
+    return db.collectionGroup("themes").get().then(reindexAllInSnapshot);
   });
 
 exports.rewriteOauthClaims = functions
@@ -217,72 +225,6 @@ exports.tagRepair = functions.pubsub
       });
   });
 
-// Remove deleted documents from analysis
-exports.repairAnalysis = functions.pubsub
-  .schedule("every 5 minutes")
-  .onRun((context) => {
-    const db = admin.firestore();
-
-    return db
-      .collection("organizations")
-      .get()
-      .then((snapshot) =>
-        Promise.all(
-          snapshot.docs.map((doc) => {
-            let orgID = doc.id;
-            let orgRef = db.collection("organizations").doc(orgID);
-            let analysesRef = orgRef.collection("analyses");
-            let documentsRef = orgRef.collection("documents");
-
-            return analysesRef
-              .where("deletionTimestamp", "==", "")
-              .get()
-              .then((snapshot) =>
-                Promise.all(
-                  snapshot.docs.map((doc) => {
-                    let analysisRef = doc.ref;
-                    let analysis = doc.data();
-
-                    if (
-                      !analysis.documentIDs ||
-                      analysis.documentIDs.length === 0
-                    ) {
-                      return;
-                    }
-
-                    let analysisDocsRef = documentsRef.where(
-                      "ID",
-                      "in",
-                      analysis.documentIDs
-                    );
-
-                    return analysisDocsRef.get().then((snapshot) => {
-                      let needsUpdate = false;
-                      let newDocumentIDs = [];
-
-                      snapshot.docs.forEach((doc) => {
-                        let document = doc.data();
-                        if (document.deletionTimestamp !== "") {
-                          needsUpdate = true;
-                          return;
-                        }
-                        newDocumentIDs.push(doc.id);
-                      });
-
-                      if (needsUpdate) {
-                        return analysisRef.update({
-                          documentIDs: newDocumentIDs,
-                        });
-                      }
-                    });
-                  })
-                )
-              );
-          })
-        )
-      );
-  });
-
 exports.highlightRepair = functions.pubsub
   .schedule("every 4 hours")
   .onRun((context) => {
@@ -371,6 +313,144 @@ exports.repairOrgs = functions.pubsub
             orgDoc.ref.update({
               ready: true,
             })
+          )
+        )
+      );
+  });
+
+exports.migrateAnalysis = functions.pubsub
+  .topic("migrate-analyses")
+  .onPublish((message) => {
+    let db = admin.firestore();
+    return db
+      .collection("organizations")
+      .get()
+      .then((snapshot) =>
+        Promise.all(
+          snapshot.docs.map((orgDoc) =>
+            orgDoc.ref
+              .collection("analyses")
+              .get()
+              .then((snapshot) =>
+                Promise.all(
+                  snapshot.docs.map((analysisDoc) => {
+                    let analysis = analysisDoc.data();
+                    let boardRef = orgDoc.ref
+                      .collection("boards")
+                      .doc(analysisDoc.id);
+
+                    let cardMembership = {};
+
+                    // Create board document.
+                    return boardRef.set(analysis).then(() => {
+                      // Find card membership and repair.
+                      let cardPromise = Promise.resolve();
+                      cardPromise = analysisDoc.ref
+                        .collection("cards")
+                        .get()
+                        .then((snapshot) =>
+                          Promise.all(
+                            snapshot.docs.map((cardDoc) => {
+                              let card = cardDoc.data();
+
+                              if (card.groupID) {
+                                card.themeID = card.groupID;
+
+                                if (!(card.themeID in cardMembership)) {
+                                  cardMembership[card.themeID] = [];
+                                }
+
+                                cardMembership[card.themeID].push(cardDoc.id);
+                              }
+
+                              if (card.groupColor) {
+                                card.themeColor = card.groupColor;
+                              }
+
+                              if (!card.documentID) {
+                                console.warn(
+                                  `Card ${card.id} in analysis ${analysisDoc.id} in org ${orgDoc.id} does not have a document ID: ${card}`
+                                );
+                                return;
+                              }
+
+                              // Try to fetch highlightHitCache document.
+                              let highlightRef = orgDoc.ref
+                                .collection("documents")
+                                .doc(card.documentID)
+                                .collection(
+                                  card.source === "transcript"
+                                    ? "transcriptHighlights"
+                                    : "highlights"
+                                )
+                                .doc(cardDoc.id);
+                              let cacheRef = highlightRef
+                                .collection("cache")
+                                .doc("hit");
+                              return cacheRef.get().then((cacheDoc) => {
+                                if (cacheDoc.exists) {
+                                  card.highlightHitCache = cacheDoc.data();
+                                }
+
+                                return boardRef
+                                  .collection("cards")
+                                  .doc(cardDoc.id)
+                                  .set(card);
+                              });
+                            })
+                          )
+                        );
+
+                      return cardPromise.then(
+                        analysisDoc.ref
+                          .collection("groups")
+                          .get()
+                          .then((snapshot) =>
+                            Promise.all(
+                              snapshot.docs.map((groupDoc) => {
+                                // Migrate groups to themes
+                                let theme = groupDoc.data();
+                                let themeRef = boardRef
+                                  .collection("themes")
+                                  .doc(groupDoc.id);
+
+                                theme.creationTimestamp = admin.firestore.FieldValue.serverTimestamp();
+                                theme.lastUpdateTimestamp = admin.firestore.FieldValue.serverTimestamp();
+                                theme.indexRequestedTimestamp = admin.firestore.FieldValue.serverTimestamp();
+                                theme.lastIndexTimestamp = new admin.firestore.Timestamp(
+                                  0,
+                                  0
+                                );
+
+                                return themeRef.set(theme).then(() => {
+                                  // Create card ids collection.
+                                  if (groupDoc.id in cardMembership) {
+                                    let cardIDs = cardMembership[groupDoc.id];
+                                    let deleteGroupCardPromise = themeRef
+                                      .collection("cardIDs")
+                                      .doc(groupDoc.id)
+                                      .delete();
+
+                                    return deleteGroupCardPromise.then(() =>
+                                      Promise.all(
+                                        cardIDs.map((cardID) =>
+                                          themeRef
+                                            .collection("cardIDs")
+                                            .doc(cardID)
+                                            .set({ ID: cardID })
+                                        )
+                                      )
+                                    );
+                                  }
+                                });
+                              })
+                            )
+                          )
+                      );
+                    });
+                  })
+                )
+              )
           )
         )
       );

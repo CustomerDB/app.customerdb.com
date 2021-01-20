@@ -1,27 +1,27 @@
 import React, { useEffect, useState } from "react";
 
 import ReactDOM from "react-dom";
-import QuotePreview from "../../quotes/QuotePreview.js";
+import ThemePreview from "../../themes/ThemePreview.js";
 
-export default function QuoteContents({ quillContainerRef }) {
-  const [quoteNodes, setQuoteNodes] = useState([]);
+export default function ThemeContents({ quillContainerRef }) {
+  const [themeNodes, setThemeNodes] = useState([]);
 
   useEffect(() => {
     const refreshNodes = () => {
       if (!quillContainerRef.current) return;
 
       let nodes = quillContainerRef.current.getElementsByClassName(
-        "direct-quote"
+        "embed-theme"
       );
 
-      let newQuoteNodes = [];
+      let newThemeNodes = [];
       for (let i = 0; i < nodes.length; i++) {
         let node = nodes[i];
-        if (node.dataset.highlightID) {
-          newQuoteNodes.push(node);
+        if (node.dataset.boardID && node.dataset.themeID) {
+          newThemeNodes.push(node);
         }
       }
-      setQuoteNodes(newQuoteNodes);
+      setThemeNodes(newThemeNodes);
     };
     let interval = setInterval(refreshNodes, 1000);
     return () => {
@@ -29,11 +29,12 @@ export default function QuoteContents({ quillContainerRef }) {
     };
   }, [quillContainerRef]);
 
-  return quoteNodes.map((qn) =>
+  return themeNodes.map((qn) =>
     ReactDOM.createPortal(
-      <QuotePreview
+      <ThemePreview
         key={qn.dataset.highlightID}
-        highlightID={qn.dataset.highlightID}
+        boardID={qn.dataset.boardID}
+        themeID={qn.dataset.themeID}
       />,
       qn
     )

@@ -8,7 +8,7 @@ import DocumentFromGuideModal from "./DocumentFromGuideModal.js";
 import FirebaseContext from "../util/FirebaseContext.js";
 import Grid from "@material-ui/core/Grid";
 import Hidden from "@material-ui/core/Hidden";
-import InterviewsHelp from "./InterviewsHelp.js";
+import EmptyStateHelp from "../util/EmptyStateHelp.js";
 import List from "@material-ui/core/List";
 import ListContainer from "../shell/ListContainer";
 import ListItem from "@material-ui/core/ListItem";
@@ -30,7 +30,7 @@ import { v4 as uuidv4 } from "uuid";
 
 export default function InterviewList({ create, fromGuide }) {
   const [addModalShow, setAddModalShow] = useState(false);
-  const [documents, setDocuments] = useState([]);
+  const [documents, setDocuments] = useState();
   const [showResults, setShowResults] = useState();
 
   const { defaultTagGroupID } = useOrganization();
@@ -193,6 +193,10 @@ export default function InterviewList({ create, fromGuide }) {
     );
   };
 
+  if (!documents) {
+    return <></>;
+  }
+
   let documentItems = documents.map((doc) =>
     dataListItem(
       doc.ID,
@@ -221,6 +225,17 @@ export default function InterviewList({ create, fromGuide }) {
     });
   });
 
+  if (documentItems.length === 0) {
+    return (
+      <EmptyStateHelp
+        title="Get started by adding an interview"
+        description="Interviews are where it all begins. Add notes and transcripts from your customer conversations here and start creating customer quotes."
+        buttonText="Create interview"
+        path={`/orgs/${orgID}/interviews/create`}
+      />
+    );
+  }
+
   let list = (
     <ListContainer>
       <Scrollable>
@@ -228,7 +243,7 @@ export default function InterviewList({ create, fromGuide }) {
           <SearchResults />
         ) : (
           <List style={{ paddingLeft: "1rem", paddingRight: "1rem" }}>
-            {documentItems.length > 0 ? documentItems : <InterviewsHelp />}
+            {documentItems}
           </List>
         )}
       </Scrollable>

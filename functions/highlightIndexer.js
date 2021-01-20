@@ -53,6 +53,7 @@ function indexHighlight(source, orgID, highlightID, highlightRef) {
     console.debug(
       "document for highlight does not exist; deleting highlight from index"
     );
+
     // Delete highlight from index;
     index.deleteObject(highlightID);
     return;
@@ -197,6 +198,7 @@ function indexHighlight(source, orgID, highlightID, highlightRef) {
               text: highlight.text,
               startIndex: highlight.selection.index,
               endIndex: highlight.selection.index + highlight.selection.length,
+              tagGroupID: document.tagGroupID,
               tagID: highlight.tagID,
               createdBy: highlight.createdBy,
               creationTimestamp: highlight.creationTimestamp.seconds,
@@ -207,10 +209,10 @@ function indexHighlight(source, orgID, highlightID, highlightRef) {
             let highlightTime = Promise.resolve();
 
             if (person) {
-              highlightToIndex.personName = person.name;
-              highlightToIndex.personCompany = person.company;
-              highlightToIndex.personImageURL = person.imageURL;
-              highlightToIndex.personJob = person.job;
+              highlightToIndex.personName = person.name || "";
+              highlightToIndex.personCompany = person.company || "";
+              highlightToIndex.personImageURL = person.imageURL || "";
+              highlightToIndex.personJob = person.job || "";
             }
 
             if (transcription && transcription.inputPath) {
@@ -298,8 +300,8 @@ function indexHighlight(source, orgID, highlightID, highlightRef) {
                 // Attach time codes into highlightToIndex.
                 return highlightTime.then((time) => {
                   if (time) {
-                    highlightToIndex.startTime = time.startTime;
-                    highlightToIndex.endTime = time.endTime;
+                    highlightToIndex.startTime = time.startTime || 0;
+                    highlightToIndex.endTime = time.endTime || 0;
 
                     if (transcription && transcription.thumbnailToken) {
                       // Calculate sequence number from start time.
@@ -344,6 +346,14 @@ function indexHighlight(source, orgID, highlightID, highlightRef) {
   });
 }
 
+function cleanupHighlightCache(before) {
+  // Highlight was deleted and may have a collection of cache objects to clean up.
+  return before.ref
+    .collection("cache")
+    .get()
+    .then((snapshot) => snapshot.docs.map((doc) => doc.ref.delete()));
+}
+
 exports.onHighlightWritten = functions.firestore
   .document(
     "organizations/{orgID}/documents/{documentID}/highlights/{highlightID}"
@@ -352,7 +362,15 @@ exports.onHighlightWritten = functions.firestore
     const orgID = context.params.orgID;
     const highlightID = context.params.highlightID;
 
-    return indexHighlight("notes", orgID, highlightID, change.after);
+    let indexPromise =
+      indexHighlight("notes", orgID, highlightID, change.after) ||
+      Promise.resolve();
+
+    return indexPromise.then(() => {
+      if (!change.after.exists) {
+        return cleanupHighlightCache(change.before);
+      }
+    });
   });
 
 exports.onTranscriptHighlightWritten = functions.firestore
@@ -363,7 +381,15 @@ exports.onTranscriptHighlightWritten = functions.firestore
     const orgID = context.params.orgID;
     const highlightID = context.params.highlightID;
 
-    return indexHighlight("transcript", orgID, highlightID, change.after);
+    let indexPromise =
+      indexHighlight("transcript", orgID, highlightID, change.after) ||
+      Promise.resolve();
+
+    return indexPromise.then(() => {
+      if (!change.after.exists) {
+        return cleanupHighlightCache(change.before);
+      }
+    });
   });
 
 // Mark highlights with edits more recent than the last indexing operation
@@ -444,7 +470,7 @@ exports.markHighlightsForIndexing = functions.pubsub
   });
 
 // Update highlights if an interview's personID changes.
-exports.updateHighlightPeopleForDocument = functions.firestore
+exports.updateHighlightForDocument = functions.firestore
   .document("organizations/{orgID}/documents/{documentID}")
   .onUpdate((change) => {
     let documentRef = change.after.ref;
@@ -453,35 +479,70 @@ exports.updateHighlightPeopleForDocument = functions.firestore
       "transcriptHighlights"
     );
 
-    let before = change.before.data();
-    let after = change.after.data();
-
-    if (before.personID !== after.personID) {
-      let newPersonID = after.personID || "";
+    const requestUpdate = (newFields) => {
+      let highlightUpdate = Object.assign(
+        {
+          lastUpdateTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+        },
+        newFields || {}
+      );
 
       return highlightsRef
         .get()
         .then((snapshot) =>
           Promise.all(
-            snapshot.docs.map((doc) =>
-              doc.ref.update({
-                personID: newPersonID,
-                lastUpdateTimestamp: admin.firestore.FieldValue.serverTimestamp(),
-              })
-            )
+            snapshot.docs.map((doc) => doc.ref.update(highlightUpdate))
           )
         )
         .then(() =>
-          transcriptHighlightsRef.get().then((snapshot) =>
-            Promise.all(
-              snapshot.docs.map((doc) =>
-                doc.ref.update({
-                  personID: newPersonID,
-                  lastUpdateTimestamp: admin.firestore.FieldValue.serverTimestamp(),
-                })
+          transcriptHighlightsRef
+            .get()
+            .then((snapshot) =>
+              Promise.all(
+                snapshot.docs.map((doc) => doc.ref.update(highlightUpdate))
               )
             )
-          )
         );
+    };
+
+    let before = change.before.data();
+    let after = change.after.data();
+
+    if (!client) {
+      console.warn("Algolia client not available; skipping index operation");
+      return;
+    }
+    const index = client.initIndex(ALGOLIA_HIGHLIGHTS_INDEX_NAME);
+
+    if (before.deletionTimestamp === "" && after.deletionTimestamp !== "") {
+      // Delete index object for highlights.
+      return highlightsRef
+        .get()
+        .then((snapshot) =>
+          Promise.all(snapshot.docs.map((doc) => index.deleteObject(doc.id)))
+        )
+        .then(() =>
+          transcriptHighlightsRef
+            .get()
+            .then((snapshot) =>
+              Promise.all(
+                snapshot.docs.map((doc) => index.deleteObject(doc.id))
+              )
+            )
+        );
+    }
+
+    if (before.deletionTimestamp !== "" && after.deletionTimestamp === "") {
+      // Request update as we need new index objects.
+      return requestUpdate();
+    }
+
+    if (before.name !== after.name) {
+      return requestUpdate();
+    }
+
+    if (before.personID !== after.personID) {
+      let newPersonID = after.personID || "";
+      return requestUpdate({ personID: newPersonID });
     }
   });

@@ -303,8 +303,8 @@ service cloud.firestore {
                    && activeOrgMember(orgID);
     }
 
-    // Active non-admin users can write **ANALYSES** in the org.
-    match /organizations/{orgID}/analyses/{document=**} {
+    // Active non-admin users can write **BOARDS** in the org.
+    match /organizations/{orgID}/boards/{document=**} {
       allow write: if signedInAndVerified()
                    && activeOrgMember(orgID);
     }

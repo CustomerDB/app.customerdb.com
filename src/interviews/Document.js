@@ -32,7 +32,7 @@ import Transcript from "./transcript/Transcript.js";
 import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
 import useFirestore from "../db/Firestore.js";
-import { Tooltip } from "@material-ui/core";
+import Tooltip from "@material-ui/core/Tooltip";
 import domToPdf from "dom-to-pdf";
 
 const useStyles = makeStyles({
@@ -369,18 +369,18 @@ export default function Document(props) {
                     value={selectedTab}
                     onChange={handleTabChange}
                     indicatorColor="secondary"
-                    textColor="primary"
+                    textColor="secondary"
                     variant="fullWidth"
                     aria-label="full width"
                     className={`${classes.tabs} noPrint`}
                   >
                     <Tab
-                      label="transcript"
+                      label="Transcript"
                       id="transcript"
                       aria-controls="tabpanel-transcript"
                     />
                     <Tab
-                      label="notes"
+                      label="Notes"
                       id="notes"
                       aria-controls="tabpanel-notes"
                     />

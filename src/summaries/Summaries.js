@@ -20,6 +20,7 @@ import Moment from "react-moment";
 import short from "short-uuid";
 import { initialDelta } from "../editor/delta.js";
 import { useNavigate, useParams } from "react-router-dom";
+import EmptyStateHelp from "../util/EmptyStateHelp.js";
 
 export default function Summaries({ create }) {
   // hooks
@@ -30,7 +31,7 @@ export default function Summaries({ create }) {
   const { orgID } = useParams();
 
   // state
-  const [summaries, setSummaries] = useState([]);
+  const [summaries, setSummaries] = useState();
 
   // subscribe to summaries collection
   useEffect(() => {
@@ -115,6 +116,21 @@ export default function Summaries({ create }) {
         navigate(`/orgs/${orgID}/summaries/${summaryID}`);
       });
   }, [create, summariesRef, firebase, navigate, oauthClaims, orgID]);
+
+  if (!summaries) {
+    return <></>;
+  }
+
+  if (summaries.length === 0) {
+    return (
+      <EmptyStateHelp
+        title="Summarize and share"
+        description="Drag and drop customer quotes and themes to help make your point."
+        buttonText="Create summary"
+        path={`/orgs/${orgID}/summaries/create`}
+      />
+    );
+  }
 
   const listItems = summaries.map((s) =>
     listItem(s.ID, s.name, s.creationTimestamp && s.creationTimestamp.toDate())
