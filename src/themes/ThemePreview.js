@@ -48,7 +48,7 @@ export default function ThemePreview({ boardID, themeID, hideNotFound }) {
           backgroundColor: "#fafafa",
         }}
       >
-        <CircularProgress color="secondary" />
+        <CircularProgress/>
       </Card>
     );
   }
