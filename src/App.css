@@ -224,6 +224,10 @@ button.addButton {
   top: 10rem;
 }
 
+#quill-summary-editor > .ql-toolbar {
+  top: 6rem;
+}
+
 .guideQuill .ql-toolbar {
   position: sticky;
   top: 0;
