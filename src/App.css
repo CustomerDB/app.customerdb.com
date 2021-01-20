@@ -133,7 +133,8 @@ div.listTitleButtonContainer {
   text-align: right;
 }
 
-.MuiTabs-root button:focus {
+.MuiTabs-root button:focus,
+button.MuiButtonBase-root:focus {
   outline: 0;
 }
 
@@ -222,6 +223,10 @@ button.addButton {
 #quill-notes-editor > .ql-toolbar,
 #quill-transcript-editor > .ql-toolbar {
   top: 10rem;
+}
+
+#quill-summary-editor > .ql-toolbar {
+  top: 6rem;
 }
 
 .guideQuill .ql-toolbar {

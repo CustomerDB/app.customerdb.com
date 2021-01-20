@@ -95,8 +95,6 @@ function InfiniteHits(props) {
 }
 
 const CustomSearchBox = ({ currentRefinement, refine }) => {
-  console.debug("search box render", currentRefinement);
-
   return (
     <Grid
       container
@@ -110,14 +108,13 @@ const CustomSearchBox = ({ currentRefinement, refine }) => {
       }}
     >
       <TextField
-        placeholder="Search evidence to include..."
+        placeholder="Search..."
         value={currentRefinement}
         onChange={(e) => {
-          console.debug("search onChange", e, e.currentTarget.value);
           refine(e.currentTarget.value);
         }}
-        variant="outlined"
         InputProps={{
+          disableUnderline: true,
           startAdornment: (
             <InputAdornment position="start">
               <SearchIcon />
@@ -126,7 +123,6 @@ const CustomSearchBox = ({ currentRefinement, refine }) => {
         }}
         style={{
           width: "100%",
-          borderRadius: "0.5rem",
           margin: "0.5rem",
         }}
       />
@@ -169,7 +165,7 @@ export default function SummarySidebar({ reactQuillRef }) {
   const searchClient = useSearchClient();
 
   if (!searchClient) {
-    console.error("search client not available");
+    console.debug("search client not available");
     return <Loading />;
   }
   if (!process.env.REACT_APP_ALGOLIA_HIGHLIGHTS_INDEX) {
@@ -182,8 +178,7 @@ export default function SummarySidebar({ reactQuillRef }) {
       id="summarySidebarContainer"
       container
       item
-      md={4}
-      xl={3}
+      xs={11}
       direction="column"
       spacing={0}
     >
@@ -195,7 +190,12 @@ export default function SummarySidebar({ reactQuillRef }) {
           zIndex: 2,
         }}
       >
-        <Scrollable id="summary-sidebar-scroll">
+        <Scrollable
+          id="summary-sidebar-scroll"
+          style={{
+            background: "#fafafa",
+          }}
+        >
           <InstantSearch
             searchClient={searchClient}
             indexName={process.env.REACT_APP_ALGOLIA_HIGHLIGHTS_INDEX}

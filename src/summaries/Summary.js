@@ -24,6 +24,9 @@ import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
 import useFirestore from "../db/Firestore.js";
 import domToPdf from "dom-to-pdf";
+import Sidepane from "../shell/Sidepane.js";
+import BubbleChartIcon from "@material-ui/icons/BubbleChart";
+import Button from "@material-ui/core/Button";
 
 const useStyles = makeStyles({
   summaryPaper: {
@@ -32,7 +35,6 @@ const useStyles = makeStyles({
     minHeight: "48rem",
     width: "100%",
     maxWidth: "80rem",
-    borderRight: "1px solid rgba(0, 0, 0, 0.12)",
     backgroundColor: "#fff",
   },
   tabsContainer: {
@@ -41,6 +43,8 @@ const useStyles = makeStyles({
     height: "6rem",
     width: "100%",
     overflow: "hidden",
+    zIndex: 5,
+    background: "#fff",
   },
   detailsParagraph: {
     marginBottom: "0.35rem",
@@ -56,6 +60,7 @@ export default function Summary(props) {
 
   // state
   const [summary, setSummary] = useState();
+  const [sidepaneOpen, setSidepaneOpen] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
 
@@ -139,9 +144,6 @@ export default function Summary(props) {
           }}
           container
           item
-          sm={12}
-          md={8}
-          xl={9}
         >
           <Scrollable id="editorScrollContainer">
             <Grid container item spacing={0} xs={12} style={{ height: "100%" }}>
@@ -202,6 +204,14 @@ export default function Summary(props) {
                       justify="flex-end"
                     >
                       <>
+                        <Button
+                          startIcon={<BubbleChartIcon />}
+                          onClick={() => {
+                            setSidepaneOpen(true);
+                          }}
+                        >
+                          Embed quotes and themes
+                        </Button>
                         <IconButton
                           id="summary-options"
                           edge="end"
@@ -265,9 +275,13 @@ export default function Summary(props) {
           </Scrollable>
         </Grid>
 
-        <Hidden smDown>
+        <Sidepane
+          title="Quotes and themes"
+          open={sidepaneOpen}
+          setOpen={setSidepaneOpen}
+        >
           <SummarySidebar reactQuillRef={reactQuillSummaryRef} />
-        </Hidden>
+        </Sidepane>
 
         <SummaryDeleteDialog
           open={openDeleteDialog}
