@@ -3,6 +3,7 @@ import React, { useContext, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import Avatar from "react-avatar";
 import Card from "@material-ui/core/Card";
+import Grid from "@material-ui/core/Grid";
 import CardContent from "@material-ui/core/CardContent";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import Chip from "@material-ui/core/Chip";
@@ -114,16 +115,17 @@ export default function QuotePreview({ highlightID, hideNotFound }) {
 
   if (!highlight || !highlightCache)
     return (
-      <Card
+      <Grid container
         key={highlightID}
         style={{
           width: "100%",
           margin: "0.5rem",
           borderRadius: "0.5rem",
         }}
+        justify="center"
       >
-        <CircularProgress color="secondary" />
-      </Card>
+        <CircularProgress />
+      </Grid>
     );
 
   let contextPrefix, contextSuffix;
