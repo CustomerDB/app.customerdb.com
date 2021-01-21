@@ -282,21 +282,23 @@ export default function Document(props) {
                   >
                     <>
                       <Tooltip title="Suggest highlights">
-                        <IconButton
-                          disabled={!hasSuggestions}
-                          onClick={() => {
-                            setAnchorEl(null);
-                            setSuggestionsOpen(true);
-                          }}
-                        >
-                          <FlashOnRoundedIcon
-                            style={
-                              hasSuggestions
-                                ? { color: "#fcba03" }
-                                : { color: "grey" }
-                            }
-                          />
-                        </IconButton>
+                        <span>
+                          <IconButton
+                            disabled={!hasSuggestions}
+                            onClick={() => {
+                              setAnchorEl(null);
+                              setSuggestionsOpen(true);
+                            }}
+                          >
+                            <FlashOnRoundedIcon
+                              style={
+                                hasSuggestions
+                                  ? { color: "#fcba03" }
+                                  : { color: "grey" }
+                              }
+                            />
+                          </IconButton>
+                        </span>
                       </Tooltip>
                       <IconButton
                         id="document-options"
