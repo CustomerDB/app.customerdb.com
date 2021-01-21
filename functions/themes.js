@@ -17,7 +17,7 @@ if (ALGOLIA_ID && ALGOLIA_ADMIN_KEY) {
   client = algoliasearch(ALGOLIA_ID, ALGOLIA_ADMIN_KEY);
 }
 
-function newCard(ID, highlight, cache, source) {
+function newCard(ID, tagID, documentID, cache, source) {
   const CANVAS_WIDTH = 12000;
   const CANVAS_HEIGHT = 8000;
   const VIEWPORT_WIDTH = 1500;
@@ -47,8 +47,8 @@ function newCard(ID, highlight, cache, source) {
     maxX: maxX,
     maxY: maxY,
     kind: "card",
-    tagID: highlight.tagID,
-    documentID: highlight.documentID,
+    tagID: tagID,
+    documentID: documentID,
     themeColor: "#000",
     textColor: "#FFF",
     source: source,
@@ -122,7 +122,13 @@ exports.cardsInBoard = functions.firestore
             return cardRef.get().then((cardDoc) => {
               if (!cardDoc.exists) {
                 return cardRef.set(
-                  newCard(highlightDoc.id, data, cache, source)
+                  newCard(
+                    highlightDoc.id,
+                    data.tagID,
+                    data.documentID,
+                    cache,
+                    source
+                  )
                 );
               }
             });
@@ -208,9 +214,9 @@ function highlightCreate(highlightDoc, context, source) {
           let cardRef = cardsRef.doc(highlightID);
 
           console.debug(`Adding highlight ${highlightID} to board ${doc.id}`);
-
+          let data = highlightDoc.data();
           return cardRef.set(
-            newCard(highlightID, highlightDoc.data(), undefined, source)
+            newCard(highlightID, data.tagID, data.documentID, undefined, source)
           );
         }
       })
@@ -305,7 +311,13 @@ function highlightCacheUpdates(change, context, source) {
               let card;
               if (!doc.exists && change.after.exists) {
                 let cache = change.after.data();
-                card = newCard(highlightID, cache, source);
+                card = newCard(
+                  highlightID,
+                  cache.tagID,
+                  cache.documentID,
+                  cache,
+                  source
+                );
                 card.highlightHitCache = cache;
               }
 
@@ -318,6 +330,10 @@ function highlightCacheUpdates(change, context, source) {
               if (doc.exists && !change.after.exists) {
                 card = doc.data();
                 delete card["highlightHitCache"];
+              }
+
+              if (!card) {
+                return;
               }
 
               return boardRef.collection("cards").doc(highlightID).set(card);
