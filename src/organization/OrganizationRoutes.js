@@ -1,12 +1,10 @@
 import { Navigate, Outlet, Route, Routes } from "react-router-dom";
 
 import React from "react";
-import Themes from "../themes/Themes.js";
 import Boards from "../themes/Boards.js";
 import ThemeList from "../themes/ThemeList.js";
 import Guides from "../guides/Guides.js";
 import InterviewList from "../interviews/InterviewList.js";
-import Interviews from "../interviews/Interviews.js";
 import People from "../people/People.js";
 import Quotes from "../quotes/Quotes.js";
 import Summaries from "../summaries/Summaries.js";
@@ -32,7 +30,7 @@ export default function OrganizationRoutes(props) {
           <Route path="/" element={<InterviewList />} />
           <Route path="create" element={<InterviewList create />} />
           <Route path="guide" element={<InterviewList create fromGuide />} />
-          <Route path=":documentID" element={<InterviewList />} />
+          <Route path=":documentID" element={<Navigate to="transcript" />} />
           <Route path=":documentID/:tabID" element={<InterviewList />} />
         </Route>
 
