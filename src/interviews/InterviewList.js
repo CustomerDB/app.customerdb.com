@@ -27,8 +27,9 @@ import short from "short-uuid";
 import useFirestore from "../db/Firestore.js";
 import { useOrganization } from "../organization/hooks.js";
 import { v4 as uuidv4 } from "uuid";
+import Interviews from "../interviews/Interviews";
 
-export default function InterviewList({ create, fromGuide }) {
+function InterviewList({ create, fromGuide }) {
   const [addModalShow, setAddModalShow] = useState(false);
   const [documents, setDocuments] = useState();
   const [showResults, setShowResults] = useState();
@@ -295,5 +296,13 @@ export default function InterviewList({ create, fromGuide }) {
         {guideModal}
       </Grid>
     </Search>
+  );
+}
+
+export default function WrappedQuotes(props) {
+  return (
+    <Interviews>
+      <InterviewList {...props} />
+    </Interviews>
   );
 }

@@ -11,6 +11,7 @@ import { Search } from "../shell/Search.js";
 import { useNavigate, useParams } from "react-router-dom";
 import QuotePreview from "../quotes/QuotePreview.js";
 import EmptyStateHelp from "../util/EmptyStateHelp.js";
+import Themes from "./Themes";
 
 function ThemeHit({ hit }) {
   const navigate = useNavigate();
@@ -124,7 +125,7 @@ function InfiniteHits({ reactQuillRef, hasMore, refine, hits }) {
 
 const SearchResults = connectInfiniteHits(InfiniteHits);
 
-export default function ThemeList() {
+function ThemeList() {
   let searchConfig;
   if (process.env.REACT_APP_ALGOLIA_THEMES_INDEX) {
     searchConfig = {
@@ -149,5 +150,13 @@ export default function ThemeList() {
         </Grid>
       </Search>
     </Grid>
+  );
+}
+
+export default function WrappedThemelist(props) {
+  return (
+    <Themes>
+      <ThemeList {...props} />
+    </Themes>
   );
 }

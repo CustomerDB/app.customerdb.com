@@ -13,6 +13,7 @@ import { useSearchClient } from "../search/client.js";
 import { Loading } from "../util/Utils.js";
 import EmptyStateHelp from "../util/EmptyStateHelp.js";
 import { useParams } from "react-router-dom";
+import Interviews from "../interviews/Interviews";
 
 function InfiniteHits({ hasMore, refine, hits }) {
   const theme = useTheme();
@@ -96,7 +97,7 @@ function InfiniteHits({ hasMore, refine, hits }) {
   );
 }
 
-export default function Quotes(props) {
+function Quotes(props) {
   const searchClient = useSearchClient();
 
   if (!searchClient) {
@@ -134,5 +135,13 @@ export default function Quotes(props) {
         </Grid>
       </Grid>
     </Search>
+  );
+}
+
+export default function WrappedQuotes(props) {
+  return (
+    <Interviews>
+      <Quotes {...props} />
+    </Interviews>
   );
 }

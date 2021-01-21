@@ -28,49 +28,33 @@ export default function OrganizationRoutes(props) {
           <Route path=":personID/:tabID" element={<People />} />
         </Route>
 
-        <Interviews>
-          <Route path="interviews/*">
-            <Route path="/" element={<InterviewList />} />
-            <Route path="create" element={<InterviewList create />} />
-            <Route path="guide" element={<InterviewList create fromGuide />} />
-            <Route path=":documentID" element={<InterviewList />} />
-            <Route path=":documentID/:tabID" element={<InterviewList />} />
-          </Route>
-        </Interviews>
+        <Route path="interviews/*">
+          <Route path="/" element={<InterviewList />} />
+          <Route path="create" element={<InterviewList create />} />
+          <Route path="guide" element={<InterviewList create fromGuide />} />
+          <Route path=":documentID" element={<InterviewList />} />
+          <Route path=":documentID/:tabID" element={<InterviewList />} />
+        </Route>
 
-        <Interviews>
-          <Route path="quotes/*">
-            <Route path="/" element={<Quotes />} />
-          </Route>
-        </Interviews>
+        <Route path="quotes/*">
+          <Route path="/" element={<Quotes />} />
+        </Route>
 
-        <Interviews>
-          <Route path="guides/*">
-            <Route path="/" element={<Guides />} />
-            <Route path="create" element={<Guides create />} />
-            <Route path=":guideID" element={<Guides />} />
-          </Route>
-        </Interviews>
+        <Route path="guides/*">
+          <Route path="/" element={<Guides />} />
+          <Route path="create" element={<Guides create />} />
+          <Route path=":guideID" element={<Guides />} />
+        </Route>
 
-        <Themes>
-          <Route path="boards/*">
-            <Route path="/" element={<Boards />} />
-            <Route path="create" element={<Boards create />} />
-            <Route path=":boardID" element={<Boards />} />
-            <Route path=":boardID/download" element={<Boards download />} />
-          </Route>
-        </Themes>
+        <Route path="boards/*">
+          <Route path="/" element={<Boards />} />
+          <Route path="create" element={<Boards create />} />
+          <Route path=":boardID" element={<Boards />} />
+          <Route path=":boardID/download" element={<Boards download />} />
+        </Route>
 
-        <Themes>
-          <Route path="themes/*">
-            <Route path="/" element={<ThemeList />} />
-          </Route>
-        </Themes>
-
-        <Route path="summaries/*">
-          <Route path="/" element={<Summaries />} />
-          <Route path="create" element={<Summaries create />} />
-          <Route path=":summaryID" element={<Summary />} />
+        <Route path="themes/*">
+          <Route path="/" element={<ThemeList />} />
         </Route>
 
         <Route path="summaries/*">
