@@ -96,7 +96,9 @@ export default function Verify() {
             </Grid>
             <Grid container item>
               <Grid item className={classes.loginText}>
-                <h3>We need to verify your email</h3>
+                <h3>
+                  You are one step away from getting started with CustomerDB
+                </h3>
                 {!emailSent ? (
                   <>
                     <p>
@@ -114,7 +116,7 @@ export default function Verify() {
                         });
                       }}
                     >
-                      resend verification email
+                      Resend verification email
                     </Button>
                   </>
                 ) : (
