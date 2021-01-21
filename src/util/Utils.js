@@ -8,7 +8,7 @@ export function now() {
   return now.toISOString();
 }
 
-export function Loading({text}) {
+export function Loading({ text }) {
   return (
     <div className="outerContainer">
       <div className="spinnerContainer">
