@@ -235,14 +235,8 @@ exports.create = functions.firestore
       createMembersPromise,
       tagGroupPromise,
     ]).then(() => {
-      orgRef
-        .update({
-          ready: true,
-        })
-        .then(() =>
-          marketingWebhook.send({
-            text: `${adminEmail} created organization "${orgData.name}" with ${orgData.teamEmails.length} team members`,
-          })
-        );
+      orgRef.update({
+        ready: true,
+      });
     });
   });

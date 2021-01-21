@@ -17,3 +17,4 @@ exports.twilio = require("./twilio");
 exports.video = require("./video");
 exports.waitList = require("./waitlist");
 exports.themes = require("./themes");
+exports.slackHooks = require("./slackHooks");

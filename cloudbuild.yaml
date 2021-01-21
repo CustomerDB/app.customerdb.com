@@ -56,7 +56,7 @@ steps:
   id: deploy-functions-group-3
   waitFor:
   - deploy-functions-group-2
-  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=functions:transcript,functions:twilio,functions:video,functions:waitList,functions:themes']
+  args: ['/usr/bin/firebase.bash', 'deploy', '--project=$PROJECT_ID', '--force', '--only=functions:transcript,functions:twilio,functions:video,functions:waitList,functions:themes,functions:slackHooks']
 
 - name: 'gcr.io/$PROJECT_ID/firebase'
   id: deploy-hosting
