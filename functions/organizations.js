@@ -235,9 +235,8 @@ exports.create = functions.firestore
       createMembersPromise,
       tagGroupPromise,
     ]).then(() => {
-      orgRef
-        .update({
-          ready: true,
-        })
+      orgRef.update({
+        ready: true,
+      });
     });
   });

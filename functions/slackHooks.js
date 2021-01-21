@@ -14,10 +14,10 @@ exports.organizationCreated = functions.firestore
 
     return marketingWebhook.send({
       text: `${orgData.adminEmail} created organization "${orgData.name}" with ${orgData.teamEmails.length} team members`,
-    })
-  })
+    });
+  });
 
-exports.memberInvited = functions.firestore
+exports.memberEvents = functions.firestore
   .document("organizations/{orgID}/members/{email}")
   .onWrite((change, context) => {
     let orgID = context.params.orgID;
@@ -27,21 +27,27 @@ exports.memberInvited = functions.firestore
     let db = admin.firestore();
     let orgRef = db.collection("organizations").doc(orgID);
 
-    return orgRef.get().then(doc => {
+    return orgRef.get().then((doc) => {
       let orgData = doc.data();
       if (change.after.exists) {
         let member = change.after.data();
         if (!member.active && member.invited) {
           return marketingWebhook.send({
             text: `${email} invited to "${orgData.name}"`,
-          })
+          });
         }
-  
-        if (member.active && !member.invited) {
+
+        let activeBefore = true;
+        if (change.before.exists) {
+          let before = change.before.data();
+          activeBefore = before.active;
+        }
+
+        if (member.active && !activeBefore) {
           return marketingWebhook.send({
             text: `${email} joined "${orgData.name}"`,
-          })
+          });
         }
       }
-    })
-  })
+    });
+  });
