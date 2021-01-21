@@ -69,7 +69,7 @@ export default function Tags({ create }) {
     navigate(`/orgs/${orgID}/tags`);
   }, [create, tagGroupsRef, firebase, navigate, oauthClaims, orgID]);
 
-  if (!tagGroupsRef || !organization || !organization.defaultTagGroupID) {
+  if (!tagGroupsRef || !organization) {
     return <Loading />;
   }
 
