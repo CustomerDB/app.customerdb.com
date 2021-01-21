@@ -3,6 +3,14 @@ const functions = require("firebase-functions");
 const { v4: uuidv4 } = require("uuid");
 const fs = require("fs");
 
+const { IncomingWebhook } = require("@slack/webhook");
+
+const marketingURL = functions.config().slack
+  ? functions.config().slack.marketing_webhook_url
+  : undefined;
+const marketingWebhook = new IncomingWebhook(marketingURL);
+
+// TODO: Make this obsolete (by removing create button from admin panel).
 exports.createOrganization = functions.https.onCall((data, context) => {
   if (!context.auth) {
     throw new functions.https.HttpsError(
@@ -227,8 +235,14 @@ exports.create = functions.firestore
       createMembersPromise,
       tagGroupPromise,
     ]).then(() => {
-      orgRef.update({
-        ready: true,
-      });
+      orgRef
+        .update({
+          ready: true,
+        })
+        .then(() =>
+          marketingWebhook.send({
+            text: `${adminEmail} created organization "${orgData.name}" with ${orgData.teamEmails.length} team members`,
+          })
+        );
     });
   });

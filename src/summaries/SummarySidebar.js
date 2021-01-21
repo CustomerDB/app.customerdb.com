@@ -178,9 +178,8 @@ export default function SummarySidebar({ reactQuillRef }) {
       id="summarySidebarContainer"
       container
       item
-      xs={11}
-      direction="column"
       spacing={0}
+      style={{ flexGrow: 1 }}
     >
       <Grid
         container
