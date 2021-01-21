@@ -101,7 +101,7 @@ export default function Quotes(props) {
 
   if (!searchClient) {
     console.error("search client not available");
-    return <Loading />;
+    return <Loading text="Getting everything set up. One moment"/>;
   }
   if (!process.env.REACT_APP_ALGOLIA_HIGHLIGHTS_INDEX) {
     console.error("highlights index not set");

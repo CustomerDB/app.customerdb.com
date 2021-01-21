@@ -8,11 +8,12 @@ export function now() {
   return now.toISOString();
 }
 
-export function Loading() {
+export function Loading({text}) {
   return (
     <div className="outerContainer">
       <div className="spinnerContainer">
         <CircularProgress color="primary" />
+        <p>{text}</p>
       </div>
     </div>
   );
