@@ -239,10 +239,5 @@ exports.create = functions.firestore
         .update({
           ready: true,
         })
-        .then(() =>
-          marketingWebhook.send({
-            text: `${adminEmail} created organization "${orgData.name}" with ${orgData.teamEmails.length} team members`,
-          })
-        );
     });
   });
