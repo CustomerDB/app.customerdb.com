@@ -7,7 +7,6 @@ import Avatar from "react-avatar";
 import Tooltip from "@material-ui/core/Tooltip";
 import { useOrgTags } from "../organization/hooks";
 import { useParams, Link } from "react-router-dom";
-import LinearProgress from "@material-ui/core/LinearProgress";
 
 export default function Card({
   cardRef,
