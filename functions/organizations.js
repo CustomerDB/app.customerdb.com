@@ -3,13 +3,6 @@ const functions = require("firebase-functions");
 const { v4: uuidv4 } = require("uuid");
 const fs = require("fs");
 
-const { IncomingWebhook } = require("@slack/webhook");
-
-const marketingURL = functions.config().slack
-  ? functions.config().slack.marketing_webhook_url
-  : undefined;
-const marketingWebhook = new IncomingWebhook(marketingURL);
-
 // TODO: Make this obsolete (by removing create button from admin panel).
 exports.createOrganization = functions.https.onCall((data, context) => {
   if (!context.auth) {
