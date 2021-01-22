@@ -229,6 +229,11 @@ export default function Card({
 
   let titleBarCursor = cardDragging ? "grabbing" : "grab";
 
+  if (!card.highlightHitCache) {
+    // Don't show a card without the cache hit. Most likely a broken card.
+    return;
+  }
+
   // Draggable nodeRef required to fix findDOMNode warnings.
   // see: https://github.com/STRML/react-draggable/pull/478
   return (
@@ -244,7 +249,6 @@ export default function Card({
         onStop={handleStop}
       >
         <div ref={ref} className="card" style={divStyle}>
-          {!card.highlightHitCache && <LinearProgress />}
           {card.highlightHitCache && (
             <>
               <div
