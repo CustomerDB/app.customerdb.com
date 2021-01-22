@@ -27,13 +27,14 @@ import short from "short-uuid";
 import useFirestore from "../db/Firestore.js";
 import { useOrganization } from "../organization/hooks.js";
 import { v4 as uuidv4 } from "uuid";
+import Interviews from "../interviews/Interviews";
 
-export default function InterviewList({ create, fromGuide }) {
+function InterviewList({ create, fromGuide }) {
   const [addModalShow, setAddModalShow] = useState(false);
   const [documents, setDocuments] = useState();
   const [showResults, setShowResults] = useState();
 
-  const { defaultTagGroupID } = useOrganization();
+  const organization = useOrganization();
 
   const navigate = useNavigate();
 
@@ -66,9 +67,17 @@ export default function InterviewList({ create, fromGuide }) {
   }, [documentsRef]);
 
   useEffect(() => {
-    if (!create || !callsRef || !oauthClaims.user_id || !oauthClaims.email) {
+    if (
+      !create ||
+      !callsRef ||
+      !organization ||
+      !oauthClaims.user_id ||
+      !oauthClaims.email
+    ) {
       return;
     }
+
+    console.debug("creating interview", organization);
 
     event(firebase, "create_interview", {
       orgID: orgID,
@@ -101,7 +110,7 @@ export default function InterviewList({ create, fromGuide }) {
 
           callID: callID,
 
-          tagGroupID: defaultTagGroupID || "",
+          tagGroupID: organization.defaultTagGroupID || "",
 
           templateID: "",
 
@@ -139,7 +148,7 @@ export default function InterviewList({ create, fromGuide }) {
   }, [
     create,
     callsRef,
-    defaultTagGroupID,
+    organization,
     documentsRef,
     firebase,
     fromGuide,
@@ -287,5 +296,13 @@ export default function InterviewList({ create, fromGuide }) {
         {guideModal}
       </Grid>
     </Search>
+  );
+}
+
+export default function WrappedQuotes(props) {
+  return (
+    <Interviews>
+      <InterviewList {...props} />
+    </Interviews>
   );
 }

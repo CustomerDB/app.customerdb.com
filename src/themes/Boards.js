@@ -17,8 +17,9 @@ import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
 import useFirestore from "../db/Firestore.js";
 import EmptyStateHelp from "../util/EmptyStateHelp.js";
+import Themes from "./Themes";
 
-export default function Boards({ create, download }) {
+function Boards({ create, download }) {
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
 
@@ -137,5 +138,13 @@ export default function Boards({ create, download }) {
       </ListContainer>
       {content}
     </Grid>
+  );
+}
+
+export default function WrappedBoards(props) {
+  return (
+    <Themes>
+      <Boards {...props} />
+    </Themes>
   );
 }

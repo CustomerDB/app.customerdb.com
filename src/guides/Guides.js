@@ -39,6 +39,7 @@ import useFirestore from "../db/Firestore.js";
 import { v4 as uuidv4 } from "uuid";
 import CloseIcon from "@material-ui/icons/Close";
 import EmptyStateHelp from "../util/EmptyStateHelp.js";
+import Interviews from "../interviews/Interviews";
 
 // Synchronize every second (1000ms).
 const syncPeriod = 1000;
@@ -61,7 +62,7 @@ const useStyles = makeStyles({
   },
 });
 
-export default function Guides({ create }) {
+function Guides({ create }) {
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
   const [templates, setTemplates] = useState();
@@ -546,5 +547,13 @@ function GuideDeleteDialog({ templateRef, open, setOpen, template }) {
         </Button>
       </DialogActions>
     </Dialog>
+  );
+}
+
+export default function WrappedGuides(props) {
+  return (
+    <Interviews>
+      <Guides {...props} />
+    </Interviews>
   );
 }

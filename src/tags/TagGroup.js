@@ -36,7 +36,7 @@ export default function TagGroup({ tagGroupID }) {
   const [tagGroup, setTagGroup] = useState();
   const [tags, setTags] = useState([]);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
-  const { defaultTagGroupID } = useOrganization();
+  const organization = useOrganization();
   const [openTag, setOpenTag] = useState();
 
   const [optionsAnchorEl, setOptionsAnchorEl] = useState(null);
@@ -229,7 +229,7 @@ export default function TagGroup({ tagGroupID }) {
               </Grid>
             </Grid>
 
-            {tagGroup.ID === defaultTagGroupID && (
+            {tagGroup.ID === organization.defaultTagGroupID && (
               <Grid container item xs={12}>
                 <p>Default group will be set on all new interviews</p>
               </Grid>
