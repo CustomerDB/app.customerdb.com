@@ -36,6 +36,7 @@ import { Loading } from "../util/Utils.js";
 import { connectInfiniteHits, RefinementList } from "react-instantsearch-dom";
 import Scrollable from "../shell/Scrollable";
 import { InterviewListItem } from "../interviews/InterviewList";
+import PersonEditDialog from "./PersonEditDialog.js";
 
 const useStyles = makeStyles({
   expand: {
@@ -126,16 +127,16 @@ function InfiniteHits({ hasMore, refine, hits }) {
 }
 
 export default function Person() {
+  const [editDialogOpen, setEditDialogOpen] = useState(true);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [docs, setDocs] = useState([]);
+  const [person, setPerson] = useState();
+  const [selectedTab, setSelectedTab] = useState(0);
+  const { documentsRef } = useFirestore();
+  const { orgID } = useParams();
   const { personRef } = useFirestore();
   const classes = useStyles();
   const navigate = useNavigate();
-  const { orgID } = useParams();
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [person, setPerson] = useState();
-  const [selectedTab, setSelectedTab] = useState(0);
-
-  const { documentsRef } = useFirestore();
-  const [docs, setDocs] = useState([]);
 
   const searchClient = useSearchClient();
 
@@ -214,233 +215,248 @@ export default function Person() {
   console.log("Person", person);
 
   return (
-    <Grid
-      container
-      item
-      xs={12}
-      spacing={0}
-      style={{
-        backgroundColor: "#f9f9f9",
-        position: "absolute",
-        height: "100%",
-      }}
-      align="baseline"
-      direction="column"
-    >
-      <Grid container>
-        <Grid container item className={classes.exand}></Grid>
-        <Grid container item justify="flex-end">
-          <IconButton
-            id="document-options"
-            edge="end"
-            aria-label="document options"
-            aria-haspopup="true"
-            aria-controls="document-menu"
-            onClick={handleOptionsClick}
-            color="inherit"
-          >
-            <MoreVertIcon />
-          </IconButton>
-          <Menu
-            id="profile-menu"
-            anchorEl={anchorEl}
-            keepMounted
-            open={Boolean(anchorEl)}
-            onClose={handleOptionsClose}
-          >
-            <MenuItem
-              id="edit-person"
-              onClick={() => {
-                // edit modal
-                setAnchorEl(null);
-              }}
+    <>
+      <Grid
+        container
+        item
+        xs={12}
+        spacing={0}
+        style={{
+          backgroundColor: "#f9f9f9",
+          position: "absolute",
+          height: "100%",
+        }}
+        align="baseline"
+        direction="column"
+      >
+        <Grid container>
+          <Grid container item className={classes.exand}></Grid>
+          <Grid container item justify="flex-end">
+            <IconButton
+              id="document-options"
+              edge="end"
+              aria-label="document options"
+              aria-haspopup="true"
+              aria-controls="document-menu"
+              onClick={handleOptionsClick}
+              color="inherit"
             >
-              <ListItemIcon>
-                <CreateIcon />
-              </ListItemIcon>
-              Edit
-            </MenuItem>
-            <MenuItem
-              id="archive-person"
-              onClick={() => {
-                setAnchorEl(null);
-                // archive modal
-              }}
+              <MoreVertIcon />
+            </IconButton>
+            <Menu
+              id="profile-menu"
+              anchorEl={anchorEl}
+              keepMounted
+              open={Boolean(anchorEl)}
+              onClose={handleOptionsClose}
             >
-              <ListItemIcon>
-                <ArchiveIcon />
-              </ListItemIcon>
-              Archive
-            </MenuItem>
-          </Menu>
-          <IconButton
-            onClick={() => {
-              navigate(`/orgs/${orgID}/people`);
-            }}
-          >
-            <CloseIcon />
-          </IconButton>
-        </Grid>
-      </Grid>
-      <Grid container style={{ flexGrow: 1 }}>
-        <Grid container item xs={12} md={3} lg={3} style={{ padding: "2rem" }}>
-          <Grid container direction="column">
-            <Grid
-              container
-              item
-              style={{
-                marginBottom: "2rem",
-                padding: "2rem",
-                background: "white",
-              }}
-              justify="center"
-            >
-              <Grid container item justify="center">
-                <Grid icontainer item xs={12} style={{ textAlign: "center" }}>
-                  <Avatar
-                    size={150}
-                    name={person.name}
-                    src={person.imageURL}
-                    round={true}
-                    style={{ marginBottom: "1rem" }}
-                  />
-                </Grid>
-                <Grid container item xs={12} justify="center">
-                  <Typography
-                    variant="h6"
-                    style={{ fontWeight: "bold" }}
-                    gutterBottom
-                  >
-                    {person.name}
-                  </Typography>
-                </Grid>
-              </Grid>
-            </Grid>
-            <Grid
-              container
-              item
-              style={{
-                marginBottom: "2rem",
-                padding: "2rem",
-                background: "white",
-              }}
-              justify="center"
-            >
-              <Table>
-                <TableBody>
-                  {person.job && (
-                    <TableRow>
-                      <TableCell style={{ width: "3rem" }}>
-                        <WorkIcon />
-                      </TableCell>
-                      <TableCell>{person.job}</TableCell>
-                    </TableRow>
-                  )}
-                  {person.company && (
-                    <TableRow>
-                      <TableCell style={{ width: "3rem" }}>
-                        <ApartmentIcon />
-                      </TableCell>
-                      <TableCell>{person.company}</TableCell>
-                    </TableRow>
-                  )}
-                  {person.email && (
-                    <TableRow>
-                      <TableCell style={{ width: "3rem" }}>
-                        <EmailIcon />
-                      </TableCell>
-                      <TableCell>{person.email}</TableCell>
-                    </TableRow>
-                  )}
-                  {person.phone && (
-                    <TableRow>
-                      <TableCell style={{ width: "3rem" }}>
-                        <PhoneIcon />
-                      </TableCell>
-                      <TableCell>{person.phone}</TableCell>
-                    </TableRow>
-                  )}
-                  {address && (
-                    <TableRow>
-                      <TableCell style={{ width: "3rem" }}>
-                        <RoomIcon />
-                      </TableCell>
-                      <TableCell>{address}</TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </Grid>
-          </Grid>
-        </Grid>
-        <Grid container item xs={12} md={9} lg={9}>
-          <Grid container align="baseline" direction="column">
-            <Grid
-              container
-              item
-              style={{ paddingTop: "2rem", paddingRight: "2rem" }}
-            >
-              <Tabs
-                value={selectedTab}
-                indicatorColor="secondary"
-                textColor="secondary"
-                style={{
-                  borderBottom: "1px solid rgba(0, 0, 0, 0.12)",
-                  width: "100%",
+              <MenuItem
+                id="edit-person"
+                onClick={() => {
+                  // edit modal
+                  setEditDialogOpen(true);
+                  setAnchorEl(null);
                 }}
               >
-                <Tab
-                  label="Quotes"
-                  id="quotes"
-                  aria-controls="tabpanel-quotes"
-                  onClick={() => setSelectedTab(0)}
-                />
-                <Tab
-                  label="Interviews"
-                  id="interviews"
-                  aria-controls="tabpanel-interviews"
-                  onClick={() => setSelectedTab(1)}
-                />
-              </Tabs>
-            </Grid>
-            <Grid container item style={{ flexGrow: 1 }}>
-              <Search search={searchConfig}>
-                <RefinementList
-                  attribute="personID"
-                  defaultRefinement={[person.ID]}
-                />
-                <Grid item style={{ flexGrow: "1", position: "relative" }}>
-                  <Scrollable>
-                    {selectedTab === 0 && (
-                      <Grid container alignItems="baseline">
-                        <SearchResults />
-                      </Grid>
-                    )}
-                    {selectedTab === 1 && (
-                      <List>
-                        {docs.map((doc) => (
-                          <InterviewListItem
-                            ID={doc.ID}
-                            orgID={orgID}
-                            name={doc.name}
-                            date={
-                              doc.creationTimestamp &&
-                              doc.creationTimestamp.toDate()
-                            }
-                            transcript={doc.transcription}
-                            personName={doc.personName}
-                            personImageURL={doc.personImageURL}
-                          />
-                        ))}
-                      </List>
-                    )}
-                  </Scrollable>
+                <ListItemIcon>
+                  <CreateIcon />
+                </ListItemIcon>
+                Edit
+              </MenuItem>
+              <MenuItem
+                id="archive-person"
+                onClick={() => {
+                  setAnchorEl(null);
+                  // archive modal
+                }}
+              >
+                <ListItemIcon>
+                  <ArchiveIcon />
+                </ListItemIcon>
+                Archive
+              </MenuItem>
+            </Menu>
+            <IconButton
+              onClick={() => {
+                navigate(`/orgs/${orgID}/people`);
+              }}
+            >
+              <CloseIcon />
+            </IconButton>
+          </Grid>
+        </Grid>
+        <Grid container style={{ flexGrow: 1 }}>
+          <Grid
+            container
+            item
+            xs={12}
+            md={3}
+            lg={3}
+            style={{ padding: "2rem" }}
+          >
+            <Grid container direction="column">
+              <Grid
+                container
+                item
+                style={{
+                  marginBottom: "2rem",
+                  padding: "2rem",
+                  background: "white",
+                }}
+                justify="center"
+              >
+                <Grid container item justify="center">
+                  <Grid icontainer item xs={12} style={{ textAlign: "center" }}>
+                    <Avatar
+                      size={150}
+                      name={person.name}
+                      src={person.imageURL}
+                      round={true}
+                      style={{ marginBottom: "1rem" }}
+                    />
+                  </Grid>
+                  <Grid container item xs={12} justify="center">
+                    <Typography
+                      variant="h6"
+                      style={{ fontWeight: "bold" }}
+                      gutterBottom
+                    >
+                      {person.name}
+                    </Typography>
+                  </Grid>
                 </Grid>
-              </Search>
+              </Grid>
+              <Grid
+                container
+                item
+                style={{
+                  marginBottom: "2rem",
+                  padding: "2rem",
+                  background: "white",
+                }}
+                justify="center"
+              >
+                <Table>
+                  <TableBody>
+                    {person.job && (
+                      <TableRow>
+                        <TableCell style={{ width: "3rem" }}>
+                          <WorkIcon />
+                        </TableCell>
+                        <TableCell>{person.job}</TableCell>
+                      </TableRow>
+                    )}
+                    {person.company && (
+                      <TableRow>
+                        <TableCell style={{ width: "3rem" }}>
+                          <ApartmentIcon />
+                        </TableCell>
+                        <TableCell>{person.company}</TableCell>
+                      </TableRow>
+                    )}
+                    {person.email && (
+                      <TableRow>
+                        <TableCell style={{ width: "3rem" }}>
+                          <EmailIcon />
+                        </TableCell>
+                        <TableCell>{person.email}</TableCell>
+                      </TableRow>
+                    )}
+                    {person.phone && (
+                      <TableRow>
+                        <TableCell style={{ width: "3rem" }}>
+                          <PhoneIcon />
+                        </TableCell>
+                        <TableCell>{person.phone}</TableCell>
+                      </TableRow>
+                    )}
+                    {address && (
+                      <TableRow>
+                        <TableCell style={{ width: "3rem" }}>
+                          <RoomIcon />
+                        </TableCell>
+                        <TableCell>{address}</TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </Grid>
+            </Grid>
+          </Grid>
+          <Grid container item xs={12} md={9} lg={9}>
+            <Grid container align="baseline" direction="column">
+              <Grid
+                container
+                item
+                style={{ paddingTop: "2rem", paddingRight: "2rem" }}
+              >
+                <Tabs
+                  value={selectedTab}
+                  indicatorColor="secondary"
+                  textColor="secondary"
+                  style={{
+                    borderBottom: "1px solid rgba(0, 0, 0, 0.12)",
+                    width: "100%",
+                  }}
+                >
+                  <Tab
+                    label="Quotes"
+                    id="quotes"
+                    aria-controls="tabpanel-quotes"
+                    onClick={() => setSelectedTab(0)}
+                  />
+                  <Tab
+                    label="Interviews"
+                    id="interviews"
+                    aria-controls="tabpanel-interviews"
+                    onClick={() => setSelectedTab(1)}
+                  />
+                </Tabs>
+              </Grid>
+              <Grid container item style={{ flexGrow: 1 }}>
+                <Search search={searchConfig}>
+                  <RefinementList
+                    attribute="personID"
+                    defaultRefinement={[person.ID]}
+                  />
+                  <Grid item style={{ flexGrow: "1", position: "relative" }}>
+                    <Scrollable>
+                      {selectedTab === 0 && (
+                        <Grid container alignItems="baseline">
+                          <SearchResults />
+                        </Grid>
+                      )}
+                      {selectedTab === 1 && (
+                        <List>
+                          {docs.map((doc) => (
+                            <InterviewListItem
+                              ID={doc.ID}
+                              orgID={orgID}
+                              name={doc.name}
+                              date={
+                                doc.creationTimestamp &&
+                                doc.creationTimestamp.toDate()
+                              }
+                              transcript={doc.transcription}
+                              personName={doc.personName}
+                              personImageURL={doc.personImageURL}
+                            />
+                          ))}
+                        </List>
+                      )}
+                    </Scrollable>
+                  </Grid>
+                </Search>
+              </Grid>
             </Grid>
           </Grid>
         </Grid>
       </Grid>
-    </Grid>
+      <PersonEditDialog
+        personRef={personRef}
+        open={editDialogOpen}
+        setOpen={setEditDialogOpen}
+      />
+    </>
   );
 }

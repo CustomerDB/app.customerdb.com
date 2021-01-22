@@ -34,7 +34,7 @@ export default function People({ create }) {
   const { personID, orgID } = useParams();
 
   const [peopleList, setPeopleList] = useState([]);
-  const [addDialogShow, setAddDialogShow] = useState();
+  const [addDialogOpen, setAddDialogOpen] = useState();
   const [newPersonRef, setNewPersonRef] = useState();
   const [listLimit, setListLimit] = useState(batchSize);
   const [listTotal, setListTotal] = useState();
@@ -83,7 +83,7 @@ export default function People({ create }) {
       .then((doc) => {
         navigate(`/orgs/${orgID}/people/${doc.id}`);
         setNewPersonRef(doc);
-        setAddDialogShow(true);
+        setAddDialogOpen(true);
       });
   }, [create, peopleRef, firebase, navigate, oauthClaims, orgID]);
 
@@ -94,9 +94,9 @@ export default function People({ create }) {
 
   let addModal = (
     <PersonEditDialog
-      show={addDialogShow}
-      onHide={() => {
-        setAddDialogShow(false);
+      open={addDialogOpen}
+      setOpen={() => {
+        setAddDialogOpen(false);
       }}
       personRef={newPersonRef}
     />
