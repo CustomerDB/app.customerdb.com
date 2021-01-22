@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 
 import ReactDOM from "react-dom";
 import QuotePreview from "../../quotes/QuotePreview.js";
+import Grid from "@material-ui/core/Grid";
 
 export default function QuoteContents({ quillContainerRef }) {
   const [quoteNodes, setQuoteNodes] = useState([]);
@@ -31,10 +32,21 @@ export default function QuoteContents({ quillContainerRef }) {
 
   return quoteNodes.map((qn) =>
     ReactDOM.createPortal(
-      <QuotePreview
-        key={qn.dataset.highlightID}
-        highlightID={qn.dataset.highlightID}
-      />,
+      <Grid
+        container
+        item
+        sm={12}
+        md={6}
+        style={{
+          border: "1px solid #fafafa",
+          borderRadius: "1rem",
+        }}
+      >
+        <QuotePreview
+          key={qn.dataset.highlightID}
+          highlightID={qn.dataset.highlightID}
+        />
+      </Grid>,
       qn
     )
   );
