@@ -15,6 +15,8 @@ export default function Organizations() {
   const firebase = useContext(FirebaseContext);
   const db = firebase.firestore();
 
+  const [pendingOrgIDs, setPendingOrgIDs] = useState([]);
+
   useEffect(() => {
     if (!oauthClaims) {
       return;
@@ -51,6 +53,22 @@ export default function Organizations() {
     setClaimsInstalledOrgIDs(Object.keys(oauthClaims.orgs));
   }, [oauthClaims]);
 
+  useEffect(() => {
+    if (!db || !oauthClaims) {
+      return;
+    }
+
+    const email = oauthClaims.email;
+    return db
+      .collection("organizations")
+      .where("adminEmail", "==", email)
+      .onSnapshot((snapshot) => {
+        setPendingOrgIDs(snapshot.docs.map((doc) => doc.id));
+      });
+  }, [db, oauthClaims]);
+
+  console.log("Pending", pendingOrgIDs);
+
   return (
     <Shell noOrgSelector noSidebar>
       <Grid container style={{ padding: "1rem" }}>
@@ -69,7 +87,7 @@ export default function Organizations() {
           <Grid item xs={12}>
             <h5>Organizations</h5>
           </Grid>
-          {orgIDs.map((id) => (
+          {[...new Set([...orgIDs, ...pendingOrgIDs])].sort().map((id) => (
             <OrgCard
               key={id}
               orgID={id}
