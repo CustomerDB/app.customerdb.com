@@ -1,8 +1,7 @@
-import Col from "react-bootstrap/Col";
-import Container from "react-bootstrap/Container";
 import Moment from "react-moment";
 import React from "react";
-import Row from "react-bootstrap/Row";
+
+import Grid from "@material-ui/core/Grid";
 
 export default function DocumentDeleted(props) {
   let relativeTime = undefined;
@@ -13,20 +12,15 @@ export default function DocumentDeleted(props) {
   }
 
   return (
-    <Container>
-      <Row noGutters={true}>
-        <Col>
-          <h3>{props.document.name}</h3>
-        </Col>
-      </Row>
-      <Row noGutters={true}>
-        <Col>
-          <p>
-            This document was deleted {relativeTime} by{" "}
-            {props.document.deletedBy}
-          </p>
-        </Col>
-      </Row>
-    </Container>
+    <Grid container>
+      <Grid container item xs={12}>
+        <h3>{props.document.name}</h3>
+      </Grid>
+      <Grid container item xs={12}>
+        <p>
+          This document was deleted {relativeTime} by {props.document.deletedBy}
+        </p>
+      </Grid>
+    </Grid>
   );
 }

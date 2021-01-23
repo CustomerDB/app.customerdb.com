@@ -1,81 +1,155 @@
-import React, { useContext, useEffect, useState } from "react";
-
-// import Button from "react-bootstrap/Button";
-// import Col from "react-bootstrap/Col";
-// import DeleteIcon from "@material-ui/icons/Delete";
-// import FirebaseContext from "../util/FirebaseContext.js";
-// import Form from "react-bootstrap/Form";
-// import Modal from "../shell_obsolete/Modal.js";
-// import Row from "react-bootstrap/Row";
-// import UserAuthContext from "../auth/UserAuthContext.js";
-// import event from "../analytics/event.js";
-// import { useParams } from "react-router-dom";
-// import { v4 as uuidv4 } from "uuid";
+import React, { useEffect, useState } from "react";
 
 import Button from "@material-ui/core/Button";
 import TextField from "@material-ui/core/TextField";
 import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
-import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import Grid from "@material-ui/core/Grid";
+import Avatar from "react-avatar";
+import ImageDialog from "./ImageDialog.js";
 
-export default function PersonEditDialog({ open, setOpen }) {
+export default function PersonEditDialog({ personRef, open, setOpen }) {
+  const [person, setPerson] = useState();
+  const [newPerson, setNewPerson] = useState();
+  const [imageDialogOpen, setImageDialogOpen] = useState(false);
+
+  const predefinedFields = [
+    "name",
+    "job",
+    "company",
+    "email",
+    "phone",
+    "city",
+    "state",
+    "country",
+  ];
+  const excludeFields = [
+    "ID",
+    "labels",
+    "imageURL",
+    "creationTimestamp",
+    "deletionTimestamp",
+    "createdBy",
+    "customFields",
+  ];
+  const [fields, setFields] = useState([]);
+
+  useEffect(() => {
+    if (!personRef) {
+      return;
+    }
+
+    return personRef.onSnapshot((doc) => {
+      let person = doc.data();
+
+      let extraFields = Object.keys(person);
+
+      // Filter ID field.
+      extraFields = extraFields.filter(
+        (field) =>
+          !excludeFields.includes(field) && !predefinedFields.includes(field)
+      );
+
+      setFields(predefinedFields.concat(extraFields));
+
+      setPerson(person);
+      setNewPerson(person);
+    });
+  }, [personRef, excludeFields, predefinedFields]);
+
+  const onCancel = () => {
+    setPerson(person);
+    setOpen(false);
+  };
+
+  const onSave = () => {
+    console.log("newPerson", newPerson);
+    personRef.update(newPerson);
+    setOpen(false);
+  };
+
+  const title = (field) => {
+    return field.charAt(0).toUpperCase() + field.substr(1).toLowerCase();
+  };
+
+  if (!newPerson || !fields) {
+    return <></>;
+  }
+
   return (
-    <Dialog open={open} onClose={() => setOpen(false)} fullWidth>
-      <DialogTitle id="form-dialog-title">Add new customer</DialogTitle>
-      <DialogContent>
-        <Grid container item xs={12}>
-          <Grid container item xs={8}>
-            <TextField
-              autoFocus
-              margin="dense"
-              id="name"
-              label="Full name"
-              fullWidth
-            />
-            <TextField
-              autoFocus
-              margin="dense"
-              id="email"
-              label="Email"
-              type="email"
-              fullWidth
-            />
-            <TextField
-              autoFocus
-              margin="dense"
-              id="job"
-              label="Job"
-              fullWidth
-            />
-
-            <TextField
-              autoFocus
-              margin="dense"
-              id="company"
-              label="Company"
-              fullWidth
-            />
+    <>
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth>
+        <DialogTitle id="form-dialog-title">Add new customer</DialogTitle>
+        <DialogContent>
+          <Grid container item xs={12}>
+            <Grid container item xs={8}>
+              {fields.map((field) => {
+                console.log(field);
+                return (
+                  <TextField
+                    autoFocus
+                    margin="dense"
+                    id="name"
+                    label={title(field)}
+                    fullWidth
+                    value={newPerson[field]}
+                    onChange={(e) => {
+                      let copy = Object.assign({}, newPerson);
+                      copy[field] = e.target.value;
+                      setNewPerson(copy);
+                    }}
+                  />
+                );
+              })}
+            </Grid>
+            <Grid
+              container
+              Item
+              xs={4}
+              alignItems="flex-start"
+              alignContent="flex-start"
+            >
+              <Grid
+                container
+                justify="center"
+                alignItems="flex-start"
+                alignContent="flex-start"
+                style={{ position: "relative" }}
+              >
+                <Avatar
+                  size={120}
+                  name={newPerson.name}
+                  src={newPerson.imageURL}
+                  round={true}
+                />
+                <div
+                  class="profileImageCover"
+                  onClick={() => {
+                    setImageDialogOpen(true);
+                  }}
+                >
+                  Upload
+                </div>
+              </Grid>
+              <ImageDialog
+                open={imageDialogOpen}
+                setOpen={setImageDialogOpen}
+              />
+            </Grid>
           </Grid>
-          <Grid container Item xs={4}></Grid>
-        </Grid>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={() => setOpen(false)} color="primary">
-          Cancel
-        </Button>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => setOpen(false)}
-          color="primary"
-        >
-          Save
-        </Button>
-      </DialogActions>
-    </Dialog>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={onCancel} color="primary">
+            Cancel
+          </Button>
+          <Button variant="contained" onClick={onSave} color="secondary">
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 }
 
