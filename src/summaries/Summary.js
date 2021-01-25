@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import Collaborators from "../util/Collaborators.js";
-import ContentEditable from "react-contenteditable";
+import EditableTitle from "../util/EditableTitle";
 import SummaryDeleteDialog from "./SummaryDeleteDialog.js";
 import SummaryDeleted from "./SummaryDeleted.js";
 import SummarySidebar from "./SummarySidebar.js";
@@ -167,16 +167,11 @@ export default function Summary(props) {
                         style={{ fontWeight: "bold" }}
                         id="summary-title"
                       >
-                        <ContentEditable
-                          html={summary.name}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.target.blur();
-                            }
-                          }}
-                          onBlur={(e) => {
+                        <EditableTitle
+                          value={summary.name}
+                          onSave={(name) => {
                             if (summaryRef) {
-                              let newName = e.target.innerText
+                              let newName = name
                                 .replace(/(\r\n|\n|\r)/gm, " ")
                                 .replace(/\s+/g, " ")
                                 .trim();

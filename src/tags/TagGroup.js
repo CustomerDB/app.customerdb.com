@@ -18,7 +18,7 @@ import Card from "@material-ui/core/Card";
 import Popper from "@material-ui/core/Popper";
 import MenuItem from "@material-ui/core/MenuItem";
 import CardContent from "@material-ui/core/CardContent";
-import ContentEditable from "react-contenteditable";
+import EditableTitle from "../util/EditableTitle";
 import IconButton from "@material-ui/core/IconButton";
 import { useOrganization } from "../organization/hooks.js";
 import StarIcon from "@material-ui/icons/Star";
@@ -163,21 +163,16 @@ export default function TagGroup({ tagGroupID }) {
               <Grid container item xs={11}>
                 <p>
                   <b>
-                    <ContentEditable
-                      html={tagGroup.name}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.target.blur();
-                        }
-                      }}
-                      onBlur={(e) => {
+                    <EditableTitle
+                      value={tagGroup.name}
+                      onSave={(name) => {
                         if (tagGroupRef) {
-                          let newName = e.target.innerText
+                          let newName = name
                             .replace(/(\r\n|\n|\r)/gm, " ")
                             .replace(/\s+/g, " ")
                             .trim();
 
-                          tagGroupRef.update({ name: newName });
+                          return tagGroupRef.update({ name: newName });
                         }
                       }}
                     />
