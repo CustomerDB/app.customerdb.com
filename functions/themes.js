@@ -82,9 +82,29 @@ exports.cardsInBoard = functions.firestore
   .onUpdate((change, context) => {
     let before = change.before.data();
     let after = change.after.data();
-    const orgID = context.params.orgID;
+    const { orgID, boardID } = context.params;
 
     const db = admin.firestore();
+
+    const boardRenamed = before.name !== after.name;
+
+    // Reindex themes of this board if the board was renamed
+    let themeReindexPromise = Promise.resolve();
+    if (boardRenamed) {
+      console.debug(
+        `Reindexing themes for board "${after.name}" with ID ${boardID}`
+      );
+      const themesRef = change.after.ref.collection("themes");
+      themeReindexPromise = themesRef.get().then((snapshot) => {
+        return Promise.all(
+          snapshot.docs.map((doc) => {
+            return doc.ref.update({
+              lastUpdateTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+            });
+          })
+        );
+      });
+    }
 
     let boardRef = change.after.ref;
     let cardsRef = boardRef.collection("cards");
@@ -167,9 +187,6 @@ exports.cardsInBoard = functions.firestore
                   .where("documentID", "==", documentID)
                   .get()
                   .then((snapshot) => {
-                    console.log(
-                      `${snapshot.size} highlights to create cards for`
-                    );
                     return createCardsFromHighlight(snapshot, "notes");
                   }),
                 allTranscriptHighlightsRef
@@ -186,8 +203,11 @@ exports.cardsInBoard = functions.firestore
       );
     }
 
-    // TODO: Add cards when document is added.
-    return Promise.all([cardCleanupPromise, cardCreationPromise]);
+    return Promise.all([
+      cardCleanupPromise,
+      cardCreationPromise,
+      themeReindexPromise,
+    ]);
   });
 
 function highlightCreate(highlightDoc, context, source) {
