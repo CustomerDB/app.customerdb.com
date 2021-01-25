@@ -89,7 +89,7 @@ export default function Hit({ reactQuillRef, onDrop, children }) {
       ref={cardRef}
       style={{
         zIndex: "99",
-        position: drag ? "absolute" : "relative",
+        position: drag ? "fixed" : "relative",
         width: drag ? cardRect.width : "100%",
         margin: "0.5rem",
         borderRadius: "0.5rem",

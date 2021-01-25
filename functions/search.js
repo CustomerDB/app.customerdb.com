@@ -17,6 +17,48 @@ if (ALGOLIA_ID && ALGOLIA_ADMIN_KEY) {
   client = algoliasearch(ALGOLIA_ID, ALGOLIA_ADMIN_KEY);
 }
 
+function getKey(orgID, uid) {
+  const params = {
+    filters: `orgID:${orgID}`,
+    userToken: uid,
+  };
+
+  // Call the Algolia API to generate a unique key based on our search key
+  return client.generateSecuredApiKey(ALGOLIA_SEARCH_KEY, params);
+}
+
+exports.provisionSearchKey = functions.firestore
+  .document("organizations/{orgID}/members/{email}")
+  .onWrite((change, context) => {
+    if (!change.after.exists) {
+      return;
+    }
+
+    const orgID = context.params.orgID;
+    const email = context.params.email;
+
+    let userRecordPromise = admin.auth().getUserByEmail(email);
+
+    return userRecordPromise.then((userRecord) => {
+      let member = change.after.data();
+      let db = admin.firestore();
+      let apiKeyRef = db
+        .collection("organizations")
+        .doc(orgID)
+        .collection("apiKeys")
+        .doc(userRecord.uid);
+
+      if (!member.active) {
+        return apiKeyRef.delete();
+      }
+
+      const key = getKey(orgID, userRecord.uid);
+      return apiKeyRef.set({
+        searchKey: key,
+      });
+    });
+  });
+
 // Provision a new API key for the client to use when making
 // search index queries.
 exports.getSearchKey = functions.https.onCall((data, context) => {
@@ -37,18 +79,20 @@ exports.getSearchKey = functions.https.onCall((data, context) => {
     );
   }
 
-  // Create the params object as described in the Algolia documentation:
-  // https://www.algolia.com/doc/guides/security/api-keys/#generating-api-keys
-  const params = {
-    // This filter ensures that only items where orgID == user's
-    // org ID are readable.
-    filters: `orgID:${orgID}`,
-    // We also proxy the token uid as a unique token for this key.
-    userToken: context.auth.uid,
-  };
+  // // Create the params object as described in the Algolia documentation:
+  // // https://www.algolia.com/doc/guides/security/api-keys/#generating-api-keys
+  // const params = {
+  //   // This filter ensures that only items where orgID == user's
+  //   // org ID are readable.
+  //   filters: `orgID:${orgID}`,
+  //   // We also proxy the token uid as a unique token for this key.
+  //   userToken: context.auth.uid,
+  // };
 
-  // Call the Algolia API to generate a unique key based on our search key
-  const key = client.generateSecuredApiKey(ALGOLIA_SEARCH_KEY, params);
+  // // Call the Algolia API to generate a unique key based on our search key
+  // const key = client.generateSecuredApiKey(ALGOLIA_SEARCH_KEY, params);
+
+  const key = getKey(orgID, context.auth.uid);
 
   // Store it in the user's api key document.
   let db = admin.firestore();
