@@ -5,7 +5,6 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import UserAuthContext from "../auth/UserAuthContext";
 import Collaborators from "../util/Collaborators.js";
-import ContentEditable from "react-contenteditable";
 import DocumentDeleteDialog from "./DocumentDeleteDialog.js";
 import DocumentDeleteTranscriptDialog from "./DocumentDeleteTranscriptDialog.js";
 import DocumentDeleted from "./DocumentDeleted.js";
@@ -29,11 +28,12 @@ import Scrollable from "../shell/Scrollable.js";
 import Tab from "@material-ui/core/Tab";
 import Tabs from "@material-ui/core/Tabs";
 import Transcript from "./transcript/Transcript.js";
-import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
 import useFirestore from "../db/Firestore.js";
 import Tooltip from "@material-ui/core/Tooltip";
 import domToPdf from "dom-to-pdf";
+import EditableTitle from "../util/EditableTitle";
+import Typography from "@material-ui/core/Typography";
 
 const useStyles = makeStyles({
   documentPaper: {
@@ -239,28 +239,20 @@ export default function Document(props) {
                 >
                   <Grid item xs={7} sm={5}>
                     <Typography
+                      id="documentTitle"
                       gutterBottom
                       variant="h6"
                       style={{ fontWeight: "bold" }}
-                      id="documentTitle"
                     >
-                      <ContentEditable
-                        html={document.name}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.target.blur();
-                          }
-                        }}
-                        onBlur={(e) => {
+                      <EditableTitle
+                        value={document.name}
+                        onSave={(name) => {
                           if (documentRef) {
-                            let newName = e.target.innerText
+                            let newName = name
                               .replace(/(\r\n|\n|\r)/gm, " ")
                               .replace(/\s+/g, " ")
                               .trim();
-
-                            console.debug("setting document name", newName);
-
-                            documentRef.update({ name: newName });
+                            return documentRef.update({ name: newName });
                           }
                         }}
                       />

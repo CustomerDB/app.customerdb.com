@@ -9,7 +9,6 @@ import Table from "@material-ui/core/Table";
 import TableRow from "@material-ui/core/TableRow";
 import TableCell from "@material-ui/core/TableCell";
 import TableBody from "@material-ui/core/TableBody";
-import ContentEditable from "react-contenteditable";
 import Delta from "quill-delta";
 import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
@@ -40,6 +39,7 @@ import { v4 as uuidv4 } from "uuid";
 import CloseIcon from "@material-ui/icons/Close";
 import EmptyStateHelp from "../util/EmptyStateHelp.js";
 import Interviews from "../interviews/Interviews";
+import EditableTitle from "../util/EditableTitle";
 
 // Synchronize every second (1000ms).
 const syncPeriod = 1000;
@@ -347,23 +347,18 @@ function Guide({ templateRef }) {
                         style={{ fontWeight: "bold" }}
                         component="h2"
                       >
-                        <ContentEditable
-                          html={template.name}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.target.blur();
-                            }
-                          }}
-                          onBlur={(e) => {
+                        <EditableTitle
+                          value={template.name}
+                          onSave={(name) => {
                             if (templateRef) {
-                              let newName = e.target.innerText
+                              let newName = name
                                 .replace(/(\r\n|\n|\r)/gm, " ")
                                 .replace(/\s+/g, " ")
                                 .trim();
 
                               console.debug("setting template name", newName);
 
-                              templateRef.update({ name: newName });
+                              return templateRef.update({ name: newName });
                             }
                           }}
                         />
