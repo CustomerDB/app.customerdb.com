@@ -73,8 +73,14 @@ export default function SummaryEditor({ reactQuillRef }) {
         />
       </Grid>
 
-      <QuoteContents quillContainerRef={quillContainerRef} />
-      <ThemeContents quillContainerRef={quillContainerRef} />
+      <QuoteContents
+        quillContainerRef={quillContainerRef}
+        reactQuillRef={reactQuillRef}
+      />
+      <ThemeContents
+        quillContainerRef={quillContainerRef}
+        reactQuillRef={reactQuillRef}
+      />
     </>
   );
 }

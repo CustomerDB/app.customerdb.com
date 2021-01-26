@@ -77,7 +77,7 @@ export default function ThemePreview({ boardID, themeID, hideNotFound }) {
           <Grid container item xs>
             {cardIDs.map((cardID) => {
               return (
-                <Grid container item xs={12} sm={6} md={4} lg={3}>
+                <Grid key={cardID} container item xs={12} sm={6} md={4} lg={3}>
                   <QuotePreview
                     key={cardID}
                     highlightID={cardID}
