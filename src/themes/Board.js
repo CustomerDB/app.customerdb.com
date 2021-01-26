@@ -280,7 +280,7 @@ export default function Board({ download }) {
             open={!!sidepaneTheme}
             setOpen={setSidepaneTheme}
           >
-            <ThemeSidepane theme={sidepaneTheme} />
+            <ThemeSidepane theme={sidepaneTheme} setTheme={setSidepaneTheme} />
           </Sidepane>
         </Paper>
       </Grid>
