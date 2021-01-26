@@ -99,12 +99,10 @@ const CustomSearchBox = ({ currentRefinement, refine }) => {
     <Grid
       container
       item
-      xs={12}
       style={{
-        position: "sticky",
-        top: 0,
         backgroundColor: "#fff",
         zIndex: 100,
+        paddingLeft: "2rem",
       }}
     >
       <TextField
@@ -152,11 +150,20 @@ function AutoComplete({ reactQuillRef, hits }) {
   return (
     <>
       <SearchBox />
-      <SearchResults
-        reactQuillRef={reactQuillRef}
-        quoteHits={quoteHits}
-        themeHits={themeHits}
-      />
+      <Grid style={{ position: "relative", flexGrow: "1" }}>
+        <Scrollable
+          id="summary-sidebar-scroll"
+          style={{
+            background: "#fafafa",
+          }}
+        >
+          <SearchResults
+            reactQuillRef={reactQuillRef}
+            quoteHits={quoteHits}
+            themeHits={themeHits}
+          />
+        </Scrollable>
+      </Grid>
     </>
   );
 }
@@ -180,30 +187,25 @@ export default function SummarySidebar({ reactQuillRef }) {
       item
       spacing={0}
       style={{ flexGrow: 1 }}
+      direction="column"
     >
       <Grid
         container
         className="fullHeight"
         style={{
-          position: "relative",
           zIndex: 2,
+          flexGrow: 1,
         }}
+        direction="column"
       >
-        <Scrollable
-          id="summary-sidebar-scroll"
-          style={{
-            background: "#fafafa",
-          }}
+        <InstantSearch
+          searchClient={searchClient}
+          indexName={process.env.REACT_APP_ALGOLIA_HIGHLIGHTS_INDEX}
         >
-          <InstantSearch
-            searchClient={searchClient}
-            indexName={process.env.REACT_APP_ALGOLIA_HIGHLIGHTS_INDEX}
-          >
-            <ConnectedAutoComplete reactQuillRef={reactQuillRef} />
-            <Index indexName={process.env.REACT_APP_ALGOLIA_HIGHLIGHTS_INDEX} />
-            <Index indexName={process.env.REACT_APP_ALGOLIA_THEMES_INDEX} />
-          </InstantSearch>
-        </Scrollable>
+          <ConnectedAutoComplete reactQuillRef={reactQuillRef} />
+          <Index indexName={process.env.REACT_APP_ALGOLIA_HIGHLIGHTS_INDEX} />
+          <Index indexName={process.env.REACT_APP_ALGOLIA_THEMES_INDEX} />
+        </InstantSearch>
       </Grid>
     </Grid>
   );
