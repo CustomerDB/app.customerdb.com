@@ -12,6 +12,7 @@ import PhoneIcon from "@material-ui/icons/Phone";
 import RoomIcon from "@material-ui/icons/Room";
 import WorkIcon from "@material-ui/icons/Work";
 import Typography from "@material-ui/core/Typography";
+import Linkify from "react-linkify";
 
 export default function PersonOverview({ person }) {
   if (!person) {
@@ -97,7 +98,9 @@ export default function PersonOverview({ person }) {
                     <TableCell style={{ width: "3rem" }}>
                       <EmailIcon />
                     </TableCell>
-                    <TableCell>{person.email}</TableCell>
+                    <TableCell>
+                      <Linkify>{person.email}</Linkify>
+                    </TableCell>
                   </TableRow>
                 )}
                 {person.phone && (
@@ -129,7 +132,7 @@ export default function PersonOverview({ person }) {
                           wordWrap: "break-word",
                         }}
                       >
-                        {field.value}
+                        <Linkify>{field.value}</Linkify>
                       </TableCell>
                     </TableRow>
                   ))}
