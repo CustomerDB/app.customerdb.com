@@ -33,7 +33,7 @@ function Card({ cardID }) {
   return <Quote highlight={cache} />;
 }
 
-export default function ThemeSidepane({ theme }) {
+export default function ThemeSidepane({ theme, setTheme }) {
   const { themesRef } = useFirestore();
 
   // Subscribe to theme document, as we may not receive an updated theme
@@ -48,6 +48,7 @@ export default function ThemeSidepane({ theme }) {
 
     return themesRef.doc(theme.ID).onSnapshot((doc) => {
       if (!doc.exists) {
+        setTheme();
         return;
       }
 
