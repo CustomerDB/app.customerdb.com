@@ -1,314 +1,199 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 
-import Button from "react-bootstrap/Button";
-import Col from "react-bootstrap/Col";
-import DeleteIcon from "@material-ui/icons/Delete";
-import FirebaseContext from "../util/FirebaseContext.js";
-import Form from "react-bootstrap/Form";
-import Modal from "../shell_obsolete/Modal.js";
-import Row from "react-bootstrap/Row";
-import UserAuthContext from "../auth/UserAuthContext.js";
-import event from "../analytics/event.js";
-import { useParams } from "react-router-dom";
+import Button from "@material-ui/core/Button";
+import TextField from "@material-ui/core/TextField";
+import Dialog from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import Grid from "@material-ui/core/Grid";
+import Avatar from "react-avatar";
+import ImageDialog from "./ImageDialog.js";
+import CancelIcon from "@material-ui/icons/Cancel";
+import InputAdornment from "@material-ui/core/InputAdornment";
+import IconButton from "@material-ui/core/IconButton";
 import { v4 as uuidv4 } from "uuid";
+import NewFieldDialog from "./NewFieldDialog";
 
-export default function PersonEditDialog(props) {
-  const { oauthClaims } = useContext(UserAuthContext);
-  const firebase = useContext(FirebaseContext);
-  const [person, setPerson] = useState();
-  const [name, setName] = useState();
-  const [email, setEmail] = useState();
-  const [company, setCompany] = useState();
-  const [job, setJob] = useState();
-  const [phone, setPhone] = useState();
-  const [country, setCountry] = useState();
-  const [state, setState] = useState();
-  const [city, setCity] = useState();
+export default function PersonEditDialog({ person, personRef, open, setOpen }) {
+  const [newPerson, setNewPerson] = useState();
+  const [imageDialogOpen, setImageDialogOpen] = useState(false);
+  const [imageURL, setImageURL] = useState();
+  const [newFieldDialogOpen, setNewFieldDialogOpen] = useState();
 
-  const { orgID } = useParams();
-
-  const [customFields, setCustomFields] = useState({});
-  const [labels, setLabels] = useState({});
+  const fields = [
+    "name",
+    "job",
+    "company",
+    "email",
+    "phone",
+    "city",
+    "state",
+    "country",
+  ];
 
   useEffect(() => {
-    if (!props.personRef) {
+    if (!person || newPerson) {
       return;
     }
 
-    props.personRef.get().then((doc) => {
-      let person = doc.data();
-      person.ID = doc.id;
+    setNewPerson(person);
+    setImageURL(person.imageURL);
+  }, [person, newPerson, fields]);
 
-      setName(person.name || "");
-      setEmail(person.email || "");
-      setCompany(person.company || "");
-      setJob(person.job || "");
-      setPhone(person.phone || "");
-      setCountry(person.country || "");
-      setState(person.state || "");
-      setCity(person.city || "");
+  const onCancel = () => {
+    setNewPerson();
+    setImageURL();
+    setOpen(false);
+  };
 
-      setCustomFields(person.customFields || {});
-      setLabels(person.labels || {});
+  const onSave = () => {
+    if (imageURL) {
+      newPerson.imageURL = imageURL;
+    }
 
-      setPerson(person);
+    personRef.update(newPerson).then(() => {
+      setNewPerson();
+      setImageURL();
+      setOpen(false);
     });
-  }, [props.show, props.personRef]);
+  };
 
-  if (!person) {
+  const title = (field) => {
+    return field.charAt(0).toUpperCase() + field.substr(1).toLowerCase();
+  };
+
+  if (!newPerson || !fields) {
     return <></>;
   }
 
-  const addCustomField = () => {
-    let ID = uuidv4();
-    let fields = {};
-    Object.assign(fields, customFields);
-    fields[ID] = { ID: ID, kind: "", value: "" };
-    setCustomFields(fields);
-  };
-
-  const addLabel = () => {
-    let ID = uuidv4();
-    let l = {};
-    Object.assign(l, labels);
-    l[ID] = { ID: ID, kind: "" };
-    setLabels(l);
-  };
-
-  let fields = [
-    {
-      label: "Full name",
-      placeholder: "Name",
-      type: "text",
-      value: name,
-      setter: setName,
-    },
-    {
-      label: "Email address",
-      placeholder: "Email",
-      type: "email",
-      value: email,
-      setter: setEmail,
-    },
-    {
-      label: "Company name",
-      placeholder: "Company",
-      type: "text",
-      value: company,
-      setter: setCompany,
-    },
-    {
-      label: "Job title",
-      placeholder: "Job",
-      type: "text",
-      value: job,
-      setter: setJob,
-    },
-    {
-      label: "Phone number",
-      placeholder: "Phone",
-      type: "text",
-      value: phone,
-      setter: setPhone,
-    },
-    {
-      label: "Country",
-      placeholder: "Country",
-      type: "text",
-      value: country,
-      setter: setCountry,
-    },
-    {
-      label: "State",
-      placeholder: "State",
-      type: "text",
-      value: state,
-      setter: setState,
-    },
-    {
-      label: "City",
-      placeholder: "City",
-      type: "text",
-      value: city,
-      setter: setCity,
-    },
-  ];
+  console.log("open: ", open);
 
   return (
-    <Modal
-      show={props.show}
-      onHide={props.onHide}
-      name="Edit person"
-      footer={[
-        <Button
-          key={person.ID}
-          onClick={() => {
-            event(firebase, "edit_person", {
-              orgID: orgID,
-              userID: oauthClaims.user_id,
-            });
-
-            person.name = name;
-            person.email = email;
-            person.company = company;
-            person.job = job;
-            person.phone = phone;
-            person.country = country;
-            person.state = state;
-            person.city = city;
-
-            person.customFields = customFields;
-            person.labels = labels;
-
-            props.personRef.set(person).then(() => {
-              setPerson();
-              setName();
-              setEmail();
-              setCompany();
-              setPhone();
-              setCountry();
-              setState();
-              setCity();
-            });
-          }}
-        >
-          Save
-        </Button>,
-      ]}
-    >
-      {fields.map((field) => (
-        <Row className="mb-3" key={field.label}>
-          <Col>
-            <Form.Label>{field.label}</Form.Label>
-            <Form.Control
-              type={field.type}
-              placeholder={field.placeholder}
-              value={field.value}
-              onChange={(e) => {
-                field.setter(e.target.value);
-              }}
-            />
-          </Col>
-        </Row>
-      ))}
-
-      <Row>
-        <Col>
-          <Form.Label>Other details</Form.Label>
-        </Col>
-      </Row>
-      {Object.values(customFields).map((field) => {
-        return (
-          <Row className="mb-2" key={field.ID}>
-            <Col>
-              <Row>
-                <Col md={4}>
-                  <Form.Control
-                    type="text"
-                    placeholder="Kind"
-                    defaultValue={field.kind}
+    <>
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth>
+        <DialogTitle id="form-dialog-title">Add new customer</DialogTitle>
+        <DialogContent>
+          <Grid container item xs={12}>
+            <Grid container item xs={8}>
+              {fields.map((field) => {
+                return (
+                  <TextField
+                    autoFocus
+                    margin="dense"
+                    id="name"
+                    label={title(field)}
+                    fullWidth
+                    value={newPerson[field]}
                     onChange={(e) => {
-                      let fields = {};
-                      Object.assign(fields, customFields);
-                      fields[field.ID].kind = e.target.value;
-                      setCustomFields(fields);
+                      let copy = Object.assign({}, newPerson);
+                      copy[field] = e.target.value;
+                      setNewPerson(copy);
                     }}
                   />
-                </Col>
-                <Col md={7}>
-                  <Form.Control
-                    type="text"
-                    placeholder="Value"
-                    defaultValue={field.value}
+                );
+              })}
+
+              {newPerson.customFields &&
+                Object.values(newPerson.customFields).map((field) => (
+                  <TextField
+                    fullWidth
+                    label={field.kind}
+                    value={field.value}
                     onChange={(e) => {
-                      let fields = {};
-                      Object.assign(fields, customFields);
-                      fields[field.ID].value = e.target.value;
-                      setCustomFields(fields);
+                      let copy = Object.assign({}, newPerson);
+                      copy.customFields[field.ID].value = e.target.value;
+                      setNewPerson(copy);
+                    }}
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            onClick={() => {
+                              let copy = Object.assign({}, newPerson);
+                              delete copy.customFields[field.ID];
+                              setNewPerson(copy);
+                            }}
+                          >
+                            <CancelIcon />
+                          </IconButton>
+                        </InputAdornment>
+                      ),
                     }}
                   />
-                </Col>
-                <Col md={1} style={{ padding: 0 }}>
-                  <Button variant="link">
-                    <DeleteIcon
-                      color="grey"
-                      onClick={() => {
-                        let fields = {};
-                        Object.assign(fields, customFields);
-                        delete fields[field.ID];
-                        setCustomFields(fields);
-                      }}
-                    />
-                  </Button>
-                </Col>
-              </Row>
-            </Col>
-          </Row>
-        );
-      })}
-      <Row className="mb-3">
-        <Col>
-          <Button
-            className="addButton"
-            style={{ width: "1.5rem", height: "1.5rem", fontSize: "0.75rem" }}
-            onClick={addCustomField}
-          >
-            +
+                ))}
+              <Button
+                onClick={() => {
+                  setNewFieldDialogOpen(true);
+                }}
+              >
+                + Add custom field
+              </Button>
+              <NewFieldDialog
+                open={newFieldDialogOpen}
+                setOpen={setNewFieldDialogOpen}
+                onAdd={(kind) => {
+                  let copy = Object.assign({}, newPerson);
+                  let id = uuidv4();
+                  if (!(copy.customFields in copy)) {
+                    copy.customFields = {};
+                  }
+
+                  copy.customFields[id] = {
+                    ID: id,
+                    kind: kind,
+                  };
+                  setNewPerson(copy);
+                  setNewFieldDialogOpen(false);
+                }}
+              />
+            </Grid>
+            <Grid
+              container
+              Item
+              xs={4}
+              alignItems="flex-start"
+              alignContent="flex-start"
+            >
+              <Grid
+                container
+                justify="center"
+                alignItems="flex-start"
+                alignContent="flex-start"
+                style={{ position: "relative" }}
+              >
+                <Avatar
+                  size={120}
+                  name={newPerson.name}
+                  src={imageURL}
+                  round={true}
+                />
+                <div
+                  class="profileImageCover"
+                  onClick={() => {
+                    setImageDialogOpen(true);
+                  }}
+                >
+                  Upload
+                </div>
+              </Grid>
+              <ImageDialog
+                open={imageDialogOpen}
+                setOpen={setImageDialogOpen}
+                setImageURL={setImageURL}
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={onCancel} color="primary">
+            Cancel
           </Button>
-        </Col>
-      </Row>
-      <Row>
-        <Col>
-          <Form.Label>Labels</Form.Label>
-        </Col>
-      </Row>
-      {Object.values(labels).map((label) => {
-        return (
-          <Row className="mb-2" key={label.ID}>
-            <Col>
-              <Row>
-                <Col md={8}>
-                  <Form.Control
-                    type="text"
-                    placeholder="Name"
-                    defaultValue={label.name}
-                    onChange={(e) => {
-                      let l = {};
-                      Object.assign(l, labels);
-                      l[label.ID].name = e.target.value;
-                      setLabels(l);
-                    }}
-                  />
-                </Col>
-                <Col md={1} style={{ padding: 0 }}>
-                  <Button variant="link">
-                    <DeleteIcon
-                      color="grey"
-                      onClick={() => {
-                        let l = {};
-                        Object.assign(l, labels);
-                        delete l[label.ID];
-                        setLabels(l);
-                      }}
-                    />
-                  </Button>
-                </Col>
-              </Row>
-            </Col>
-          </Row>
-        );
-      })}
-      <Row>
-        <Col>
-          <Button
-            className="addButton"
-            style={{ width: "1.5rem", height: "1.5rem", fontSize: "0.75rem" }}
-            onClick={addLabel}
-          >
-            +
+          <Button variant="contained" onClick={onSave} color="secondary">
+            Save
           </Button>
-        </Col>
-      </Row>
-    </Modal>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 }
