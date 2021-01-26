@@ -23,7 +23,7 @@ import EmptyStateHelp from "../util/EmptyStateHelp.js";
 
 const batchSize = 25;
 
-export default function People({ create }) {
+export default function People({ create, edit }) {
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
 
@@ -34,8 +34,6 @@ export default function People({ create }) {
   const { personID, orgID } = useParams();
 
   const [peopleList, setPeopleList] = useState([]);
-  const [addDialogShow, setAddDialogShow] = useState();
-  const [newPersonRef, setNewPersonRef] = useState();
   const [listLimit, setListLimit] = useState(batchSize);
   const [listTotal, setListTotal] = useState();
   const [showResults, setShowResults] = useState();
@@ -81,26 +79,14 @@ export default function People({ create }) {
         deletionTimestamp: "",
       })
       .then((doc) => {
-        navigate(`/orgs/${orgID}/people/${doc.id}`);
-        setNewPersonRef(doc);
-        setAddDialogShow(true);
+        navigate(`/orgs/${orgID}/people/${doc.id}/edit`);
       });
   }, [create, peopleRef, firebase, navigate, oauthClaims, orgID]);
 
   let content;
   if (personID) {
-    content = <Person key={personID} />;
+    content = <Person edit={edit} key={personID} />;
   }
-
-  let addModal = (
-    <PersonEditDialog
-      show={addDialogShow}
-      onHide={() => {
-        setAddDialogShow(false);
-      }}
-      personRef={newPersonRef}
-    />
-  );
 
   const personListItem = (ID, name, imageURL, company) => (
     <ListItem
@@ -193,7 +179,6 @@ export default function People({ create }) {
       <Grid container className="fullHeight" style={{ position: "relative" }}>
         {list}
         {content}
-        {addModal}
       </Grid>
     </Search>
   );

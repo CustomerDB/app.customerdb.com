@@ -11,7 +11,7 @@ import FirebaseContext from "../util/FirebaseContext.js";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
 
-export default function PersonDeleteDialog(props) {
+export default function PersonDeleteDialog({ personRef, show, onHide }) {
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
   const navigate = useNavigate();
@@ -21,16 +21,16 @@ export default function PersonDeleteDialog(props) {
   const [person, setPerson] = useState();
 
   useEffect(() => {
-    if (!props.personRef) {
+    if (!personRef) {
       return;
     }
 
-    props.personRef.get().then((doc) => {
+    personRef.get().then((doc) => {
       let person = doc.data();
       person.ID = doc.id;
       setPerson(person);
     });
-  }, [props.show, props.personRef]);
+  }, [show, personRef]);
 
   if (!person) {
     return <></>;
@@ -38,8 +38,8 @@ export default function PersonDeleteDialog(props) {
 
   return (
     <Dialog
-      open={props.show}
-      onClose={props.onHide}
+      open={show}
+      onClose={onHide}
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-description"
     >
@@ -52,7 +52,7 @@ export default function PersonDeleteDialog(props) {
         </DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onHide} color="primary">
+        <Button onClick={onHide} color="primary">
           Cancel
         </Button>
         <Button
@@ -61,7 +61,7 @@ export default function PersonDeleteDialog(props) {
               orgID: orgID,
               userID: oauthClaims.user_id,
             });
-            props.personRef.update({
+            personRef.update({
               deletedBy: oauthClaims.email,
               deletionTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
             });

@@ -29,6 +29,53 @@ import { useOrganization } from "../organization/hooks.js";
 import { v4 as uuidv4 } from "uuid";
 import Interviews from "../interviews/Interviews";
 
+export function InterviewListItem({
+  ID,
+  orgID,
+  name,
+  date,
+  transcript,
+  personName,
+  personImageURL,
+}) {
+  const navigate = useNavigate();
+
+  let avatar = (
+    <Avatar alt={personName}>
+      {transcript ? <TheatersIcon /> : <DescriptionIcon />}
+    </Avatar>
+  );
+
+  if (personImageURL) {
+    avatar = <Avatar alt={personName} src={personImageURL} />;
+  }
+
+  if (personName) {
+    avatar = <Tooltip title={personName}>{avatar}</Tooltip>;
+  }
+
+  return (
+    <ListItem
+      style={{
+        backgroundColor: "white",
+        borderRadius: "0.5rem",
+        marginBottom: "1rem",
+      }}
+      button
+      key={ID}
+      onClick={() => {
+        navigate(`/orgs/${orgID}/interviews/${ID}`);
+      }}
+    >
+      <ListItemAvatar>{avatar}</ListItemAvatar>
+      <ListItemText
+        primary={name}
+        secondary={date && <Moment fromNow date={date} />}
+      />
+    </ListItem>
+  );
+}
+
 function InterviewList({ create, fromGuide }) {
   const [addModalShow, setAddModalShow] = useState(false);
   const [documents, setDocuments] = useState();
@@ -157,65 +204,21 @@ function InterviewList({ create, fromGuide }) {
     orgID,
   ]);
 
-  const dataListItem = (
-    ID,
-    name,
-    date,
-    transcript,
-    personName,
-    personImageURL
-  ) => {
-    let avatar = (
-      <Avatar alt={personName}>
-        {transcript ? <TheatersIcon /> : <DescriptionIcon />}
-      </Avatar>
-    );
-
-    if (personImageURL) {
-      avatar = <Avatar alt={personName} src={personImageURL} />;
-    }
-
-    if (personName) {
-      avatar = <Tooltip title={personName}>{avatar}</Tooltip>;
-    }
-
-    return (
-      <ListItem
-        style={{
-          backgroundColor: "white",
-          borderRadius: "0.5rem",
-          marginBottom: "1rem",
-        }}
-        button
-        key={ID}
-        selected={ID === documentID}
-        onClick={() => {
-          navigate(`/orgs/${orgID}/interviews/${ID}`);
-        }}
-      >
-        <ListItemAvatar>{avatar}</ListItemAvatar>
-        <ListItemText
-          primary={name}
-          secondary={date && <Moment fromNow date={date} />}
-        />
-      </ListItem>
-    );
-  };
-
   if (!documents) {
     return <></>;
   }
 
-  let documentItems = documents.map((doc) =>
-    dataListItem(
-      doc.ID,
-      doc.name,
-      doc.creationTimestamp && doc.creationTimestamp.toDate(),
-      doc.transcription,
-      doc.personName,
-      doc.personImageURL
-    )
-  );
+  let documentItems = documents.map((doc) => (
+    <InterviewListItem
+      ID={doc.ID}
+      orgID={orgID}
+      name={doc.name}
+      date={doc.creationTimestamp && doc.creationTimestamp.toDate()}
+      transcript={doc.transcription}
+      personName={doc.personName}
+      personImageURL={doc.personImageURL}
+    />
+  ));
 
   const SearchResults = connectHits((result) => {
     return result.hits.map((hit) => {
@@ -223,13 +226,16 @@ function InterviewList({ create, fromGuide }) {
       let creationDate = new Date(hit.creationTimestamp * 1000);
 
       // TODO: Get content type from index object.
-      return dataListItem(
-        hit.objectID,
-        hit.name,
-        creationDate,
-        false,
-        hit.personName,
-        hit.personImageURL
+      return (
+        <InterviewListItem
+          ID={hit.objectID}
+          orgID={orgID}
+          name={hit.name}
+          date={creationDate}
+          transcript={false}
+          personName={hit.personName}
+          personImageURL={hit.personImageURL}
+        />
       );
     });
   });
