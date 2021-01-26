@@ -239,6 +239,7 @@ export default function Document(props) {
                 >
                   <Grid item xs={7} sm={5}>
                     <Typography
+                      id="documentTitle"
                       gutterBottom
                       variant="h6"
                       style={{ fontWeight: "bold" }}
