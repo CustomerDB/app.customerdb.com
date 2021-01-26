@@ -3,8 +3,9 @@ import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import QuotePreview from "../../quotes/QuotePreview.js";
 import Grid from "@material-ui/core/Grid";
+import DismissableBlotContent from "./DismissableBlotContent.js";
 
-export default function QuoteContents({ quillContainerRef }) {
+export default function QuoteContents({ quillContainerRef, reactQuillRef }) {
   const [quoteNodes, setQuoteNodes] = useState([]);
 
   useEffect(() => {
@@ -30,24 +31,35 @@ export default function QuoteContents({ quillContainerRef }) {
     };
   }, [quillContainerRef]);
 
-  return quoteNodes.map((qn) =>
+  return quoteNodes.map((quoteNode) =>
     ReactDOM.createPortal(
-      <Grid
-        container
-        item
-        sm={12}
-        md={6}
-        style={{
-          border: "1px solid #fafafa",
-          borderRadius: "1rem",
-        }}
+      <QuoteContent quoteNode={quoteNode} reactQuillRef={reactQuillRef} />,
+      quoteNode
+    )
+  );
+}
+
+function QuoteContent({ reactQuillRef, quoteNode }) {
+  return (
+    <Grid
+      container
+      item
+      sm={12}
+      md={6}
+      style={{
+        border: "1px solid #fafafa",
+        borderRadius: "1rem",
+      }}
+    >
+      <DismissableBlotContent
+        reactQuillRef={reactQuillRef}
+        blotNode={quoteNode}
       >
         <QuotePreview
-          key={qn.dataset.highlightID}
-          highlightID={qn.dataset.highlightID}
+          key={quoteNode.dataset.highlightID}
+          highlightID={quoteNode.dataset.highlightID}
         />
-      </Grid>,
-      qn
-    )
+      </DismissableBlotContent>
+    </Grid>
   );
 }
