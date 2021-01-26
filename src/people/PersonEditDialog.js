@@ -67,7 +67,7 @@ export default function PersonEditDialog({ person, personRef, open, setOpen }) {
     return <></>;
   }
 
-  console.log("render", person, newPerson);
+  console.log("open: ", open);
 
   return (
     <>

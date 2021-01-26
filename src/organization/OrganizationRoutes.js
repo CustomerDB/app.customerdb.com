@@ -23,6 +23,7 @@ export default function OrganizationRoutes(props) {
           <Route path="/" element={<People />} />
           <Route path=":personID" element={<People />} />
           <Route path="create" element={<People create />} />
+          <Route path=":personID/edit" element={<People edit />} />
           <Route path=":personID/:tabID" element={<People />} />
         </Route>
 

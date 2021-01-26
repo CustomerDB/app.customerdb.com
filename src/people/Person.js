@@ -47,8 +47,8 @@ function Container({ children }) {
   );
 }
 
-export default function Person() {
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
+export default function Person({ edit }) {
+  const [editDialogOpen, setEditDialogOpen] = useState(edit);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const [person, setPerson] = useState();
