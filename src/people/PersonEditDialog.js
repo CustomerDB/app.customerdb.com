@@ -10,8 +10,7 @@ import Grid from "@material-ui/core/Grid";
 import Avatar from "react-avatar";
 import ImageDialog from "./ImageDialog.js";
 
-export default function PersonEditDialog({ personRef, open, setOpen }) {
-  const [person, setPerson] = useState();
+export default function PersonEditDialog({ person, personRef, open, setOpen }) {
   const [newPerson, setNewPerson] = useState();
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
 
@@ -37,36 +36,30 @@ export default function PersonEditDialog({ personRef, open, setOpen }) {
   const [fields, setFields] = useState([]);
 
   useEffect(() => {
-    if (!personRef) {
+    if (!person || newPerson) {
       return;
     }
 
-    return personRef.onSnapshot((doc) => {
-      let person = doc.data();
+    let extraFields = Object.keys(person);
 
-      let extraFields = Object.keys(person);
+    // Filter ID field.
+    extraFields = extraFields.filter(
+      (field) =>
+        !excludeFields.includes(field) && !predefinedFields.includes(field)
+    );
 
-      // Filter ID field.
-      extraFields = extraFields.filter(
-        (field) =>
-          !excludeFields.includes(field) && !predefinedFields.includes(field)
-      );
-
-      setFields(predefinedFields.concat(extraFields));
-
-      setPerson(person);
-      setNewPerson(person);
-    });
-  }, [personRef, excludeFields, predefinedFields]);
+    setNewPerson(person);
+    setFields(predefinedFields.concat(extraFields));
+  }, [person, newPerson, excludeFields, predefinedFields]);
 
   const onCancel = () => {
-    setPerson(person);
+    setNewPerson();
     setOpen(false);
   };
 
   const onSave = () => {
-    console.log("newPerson", newPerson);
     personRef.update(newPerson);
+    setNewPerson();
     setOpen(false);
   };
 
@@ -78,6 +71,8 @@ export default function PersonEditDialog({ personRef, open, setOpen }) {
     return <></>;
   }
 
+  console.log("render", person, newPerson);
+
   return (
     <>
       <Dialog open={open} onClose={() => setOpen(false)} fullWidth>
@@ -86,7 +81,6 @@ export default function PersonEditDialog({ personRef, open, setOpen }) {
           <Grid container item xs={12}>
             <Grid container item xs={8}>
               {fields.map((field) => {
-                console.log(field);
                 return (
                   <TextField
                     autoFocus
@@ -98,6 +92,7 @@ export default function PersonEditDialog({ personRef, open, setOpen }) {
                     onChange={(e) => {
                       let copy = Object.assign({}, newPerson);
                       copy[field] = e.target.value;
+                      console.log("copy", copy);
                       setNewPerson(copy);
                     }}
                   />

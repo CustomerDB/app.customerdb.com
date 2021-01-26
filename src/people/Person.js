@@ -104,6 +104,8 @@ export default function Person() {
     );
   }
 
+  console.log("Person", person);
+
   return (
     <>
       <Container>
@@ -169,11 +171,13 @@ export default function Person() {
         </Grid>
       </Container>
       <PersonEditDialog
+        person={person}
         personRef={personRef}
         open={editDialogOpen}
         setOpen={setEditDialogOpen}
       />
       <PersonDeleteDialog
+        person={person}
         show={deleteDialogOpen}
         onHide={() => setDeleteDialogOpen(false)}
         personRef={personRef}
