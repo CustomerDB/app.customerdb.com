@@ -122,7 +122,15 @@ export default function PersonOverview({ person }) {
                       <TableCell style={{ width: "3rem" }}>
                         {field.kind}
                       </TableCell>
-                      <TableCell>{field.value}</TableCell>
+                      <TableCell
+                        style={{
+                          maxWidth: "6rem",
+                          overflowWrap: "break-word",
+                          wordWrap: "break-word",
+                        }}
+                      >
+                        {field.value}
+                      </TableCell>
                     </TableRow>
                   ))}
               </TableBody>
