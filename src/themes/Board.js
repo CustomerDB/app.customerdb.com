@@ -14,7 +14,7 @@ import BoardDeleteModal from "./BoardDeleteModal.js";
 import ArchiveIcon from "@material-ui/icons/Archive";
 import RecordVoiceOverIcon from "@material-ui/icons/RecordVoiceOver";
 import CloudDownloadIcon from "@material-ui/icons/CloudDownload";
-import ContentEditable from "react-contenteditable";
+import EditableTitle from "../util/EditableTitle";
 import Button from "@material-ui/core/Button";
 import InterviewSidepane from "./InterviewSidepane.js";
 import Sidepane from "../shell/Sidepane.js";
@@ -159,21 +159,16 @@ export default function Board({ download }) {
                   style={{ fontWeight: "bold" }}
                   component="h2"
                 >
-                  <ContentEditable
-                    html={board.name}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.target.blur();
-                      }
-                    }}
-                    onBlur={(e) => {
+                  <EditableTitle
+                    value={board.name}
+                    onSave={(name) => {
                       if (boardRef) {
-                        let newName = e.target.innerText
+                        let newName = name
                           .replace(/(\r\n|\n|\r)/gm, " ")
                           .replace(/\s+/g, " ")
                           .trim();
 
-                        boardRef.update({ name: newName });
+                        return boardRef.update({ name: newName });
                       }
                     }}
                   />

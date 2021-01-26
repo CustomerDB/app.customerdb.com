@@ -4,8 +4,8 @@ import Grid from "@material-ui/core/Grid";
 import useFirestore from "../db/Firestore.js";
 import Quote from "./Quote";
 import Scrollable from "../shell/Scrollable.js";
-import ContentEditable from "react-contenteditable";
 import * as firebaseClient from "firebase/app";
+import EditableTitle from "../util/EditableTitle";
 
 function Card({ cardID }) {
   // Look up highlight hit for card.
@@ -76,12 +76,6 @@ export default function ThemeSidepane({ theme }) {
     return <></>;
   }
 
-  const enterToBlur = (e) => {
-    if (e.key === "Enter") {
-      e.target.blur();
-    }
-  };
-
   return (
     <Grid
       container
@@ -91,13 +85,12 @@ export default function ThemeSidepane({ theme }) {
     >
       <Grid container item style={{ paddingLeft: "2rem" }}>
         <Typography variant="h6" style={{ fontWeight: "bold" }}>
-          <ContentEditable
-            html={themeDocument.name}
-            onKeyDown={enterToBlur}
-            onBlur={(e) => {
+          <EditableTitle
+            value={themeDocument.name}
+            onSave={(name) => {
               let themeRef = themesRef.doc(theme.ID);
               if (themeRef) {
-                let newName = e.target.innerText
+                let newName = name
                   .replace(/(\r\n|\n|\r)/gm, " ")
                   .replace(/\s+/g, " ")
                   .trim();
@@ -106,6 +99,8 @@ export default function ThemeSidepane({ theme }) {
                   // Ignore empty name - otherwise, a user won't be able to rename the theme.
                   newName = "Unnamed theme";
                 }
+
+                console.log("newName", newName);
 
                 themeRef.update({
                   name: newName,
@@ -122,22 +117,21 @@ export default function ThemeSidepane({ theme }) {
         style={{ paddingLeft: "2rem", paddingBottom: "1rem" }}
       >
         <Typography variant="subtitle2" gutterBottom>
-          <ContentEditable
-            html={
+          <EditableTitle
+            value={
               themeDocument.description
                 ? themeDocument.description
                 : "Description"
             }
-            onKeyDown={enterToBlur}
-            onBlur={(e) => {
+            onSave={(name) => {
               let themeRef = themesRef.doc(theme.ID);
               if (themeRef) {
-                let newDescription = e.target.innerText
+                let newDescription = name
                   .replace(/(\r\n|\n|\r)/gm, " ")
                   .replace(/\s+/g, " ")
                   .trim();
 
-                themeRef.update({
+                return themeRef.update({
                   description: newDescription,
                   lastUpdateTimestamp: firebaseClient.firestore.FieldValue.serverTimestamp(),
                 });
