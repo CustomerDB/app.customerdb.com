@@ -2,8 +2,9 @@ import React, { useEffect, useState } from "react";
 
 import ReactDOM from "react-dom";
 import ThemePreview from "../../themes/ThemePreview.js";
+import DismissableBlotContent from "./DismissableBlotContent.js";
 
-export default function ThemeContents({ quillContainerRef }) {
+export default function ThemeContents({ quillContainerRef, reactQuillRef }) {
   const [themeNodes, setThemeNodes] = useState([]);
 
   useEffect(() => {
@@ -29,14 +30,19 @@ export default function ThemeContents({ quillContainerRef }) {
     };
   }, [quillContainerRef]);
 
-  return themeNodes.map((qn) =>
+  return themeNodes.map((themeNode) =>
     ReactDOM.createPortal(
-      <ThemePreview
-        key={qn.dataset.highlightID}
-        boardID={qn.dataset.boardID}
-        themeID={qn.dataset.themeID}
-      />,
-      qn
+      <DismissableBlotContent
+        reactQuillRef={reactQuillRef}
+        blotNode={themeNode}
+      >
+        <ThemePreview
+          key={themeNode.dataset.highlightID}
+          boardID={themeNode.dataset.boardID}
+          themeID={themeNode.dataset.themeID}
+        />
+      </DismissableBlotContent>,
+      themeNode
     )
   );
 }
