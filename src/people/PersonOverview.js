@@ -62,7 +62,8 @@ export default function PersonOverview({ person }) {
           person.phone ||
           person.city ||
           person.state ||
-          person.country) && (
+          person.country ||
+          person.customFields) && (
           <Grid
             container
             item
@@ -115,6 +116,15 @@ export default function PersonOverview({ person }) {
                     <TableCell>{address}</TableCell>
                   </TableRow>
                 )}
+                {person.customFields &&
+                  Object.values(person.customFields).map((field) => (
+                    <TableRow>
+                      <TableCell style={{ width: "3rem" }}>
+                        {field.kind}
+                      </TableCell>
+                      <TableCell>{field.value}</TableCell>
+                    </TableRow>
+                  ))}
               </TableBody>
             </Table>
           </Grid>

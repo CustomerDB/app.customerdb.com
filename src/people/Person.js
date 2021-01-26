@@ -48,7 +48,7 @@ function Container({ children }) {
 }
 
 export default function Person() {
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const [person, setPerson] = useState();

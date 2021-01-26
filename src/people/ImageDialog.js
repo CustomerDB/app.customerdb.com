@@ -9,7 +9,6 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import FirebaseContext from "../util/FirebaseContext.js";
 import Grid from "@material-ui/core/Grid";
 import { makeStyles } from "@material-ui/core/styles";
-import useFirestore from "../db/Firestore.js";
 import { useParams } from "react-router-dom";
 
 const useStyles = makeStyles((theme) => ({
@@ -23,13 +22,12 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function ImageDialog({ open, setOpen }) {
+export default function ImageDialog({ open, setOpen, setImageURL }) {
   const classes = useStyles();
 
   const [imageSource, setImageSource] = useState();
   const { orgID, personID } = useParams();
 
-  const { personRef } = useFirestore();
   const firebase = useContext(FirebaseContext);
   let storageRef = firebase.storage().ref();
 
@@ -51,10 +49,9 @@ export default function ImageDialog({ open, setOpen }) {
       () => {
         // 100% Done
         imageRef.getDownloadURL().then((url) => {
-          personRef.update({ imageURL: url }).then(() => {
-            setOpen(false);
-            setImageSource();
-          });
+          setImageURL(url);
+          setOpen(false);
+          setImageSource();
         });
       }
     );
