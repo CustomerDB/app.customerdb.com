@@ -9,9 +9,9 @@ import FirebaseContext from "../util/FirebaseContext.js";
 import Grid from "@material-ui/core/Grid";
 import { Highlight } from "react-instantsearch-dom";
 import Moment from "react-moment";
-import ReactPlayer from "react-player";
 import Typography from "@material-ui/core/Typography";
 import { hexToRGB } from "../util/color.js";
+import Player from "./Player";
 
 export default function Quote({ hit }) {
   const firebase = useContext(FirebaseContext);
@@ -92,33 +92,7 @@ export default function Quote({ hit }) {
             </p>
           </div>
 
-          {mediaURL && (
-            <div
-              style={{
-                borderRadius: "0.5rem",
-                overflow: "hidden",
-                margin: "0.5rem",
-              }}
-            >
-              <ReactPlayer
-                ref={playerRef}
-                url={mediaURL}
-                width="100%"
-                height="12rem"
-                light={hit.thumbnailURL || true}
-                playing={true}
-                onReady={() => {
-                  if (
-                    hit.startTime &&
-                    playerRef.current.getCurrentTime() === 0
-                  ) {
-                    playerRef.current.seekTo(hit.startTime);
-                  }
-                }}
-                controls
-              />
-            </div>
-          )}
+          <Player mediaURL={mediaURL} playerRef={playerRef} highlight={hit} />
 
           <div style={{ margin: "0.5rem" }}>
             <Typography variant="body2" color="textSecondary" component="p">

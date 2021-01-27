@@ -183,7 +183,7 @@ export default function VideoPlayer({
 
   return (
     <>
-      <div>
+      <div style={{ position: "relative" }}>
         <ReactPlayer
           ref={playerRef}
           url={transcriptionVideo}
