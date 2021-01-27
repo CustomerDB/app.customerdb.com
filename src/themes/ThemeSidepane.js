@@ -54,7 +54,7 @@ export default function ThemeSidepane({ theme, setTheme }) {
 
       setThemeDocument(doc.data());
     });
-  }, [theme, themesRef]);
+  }, [theme, themesRef, setTheme]);
 
   useEffect(() => {
     if (!theme || !themeDocument) {
