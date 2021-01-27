@@ -6,6 +6,8 @@ const { v4: uuidv4 } = require("uuid");
 const fs = require("fs");
 const Delta = require("quill-delta");
 
+const { supportedLanguages } = require("./transcriptLanguages");
+
 exports.start = functions.storage.object().onFinalize(async (object) => {
   const fileBucket = object.bucket;
   const filePath = object.name;
@@ -56,12 +58,18 @@ exports.start = functions.storage.object().onFinalize(async (object) => {
 
     let transcriptionOperation = doc.data();
 
+    let languageCode = "en-US";
+    // Found here: https://cloud.google.com/speech-to-text/docs/languages
+    if (supportedLanguages.includes(transcriptionOperation.languageCode)) {
+      languageCode = transcriptionOperation.languageCode;
+    }
+
     const request = {
       inputUri: "gs://" + fileBucket + "/" + filePath,
       features: ["SPEECH_TRANSCRIPTION"],
       videoContext: {
         speechTranscriptionConfig: {
-          languageCode: "en-US",
+          languageCode: languageCode,
           enableAutomaticPunctuation: true,
           enableSpeakerDiarization: true,
           diarizationSpeakerCount: transcriptionOperation.speakers,
@@ -70,6 +78,8 @@ exports.start = functions.storage.object().onFinalize(async (object) => {
         },
       },
     };
+
+    console.log("Transcription request", request);
 
     return video
       .annotateVideo(request)
