@@ -256,3 +256,8 @@ button.addButton {
 audio {
   min-height: 3rem;
 }
+
+video:focus,
+audio:focus {
+  outline: 0;
+}
