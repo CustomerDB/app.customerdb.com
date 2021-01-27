@@ -6,10 +6,10 @@ import Chip from "@material-ui/core/Chip";
 import FirebaseContext from "../util/FirebaseContext.js";
 import { Highlight } from "react-instantsearch-dom";
 import Moment from "react-moment";
-import ReactPlayer from "react-player";
 import Typography from "@material-ui/core/Typography";
 import { insertQuote } from "./embed/insert.js";
 import { hexToRGB } from "../util/color.js";
+import Player from "../quotes/Player";
 
 export default function QuoteHit({ hit, reactQuillRef }) {
   const firebase = useContext(FirebaseContext);
@@ -73,30 +73,7 @@ export default function QuoteHit({ hit, reactQuillRef }) {
         </p>
       </div>
 
-      {mediaURL && (
-        <div
-          style={{
-            borderRadius: "0.5rem",
-            overflow: "hidden",
-            margin: "0.5rem",
-          }}
-        >
-          <ReactPlayer
-            ref={playerRef}
-            url={mediaURL}
-            width="100%"
-            height="12rem"
-            light={hit.thumbnailURL || true}
-            playing={true}
-            onReady={() => {
-              if (hit.startTime && playerRef.current.getCurrentTime() === 0) {
-                playerRef.current.seekTo(hit.startTime);
-              }
-            }}
-            controls
-          />
-        </div>
-      )}
+      <Player playerRef={playerRef} mediaURL={mediaURL} highlight={hit} />
 
       <div style={{ margin: "0.5rem" }}>
         <Typography variant="body2" color="textSecondary" component="p">
