@@ -9,10 +9,10 @@ import CircularProgress from "@material-ui/core/CircularProgress";
 import Chip from "@material-ui/core/Chip";
 import Typography from "@material-ui/core/Typography";
 import Moment from "react-moment";
-import ReactPlayer from "react-player";
 import FirebaseContext from "../util/FirebaseContext.js";
 import useFirestore from "../db/Firestore.js";
 import { hexToRGB } from "../util/color.js";
+import Player from "../quotes/Player";
 
 export default function QuotePreview({ highlightID, hideNotFound }) {
   const { orgID } = useParams();
@@ -183,33 +183,11 @@ export default function QuotePreview({ highlightID, hideNotFound }) {
           </p>
         </div>
 
-        {mediaURL && (
-          <div
-            style={{
-              borderRadius: "0.5rem",
-              overflow: "hidden",
-              margin: "0.5rem",
-            }}
-          >
-            <ReactPlayer
-              ref={playerRef}
-              url={mediaURL}
-              width="100%"
-              height="12rem"
-              light={highlightCache.thumbnailURL || true}
-              playing={true}
-              onReady={() => {
-                if (
-                  highlightCache.startTime &&
-                  playerRef.current.getCurrentTime() === 0
-                ) {
-                  playerRef.current.seekTo(highlightCache.startTime);
-                }
-              }}
-              controls
-            />
-          </div>
-        )}
+        <Player
+          mediaURL={mediaURL}
+          playerRef={playerRef}
+          highlight={highlightCache}
+        />
 
         <div style={{ margin: "0.5rem" }}>
           <Typography variant="body1" color="textSecondary" component="p">

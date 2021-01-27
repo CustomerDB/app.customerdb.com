@@ -6,9 +6,9 @@ import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import Avatar from "react-avatar";
 import Typography from "@material-ui/core/Typography";
-import ReactPlayer from "react-player";
 import Moment from "react-moment";
 import Chip from "@material-ui/core/Chip";
+import Player from "../quotes/Player";
 
 const hexToRGB = (hex) => {
   if (hex.startsWith("#")) hex = hex.slice(1);
@@ -106,33 +106,11 @@ export default function Quote({ highlight }) {
             </p>
           </div>
 
-          {mediaURL && (
-            <div
-              style={{
-                borderRadius: "0.5rem",
-                overflow: "hidden",
-                margin: "0.5rem",
-              }}
-            >
-              <ReactPlayer
-                ref={playerRef}
-                url={mediaURL}
-                width="100%"
-                height="12rem"
-                light={highlight.thumbnailURL || true}
-                playing={true}
-                onReady={() => {
-                  if (
-                    highlight.startTime &&
-                    playerRef.current.getCurrentTime() === 0
-                  ) {
-                    playerRef.current.seekTo(highlight.startTime);
-                  }
-                }}
-                controls
-              />
-            </div>
-          )}
+          <Player
+            playerRef={playerRef}
+            mediaURL={mediaURL}
+            highlight={highlight}
+          />
 
           <div style={{ margin: "0.5rem" }}>
             <Typography variant="body2" color="textSecondary" component="p">

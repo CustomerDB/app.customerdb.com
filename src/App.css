@@ -246,3 +246,18 @@ button.addButton {
 .ql-snow {
   border: 0 !important;
 }
+
+.react-player {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+audio {
+  min-height: 3rem;
+}
+
+video:focus,
+audio:focus {
+  outline: 0;
+}
