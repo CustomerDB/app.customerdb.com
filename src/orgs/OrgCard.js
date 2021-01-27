@@ -3,7 +3,7 @@ import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import Typography from "@material-ui/core/Typography";
 import FirebaseContext from "../util/FirebaseContext.js";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import LinearProgress from "@material-ui/core/LinearProgress";
 
 export default function OrgCard({ orgID, claimsReady }) {
@@ -11,6 +11,7 @@ export default function OrgCard({ orgID, claimsReady }) {
   const db = firebase.firestore();
   const [org, setOrg] = useState();
   const [numMembers, setNumMembers] = useState();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!db || !orgID) {
@@ -33,12 +34,6 @@ export default function OrgCard({ orgID, claimsReady }) {
       .onSnapshot((snapshot) => setNumMembers(snapshot.size));
   }, [db, orgID]);
 
-  const linkedTitle = org && (
-    <Link style={{ color: "black" }} to={`/orgs/${orgID}`}>
-      {org.name}
-    </Link>
-  );
-
   let members;
   if (numMembers) {
     members = `${numMembers} members`;
@@ -60,6 +55,12 @@ export default function OrgCard({ orgID, claimsReady }) {
         borderRadius: "0.5rem",
         maxHeight: "10rem",
         width: "20rem",
+        cursor: ready ? "pointer" : "",
+      }}
+      onClick={() => {
+        if (ready) {
+          navigate(`/orgs/${orgID}`);
+        }
       }}
     >
       <CardContent>
@@ -68,7 +69,7 @@ export default function OrgCard({ orgID, claimsReady }) {
           gutterBottom
           style={{ fontWeight: "bold", color: ready ? "black" : "grey" }}
         >
-          {ready ? linkedTitle : org.name}
+          {org.name}
         </Typography>
         {!ready && <LinearProgress />}
         {members}
