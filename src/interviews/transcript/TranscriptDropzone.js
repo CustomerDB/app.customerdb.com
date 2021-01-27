@@ -22,6 +22,7 @@ import { useDropzone } from "react-dropzone";
 import useFirestore from "../../db/Firestore.js";
 import { useParams } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
+import { languages } from "./supportedLanguages";
 
 export default function TranscriptDropzone({
   setUploading,
@@ -33,6 +34,7 @@ export default function TranscriptDropzone({
   let { orgID, documentID } = useParams();
 
   const [speakers, setSpeakers] = useState(2);
+  const [languageCode, setLanguageCode] = useState("en-US");
   const firebase = useContext(FirebaseContext);
 
   let uploadTask = useRef();
@@ -85,6 +87,7 @@ export default function TranscriptDropzone({
       .set({
         ID: transcriptionID,
         speakers: speakers,
+        languageCode: languageCode,
         createdBy: oauthClaims.email,
         creationTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
         deletionTimestamp: "",
@@ -153,6 +156,7 @@ export default function TranscriptDropzone({
     transcriptionsRef,
     startUpload,
     speakers,
+    languageCode,
   ]);
 
   const onDrop = useCallback((acceptedFiles) => {
@@ -239,6 +243,22 @@ export default function TranscriptDropzone({
                 >
                   {[...Array(maxSpeakers).keys()].map((i) => (
                     <MenuItem value={i + 1}>{i + 1}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid container item style={{ marginTop: "1rem" }}>
+              <FormControl variant="outlined" style={{ width: "100%" }}>
+                <InputLabel id="language-label">Language</InputLabel>
+                <Select
+                  labelId="language-label"
+                  id="language"
+                  value={languageCode}
+                  onChange={(e) => setLanguageCode(e.target.value)}
+                  label="speakers"
+                >
+                  {Object.keys(languages).map((code) => (
+                    <MenuItem value={code}>{languages[code]}</MenuItem>
                   ))}
                 </Select>
               </FormControl>

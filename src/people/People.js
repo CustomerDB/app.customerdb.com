@@ -12,7 +12,6 @@ import ListItem from "@material-ui/core/ListItem";
 import ListItemAvatar from "@material-ui/core/ListItemAvatar";
 import ListItemText from "@material-ui/core/ListItemText";
 import Person from "./Person.js";
-import PersonEditDialog from "./PersonEditDialog.js";
 import Scrollable from "../shell/Scrollable.js";
 import { Search } from "../shell/Search.js";
 import UserAuthContext from "../auth/UserAuthContext.js";
