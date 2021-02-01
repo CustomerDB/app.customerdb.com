@@ -20,7 +20,7 @@ export default function Tags({ create }) {
   const [tagGroups, setTagGroups] = useState([]);
   const navigate = useNavigate();
 
-  const organization = useOrganization();
+  const { defaultTagGroupID } = useOrganization();
 
   useEffect(() => {
     if (!tagGroupsRef) {
@@ -69,7 +69,7 @@ export default function Tags({ create }) {
     navigate(`/orgs/${orgID}/tags`);
   }, [create, tagGroupsRef, firebase, navigate, oauthClaims, orgID]);
 
-  if (!tagGroupsRef || !organization) {
+  if (!tagGroupsRef || !defaultTagGroupID) {
     return <Loading />;
   }
 
