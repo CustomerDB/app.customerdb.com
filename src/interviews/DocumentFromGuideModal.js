@@ -15,7 +15,7 @@ export default function DocumentFromGuideModal({ show, onHide }) {
   const { documentRef, templatesRef } = useFirestore();
   const [template, setTemplate] = useState();
   const firebase = useContext(FirebaseContext);
-  const organization = useOrganization();
+  const { defaultTagGroupID } = useOrganization();
 
   useEffect(() => {
     if (!documentRef) return;
@@ -31,14 +31,14 @@ export default function DocumentFromGuideModal({ show, onHide }) {
   }, [show, documentRef]);
 
   const onSave = () => {
-    if (!documentRef || !templatesRef || !organization) {
+    if (!documentRef || !templatesRef || !defaultTagGroupID) {
       return;
     }
 
     let templatePromise = Promise.resolve();
 
     let templateID = "";
-    let tagGroupID = organization.defaultTagGroupID;
+    let tagGroupID = defaultTagGroupID;
 
     if (template) {
       templateID = template.ID;

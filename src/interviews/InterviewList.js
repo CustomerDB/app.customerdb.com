@@ -81,7 +81,7 @@ function InterviewList({ create, fromGuide }) {
   const [documents, setDocuments] = useState();
   const [showResults, setShowResults] = useState();
 
-  const organization = useOrganization();
+  const { defaultTagGroupID } = useOrganization();
 
   const navigate = useNavigate();
 
@@ -117,14 +117,12 @@ function InterviewList({ create, fromGuide }) {
     if (
       !create ||
       !callsRef ||
-      !organization ||
+      !defaultTagGroupID ||
       !oauthClaims.user_id ||
       !oauthClaims.email
     ) {
       return;
     }
-
-    console.debug("creating interview", organization);
 
     event(firebase, "create_interview", {
       orgID: orgID,
@@ -157,7 +155,7 @@ function InterviewList({ create, fromGuide }) {
 
           callID: callID,
 
-          tagGroupID: organization.defaultTagGroupID || "",
+          tagGroupID: defaultTagGroupID || "",
 
           templateID: "",
 
@@ -195,7 +193,7 @@ function InterviewList({ create, fromGuide }) {
   }, [
     create,
     callsRef,
-    organization,
+    defaultTagGroupID,
     documentsRef,
     firebase,
     fromGuide,
