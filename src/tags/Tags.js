@@ -7,7 +7,6 @@ import { Loading } from "../util/Utils.js";
 import UserAuthContext from "../auth/UserAuthContext.js";
 import event from "../analytics/event.js";
 import useFirestore from "../db/Firestore.js";
-import { useOrganization } from "../organization/hooks.js";
 import TagGroup from "./TagGroup.js";
 import Typography from "@material-ui/core/Typography";
 import EmptyStateHelp from "../util/EmptyStateHelp.js";
@@ -19,8 +18,6 @@ export default function Tags({ create }) {
   const { orgID } = useParams();
   const [tagGroups, setTagGroups] = useState([]);
   const navigate = useNavigate();
-
-  const { defaultTagGroupID } = useOrganization();
 
   useEffect(() => {
     if (!tagGroupsRef) {
@@ -69,7 +66,7 @@ export default function Tags({ create }) {
     navigate(`/orgs/${orgID}/tags`);
   }, [create, tagGroupsRef, firebase, navigate, oauthClaims, orgID]);
 
-  if (!tagGroupsRef || !defaultTagGroupID) {
+  if (!tagGroupsRef) {
     return <Loading />;
   }
 
