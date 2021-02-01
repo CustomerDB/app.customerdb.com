@@ -154,6 +154,8 @@ export default function TagGroup({ tagGroupID }) {
     </>
   ));
 
+  const isDefaultTagGroup = tagGroup.ID === organization.defaultTagGroupID;
+
   return (
     <>
       <Grid container item xs={12}>
@@ -203,6 +205,7 @@ export default function TagGroup({ tagGroupID }) {
                       setOptionsAnchorEl(null);
                       orgRef.update({ defaultTagGroupID: tagGroup.ID });
                     }}
+                    disabled={isDefaultTagGroup}
                   >
                     <ListItemIcon>
                       <StarIcon />
@@ -214,6 +217,7 @@ export default function TagGroup({ tagGroupID }) {
                       setOptionsAnchorEl(null);
                       setOpenDeleteDialog(true);
                     }}
+                    disabled={isDefaultTagGroup}
                   >
                     <ListItemIcon>
                       <ArchiveIcon />
