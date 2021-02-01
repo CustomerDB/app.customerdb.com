@@ -99,7 +99,6 @@ export default function TagGroupSelector(props) {
         onChange={onTagGroupChange}
         value={template.tagGroupID}
       >
-        <MenuItem value="">None</MenuItem>
         {tagGroups &&
           tagGroups.map((group) => (
             <MenuItem value={group.ID}>{group.name}</MenuItem>
