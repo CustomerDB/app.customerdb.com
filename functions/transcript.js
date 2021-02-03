@@ -70,6 +70,7 @@ exports.start = functions.storage.object().onFinalize(async (object) => {
       videoContext: {
         speechTranscriptionConfig: {
           languageCode: languageCode,
+          filterProfanity: true,
           enableAutomaticPunctuation: true,
           enableSpeakerDiarization: true,
           diarizationSpeakerCount: transcriptionOperation.speakers,
