@@ -34,6 +34,7 @@ import Tooltip from "@material-ui/core/Tooltip";
 import domToPdf from "dom-to-pdf";
 import EditableTitle from "../util/EditableTitle";
 import Typography from "@material-ui/core/Typography";
+import Feature, { QUOTE_SUGGESTIONS } from "../util/Features";
 
 const useStyles = makeStyles({
   documentPaper: {
@@ -273,25 +274,27 @@ export default function Document(props) {
                     justify="flex-end"
                   >
                     <>
-                      <Tooltip title="Suggest highlights">
-                        <span>
-                          <IconButton
-                            disabled={!hasSuggestions}
-                            onClick={() => {
-                              setAnchorEl(null);
-                              setSuggestionsOpen(true);
-                            }}
-                          >
-                            <FlashOnRoundedIcon
-                              style={
-                                hasSuggestions
-                                  ? { color: "#fcba03" }
-                                  : { color: "grey" }
-                              }
-                            />
-                          </IconButton>
-                        </span>
-                      </Tooltip>
+                      <Feature name={QUOTE_SUGGESTIONS}>
+                        <Tooltip title="Suggest quotes">
+                          <span>
+                            <IconButton
+                              disabled={!hasSuggestions}
+                              onClick={() => {
+                                setAnchorEl(null);
+                                setSuggestionsOpen(true);
+                              }}
+                            >
+                              <FlashOnRoundedIcon
+                                style={
+                                  hasSuggestions
+                                    ? { color: "#fcba03" }
+                                    : { color: "grey" }
+                                }
+                              />
+                            </IconButton>
+                          </span>
+                        </Tooltip>
+                      </Feature>
                       <IconButton
                         id="document-options"
                         edge="end"
