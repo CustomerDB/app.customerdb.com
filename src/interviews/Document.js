@@ -246,12 +246,8 @@ export default function Document(props) {
                     >
                       <EditableTitle
                         value={document.name}
-                        onSave={(name) => {
+                        onSave={(newName) => {
                           if (documentRef) {
-                            let newName = name
-                              .replace(/(\r\n|\n|\r)/gm, " ")
-                              .replace(/\s+/g, " ")
-                              .trim();
                             return documentRef.update({ name: newName });
                           }
                         }}

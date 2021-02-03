@@ -33,7 +33,12 @@ export default function EditableTitle({ value, onSave, ...otherProps }) {
       if (!editValue.current) {
         return;
       }
-      let result = onSave(e.target.innerText);
+      let newName = e.target.innerText
+        .replace(/(\r\n|\n|\r)/gm, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+      let result = onSave(newName);
       if (result) {
         result.then(() => {
           beingEdited.current = false;

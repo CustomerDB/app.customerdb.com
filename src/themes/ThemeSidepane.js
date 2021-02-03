@@ -88,20 +88,13 @@ export default function ThemeSidepane({ theme, setTheme }) {
         <Typography variant="h6" style={{ fontWeight: "bold" }}>
           <EditableTitle
             value={themeDocument.name}
-            onSave={(name) => {
+            onSave={(newName) => {
               let themeRef = themesRef.doc(theme.ID);
               if (themeRef) {
-                let newName = name
-                  .replace(/(\r\n|\n|\r)/gm, " ")
-                  .replace(/\s+/g, " ")
-                  .trim();
-
                 if (newName === "") {
                   // Ignore empty name - otherwise, a user won't be able to rename the theme.
                   newName = "Unnamed theme";
                 }
-
-                console.log("newName", newName);
 
                 themeRef.update({
                   name: newName,
@@ -124,14 +117,9 @@ export default function ThemeSidepane({ theme, setTheme }) {
                 ? themeDocument.description
                 : "Description"
             }
-            onSave={(name) => {
+            onSave={(newDescription) => {
               let themeRef = themesRef.doc(theme.ID);
               if (themeRef) {
-                let newDescription = name
-                  .replace(/(\r\n|\n|\r)/gm, " ")
-                  .replace(/\s+/g, " ")
-                  .trim();
-
                 return themeRef.update({
                   description: newDescription,
                   lastUpdateTimestamp: firebaseClient.firestore.FieldValue.serverTimestamp(),
