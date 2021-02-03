@@ -171,7 +171,7 @@ export default function Summary(props) {
                           value={summary.name}
                           onSave={(newName) => {
                             if (summaryRef) {
-                              summaryRef.update({ name: newName });
+                              return summaryRef.update({ name: newName });
                             }
                           }}
                         />

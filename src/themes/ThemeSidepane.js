@@ -96,7 +96,7 @@ export default function ThemeSidepane({ theme, setTheme }) {
                   newName = "Unnamed theme";
                 }
 
-                themeRef.update({
+                return themeRef.update({
                   name: newName,
                   lastUpdateTimestamp: firebaseClient.firestore.FieldValue.serverTimestamp(),
                 });
