@@ -1,12 +1,17 @@
-import React, { useCallback, useRef } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import ContentEditable from "react-contenteditable";
+import { v4 as uuidv4 } from "uuid";
 
 export default function EditableTitle({ value, onSave, ...otherProps }) {
   const editValue = useRef();
   const beingEdited = useRef();
   const valueCache = useRef();
 
+  const [renderToken, setRenderToken] = useState();
+
   valueCache.current = value;
+
+  console.debug("Editable title render token", renderToken);
 
   const onFocus = useCallback(() => {
     if (!beingEdited.current) {
@@ -23,17 +28,21 @@ export default function EditableTitle({ value, onSave, ...otherProps }) {
     [editValue]
   );
 
-  const onBlur = useCallback(() => {
-    if (!editValue.current) {
-      return;
-    }
-    let result = onSave(editValue.current);
-    if (result) {
-      result.then(() => {
-        beingEdited.current = false;
-      });
-    }
-  }, [beingEdited, editValue, onSave]);
+  const onBlur = useCallback(
+    (e) => {
+      if (!editValue.current) {
+        return;
+      }
+      let result = onSave(e.target.innerText);
+      if (result) {
+        result.then(() => {
+          beingEdited.current = false;
+          setRenderToken(uuidv4());
+        });
+      }
+    },
+    [beingEdited, editValue, onSave]
+  );
 
   return (
     <ContentEditable
