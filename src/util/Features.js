@@ -3,6 +3,7 @@ import useFirestore from "../db/Firestore.js";
 
 // canonical feature flag names
 export const HOSTED_CALLS = "HOSTED_CALLS";
+export const QUOTE_SUGGESTIONS = "QUOTE_SUGGESTIONS";
 
 // useOrgFeatures is a hook to subscribe to the current org feature set.
 function useOrgFeatures() {
