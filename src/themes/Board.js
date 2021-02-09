@@ -161,13 +161,8 @@ export default function Board({ download }) {
                 >
                   <EditableTitle
                     value={board.name}
-                    onSave={(name) => {
+                    onSave={(newName) => {
                       if (boardRef) {
-                        let newName = name
-                          .replace(/(\r\n|\n|\r)/gm, " ")
-                          .replace(/\s+/g, " ")
-                          .trim();
-
                         return boardRef.update({ name: newName });
                       }
                     }}
