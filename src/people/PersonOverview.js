@@ -24,7 +24,7 @@ export default function PersonOverview({ person }) {
     .join(", ");
 
   return (
-    <Grid container item xs={12} md={3} lg={3} style={{ padding: "2rem" }}>
+    <Grid container item xs={12} md={3} lg={3} style={{ padding: "1rem" }}>
       <Grid container direction="column">
         <Grid
           container

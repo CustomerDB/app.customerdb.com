@@ -20,6 +20,7 @@ import PersonOverview from "./PersonOverview";
 import { useTheme } from "@material-ui/core/styles";
 import useMediaQuery from "@material-ui/core/useMediaQuery";
 import PersonPanel from "./PersonPanel";
+import Scrollable from "../shell/Scrollable.js";
 
 const useStyles = makeStyles({
   expand: {
@@ -39,7 +40,6 @@ function Container({ children }) {
         position: "absolute",
         height: "100%",
       }}
-      align="baseline"
       direction="column"
     >
       {children}
@@ -165,9 +165,17 @@ export default function Person({ edit }) {
             </IconButton>
           </Grid>
         </Grid>
-        <Grid container style={{ flexGrow: 1 }}>
-          <PersonOverview person={person} />
-          {!smBreakpoint && <PersonPanel person={person} />}
+        <Grid
+          container
+          item
+          style={{ position: "relative", flexGrow: 1, width: "100%" }}
+        >
+          <Scrollable>
+            <Grid container style={{ height: "100%" }}>
+              <PersonOverview person={person} />
+              {!smBreakpoint && <PersonPanel person={person} />}
+            </Grid>
+          </Scrollable>
         </Grid>
       </Container>
       <PersonEditDialog

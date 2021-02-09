@@ -169,16 +169,9 @@ export default function Summary(props) {
                       >
                         <EditableTitle
                           value={summary.name}
-                          onSave={(name) => {
+                          onSave={(newName) => {
                             if (summaryRef) {
-                              let newName = name
-                                .replace(/(\r\n|\n|\r)/gm, " ")
-                                .replace(/\s+/g, " ")
-                                .trim();
-
-                              console.debug("setting summary name", newName);
-
-                              summaryRef.update({ name: newName });
+                              return summaryRef.update({ name: newName });
                             }
                           }}
                         />

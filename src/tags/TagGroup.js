@@ -167,13 +167,8 @@ export default function TagGroup({ tagGroupID }) {
                   <b>
                     <EditableTitle
                       value={tagGroup.name}
-                      onSave={(name) => {
+                      onSave={(newName) => {
                         if (tagGroupRef) {
-                          let newName = name
-                            .replace(/(\r\n|\n|\r)/gm, " ")
-                            .replace(/\s+/g, " ")
-                            .trim();
-
                           return tagGroupRef.update({ name: newName });
                         }
                       }}
