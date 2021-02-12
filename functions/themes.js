@@ -561,6 +561,13 @@ exports.indexUpdatedTheme = functions.firestore
         const cardIDs = snapshot.docs.map((doc) => doc.id);
         const boardRef = themeRef.parent.parent;
 
+        if (!cardIDs.length) {
+          console.log(
+            `deleting theme ${themeID} from search index because it has no cardIDs`
+          );
+          return index.deleteObject(themeID);
+        }
+
         return boardRef.get().then((doc) => {
           // Compute record to send to the search index service
           const board = doc.exists ? doc.data() : {};
