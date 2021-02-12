@@ -230,7 +230,7 @@ export default function Card({
 
   if (!card.highlightHitCache) {
     // Don't show a card without the cache hit. Most likely a broken card.
-    return;
+    return <></>;
   }
 
   // Draggable nodeRef required to fix findDOMNode warnings.
