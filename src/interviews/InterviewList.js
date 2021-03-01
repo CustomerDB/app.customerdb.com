@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import Avatar from "@material-ui/core/Avatar";
@@ -78,6 +78,7 @@ export function InterviewListItem({
 
 function InterviewList({ create, fromGuide }) {
   const [addModalShow, setAddModalShow] = useState(false);
+  const [addModalDocumentID, setAddModalDocumentID] = useState();
   const [documents, setDocuments] = useState();
   const [showResults, setShowResults] = useState();
 
@@ -183,12 +184,13 @@ function InterviewList({ create, fromGuide }) {
           });
       })
       .then(() => {
-        navigate(`/orgs/${orgID}/interviews/${documentID}`);
-      })
-      .then(() => {
         if (fromGuide) {
           setAddModalShow(true);
+          setAddModalDocumentID(documentID);
+          return;
         }
+
+        navigate(`/orgs/${orgID}/interviews/${documentID}`);
       });
   }, [
     create,
@@ -201,6 +203,14 @@ function InterviewList({ create, fromGuide }) {
     oauthClaims,
     orgID,
   ]);
+
+  const onAddModalHide = useCallback(() => {
+    let documentID = addModalDocumentID;
+    setAddModalDocumentID();
+    setAddModalShow(false);
+
+    navigate(`/orgs/${orgID}/interviews/${documentID}`);
+  }, [addModalDocumentID, navigate, orgID]);
 
   if (!documents) {
     return <></>;
@@ -275,10 +285,9 @@ function InterviewList({ create, fromGuide }) {
 
   let guideModal = (
     <DocumentFromGuideModal
+      documentID={addModalDocumentID}
       show={addModalShow}
-      onHide={() => {
-        setAddModalShow(false);
-      }}
+      onHide={onAddModalHide}
     />
   );
 

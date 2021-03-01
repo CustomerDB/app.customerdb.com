@@ -11,11 +11,22 @@ import useFirestore from "../db/Firestore.js";
 import { useOrganization } from "../organization/hooks.js";
 import FirebaseContext from "../util/FirebaseContext.js";
 
-export default function DocumentFromGuideModal({ show, onHide }) {
-  const { documentRef, templatesRef } = useFirestore();
+export default function DocumentFromGuideModal({ show, onHide, documentID }) {
+  const { documentsRef, templatesRef } = useFirestore();
   const [template, setTemplate] = useState();
   const firebase = useContext(FirebaseContext);
   const { defaultTagGroupID } = useOrganization();
+
+  const [documentRef, setDocumentRef] = useState();
+
+  useEffect(() => {
+    if (!documentsRef || !documentID) {
+      setDocumentRef();
+      return;
+    }
+
+    setDocumentRef(documentsRef.doc(documentID));
+  }, [documentsRef, documentID]);
 
   useEffect(() => {
     if (!documentRef) return;
@@ -83,7 +94,10 @@ export default function DocumentFromGuideModal({ show, onHide }) {
         <Grid container spacing={2}>
           <Grid container item>
             <Grid item xs={12}>
-              <TemplateSelector onChange={setTemplate} />
+              <TemplateSelector
+                onChange={setTemplate}
+                documentID={documentID}
+              />
             </Grid>
           </Grid>
         </Grid>

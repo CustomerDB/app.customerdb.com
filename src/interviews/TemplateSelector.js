@@ -10,23 +10,23 @@ import event from "../analytics/event.js";
 import useFirestore from "../db/Firestore.js";
 import { useParams } from "react-router-dom";
 
-export default function TemplateSelector(props) {
+export default function TemplateSelector({ onChange, documentID }) {
   const { oauthClaims } = useContext(UserAuthContext);
   const firebase = useContext(FirebaseContext);
   const [doc, setDoc] = useState();
   const [templates, setTemplates] = useState();
   const [templateID, setTemplateID] = useState("");
   const { orgID } = useParams();
-  const { documentRef, templatesRef } = useFirestore();
+  const { documentsRef, templatesRef } = useFirestore();
 
   useEffect(() => {
-    if (!documentRef) {
+    if (!documentsRef || !documentID) {
       return;
     }
-    return documentRef.onSnapshot((doc) => {
+    return documentsRef.doc(documentID).onSnapshot((doc) => {
       setDoc(doc.data());
     });
-  }, [documentRef]);
+  }, [documentsRef, documentID]);
 
   useEffect(() => {
     if (!templatesRef) {
@@ -53,7 +53,7 @@ export default function TemplateSelector(props) {
     const newTemplateID = e.target.value;
     const newTemplate = templates.find((t) => t.ID === newTemplateID);
     setTemplateID(newTemplateID);
-    props.onChange(newTemplate);
+    onChange(newTemplate);
   };
 
   if (!doc || !templates) {
