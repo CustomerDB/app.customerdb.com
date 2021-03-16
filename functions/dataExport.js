@@ -1,3 +1,5 @@
+global.self = {};
+
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const tmp = require("tmp");
@@ -5,98 +7,151 @@ const createCsvWriter = require("csv-writer").createObjectCsvWriter;
 const fs = require("fs");
 const util = require("./util.js");
 const firestore = require("@google-cloud/firestore");
+const Delta = require("quill-delta");
+
+// HACK
+const docx = require("docx");
+const quillToWord = require("quill-to-word");
 
 const adminClient = new firestore.v1.FirestoreAdminClient();
 
-exports.interviewsAndHighlights = functions
-  .runWith({
-    timeoutSeconds: 300,
-    memory: "2GB",
-  })
-  .pubsub.schedule("every 24 hours")
-  .onRun((context) => {
-    let timestamp = new Date().toISOString();
+function writeWordDoc(tagMap, documentName, documentDelta) {
+  let wordDelta = new Delta(
+    documentDelta.ops.flatMap((op) => {
+      let newOp = op;
 
-    return exportHighlightsCollectionGroup("highlights", timestamp)
-      .then(() =>
-        exportHighlightsCollectionGroup("transcriptHighlights", timestamp)
-      )
-      .then(() => exportInterviewsCollectionGroup(timestamp))
-      .then(() => exportPeopleCollectionGroup());
+      if (op.delete || op.retain) {
+        return [];
+      }
+
+      if (op.attributes) {
+        let keys = Object.keys(op.attributes);
+        if (keys.includes("highlight")) {
+          let tag = tagMap[op.attributes["highlight"].tagID];
+          if (tag && tag.color) {
+            let color = tag.color;
+            op.attributes.color = color;
+          }
+
+          delete op.attributes["highlight"];
+        }
+      }
+
+      if (op.insert && op.insert.speaker) {
+        // Word to doc doesn't handle empty speaker blots well.
+        return [
+          {
+            insert: `\nSpeaker ${op.insert.speaker.ID}\n`,
+            attributes: { bold: true },
+          },
+        ];
+      }
+
+      return [newOp];
+    })
+  );
+
+  let wordDeltaWithTitle = wordDelta.compose(
+    new Delta().insert(`${documentName}\n`, { header: 1 })
+  );
+
+  return quillToWord.generateWord(wordDeltaWithTitle).then((doc) => {
+    return docx.Packer.toBuffer(doc).then((buffer) => {
+      return buffer;
+    });
   });
+}
 
-function exportInterviewsCollectionGroup(timestamp) {
+function exportInterviewsCollectionGroupWordDoc(
+  documentsRef,
+  destinationPrefix
+) {
   // Iterate all interviews
   let db = admin.firestore();
 
-  return db
-    .collectionGroup("documents")
-    .where("deletionTimestamp", "==", "")
+  // TODO: Get all tags across all organizations.
+  let tagsPromise = db
+    .collectionGroup("tags")
     .get()
     .then((snapshot) => {
-      return Promise.all(
-        snapshot.docs.map((doc) => {
-          const document = doc.data();
-          const documentID = doc.id;
-          const orgID = doc.ref.parent.parent.id;
+      tagMap = {};
+      snapshot.forEach((doc) => {
+        tagMap[doc.id] = doc.data();
+      });
+      return tagMap;
+    });
 
-          const notesPromise = util
-            .revisionAtTime(
-              orgID,
-              documentID,
-              "notes",
-              undefined // no ending timestamp; get most current revision
-            )
-            .then((revision) => {
-              console.debug(
-                "extracting context from notes revision",
-                JSON.stringify(revision)
-              );
-              return util.deltaToPlaintext(revision);
-            });
+  return tagsPromise.then((tagMap) =>
+    documentsRef
+      .where("deletionTimestamp", "==", "")
+      .get()
+      .then((snapshot) => {
+        return Promise.all(
+          snapshot.docs.map((doc) => {
+            const document = doc.data();
+            const documentID = doc.id;
+            const orgID = doc.ref.parent.parent.id;
 
-          const transcriptPromise = util
-            .revisionAtTime(
-              orgID,
-              documentID,
-              "transcript",
-              undefined // no ending timestamp; get most current revision
-            )
-            .then((revision) => {
-              console.debug(
-                "extracting context from transcript revision",
-                JSON.stringify(revision)
-              );
-              return util.deltaToPlaintext(revision);
-            });
+            const notesPromise = util
+              .revisionAtTime(
+                orgID,
+                documentID,
+                "notes",
+                undefined // no ending timestamp; get most current revision
+              )
+              .then((revision) => {
+                console.debug(
+                  "extracting context from notes revision",
+                  JSON.stringify(revision)
+                );
 
-          return notesPromise
-            .then((notesText) => {
-              const notesPath = tmp.fileSync().name + ".txt";
-              fs.writeFileSync(notesPath, notesText);
-              const destination = `exports/${timestamp}/${documentID}/notes.txt`;
-              return admin.storage().bucket().upload(notesPath, {
-                destination: destination,
+                return writeWordDoc(tagMap, document.name, revision);
               });
-            })
-            .then(() => {
-              return transcriptPromise.then((transcriptText) => {
-                const transcriptPath = tmp.fileSync().name + ".txt";
-                fs.writeFileSync(transcriptPath, transcriptText);
-                const destination = `exports/${timestamp}/${documentID}/transcript.txt`;
-                return admin.storage().bucket().upload(transcriptPath, {
+
+            const transcriptPromise = util
+              .revisionAtTime(
+                orgID,
+                documentID,
+                "transcript",
+                undefined // no ending timestamp; get most current revision
+              )
+              .then((revision) => {
+                console.debug(
+                  "extracting context from transcript revision xx",
+                  JSON.stringify(revision)
+                );
+                return writeWordDoc(tagMap, document.name, revision);
+              });
+
+            return notesPromise
+              .then((notesText) => {
+                const notesPath = tmp.fileSync().name + ".txt";
+                fs.writeFileSync(notesPath, notesText);
+                const destination = `${destinationPrefix}/${documentID}/notes.docx`;
+                console.log(`Uploading ${destination}`);
+                return admin.storage().bucket().upload(notesPath, {
                   destination: destination,
                 });
+              })
+              .then(() => {
+                return transcriptPromise.then((transcriptText) => {
+                  const transcriptPath = tmp.fileSync().name + ".txt";
+                  fs.writeFileSync(transcriptPath, transcriptText);
+                  const destination = `${destinationPrefix}/${documentID}/transcript.docx`;
+                  console.log(`Uploading ${destination}`);
+                  return admin.storage().bucket().upload(transcriptPath, {
+                    destination: destination,
+                  });
+                });
               });
-            });
-        })
-      );
-    });
+          })
+        );
+      })
+  );
 }
 
-function exportHighlightsCollectionGroup(collectionGroupName, timestamp) {
+function exportOrgHighlights(highlightsRef, destinationPrefix, fileName) {
   // Iterate all highlights
-  let db = admin.firestore();
 
   let csvPath = tmp.fileSync().name + ".csv";
   const csvWriter = createCsvWriter({
@@ -119,48 +174,46 @@ function exportHighlightsCollectionGroup(collectionGroupName, timestamp) {
     ],
   });
 
-  return db
-    .collectionGroup(collectionGroupName)
-    .get()
-    .then((highlightsSnapshot) => {
-      return Promise.all(
-        highlightsSnapshot.docs.map((highlightDoc) => {
-          let highlight = highlightDoc.data();
+  return highlightsRef.get().then((highlightsSnapshot) => {
+    return Promise.all(
+      highlightsSnapshot.docs.map((highlightDoc) => {
+        let highlight = highlightDoc.data();
 
-          highlight.selectionIndex = highlight.selection.index;
-          highlight.selectionLength = highlight.selection.length;
+        highlight.selectionIndex = highlight.selection.index;
+        highlight.selectionLength = highlight.selection.length;
 
-          // Rewrite timestamps
-          highlight.creationTimestamp =
-            highlight.creationTimestamp &&
-            highlight.creationTimestamp.toDate().toISOString();
-          highlight.deletionTimestamp =
-            highlight.deletionTimestamp &&
-            highlight.deletionTimestamp.toDate().toISOString();
-          highlight.indexRequestedTimestamp =
-            highlight.indexRequestedTimestamp &&
-            highlight.indexRequestedTimestamp.toDate().toISOString();
-          highlight.lastIndexTimestamp =
-            highlight.lastIndexTimestamp &&
-            highlight.lastIndexTimestamp.toDate().toISOString();
-          highlight.lastUpdateTimestamp =
-            highlight.lastUpdateTimestamp &&
-            highlight.lastUpdateTimestamp.toDate().toISOString();
+        // Rewrite timestamps
+        highlight.creationTimestamp =
+          highlight.creationTimestamp &&
+          highlight.creationTimestamp.toDate().toISOString();
+        highlight.deletionTimestamp =
+          highlight.deletionTimestamp &&
+          highlight.deletionTimestamp.toDate().toISOString();
+        highlight.indexRequestedTimestamp =
+          highlight.indexRequestedTimestamp &&
+          highlight.indexRequestedTimestamp.toDate().toISOString();
+        highlight.lastIndexTimestamp =
+          highlight.lastIndexTimestamp &&
+          highlight.lastIndexTimestamp.toDate().toISOString();
+        highlight.lastUpdateTimestamp =
+          highlight.lastUpdateTimestamp &&
+          highlight.lastUpdateTimestamp.toDate().toISOString();
 
-          return highlight;
-        })
-      ).then((highlights) => {
-        // Write them to a CSV
-        let destination = `exports/${timestamp}/${collectionGroupName}.csv`;
-
-        return csvWriter.writeRecords(highlights).then(() => {
-          // Upload them to google storage
-          return admin.storage().bucket().upload(csvPath, {
-            destination: destination,
+        return highlight;
+      })
+    ).then((highlights) => {
+      // Write them to a CSV
+      return csvWriter.writeRecords(highlights).then(() => {
+        // Upload them to google storage
+        return admin
+          .storage()
+          .bucket()
+          .upload(csvPath, {
+            destination: `${destinationPrefix}/${fileName}`,
           });
-        });
       });
     });
+  });
 }
 
 function exportPeopleCollectionGroup(peopleRef, destinationPrefix) {
@@ -253,17 +306,48 @@ function exportPeopleCollectionGroup(peopleRef, destinationPrefix) {
 const bucket = functions.config().system.backup_bucket;
 
 function exportOrganization(orgDoc, destinationPrefix) {
+  const orgID = orgDoc.id;
   const org = orgDoc.data();
+
   console.log(`exporting snapshot for org ${org.name}`);
 
-  // TODO: export highlights
-  // TODO: export notes
-  // TODO: export transcripts
+  const db = admin.firestore();
+
   // TODO: export boards
   // TODO: export snapshots
   // TODO: zip up export files
+
   const peopleRef = orgDoc.ref.collection("people");
-  return exportPeopleCollectionGroup(peopleRef, destinationPrefix);
+
+  const highlightsRef = db
+    .collectionGroup("highlights")
+    .where("organizationID", "==", orgID);
+
+  const transcriptHighlightsRef = db
+    .collectionGroup("transcriptHighlights")
+    .where("organizationID", "==", orgID);
+
+  return exportPeopleCollectionGroup(peopleRef, destinationPrefix)
+    .then(() => {
+      return exportOrgHighlights(
+        highlightsRef,
+        destinationPrefix,
+        "highlights.csv"
+      );
+    })
+    .then(() => {
+      return exportOrgHighlights(
+        transcriptHighlightsRef,
+        destinationPrefix,
+        "transcriptHighlights.csv"
+      );
+    })
+    .then(() =>
+      exportInterviewsCollectionGroupWordDoc(
+        orgDoc.ref.collection("documents"),
+        destinationPrefix
+      )
+    );
 }
 
 exports.exportOrganizationData = functions
