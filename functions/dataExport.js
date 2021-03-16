@@ -21,7 +21,8 @@ exports.interviewsAndHighlights = functions
       .then(() =>
         exportHighlightsCollectionGroup("transcriptHighlights", timestamp)
       )
-      .then(() => exportInterviewsCollectionGroup(timestamp));
+      .then(() => exportInterviewsCollectionGroup(timestamp))
+      .then(() => exportPeopleCollectionGroup());
   });
 
 function exportInterviewsCollectionGroup(timestamp) {
@@ -162,7 +163,132 @@ function exportHighlightsCollectionGroup(collectionGroupName, timestamp) {
     });
 }
 
+function exportPeopleCollectionGroup(peopleRef, destinationPrefix) {
+  // Iterate all people in organization
+  const customFieldHeaders = {};
+  const labelHeaders = {};
+
+  return peopleRef.get().then((peopleSnapshot) => {
+    console.log(`exporting ${peopleSnapshot.size} people...`);
+
+    return Promise.all(
+      peopleSnapshot.docs.map((personDoc) => {
+        let person = personDoc.data();
+
+        // Rewrite timestamps
+        person.creationTimestamp =
+          person.creationTimestamp &&
+          person.creationTimestamp.toDate().toISOString();
+
+        person.deletionTimestamp =
+          person.deletionTimestamp &&
+          person.deletionTimestamp.toDate().toISOString();
+
+        // Flatten custom fields
+        Object.values(person.customFields || {}).forEach((field) => {
+          const customFieldKey = `customField-${field.kind}`;
+          person[customFieldKey] = field.value;
+          customFieldHeaders[customFieldKey] = {
+            id: customFieldKey,
+            title: customFieldKey.toUpperCase(),
+          };
+        });
+
+        delete person.customFields;
+
+        // Flatten labels
+        Object.values(person.labels || {}).forEach((label) => {
+          const labelKey = `label-${label.name}`;
+          person[labelKey] = label.name;
+          labelHeaders[labelKey] = {
+            id: labelKey,
+            title: labelKey.toUpperCase(),
+          };
+        });
+
+        delete person.labels;
+
+        return person;
+      })
+    ).then((people) => {
+      // Write them to a CSV
+      let csvPath = tmp.fileSync().name + ".csv";
+
+      const header = [
+        { id: "ID", title: "ID" },
+        { id: "city", title: "CITY" },
+        { id: "company", title: "COMPANY" },
+        { id: "country", title: "COUNTRY" },
+        { id: "createdBy", title: "CREATED_BY" },
+        { id: "creationTimestamp", title: "CREATION_TIMESTAMP" },
+        { id: "deletionTimestamp", title: "DELETION_TIMESTAMP" },
+        { id: "email", title: "EMAIL" },
+        { id: "job", title: "JOB" },
+        { id: "name", title: "NAME" },
+        { id: "state", title: "STATE" },
+      ];
+
+      // append custom column headers
+      header.push(...Object.values(customFieldHeaders));
+      header.push(...Object.values(labelHeaders));
+
+      const csvWriter = createCsvWriter({
+        path: csvPath,
+        header: header,
+      });
+
+      return csvWriter.writeRecords(people).then(() => {
+        // Upload them to google storage
+        return admin
+          .storage()
+          .bucket()
+          .upload(csvPath, {
+            destination: `${destinationPrefix}/people.csv`,
+          });
+      });
+    });
+  });
+}
+
 const bucket = functions.config().system.backup_bucket;
+
+function exportOrganization(orgDoc, destinationPrefix) {
+  const org = orgDoc.data();
+  console.log(`exporting snapshot for org ${org.name}`);
+
+  // TODO: export highlights
+  // TODO: export notes
+  // TODO: export transcripts
+  // TODO: export boards
+  // TODO: export snapshots
+  // TODO: zip up export files
+  const peopleRef = orgDoc.ref.collection("people");
+  return exportPeopleCollectionGroup(peopleRef, destinationPrefix);
+}
+
+exports.exportOrganizationData = functions
+  .runWith({
+    timeoutSeconds: 300,
+    memory: "2GB",
+  })
+  .pubsub.topic("exportOrganizationData")
+  .onPublish((message) => {
+    const db = admin.firestore();
+    let timestamp = new Date().toISOString();
+
+    return db
+      .collection("organizations")
+      .get()
+      .then((orgsSnapshot) => {
+        return Promise.all(
+          orgsSnapshot.docs.map((orgDoc) => {
+            const orgID = orgDoc.id;
+            const destinationPrefix = `exports/orgs/${orgID}/${timestamp}`;
+            return exportOrganization(orgDoc, destinationPrefix);
+          })
+        );
+      });
+  });
 
 exports.scheduledFirestoreExport = functions.pubsub
   .schedule("every 4 hours")
