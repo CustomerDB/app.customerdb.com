@@ -15,38 +15,22 @@ const quillToWord = require("quill-to-word");
 
 const adminClient = new firestore.v1.FirestoreAdminClient();
 
-exports.interviewsAndHighlights = functions
-  .runWith({
-    timeoutSeconds: 300,
-    memory: "2GB",
-  })
-  .pubsub.schedule("every 24 hours")
-  .onRun((context) => {
-    let timestamp = new Date().toISOString();
+// exports.interviewsAndHighlights = functions
+//   .runWith({
+//     timeoutSeconds: 300,
+//     memory: "2GB",
+//   })
+//   .pubsub.schedule("every 24 hours")
+//   .onRun((context) => {
+//     let timestamp = new Date().toISOString();
 
-    return exportHighlightsCollectionGroup("highlights", timestamp)
-      .then(() =>
-        exportHighlightsCollectionGroup("transcriptHighlights", timestamp)
-      )
-      .then(() => exportInterviewsCollectionGroup(timestamp))
-      .then(() => exportPeopleCollectionGroup());
-  });
-
-exports.exportFinal = functions
-  .runWith({
-    timeoutSeconds: 300,
-    memory: "2GB",
-  })
-  .pubsub.topic("exportFinal")
-  .onPublish((message) => {
-    let timestamp = new Date().toISOString();
-
-    return exportHighlightsCollectionGroup("highlights", timestamp)
-      .then(() =>
-        exportHighlightsCollectionGroup("transcriptHighlights", timestamp)
-      )
-      .then(() => exportInterviewsCollectionGroupWordDoc(timestamp));
-  });
+//     return exportHighlightsCollectionGroup("highlights", timestamp)
+//       .then(() =>
+//         exportHighlightsCollectionGroup("transcriptHighlights", timestamp)
+//       )
+//       .then(() => exportInterviewsCollectionGroup(timestamp))
+//       .then(() => exportPeopleCollectionGroup());
+//   });
 
 function exportInterviewsCollectionGroup(timestamp) {
   // Iterate all interviews
@@ -164,7 +148,10 @@ function writeWordDoc(tagMap, documentName, documentDelta) {
   });
 }
 
-function exportInterviewsCollectionGroupWordDoc(timestamp) {
+function exportInterviewsCollectionGroupWordDoc(
+  documentsRef,
+  destinationPrefix
+) {
   // Iterate all interviews
   let db = admin.firestore();
 
@@ -181,8 +168,7 @@ function exportInterviewsCollectionGroupWordDoc(timestamp) {
     });
 
   return tagsPromise.then((tagMap) =>
-    db
-      .collectionGroup("documents")
+    documentsRef
       .where("deletionTimestamp", "==", "")
       .get()
       .then((snapshot) => {
@@ -227,7 +213,7 @@ function exportInterviewsCollectionGroupWordDoc(timestamp) {
               .then((notesText) => {
                 const notesPath = tmp.fileSync().name + ".txt";
                 fs.writeFileSync(notesPath, notesText);
-                const destination = `exports/${timestamp}/${documentID}/notes.docx`;
+                const destination = `${destinationPrefix}/${documentID}/notes.docx`;
                 console.log(`Uploading ${destination}`);
                 return admin.storage().bucket().upload(notesPath, {
                   destination: destination,
@@ -237,7 +223,7 @@ function exportInterviewsCollectionGroupWordDoc(timestamp) {
                 return transcriptPromise.then((transcriptText) => {
                   const transcriptPath = tmp.fileSync().name + ".txt";
                   fs.writeFileSync(transcriptPath, transcriptText);
-                  const destination = `exports/${timestamp}/${documentID}/transcript.docx`;
+                  const destination = `${destinationPrefix}/${documentID}/transcript.docx`;
                   console.log(`Uploading ${destination}`);
                   return admin.storage().bucket().upload(transcriptPath, {
                     destination: destination,
@@ -415,11 +401,17 @@ function exportOrganization(orgDoc, destinationPrefix) {
   // TODO: export highlights
   // TODO: export notes
   // TODO: export transcripts
+
   // TODO: export boards
   // TODO: export snapshots
   // TODO: zip up export files
   const peopleRef = orgDoc.ref.collection("people");
-  return exportPeopleCollectionGroup(peopleRef, destinationPrefix);
+  return exportPeopleCollectionGroup(peopleRef, destinationPrefix).then(() =>
+    exportInterviewsCollectionGroupWordDoc(
+      orgDoc.ref.collection("documents"),
+      destinationPrefix
+    )
+  );
 }
 
 exports.exportOrganizationData = functions
