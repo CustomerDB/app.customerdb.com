@@ -13,13 +13,13 @@ exports.deltaToPlaintext = (delta) => {
 };
 
 exports.revisionAtTime = (orgID, documentID, source, timestamp) => {
-  console.debug(
-    "util.revisionAtTime:",
-    orgID,
-    documentID,
-    source,
-    JSON.stringify(timestamp)
-  );
+  // console.debug(
+  //   "util.revisionAtTime:",
+  //   orgID,
+  //   documentID,
+  //   source,
+  //   JSON.stringify(timestamp)
+  // );
 
   if (![NOTES, TRANSCRIPT].includes(source)) {
     throw `source parameter must be one of "${NOTES}" or "${TRANSCRIPT}"`;
@@ -51,7 +51,7 @@ exports.revisionAtTime = (orgID, documentID, source, timestamp) => {
     });
 
   return revisionPromise.then((revision) => {
-    console.debug("util.revisionAtTime -- revision", JSON.stringify(revision));
+    // console.debug("util.revisionAtTime -- revision", JSON.stringify(revision));
 
     let dRef = deltasRef;
     if (timestamp) {
@@ -66,9 +66,9 @@ exports.revisionAtTime = (orgID, documentID, source, timestamp) => {
         // apply uncompacted deltas to revision delta.
         let result = revision.delta;
 
-        console.debug(
-          `util.revisionAtTime -- applying ${snapshot.size} deltas`
-        );
+        // console.debug(
+        //   `util.revisionAtTime -- applying ${snapshot.size} deltas`
+        // );
 
         snapshot.forEach((doc) => {
           let deltaDoc = doc.data();
