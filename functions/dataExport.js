@@ -94,6 +94,72 @@ function exportInterviewsCollectionGroup(timestamp) {
     });
 }
 
+function exportOrgHighlights(highlightsRef, destinationPrefix, fileName) {
+  // Iterate all highlights
+
+  let csvPath = tmp.fileSync().name + ".csv";
+  const csvWriter = createCsvWriter({
+    path: csvPath,
+    header: [
+      { id: "ID", title: "ID" },
+      { id: "createdBy", title: "CREATED_BY" },
+      { id: "creationTimestamp", title: "CREATION_TIMESTAMP" },
+      { id: "deletionTimestamp", title: "DELETION_TIMESTAMP" },
+      { id: "documentID", title: "DOCUMENT_ID" },
+      { id: "indexRequestedTimestamp", title: "INDEX_REQUESTED_TIMESTAMP" },
+      { id: "lastIndexTimestamp", title: "LAST_INDEX_TIMESTAMP" },
+      { id: "lastUpdateTimestamp", title: "LAST_UPDATE_TIMESTAMP" },
+      { id: "organizationID", title: "ORGANIZATION_ID" },
+      { id: "personID", title: "PERSON_ID" },
+      { id: "selectionIndex", title: "SELECTION_INDEX" },
+      { id: "selectionLength", title: "SELECTION_LENGTH" },
+      { id: "tagID", title: "TAG_ID" },
+      { id: "text", title: "TEXT" },
+    ],
+  });
+
+  return highlightsRef.get().then((highlightsSnapshot) => {
+    return Promise.all(
+      highlightsSnapshot.docs.map((highlightDoc) => {
+        let highlight = highlightDoc.data();
+
+        highlight.selectionIndex = highlight.selection.index;
+        highlight.selectionLength = highlight.selection.length;
+
+        // Rewrite timestamps
+        highlight.creationTimestamp =
+          highlight.creationTimestamp &&
+          highlight.creationTimestamp.toDate().toISOString();
+        highlight.deletionTimestamp =
+          highlight.deletionTimestamp &&
+          highlight.deletionTimestamp.toDate().toISOString();
+        highlight.indexRequestedTimestamp =
+          highlight.indexRequestedTimestamp &&
+          highlight.indexRequestedTimestamp.toDate().toISOString();
+        highlight.lastIndexTimestamp =
+          highlight.lastIndexTimestamp &&
+          highlight.lastIndexTimestamp.toDate().toISOString();
+        highlight.lastUpdateTimestamp =
+          highlight.lastUpdateTimestamp &&
+          highlight.lastUpdateTimestamp.toDate().toISOString();
+
+        return highlight;
+      })
+    ).then((highlights) => {
+      // Write them to a CSV
+      return csvWriter.writeRecords(highlights).then(() => {
+        // Upload them to google storage
+        return admin
+          .storage()
+          .bucket()
+          .upload(csvPath, {
+            destination: `${destinationPrefix}/${fileName}`,
+          });
+      });
+    });
+  });
+}
+
 function exportHighlightsCollectionGroup(collectionGroupName, timestamp) {
   // Iterate all highlights
   let db = admin.firestore();
@@ -253,17 +319,44 @@ function exportPeopleCollectionGroup(peopleRef, destinationPrefix) {
 const bucket = functions.config().system.backup_bucket;
 
 function exportOrganization(orgDoc, destinationPrefix) {
+  const orgID = orgDoc.id;
   const org = orgDoc.data();
+
   console.log(`exporting snapshot for org ${org.name}`);
 
-  // TODO: export highlights
+  const db = admin.firestore();
+
   // TODO: export notes
   // TODO: export transcripts
   // TODO: export boards
   // TODO: export snapshots
   // TODO: zip up export files
+
   const peopleRef = orgDoc.ref.collection("people");
-  return exportPeopleCollectionGroup(peopleRef, destinationPrefix);
+
+  const highlightsRef = db
+    .collectionGroup("highlights")
+    .where("organizationID", "==", orgID);
+
+  const transcriptHighlightsRef = db
+    .collectionGroup("transcriptHighlights")
+    .where("organizationID", "==", orgID);
+
+  return exportPeopleCollectionGroup(peopleRef, destinationPrefix)
+    .then(() => {
+      return exportOrgHighlights(
+        highlightsRef,
+        destinationPrefix,
+        "highlights.csv"
+      );
+    })
+    .then(() => {
+      return exportOrgHighlights(
+        transcriptHighlightsRef,
+        destinationPrefix,
+        "transcriptHighlights.csv"
+      );
+    });
 }
 
 exports.exportOrganizationData = functions

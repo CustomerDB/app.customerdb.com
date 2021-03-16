@@ -683,6 +683,26 @@
           "queryScope": "COLLECTION"
         }
       ]
+    },
+    {
+      "collectionGroup": "highlights",
+      "fieldPath": "organizationID",
+      "indexes": [
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION_GROUP"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "transcriptHighlights",
+      "fieldPath": "organizationID",
+      "indexes": [
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION_GROUP"
+        }
+      ]
     }
   ]
 }
