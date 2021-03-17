@@ -15,7 +15,7 @@ const quillToWord = require("quill-to-word");
 
 const adminClient = new firestore.v1.FirestoreAdminClient();
 
-function writeWordDoc(tagMap, documentName, documentDelta) {
+function writeWordDocument(tagMap, documentName, documentDelta) {
   let wordDelta = new Delta(
     documentDelta.ops.flatMap((op) => {
       let newOp = op;
@@ -38,6 +38,7 @@ function writeWordDoc(tagMap, documentName, documentDelta) {
       }
 
       if (op.insert && op.insert.speaker) {
+        // TODO: Look up speaker name, if assigned in transcription object.
         // Word to doc doesn't handle empty speaker blots well.
         return [
           {
@@ -55,10 +56,170 @@ function writeWordDoc(tagMap, documentName, documentDelta) {
     new Delta().insert(`${documentName}\n`, { header: 1 })
   );
 
+  console.log("wordDeltaWithTitle", JSON.stringify(wordDeltaWithTitle));
+
   return quillToWord.generateWord(wordDeltaWithTitle).then((doc) => {
     return docx.Packer.toBuffer(doc).then((buffer) => {
       return buffer;
     });
+  });
+}
+
+function writeWordSummary(
+  summaryName,
+  highlightsRef,
+  transcriptHighlightsRef,
+  boardsRef,
+  documentDelta
+) {
+  return Promise.all(
+    documentDelta.ops.map((op) => {
+      let newOp = op;
+
+      if (op.delete || op.retain) {
+        return;
+      }
+
+      if (op.insert && op.insert["direct-quote"]) {
+        let highlightID = op.insert["direct-quote"];
+
+        // highlightID may be in either highlights or transcriptHighlights, so we look
+        // up both places.
+        return highlightsRef
+          .where("ID", "==", highlightID)
+          .get()
+          .then((snapshot) => {
+            if (snapshot.size == 0) {
+              return;
+            }
+
+            return snapshot.docs[0].data();
+          })
+          .then((highlight) => {
+            if (!highlight) {
+              // Try to look up transcript highlight instead.
+              return transcriptHighlightsRef
+                .where("ID", "==", highlightID)
+                .get()
+                .then((snapshot) => {
+                  if (snapshot.size == 0) {
+                    return;
+                  }
+
+                  return snapshot.docs[0].data();
+                });
+            }
+
+            return highlight;
+          })
+          .then((highlight) => {
+            if (!highlight) {
+              return;
+            }
+
+            return {
+              insert: `\nQuote: "${highlight.text}"\n`,
+              attributes: { bold: true },
+            };
+          });
+      }
+
+      if (op.insert && op.insert["embed-theme"]) {
+        let boardID = op.insert["embed-theme"].boardID;
+        let themeID = op.insert["embed-theme"].themeID;
+
+        console.log(`Look up ${boardID} and ${themeID}`);
+        return boardsRef
+          .doc(boardID)
+          .collection("themes")
+          .doc(themeID)
+          .get()
+          .then((doc) => {
+            if (!doc.exists) {
+              console.log(`Theme ${themeID} does not exist!`);
+              return;
+            }
+
+            let theme = doc.data();
+            let themeName = theme.name;
+
+            console.log(`Found theme ${themeName}`);
+
+            return doc.ref
+              .collection("cardIDs")
+              .get()
+              .then((snapshot) => {
+                if (snapshot.size == 0) {
+                  return;
+                }
+
+                // Look up highlights from cards.
+                return Promise.all(
+                  snapshot.docs.map((doc) => {
+                    let highlightID = doc.id;
+
+                    return highlightsRef
+                      .where("ID", "==", highlightID)
+                      .get()
+                      .then((snapshot) => {
+                        if (snapshot.size == 0) {
+                          return;
+                        }
+
+                        return snapshot.docs[0].data();
+                      })
+                      .then((highlight) => {
+                        if (!highlight) {
+                          // Try to look up transcript highlight instead.
+                          return transcriptHighlightsRef
+                            .where("ID", "==", highlightID)
+                            .get()
+                            .then((snapshot) => {
+                              if (snapshot.size == 0) {
+                                return;
+                              }
+
+                              return snapshot.docs[0].data();
+                            });
+                        }
+                        return highlight;
+                      });
+                  })
+                ).then((highlights) => {
+                  let themeContent = `\nTheme: ${themeName}\n`;
+
+                  highlights.forEach((highlight) => {
+                    themeContent += `Quote: ${highlight.text}\n`;
+                  });
+
+                  console.log(`Inserting theme: "${themeContent}"`);
+
+                  return {
+                    insert: themeContent,
+                  };
+                });
+              });
+          });
+      }
+
+      return newOp;
+    })
+  ).then((ops) => {
+    let wordDelta = new Delta(ops.flatMap((item) => (item ? [item] : [])));
+
+    let wordDeltaWithTitle = wordDelta.compose(
+      new Delta().insert(`${summaryName}\n`, { header: 1 })
+    );
+
+    try {
+      return quillToWord.generateWord(wordDeltaWithTitle).then((doc) => {
+        return docx.Packer.toBuffer(doc).then((buffer) => {
+          return buffer;
+        });
+      });
+    } catch (e) {
+      console.error(e);
+    }
   });
 }
 
@@ -105,7 +266,7 @@ function exportInterviewsCollectionGroupWordDoc(
                   JSON.stringify(revision)
                 );
 
-                return writeWordDoc(tagMap, document.name, revision);
+                return writeWordDocument(tagMap, document.name, revision);
               });
 
             const transcriptPromise = util
@@ -120,7 +281,7 @@ function exportInterviewsCollectionGroupWordDoc(
                   "extracting context from transcript revision xx",
                   JSON.stringify(revision)
                 );
-                return writeWordDoc(tagMap, document.name, revision);
+                return writeWordDocument(tagMap, document.name, revision);
               });
 
             return notesPromise
@@ -148,6 +309,108 @@ function exportInterviewsCollectionGroupWordDoc(
         );
       })
   );
+}
+
+function exportSummaries(summariesRef, destinationPrefix) {
+  let db = admin.firestore();
+
+  // Iterate all interviews
+  return summariesRef
+    .where("deletionTimestamp", "==", "")
+    .get()
+    .then((snapshot) => {
+      return Promise.all(
+        snapshot.docs.map((doc) => {
+          const summary = doc.data();
+          const summaryID = doc.id;
+          const orgID = doc.ref.parent.parent.id;
+
+          let revRef = doc.ref.collection("revisions");
+          let dRef = doc.ref.collection("deltas");
+
+          const revisionPromise = revRef
+            .orderBy("timestamp", "desc")
+            .limit(1)
+            .get()
+            .then((snapshot) => {
+              if (snapshot.size === 0) {
+                return {
+                  delta: new Delta([{ insert: "\n" }]),
+                  timestamp: new admin.firestore.Timestamp(0, 0),
+                };
+              }
+              const data = snapshot.docs[0].data();
+              return {
+                delta: new Delta(data.delta.ops),
+                timestamp: data.timestamp,
+              };
+            });
+
+          let summaryPromise = revisionPromise
+            .then((revision) => {
+              return dRef
+                .where("timestamp", ">", revision.timestamp)
+                .orderBy("timestamp", "asc")
+                .get()
+                .then((snapshot) => {
+                  // apply uncompacted deltas to revision delta.
+                  let result = revision.delta;
+                  snapshot.forEach((doc) => {
+                    let deltaDoc = doc.data();
+                    let delta = new Delta(deltaDoc.ops);
+                    result = result.compose(delta);
+                  });
+
+                  console.debug(
+                    "util.revisionAtTime -- result",
+                    JSON.stringify(result)
+                  );
+                  return result;
+                });
+            })
+            .then((revision) => {
+              console.debug(
+                "extracting context from notes revision",
+                JSON.stringify(revision)
+              );
+
+              fs.writeFileSync(`${summaryID}.json`, JSON.stringify(revision));
+
+              let highlightsRef = db
+                .collectionGroup("highlights")
+                .where("organizationID", "==", orgID)
+                .where("deletionTimestamp", "==", "");
+              let transcriptHighlightsRef = db
+                .collectionGroup("transcriptHighlights")
+                .where("organizationID", "==", orgID)
+                .where("deletionTimestamp", "==", "");
+              let boardsRef = db
+                .collection("organizations")
+                .doc(orgID)
+                .collection("boards");
+
+              return writeWordSummary(
+                summary.name,
+                highlightsRef,
+                transcriptHighlightsRef,
+                boardsRef,
+                revision
+              );
+            });
+
+          return summaryPromise.then((summaryText) => {
+            const summaryPath = tmp.fileSync().name + ".docx";
+            fs.writeFileSync(summaryPath, summaryText);
+            console.log(`Wrote ${summaryPath}`);
+            const destination = `${destinationPrefix}/${summaryID}/summary.docx`;
+            console.log(`Uploading ${destination}`);
+            return admin.storage().bucket().upload(summaryPath, {
+              destination: destination,
+            });
+          });
+        })
+      );
+    });
 }
 
 function exportOrgHighlights(highlightsRef, destinationPrefix, fileName) {
@@ -395,7 +658,6 @@ function exportOrganization(orgDoc, destinationPrefix) {
 
   const db = admin.firestore();
 
-  // TODO: export snapshots
   // TODO: zip up export files
 
   const peopleRef = orgDoc.ref.collection("people");
@@ -437,6 +699,12 @@ function exportOrganization(orgDoc, destinationPrefix) {
     })
     .then(() => {
       return exportThemesFromBoards(themesRef, destinationPrefix);
+    })
+    .then(() => {
+      return exportSummaries(
+        orgDoc.ref.collection("summaries"),
+        destinationPrefix
+      );
     });
 }
 
