@@ -685,6 +685,16 @@
       ]
     },
     {
+      "collectionGroup": "themes",
+      "fieldPath": "organizationID",
+      "indexes": [
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION_GROUP"
+        }
+      ]
+    },
+    {
       "collectionGroup": "highlights",
       "fieldPath": "organizationID",
       "indexes": [

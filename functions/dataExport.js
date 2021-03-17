@@ -566,6 +566,88 @@ function exportPeopleCollectionGroup(peopleRef, destinationPrefix) {
   });
 }
 
+function exportThemesFromBoards(themesRef, destinationPrefix) {
+  const header = [
+    { id: "ID", title: "THEME_ID" },
+    { id: "color", title: "COLOR" },
+    { id: "creationTimestamp", title: "CREATION_TIMESTAMP" },
+    { id: "name", title: "NAME" },
+    { id: "textColor", title: "TEXT_COLOR" },
+    { id: "text", title: "TEXT" },
+    { id: "documentID", title: "DOCUMENT_ID" },
+    { id: "documentName", title: "DOCUMENT_NAME" },
+    { id: "tagName", title: "TAG_NAME" },
+  ];
+
+  // Iterate all themes in organization
+  return themesRef.get().then((themesSnapshot) => {
+    console.log(`exporting ${themesSnapshot.size} themes...`);
+
+    return Promise.all(
+      themesSnapshot.docs.map((themeDoc) => {
+        const theme = themeDoc.data();
+        const themeRef = themeDoc.ref;
+        const cardsRef = themeRef.parent.parent.collection("cards");
+        const cardIDsRef = themeRef.collection("cardIDs");
+
+        // Rewrite timestamps
+        theme.creationTimestamp =
+          theme.creationTimestamp &&
+          theme.creationTimestamp.toDate().toISOString();
+
+        return cardIDsRef.get().then((cardIDsSnapshot) => {
+          return Promise.all(
+            cardIDsSnapshot.docs.map((cardIDDoc) => {
+              return cardsRef
+                .doc(cardIDDoc.id)
+                .get()
+                .then((cardDoc) => {
+                  if (!cardDoc.exists) return {};
+
+                  const card = cardDoc.data();
+                  const entry = Object.assign({}, theme);
+                  return Object.assign(entry, {
+                    text: card.highlightHitCache && card.highlightHitCache.text,
+                    documentID:
+                      card.highlightHitCache &&
+                      card.highlightHitCache.documentID,
+                    documentName:
+                      card.highlightHitCache &&
+                      card.highlightHitCache.documentName,
+                    tagName:
+                      card.highlightHitCache && card.highlightHitCache.tagName,
+                  });
+                });
+            })
+          );
+        });
+      })
+    ).then((themeEntries) => {
+      const flatThemeEntries = themeEntries.flat();
+
+      console.log("flatThemeEntries", flatThemeEntries);
+
+      // Write them to a CSV
+      let csvPath = tmp.fileSync().name + ".csv";
+
+      const csvWriter = createCsvWriter({
+        path: csvPath,
+        header: header,
+      });
+
+      return csvWriter.writeRecords(flatThemeEntries).then(() => {
+        // Upload them to google storage
+        return admin
+          .storage()
+          .bucket()
+          .upload(csvPath, {
+            destination: `${destinationPrefix}/themes.csv`,
+          });
+      });
+    });
+  });
+}
+
 const bucket = functions.config().system.backup_bucket;
 
 function exportOrganization(orgDoc, destinationPrefix) {
@@ -576,8 +658,6 @@ function exportOrganization(orgDoc, destinationPrefix) {
 
   const db = admin.firestore();
 
-  // TODO: export boards
-  // TODO: export summaries
   // TODO: zip up export files
 
   const peopleRef = orgDoc.ref.collection("people");
@@ -590,35 +670,42 @@ function exportOrganization(orgDoc, destinationPrefix) {
     .collectionGroup("transcriptHighlights")
     .where("organizationID", "==", orgID);
 
-  return (
-    exportPeopleCollectionGroup(peopleRef, destinationPrefix)
-      // .then(() => {
-      //   return exportOrgHighlights(
-      //     highlightsRef,
-      //     destinationPrefix,
-      //     "highlights.csv"
-      //   );
-      // })
-      // .then(() => {
-      //   return exportOrgHighlights(
-      //     transcriptHighlightsRef,
-      //     destinationPrefix,
-      //     "transcriptHighlights.csv"
-      //   );
-      // })
-      // .then(() =>
-      //   exportInterviewsCollectionGroupWordDoc(
-      //     orgDoc.ref.collection("documents"),
-      //     destinationPrefix
-      //   )
-      // )
-      .then(() => {
-        return exportSummaries(
-          orgDoc.ref.collection("summaries"),
-          destinationPrefix
-        );
-      })
-  );
+  const documentsRef = orgDoc.ref.collection("documents");
+
+  const themesRef = db
+    .collectionGroup("themes")
+    .where("organizationID", "==", orgID);
+
+  return exportPeopleCollectionGroup(peopleRef, destinationPrefix)
+    .then(() => {
+      return exportOrgHighlights(
+        highlightsRef,
+        destinationPrefix,
+        "highlights.csv"
+      );
+    })
+    .then(() => {
+      return exportOrgHighlights(
+        transcriptHighlightsRef,
+        destinationPrefix,
+        "transcriptHighlights.csv"
+      );
+    })
+    .then(() => {
+      return exportInterviewsCollectionGroupWordDoc(
+        documentsRef,
+        destinationPrefix
+      );
+    })
+    .then(() => {
+      return exportThemesFromBoards(themesRef, destinationPrefix);
+    })
+    .then(() => {
+      return exportSummaries(
+        orgDoc.ref.collection("summaries"),
+        destinationPrefix
+      );
+    });
 }
 
 exports.exportOrganizationData = functions

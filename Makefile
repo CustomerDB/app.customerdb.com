@@ -1,13 +1,13 @@
 .PHONY: deploy runtimeconfig credentials
 
-FIREBASE_PROJECT=customerdb-development
-FIREBASE_CREDENTIALS_FILE="$(HOME)/.quantap/customerdb-development-secret.json"
+FIREBASE_PROJECT=customerdb-staging
+FIREBASE_CREDENTIALS_FILE="$(HOME)/.quantap/customerdb-staging-secret.json"
 
 # Requires `gcloud config set project customerdb-development`
 credentials:
 	gcloud iam service-accounts keys create \
 		$(FIREBASE_CREDENTIALS_FILE) \
-		--iam-account=customerdb-development@appspot.gserviceaccount.com
+		--iam-account=customerdb-staging@appspot.gserviceaccount.com
 
 runtimeconfig:
 	firebase --project=customerdb-development \
