@@ -43,7 +43,7 @@ export default function OrgCard({ orgID, claimsReady }) {
       return;
     }
 
-    let storageRef = firebase.storage().ref();
+    const storageRef = firebase.storage().ref();
     storageRef
       .child(org.dataExportPath)
       .getDownloadURL()
@@ -65,8 +65,6 @@ export default function OrgCard({ orgID, claimsReady }) {
   }
 
   const ready = org.ready && claimsReady;
-
-  console.log(`org: `, org);
 
   return (
     <Card
@@ -105,7 +103,7 @@ export default function OrgCard({ orgID, claimsReady }) {
               }
             }}
           >
-            Download ZIP archive
+            Export all data
           </Button>
         )}
         <a href={downloadLink} download ref={link}></a>
