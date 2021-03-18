@@ -8,6 +8,9 @@ const fs = require("fs");
 const util = require("./util.js");
 const firestore = require("@google-cloud/firestore");
 const Delta = require("quill-delta");
+const zipdir = require("zip-dir");
+
+const { basename } = require("path");
 
 // HACK
 const docx = require("docx");
@@ -288,7 +291,7 @@ function exportInterviewsCollectionGroupWordDoc(
               .then((notesText) => {
                 const notesPath = tmp.fileSync().name + ".txt";
                 fs.writeFileSync(notesPath, notesText);
-                const destination = `${destinationPrefix}/${documentID}/notes.docx`;
+                const destination = `${destinationPrefix}/${documentID}-notes.docx`;
                 console.log(`Uploading ${destination}`);
                 return admin.storage().bucket().upload(notesPath, {
                   destination: destination,
@@ -298,7 +301,7 @@ function exportInterviewsCollectionGroupWordDoc(
                 return transcriptPromise.then((transcriptText) => {
                   const transcriptPath = tmp.fileSync().name + ".txt";
                   fs.writeFileSync(transcriptPath, transcriptText);
-                  const destination = `${destinationPrefix}/${documentID}/transcript.docx`;
+                  const destination = `${destinationPrefix}/${documentID}-transcript.docx`;
                   console.log(`Uploading ${destination}`);
                   return admin.storage().bucket().upload(transcriptPath, {
                     destination: destination,
@@ -402,7 +405,7 @@ function exportSummaries(summariesRef, destinationPrefix) {
             const summaryPath = tmp.fileSync().name + ".docx";
             fs.writeFileSync(summaryPath, summaryText);
             console.log(`Wrote ${summaryPath}`);
-            const destination = `${destinationPrefix}/${summaryID}/summary.docx`;
+            const destination = `${destinationPrefix}/summary-${summaryID}.docx`;
             console.log(`Uploading ${destination}`);
             return admin.storage().bucket().upload(summaryPath, {
               destination: destination,
@@ -648,6 +651,51 @@ function exportThemesFromBoards(themesRef, destinationPrefix) {
   });
 }
 
+function zipExport(orgRef, destinationPrefix) {
+  const tmpDir = tmp.dirSync({ unsafeCleanup: true });
+  const tmpZip = tmp.fileSync({ postfix: ".zip" });
+  const exportPath = `${destinationPrefix}/CustomerDB-data.zip`;
+
+  const bucket = admin.storage().bucket();
+
+  const query = { prefix: destinationPrefix };
+  return bucket.getFiles(query, (err, files) => {
+    if (err) throw err;
+
+    // download all files to tmp
+    console.log("downloading files for final bundling...");
+
+    return Promise.all(
+      files.map((file) => {
+        const name = basename(file.name);
+        return file.download({ destination: `${tmpDir.name}/${name}` });
+      })
+    ).then(() => {
+      // create zip file
+      console.log("creating zip file...");
+      return zipdir(tmpDir.name, { saveTo: tmpZip.name }).then(() => {
+        // upload zip file
+        console.log("uploding zip file...");
+        return bucket.upload(
+          tmpZip.name,
+          { destination: exportPath },
+          (err) => {
+            if (err) throw err;
+
+            console.log("done uploading zip");
+            console.log("updating org dataExportPath in firebase");
+            return orgRef.update({ dataExportPath: exportPath }).then(() => {
+              console.log("cleaning up tmpfs");
+              tmpDir.removeCallback();
+              tmpZip.removeCallback();
+            });
+          }
+        );
+      });
+    });
+  });
+}
+
 const bucket = functions.config().system.backup_bucket;
 
 function exportOrganization(orgDoc, destinationPrefix) {
@@ -657,8 +705,6 @@ function exportOrganization(orgDoc, destinationPrefix) {
   console.log(`exporting snapshot for org ${org.name}`);
 
   const db = admin.firestore();
-
-  // TODO: zip up export files
 
   const peopleRef = orgDoc.ref.collection("people");
 
@@ -705,12 +751,15 @@ function exportOrganization(orgDoc, destinationPrefix) {
         orgDoc.ref.collection("summaries"),
         destinationPrefix
       );
+    })
+    .then(() => {
+      return zipExport(orgDoc.ref, destinationPrefix);
     });
 }
 
 exports.exportOrganizationData = functions
   .runWith({
-    timeoutSeconds: 300,
+    timeoutSeconds: 540,
     memory: "2GB",
   })
   .pubsub.topic("exportOrganizationData")
