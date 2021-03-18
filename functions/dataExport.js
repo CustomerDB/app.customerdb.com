@@ -758,8 +758,8 @@ exports.exportOrganizationData = functions
     timeoutSeconds: 540,
     memory: "2GB",
   })
-  .pubsub.topic("exportOrganizationData")
-  .onPublish((message) => {
+  .pubsub.schedule("every 1 hour")
+  .onRun((context) => {
     const db = admin.firestore();
     let timestamp = new Date().toISOString();
 
