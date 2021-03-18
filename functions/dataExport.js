@@ -377,7 +377,7 @@ function exportSummaries(summariesRef, destinationPrefix) {
                 JSON.stringify(revision)
               );
 
-              fs.writeFileSync(`${summaryID}.json`, JSON.stringify(revision));
+              // fs.writeFileSync(`${summaryID}.json`, JSON.stringify(revision));
 
               let highlightsRef = db
                 .collectionGroup("highlights")
@@ -676,12 +676,9 @@ function zipExport(orgRef, destinationPrefix) {
       return zipdir(tmpDir.name, { saveTo: tmpZip.name }).then(() => {
         // upload zip file
         console.log("uploding zip file...");
-        return bucket.upload(
-          tmpZip.name,
-          { destination: exportPath },
-          (err) => {
-            if (err) throw err;
-
+        return bucket
+          .upload(tmpZip.name, { destination: exportPath })
+          .then(() => {
             console.log("done uploading zip");
             console.log("updating org dataExportPath in firebase");
             return orgRef.update({ dataExportPath: exportPath }).then(() => {
@@ -689,8 +686,7 @@ function zipExport(orgRef, destinationPrefix) {
               tmpDir.removeCallback();
               tmpZip.removeCallback();
             });
-          }
-        );
+          });
       });
     });
   });
