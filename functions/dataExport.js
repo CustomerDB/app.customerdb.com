@@ -758,7 +758,7 @@ exports.exportOrganizationData = functions
     timeoutSeconds: 540,
     memory: "2GB",
   })
-  .pubsub.schedule("every 1 hour")
+  .pubsub.schedule("every 1 hours")
   .onRun((context) => {
     const db = admin.firestore();
     let timestamp = new Date().toISOString();
