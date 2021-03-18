@@ -1,6 +1,5 @@
 import { Cookies, Privacy, Terms } from "./legal/Legal.js";
 import { Navigate, Route, Routes } from "react-router-dom";
-import React, { useState } from "react";
 import { ThemeProvider, createMuiTheme } from "@material-ui/core/styles";
 
 import Admin from "./admin/Admin.js";
@@ -12,6 +11,7 @@ import Login from "./auth/Login.js";
 import Logout from "./auth/Logout.js";
 import Organization from "./organization/Organization.js";
 import Organizations from "./orgs/Organizations.js";
+import React from "react";
 import RequireMembership from "./auth/RequireMembership.js";
 import RequireVerifiedEmail from "./auth/RequireVerifiedEmail.js";
 import ResetPassword from "./auth/ResetPassword.js";
@@ -45,7 +45,7 @@ function Banner() {
         }}
       >
         <h4>
-          CustomerDB access ends{" "}
+          Your CustomerDB access ends{" "}
           {accessDays > 0 ? (
             <>
               in {accessDays} day{accessDays > 1 && "s"}.
@@ -55,17 +55,19 @@ function Banner() {
           )}
         </h4>
         <p>
-          We had a blast serving you, but we will unfortunately be shutting down
+          We had a blast serving you, but unfortunately we are shutting down
           during the coming weeks.
         </p>
         <p>
-          Click <a href="/orgs">here</a> to download a copy of your data or
-          click <a href="">here</a> to read more about our closure.
+          Click <a href="/orgs">here</a> to download a copy of your data. You
+          can email us at{" "}
+          <a href="mailto:founders@quantap.com">founders@quantap.com</a> if you
+          have any questions.
         </p>
         <br />
         <p>
-          Note, that after <b>April 11th</b>, we won't be able to guarantee you
-          can access your data.
+          <b>Note:</b> after <b>April 11th</b>, we won't be able to guarantee
+          access to your data.
         </p>
       </div>
     </div>
