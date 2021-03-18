@@ -1,6 +1,7 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useRef } from "react";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
+import Button from "@material-ui/core/Button";
 import Typography from "@material-ui/core/Typography";
 import FirebaseContext from "../util/FirebaseContext.js";
 import { useNavigate } from "react-router-dom";
@@ -12,6 +13,9 @@ export default function OrgCard({ orgID, claimsReady }) {
   const [org, setOrg] = useState();
   const [numMembers, setNumMembers] = useState();
   const navigate = useNavigate();
+  const [downloadLink, setDownloadLink] = useState();
+
+  const link = useRef();
 
   useEffect(() => {
     if (!db || !orgID) {
@@ -33,6 +37,20 @@ export default function OrgCard({ orgID, claimsReady }) {
       .collection("members")
       .onSnapshot((snapshot) => setNumMembers(snapshot.size));
   }, [db, orgID]);
+
+  useEffect(() => {
+    if (!org || !org.dataExportPath) {
+      return;
+    }
+
+    const storageRef = firebase.storage().ref();
+    storageRef
+      .child(org.dataExportPath)
+      .getDownloadURL()
+      .then((url) => {
+        setDownloadLink(url);
+      });
+  });
 
   let members;
   if (numMembers) {
@@ -57,22 +75,38 @@ export default function OrgCard({ orgID, claimsReady }) {
         width: "20rem",
         cursor: ready ? "pointer" : "",
       }}
-      onClick={() => {
-        if (ready) {
-          navigate(`/orgs/${orgID}`);
-        }
-      }}
     >
       <CardContent>
         <Typography
           variant="h6"
           gutterBottom
           style={{ fontWeight: "bold", color: ready ? "black" : "grey" }}
+          onClick={() => {
+            if (ready) {
+              navigate(`/orgs/${orgID}`);
+            }
+          }}
         >
           {org.name}
         </Typography>
         {!ready && <LinearProgress />}
         {members}
+        <br />
+        {downloadLink && (
+          <Button
+            color="secondary"
+            variant="contained"
+            style={{ marginTop: "1rem" }}
+            onClick={() => {
+              if (link.current) {
+                link.current.click();
+              }
+            }}
+          >
+            Export all data
+          </Button>
+        )}
+        <a href={downloadLink} download ref={link}></a>
       </CardContent>
     </Card>
   );
