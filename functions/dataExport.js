@@ -659,9 +659,7 @@ function zipExport(orgRef, destinationPrefix) {
   const bucket = admin.storage().bucket();
 
   const query = { prefix: destinationPrefix };
-  return bucket.getFiles(query, (err, files) => {
-    if (err) throw err;
-
+  return bucket.getFiles(query).then(([files]) => {
     // download all files to tmp
     console.log("downloading files for final bundling...");
 
