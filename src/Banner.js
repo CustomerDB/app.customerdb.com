@@ -1,10 +1,19 @@
-import React from "react";
+import React, { useState } from "react";
+
+import CloseIcon from "@material-ui/icons/Close";
+import IconButton from "@material-ui/core/IconButton";
 
 export default function Banner() {
   let now = new Date();
   let end = new Date("2021-04-11");
   let accessMs = end.getTime() - now.getTime();
   let accessDays = Math.ceil(accessMs / (1000 * 3600 * 24));
+
+  const [dismissed, setDismissed] = useState(false);
+
+  if (dismissed) {
+    return <></>;
+  }
 
   return (
     <div
@@ -19,6 +28,12 @@ export default function Banner() {
           "rgba(0, 0, 0, 0.2) 0px 2px 1px -1px, rgba(0, 0, 0, 0.14) 0px 1px 1px 0px, rgba(0, 0, 0, 0.12) 0px 1px 3px 0px",
       }}
     >
+      <IconButton
+        onClick={() => setDismissed(true)}
+        style={{ position: "absolute", right: 0, top: 0 }}
+      >
+        <CloseIcon />
+      </IconButton>
       <div
         style={{
           padding: "2rem",

@@ -106,7 +106,9 @@ export default function OrgCard({ orgID, claimsReady }) {
             Export all data
           </Button>
         )}
-        <a href={downloadLink} download ref={link}></a>
+        <a href={downloadLink} download ref={link}>
+          {}
+        </a>
       </CardContent>
     </Card>
   );
