@@ -40,7 +40,7 @@ export default function Banner() {
         }}
       >
         <h4>
-          Your CustomerDB access ends{" "}
+          CustomerDB is shutting down{" "}
           {accessDays > 0 ? (
             <>
               in {accessDays} day{accessDays > 1 && "s"}.
