@@ -117,11 +117,6 @@ export default function Login(props) {
                 <p>
                   Log in by clicking the button below.
                   <br />
-                  If you don't have an account yet,{" "}
-                  <Link color="seconadary" href="/signup">
-                    sign up here
-                  </Link>
-                  .
                 </p>
               </Grid>
             </Grid>

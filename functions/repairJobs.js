@@ -4,6 +4,27 @@ const Delta = require("quill-delta");
 const util = require("./util.js");
 const { v4: uuidv4 } = require("uuid");
 
+exports.addThemeOrganizationIDs = functions.pubsub
+  .topic("theme-org-ids")
+  .onPublish((message) => {
+    const db = admin.firestore();
+    return db
+      .collectionGroup("themes")
+      .get()
+      .then((themesSnapshot) => {
+        return Promise.all(
+          themesSnapshot.docs.map((themeDoc) => {
+            const themeRef = themeDoc.ref;
+            const boardRef = themeRef.parent.parent;
+            const orgRef = boardRef.parent.parent;
+            return themeRef.update({
+              organizationID: orgRef.id,
+            });
+          })
+        );
+      });
+  });
+
 exports.reThumbnailEverything = functions.pubsub
   .topic("reThumbnailEverything")
   .onPublish((message) => {

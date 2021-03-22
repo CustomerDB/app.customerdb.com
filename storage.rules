@@ -19,5 +19,10 @@ service firebase.storage {
       allow read, write: if signedInAndVerified()
                          && orgID in request.auth.token.orgs;
     }
+
+    match /exports/orgs/{orgID}/{date}/CustomerDB-data.zip {
+      allow read: if signedInAndVerified()
+                  && orgID in request.auth.token.orgs;
+    }
   }
 }
