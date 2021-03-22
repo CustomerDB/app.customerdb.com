@@ -82,18 +82,19 @@ function suggestHighlight(doc, suggestionsCollection) {
   );
 }
 
-exports.highlights = functions.firestore
-  .document(
-    "organizations/{orgID}/documents/{documentID}/revisions/{revisionID}"
-  )
-  .onCreate((doc, context) => {
-    return suggestHighlight(doc, "suggestions");
-  });
+// Suggestions are turned off until model gets more precise.
+// exports.highlights = functions.firestore
+//   .document(
+//     "organizations/{orgID}/documents/{documentID}/revisions/{revisionID}"
+//   )
+//   .onCreate((doc, context) => {
+//     return suggestHighlight(doc, "suggestions");
+//   });
 
-exports.transcriptHighlights = functions.firestore
-  .document(
-    "organizations/{orgID}/documents/{documentID}/transcriptRevisions/{revisionID}"
-  )
-  .onCreate((doc, context) => {
-    return suggestHighlight(doc, "transcriptSuggestions");
-  });
+// exports.transcriptHighlights = functions.firestore
+//   .document(
+//     "organizations/{orgID}/documents/{documentID}/transcriptRevisions/{revisionID}"
+//   )
+//   .onCreate((doc, context) => {
+//     return suggestHighlight(doc, "transcriptSuggestions");
+//   });
