@@ -38,5 +38,5 @@ export default function RequireMembership({ children }) {
     return <Navigate to="/logout" />;
   }
 
-  return children;
+  return <>{children}</>;
 }
