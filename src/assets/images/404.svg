@@ -1,4 +1,19 @@
 <svg width="1440" height="1024" viewBox="0 0 1440 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+<!--
+  Copyright 2021 Quantap Inc.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
 <rect width="1440" height="1024" fill="white"/>
 <path d="M197 924C261.617 924 314 871.617 314 807C314 742.383 261.617 690 197 690C132.383 690 80 742.383 80 807C80 871.617 132.383 924 197 924Z" fill="#CDFFE6"/>
 <path fill-rule="evenodd" clip-rule="evenodd" d="M1205.84 879.41C1200.6 870.576 1195 859.527 1189.03 846.263L1185.1 848.021C1180.91 849.893 1175.98 848.305 1173.67 844.338C1171.32 840.287 1172.16 835.134 1175.69 832.045L1180.94 827.443C1171.12 803.675 1160.42 774.502 1148.82 739.924L1215.32 486.5C1207.66 623.837 1212.16 720.606 1228.82 776.805C1253.82 861.104 1281.82 919.06 1306.82 911.684C1323.49 906.766 1338.82 915.372 1352.82 937.5C1343.49 937.5 1328.16 937.5 1306.82 937.5C1296.16 937.5 1245.5 928.651 1217.52 896.153L1211.1 899.021C1206.91 900.893 1201.98 899.305 1199.67 895.338C1197.32 891.287 1198.16 886.134 1201.69 883.045L1205.84 879.41ZM1053 516L1069.82 629C992.25 678.85 942.75 699.683 921.324 691.5C889.185 679.226 873.877 643.31 841.324 571C820.002 523.637 793.565 427.887 762.015 283.748C761.015 279.182 759.617 274.712 757.837 270.39C749.93 251.191 753.759 243.727 769.324 248C794.824 255 896.24 559.805 936.168 571.227C962.786 578.842 1001.73 560.433 1053 516Z" fill="#62BE90"/>
