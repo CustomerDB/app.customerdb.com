@@ -18,6 +18,8 @@
 
 Voice of Customer tool for Product Teams
 
+![screenshot](https://user-images.githubusercontent.com/379372/113600577-13675f80-95f5-11eb-8a50-3564b67f9b8f.png)
+
 High level features:
 
 - Audio / video transcription and replay
